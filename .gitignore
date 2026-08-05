@@ -1,0 +1,23 @@
+# Generated datasets and pipeline output
+*.csv
+out/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+
+# Local environments and credentials
+.env
+.env.*
+!.env.example
+
+# Editor settings
+.vscode/
+
+# Locally stored papers
+*.pdf
+
+
+# Virtual environments
+.venv/
+venv/
