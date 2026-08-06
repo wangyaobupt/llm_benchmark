@@ -1,6 +1,16 @@
 # Generated datasets and pipeline output
 *.csv
 out/
+outputs/
+
+# MIMIC raw source data (not redistributed per PhysioNet DUA)
+mimic/
+
+# Parquet pipeline artifacts
+*.parquet
+
+# Data directory (patient-level data, never committed)
+data/
 
 # Python bytecode and caches
 __pycache__/
