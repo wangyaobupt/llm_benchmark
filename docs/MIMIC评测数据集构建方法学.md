@@ -244,7 +244,7 @@ manifest 文件记录模型版本、规则版本和映射 SHA-256，确保换模
 
 ### 6.3 题型 1 生成方案（设计中）
 
-题型 1（Clinical Investigation Selection）有完整的设计文档（[mcq_generation_design.md](../rwd_benchmark_mcq_generation_design.md)），核心设计原则：
+题型 1（Clinical Investigation Selection）有完整的设计文档（[mcq_generation_design.md](../mcq_generation/mcq_generation_design.md)），核心设计原则：
 
 1. **统计答案先于语言生成**：先确定可靠的"患者特征 → 检查项"统计关系，再生成题干。
 2. **选项由程序锁定**：模型不得增加、删除、改写或重排选项，也不得改变正确答案位置。
