@@ -2,14 +2,14 @@
 
 > 生成时间：2026-08-06 ｜ 目标读者：接手本项目的下一位 Agent
 
-## 0. 项目位置与环境（已变更）
+## 0. 项目位置与环境
 
-项目已从 `G:\Projects\llm_benchmark` **迁移至** `D:\Projects\llm_benchmark`。
+本项目永久在 `D:\Projects\llm_benchmark` 展开（曾位于 G 盘，已废弃）。
 
 | 项 | 路径 / 值 | 说明 |
 |---|---|---|
 | 项目根 | `D:\Projects\llm_benchmark` | WDAC 放行 D 盘，python.exe 可执行 |
-| Git 仓库 | `.git/`（已从 G 盘拷回，历史完整） | HEAD = `7ec7e98`，2 个 commit |
+| Git 仓库 | `.git/`（历史完整） | HEAD = `ef742c6`，3 个 commit |
 | Python venv | `D:\Projects\llm_benchmark\.venv` | CPython 3.14.2，uv 管理 |
 | uv cache | `D:\Projects\llm_benchmark\.uv-cache` | 同盘，避免跨盘拷贝 |
 | 已装依赖 | pandas 3.0.5, matplotlib 3.11.1, numpy 2.5.1 | uv pip install |
@@ -19,7 +19,7 @@
 - 本机 WDAC 应用控制策略**拦截 G 盘和 C:\Users 下新创建的 python.exe 执行**（WinError 4551），仅 D 盘放行。
 - uv 默认 cache 路径 `C:\Users\Fan\AppData\Local\uv\cache` 存在同名文件冲突，必须设 `$env:UV_CACHE_DIR` 指向 D 盘。
 - uv managed Python（符号链接）在 D 盘创建失败（os error 1）；必须用系统 Python `C:\Python314\python.exe` 作为 `--python` 参数。
-- G 盘旧目录 `G:\Projects\llm_benchmark` 仅剩 `.git`，用户确认后可删。
+- G 盘旧目录 `G:\Projects\llm_benchmark` 已废弃；本项目永久在 D 盘开展，不再回迁 G 盘。
 
 ## 1. 项目背景（不重复，引用）
 
