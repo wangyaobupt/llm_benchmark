@@ -15,13 +15,13 @@ from typing import Any
 
 import duckdb
 
-from mimic_pipeline import __version__
-from mimic_pipeline.episode_events import (
+from mimic_episode import __version__
+from mimic_episode.episode_events import (
     GENERIC_EVENT_SPECS,
     generic_event_select,
     generic_item_select,
 )
-from mimic_pipeline.source_catalog import EpisodeDatasetPaths, SOURCE_SPECS
+from mimic_episode.source_catalog import EpisodeDatasetPaths, SOURCE_SPECS
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +72,7 @@ def _sql_literal(path: Path) -> str:
 
 def _load_episode_sql(name: str, substitutions: dict[str, str] | None = None) -> str:
     path = (
-        Path(__file__).resolve().parents[1]
+        Path(__file__).resolve().parents[0]
         / "sql"
         / "episode_aggregation"
         / name

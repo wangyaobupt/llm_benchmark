@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 export DEEPSEEK_API_KEY='***'
-python clean_rwd_benchmark.py "$@"
+python -m rwd_pipeline.clean_rwd_benchmark "$@"

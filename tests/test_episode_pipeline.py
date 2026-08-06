@@ -9,10 +9,10 @@ from pathlib import Path
 
 import duckdb
 
-from mimic_pipeline.cli import create_parser
-from mimic_pipeline.episode_export import export_episode_json
-from mimic_pipeline.episode_pipeline import build_episode_outputs
-from mimic_pipeline.source_catalog import (
+from mimic_episode.cli import create_parser
+from mimic_episode.episode_export import export_episode_json
+from mimic_episode.episode_pipeline import build_episode_outputs
+from mimic_episode.source_catalog import (
     EpisodeDatasetPaths,
     SOURCE_BY_KEY,
     SOURCE_SPECS,
@@ -550,6 +550,7 @@ class EpisodeSourceCatalogTest(unittest.TestCase):
     def test_large_item_sources_do_not_require_global_window_sort(self) -> None:
         sql_path = (
             Path(__file__).resolve().parents[1]
+            / "mimic_episode"
             / "sql"
             / "episode_aggregation"
             / "build_event_sources.sql"

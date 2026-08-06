@@ -5,7 +5,7 @@ import sys
 import time
 from pathlib import Path
 
-from rwd_standardization import (
+from rwd_pipeline.standardization import (
     StandardizationError,
     build_mappings,
     run_standardization,

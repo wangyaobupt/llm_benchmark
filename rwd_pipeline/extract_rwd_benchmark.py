@@ -4,8 +4,8 @@ import argparse
 import sys
 from pathlib import Path
 
-from rwd_extraction.common import ExtractionError
-from rwd_extraction.pipeline import run_extraction
+from rwd_pipeline.extraction.common import ExtractionError
+from rwd_pipeline.extraction.pipeline import run_extraction
 
 
 def parse_args() -> argparse.Namespace:

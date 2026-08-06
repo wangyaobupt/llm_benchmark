@@ -4,11 +4,11 @@ import argparse
 import json
 from pathlib import Path
 
-from mimic_pipeline.episode_export import export_episode_json
-from mimic_pipeline.episode_pipeline import build_episode_outputs
-from mimic_pipeline.paths import DatasetPaths
-from mimic_pipeline.pipeline import build_outputs
-from mimic_pipeline.source_catalog import EpisodeDatasetPaths
+from mimic_episode.episode_export import export_episode_json
+from mimic_episode.episode_pipeline import build_episode_outputs
+from mimic_episode.paths import DatasetPaths
+from mimic_episode.pipeline import build_outputs
+from mimic_episode.source_catalog import EpisodeDatasetPaths
 
 
 def create_parser() -> argparse.ArgumentParser:

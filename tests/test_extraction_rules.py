@@ -3,8 +3,8 @@ import unittest
 
 import pandas as pd
 
-from rwd_extraction.common import compact_json, normalize_name, time_ascending
-from rwd_extraction.output import validate_output
+from rwd_pipeline.extraction.common import compact_json, normalize_name, time_ascending
+from rwd_pipeline.extraction.output import validate_output
 
 
 class ExtractionRuleTests(unittest.TestCase):
@@ -19,7 +19,7 @@ class ExtractionRuleTests(unittest.TestCase):
         self.assertEqual(compact_json({"value": None}), '{"value":null}')
 
     def test_output_validation_accepts_fixed_schema(self):
-        from rwd_extraction.common import OUTPUT_COLUMNS
+        from rwd_pipeline.extraction.common import OUTPUT_COLUMNS
 
         row = {column: "" for column in OUTPUT_COLUMNS}
         row.update(

@@ -10,8 +10,8 @@ from typing import Any
 
 import duckdb
 
-from mimic_pipeline import __version__
-from mimic_pipeline.paths import DatasetPaths
+from mimic_episode import __version__
+from mimic_episode.paths import DatasetPaths
 
 
 OUTPUT_FILES = (
@@ -27,7 +27,7 @@ def _sql_literal(path: Path) -> str:
 
 
 def _load_sql(name: str, substitutions: dict[str, str] | None = None) -> str:
-    sql_path = Path(__file__).resolve().parents[1] / "sql" / name
+    sql_path = Path(__file__).resolve().parents[0] / "sql" / name
     sql = sql_path.read_text(encoding="utf-8")
     return Template(sql).substitute(substitutions or {})
 

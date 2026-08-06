@@ -1,4 +1,4 @@
-from mimic_pipeline.cli import main
+from mimic_episode.cli import main
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from rwd_cleaning import CleaningError, run_cleaning
+from rwd_pipeline.cleaning import CleaningError, run_cleaning
 
 
 def parse_args() -> argparse.Namespace:

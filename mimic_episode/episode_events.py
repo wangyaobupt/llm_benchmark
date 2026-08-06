@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from mimic_pipeline.source_catalog import SOURCE_BY_KEY
+from mimic_episode.source_catalog import SOURCE_BY_KEY
 
 
 @dataclass(frozen=True)

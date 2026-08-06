@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from rwd_cleaning.pipeline import (
+from rwd_pipeline.cleaning.pipeline import (
     CLEANED_FIELDS,
     OUTPUT_COLUMNS,
     CleaningError,
@@ -15,7 +15,7 @@ from rwd_cleaning.pipeline import (
     _prepare_llm_text,
     run_cleaning,
 )
-from rwd_cleaning.prompts import PROMPTS
+from rwd_pipeline.cleaning.prompts import PROMPTS
 
 
 class FakeClient:
@@ -161,7 +161,7 @@ class DeepSeekClientTests(unittest.TestCase):
         response.choices[0].message.content = '{"entities":["Chest pain"]}'
         sdk = MagicMock()
         sdk.chat.completions.create.return_value = response
-        with patch("rwd_cleaning.pipeline.OpenAI", return_value=sdk) as openai_client:
+        with patch("rwd_pipeline.cleaning.pipeline.OpenAI", return_value=sdk) as openai_client:
             client = DeepSeekClient("test-key")
             entities = client.extract("chief_complaint", "Chest pain")
 
@@ -194,7 +194,7 @@ class DeepSeekClientTests(unittest.TestCase):
         response.choices[0].message.content = '{"entities":["pain"'
         sdk = MagicMock()
         sdk.chat.completions.create.return_value = response
-        with patch("rwd_cleaning.pipeline.OpenAI", return_value=sdk):
+        with patch("rwd_pipeline.cleaning.pipeline.OpenAI", return_value=sdk):
             client = DeepSeekClient("test-key", max_attempts=1)
             with self.assertRaisesRegex(ResponseError, "truncated.*finish_reason=length"):
                 client._request_once(

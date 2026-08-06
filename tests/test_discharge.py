@@ -1,6 +1,6 @@
 import unittest
 
-from rwd_extraction.discharge import extract_section, parse_discharge_sections
+from rwd_pipeline.extraction.discharge import extract_section, parse_discharge_sections
 
 
 class DischargeParsingTests(unittest.TestCase):

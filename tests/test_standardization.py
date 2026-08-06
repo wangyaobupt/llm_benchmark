@@ -4,9 +4,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from rwd_standardization.common import INPUT_COLUMNS, OUTPUT_COLUMNS, canonical_name
-from rwd_standardization.mapping import MappingIndex
-from rwd_standardization.pipeline import (
+from rwd_pipeline.standardization.common import INPUT_COLUMNS, OUTPUT_COLUMNS, canonical_name
+from rwd_pipeline.standardization.mapping import MappingIndex
+from rwd_pipeline.standardization.pipeline import (
     StandardizationError,
     _validate_standardized_output,
     build_mappings,

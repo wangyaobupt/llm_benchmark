@@ -9,7 +9,7 @@ import logging
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 import duckdb
-from mimic_pipeline.episode_pipeline import (
+from mimic_episode.episode_pipeline import (
     PARQUET_VIEWS,
     _assert_hard_quality,
     _collect_report,

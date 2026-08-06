@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from rwd_extraction.common import ExtractionError, OUTPUT_COLUMNS
-from rwd_extraction.pipeline import run_extraction
+from rwd_pipeline.extraction.common import ExtractionError, OUTPUT_COLUMNS
+from rwd_pipeline.extraction.pipeline import run_extraction
 
 
 class PipelineTests(unittest.TestCase):

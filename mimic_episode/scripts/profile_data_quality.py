@@ -13,7 +13,7 @@ from pathlib import Path
 import duckdb
 
 OUTPUT_DIR = Path(r"G:\Projects\医疗数据集评测-MIMIC\outputs\episodes")
-REPORT_PATH = Path(__file__).resolve().parents[1] / "docs" / "data-profiling-report.md"
+REPORT_PATH = Path(__file__).resolve().parents[2] / "docs" / "data-profiling-report.md"
 
 
 def lit(p: Path) -> str:
