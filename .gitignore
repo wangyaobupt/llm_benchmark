@@ -21,3 +21,6 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+
+# Handoff documents (not version-controlled, per handoff skill convention)
+handoffs/

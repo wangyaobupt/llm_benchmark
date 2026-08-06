@@ -4,7 +4,7 @@
 
 ## 0. 项目位置与环境
 
-本项目永久在 `D:\Projects\llm_benchmark` 展开（曾位于 G 盘，已废弃）。
+本项目永久在 `D:\Projects\llm_benchmark` 展开。
 
 | 项 | 路径 / 值 | 说明 |
 |---|---|---|
@@ -19,7 +19,6 @@
 - 本机 WDAC 应用控制策略**拦截 G 盘和 C:\Users 下新创建的 python.exe 执行**（WinError 4551），仅 D 盘放行。
 - uv 默认 cache 路径 `C:\Users\Fan\AppData\Local\uv\cache` 存在同名文件冲突，必须设 `$env:UV_CACHE_DIR` 指向 D 盘。
 - uv managed Python（符号链接）在 D 盘创建失败（os error 1）；必须用系统 Python `C:\Python314\python.exe` 作为 `--python` 参数。
-- G 盘旧目录 `G:\Projects\llm_benchmark` 已废弃；本项目永久在 D 盘开展，不再回迁 G 盘。
 
 ## 1. 项目背景（不重复，引用）
 
