@@ -5,192 +5,275 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIMIC 临床 LLM Benchmark · 项目仪表盘</title>
 <style>
-:root{--bg:#f1f5f4;--surface:#fff;--surface-hover:#f8faf9;--sidebar-bg:#0f3a36;--sidebar-hover:#16504a;--sidebar-active:#1a5e57;--text:#1e293b;--text-muted:#64748b;--text-light:#94a3b8;--border:#e2e8f0;--teal:#0d9488;--green:#16a34a;--green-bg:#dcfce7;--amber:#d97706;--amber-bg:#fef3c7;--red:#dc2626;--red-bg:#fee2e2;--blue:#2563eb;--blue-bg:#dbeafe;--purple:#7c3aed;--purple-bg:#ede9fe;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1);--radius:6px;--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;--mono:"SF Mono","Cascadia Code",Consolas,monospace}
+:root{
+--bg:#eef2f1;--surface:#fff;--surface-hover:#f8faf9;
+--sidebar-bg:#0b2e2a;--sidebar-grad:linear-gradient(180deg,#0f3a36 0%,#0a2825 100%);
+--sidebar-hover:rgba(255,255,255,.06);--sidebar-active:rgba(45,212,191,.12);
+--text:#1a2332;--text-muted:#5b6878;--text-light:#9ba8b6;
+--border:#e0e6ea;--border-light:#eef2f4;
+--teal:#0d8a7e;--teal-light:#5eead4;--teal-bg:#f0fdfa;
+--green:#15803d;--green-bg:#f0fdf4;--green-bd:#bbf7d0;
+--amber:#b45309;--amber-bg:#fffbeb;--amber-bd:#fde68a;
+--blue:#1d4ed8;--blue-bg:#eff6ff;--blue-bd:#bfdbfe;
+--purple:#6d28d9;--purple-bg:#f5f3ff;--purple-bd:#ddd6fe;
+--shadow-xs:0 1px 2px rgba(15,42,37,.05);
+--shadow-sm:0 1px 3px rgba(15,42,37,.07),0 1px 2px rgba(15,42,37,.04);
+--shadow-md:0 4px 12px rgba(15,42,37,.08),0 1px 3px rgba(15,42,37,.05);
+--shadow-lg:0 8px 24px rgba(15,42,37,.1),0 2px 6px rgba(15,42,37,.06);
+--radius:8px;--radius-sm:5px;
+--font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+--mono:"SF Mono","Cascadia Code","Fira Code",Consolas,monospace;
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--sidebar-bg);color:#cbd5e1;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
-.sidebar-header{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
-.sidebar-header h1{font-size:15px;font-weight:700;color:#fff}
-.sidebar-header p{font-size:11px;color:#6ee7d7;margin-top:4px}
-.sidebar-nav{padding:10px 0;flex:1}
-.sidebar-nav a{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:13px;color:#94a3b8;text-decoration:none;transition:all .15s;cursor:pointer;border-left:3px solid transparent}
-.sidebar-nav a:hover{background:var(--sidebar-hover);color:#e2e8f0}
-.sidebar-nav a.active{background:var(--sidebar-active);color:#fff;border-left-color:#2dd4bf}
-.sidebar-nav a svg{width:16px;height:16px;flex-shrink:0}
-.sidebar-footer{padding:14px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#64748b}
-.sidebar-footer code{color:#6ee7d7;font-family:var(--mono);font-size:10px}
-.main{margin-left:240px;min-height:100vh}
-.section{padding:28px 32px;border-bottom:1px solid var(--border)}
-.section:last-child{border-bottom:none}
-.section-title{font-size:18px;font-weight:700;margin-bottom:4px}
-.section-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow)}
-.stat-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:600}
-.stat-value{font-size:26px;font-weight:700;margin-top:4px}
-.stat-unit{font-size:13px;color:var(--text-muted);font-weight:400}
-.stat-hint{font-size:11px;color:var(--text-light);margin-top:2px}
-.pipeline-flow{display:flex;align-items:stretch;gap:0;margin-bottom:20px;overflow-x:auto}
-.pipeline-stage{flex:1;min-width:160px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow)}
-.pipeline-stage:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
-.pipeline-arrow{display:flex;align-items:center;color:var(--text-light);font-size:20px;padding:0 6px;flex-shrink:0}
-.stage-num{font-size:11px;font-weight:700;color:var(--text-light)}
-.stage-name{font-size:14px;font-weight:600;margin-top:2px}
-.stage-status{display:inline-block;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:8px}
-.stage-detail{font-size:12px;color:var(--text-muted);margin-top:8px}
-.stage-progress-bar{height:4px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
-.stage-progress-fill{height:100%;border-radius:2px;transition:width .8s ease}
-.status-done{background:var(--green-bg);color:var(--green)}
-.status-next{background:var(--blue-bg);color:var(--blue)}
-.status-pending{background:var(--amber-bg);color:var(--amber)}
-.status-blocked{background:var(--red-bg);color:var(--red)}
-.status-design{background:var(--purple-bg);color:var(--purple)}
-.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600;white-space:nowrap}
-.badge-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.badge-green{background:var(--green-bg);color:var(--green)}.badge-green .badge-dot{background:var(--green)}
-.badge-amber{background:var(--amber-bg);color:var(--amber)}.badge-amber .badge-dot{background:var(--amber)}
-.badge-red{background:var(--red-bg);color:var(--red)}.badge-red .badge-dot{background:var(--red)}
-.badge-blue{background:var(--blue-bg);color:var(--blue)}.badge-blue .badge-dot{background:var(--blue)}
-.badge-purple{background:var(--purple-bg);color:var(--purple)}.badge-purple .badge-dot{background:var(--purple)}
-.expand-body{display:none;padding:14px 18px;background:#f8faf9;border-top:1px solid var(--border);font-size:12px;color:var(--text-muted)}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+/* SIDEBAR */
+.sidebar{
+position:fixed;top:0;left:0;width:220px;height:100vh;
+background:var(--sidebar-grad);color:#a7c2bc;
+display:flex;flex-direction:column;z-index:100;
+}
+.sidebar-header{padding:28px 22px 20px;border-bottom:1px solid rgba(255,255,255,.06)}
+.brand-mark{
+width:32px;height:32px;border-radius:8px;
+background:linear-gradient(135deg,#2dd4bf,#0d8a7e);
+display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+box-shadow:0 2px 8px rgba(45,212,191,.3);
+}
+.brand-mark svg{width:18px;height:18px;color:#fff}
+.sidebar-header h1{font-size:14px;font-weight:700;color:#fff;line-height:1.4;letter-spacing:-.01em}
+.sidebar-header p{font-size:11px;color:var(--teal-light);margin-top:3px;letter-spacing:.02em}
+.sidebar-nav{padding:12px 0;flex:1}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#5e7975;font-weight:600;padding:0 22px;margin-bottom:6px}
+.sidebar-nav a{
+display:flex;align-items:center;gap:11px;
+padding:11px 22px;font-size:13px;color:#8fa9a3;font-weight:500;
+text-decoration:none;transition:all .18s ease;cursor:pointer;
+border-left:3px solid transparent;position:relative;
+}
+.sidebar-nav a:hover{background:var(--sidebar-hover);color:#dbe8e4}
+.sidebar-nav a.active{background:var(--sidebar-active);color:#fff;border-left-color:var(--teal-light)}
+.sidebar-nav a svg{width:17px;height:17px;flex-shrink:0;opacity:.7;transition:opacity .18s}
+.sidebar-nav a.active svg,.sidebar-nav a:hover svg{opacity:1}
+
+/* MAIN */
+.main{margin-left:220px;min-height:100vh}
+.section{padding:36px 40px;border-bottom:1px solid var(--border-light)}
+.section:last-child{border-bottom:none;padding-bottom:48px}
+.section-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.section-icon{
+width:28px;height:28px;border-radius:7px;
+display:flex;align-items:center;justify-content:center;flex-shrink:0;
+background:var(--teal-bg);color:var(--teal);
+}
+.section-icon svg{width:15px;height:15px}
+.section-title{font-size:20px;font-weight:700;letter-spacing:-.015em;color:var(--text)}
+.section-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.5}
+
+/* PIPELINE */
+.pipeline-flow{display:flex;align-items:stretch;gap:0;margin-bottom:8px;overflow-x:auto;padding-bottom:4px}
+.pipeline-stage{
+flex:1;min-width:165px;background:var(--surface);
+border:1px solid var(--border);border-radius:var(--radius);
+padding:18px 18px 16px;cursor:pointer;transition:all .22s ease;
+box-shadow:var(--shadow-xs);position:relative;overflow:hidden;
+}
+.pipeline-stage::before{
+content:"";position:absolute;top:0;left:0;right:0;height:3px;
+opacity:0;transition:opacity .22s;
+}
+.pipeline-stage[data-status="done"]::before{background:var(--green);opacity:1}
+.pipeline-stage[data-status="next"]::before{background:var(--blue);opacity:1}
+.pipeline-stage[data-status="pending"]::before{background:var(--amber);opacity:1}
+.pipeline-stage[data-status="design"]::before{background:var(--purple);opacity:1}
+.pipeline-stage:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--border-light)}
+.pipeline-stage.open{box-shadow:var(--shadow-md);border-color:var(--teal)}
+.pipeline-stage.open::before{height:4px}
+.pipeline-arrow{
+display:flex;align-items:center;justify-content:center;
+width:32px;flex-shrink:0;color:var(--border);
+}
+.pipeline-arrow svg{width:18px;height:18px;transition:color .2s}
+.pipeline-flow:hover .pipeline-arrow{color:var(--text-light)}
+
+.stage-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.stage-num{font-size:10px;font-weight:700;color:var(--text-light);letter-spacing:.05em;font-family:var(--mono);text-transform:uppercase}
+.stage-pct{font-size:11px;font-weight:700;font-family:var(--mono)}
+.stage-name{font-size:15px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
+.stage-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;margin-top:10px}
+.stage-detail{font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.5}
+.stage-progress-bar{height:5px;background:#eef2f4;border-radius:3px;margin-top:12px;overflow:hidden}
+.stage-progress-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+.status-done{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.status-next{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-bd)}
+.status-pending{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-bd)}
+.status-design{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-bd)}
+
+.status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.status-done .status-dot{background:var(--green)}
+.status-next .status-dot{background:var(--blue)}
+.status-pending .status-dot{background:var(--amber)}
+.status-design .status-dot{background:var(--purple)}
+
+.expand-body{display:none;padding:14px 18px 4px;background:transparent;border-top:1px solid var(--border-light);margin:14px -18px 0}
+.pipeline-stage.open .expand-body{display:block;animation:expandIn .25s ease}
+@keyframes expandIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 .expand-body ul{list-style:none;padding:0}
-.expand-body li{padding:4px 0;padding-left:16px;position:relative}
-.expand-body li::before{content:"\203A";position:absolute;left:0;color:var(--teal);font-weight:700}
-.pipeline-stage.open .expand-body{display:block}
-.pipeline-stage.open{background:#f0fdfa;border-color:var(--teal)}
-.dim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
-.dim-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
-.dim-num{font-size:24px;font-weight:800;color:var(--teal)}
-.dim-title{font-size:14px;font-weight:600;margin-top:2px}
-.dim-q{font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic}
-.dim-fields{margin-top:10px;display:flex;flex-wrap:wrap;gap:4px}
-.field-tag{font-size:11px;background:#f1f5f9;padding:2px 7px;border-radius:3px;font-family:var(--mono);color:var(--text-muted)}
-.timeline-item{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
-.timeline-item:last-child{border-bottom:none}
-.timeline-date{font-size:12px;font-weight:600;color:var(--teal);white-space:nowrap;min-width:100px;font-family:var(--mono)}
-.timeline-content{font-size:13px}
-.timeline-hash{font-family:var(--mono);font-size:11px;color:var(--text-light)}
-.risk-item{background:var(--surface);border:1px solid var(--border);border-left:4px solid;border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow)}
-.risk-item.p0{border-left-color:var(--red)}
-.risk-item.p1{border-left-color:var(--amber)}
-.risk-item.p2{border-left-color:var(--blue)}
-.risk-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.risk-title{font-size:13px;font-weight:600}
-.risk-desc{font-size:12px;color:var(--text-muted);margin-top:4px}
-.data-note{background:var(--blue-bg);border:1px solid #93c5fd;border-radius:var(--radius);padding:12px 16px;font-size:12px;color:#1e40af;margin-bottom:16px}
-.data-note code{font-family:var(--mono);background:rgba(255,255,255,.5);padding:1px 4px;border-radius:3px}
-@media(max-width:768px){.sidebar{width:60px}.sidebar-header h1,.sidebar-header p,.sidebar-nav a span,.sidebar-footer{display:none}.main{margin-left:60px}.section{padding:20px 16px}}
+.expand-body li{padding:5px 0 5px 18px;position:relative;font-size:12px;color:var(--text-muted);line-height:1.5}
+.expand-body li::before{content:"";position:absolute;left:0;top:11px;width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.5}
+
+/* DIMENSIONS */
+.dim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.dim-card{
+background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+padding:0;box-shadow:var(--shadow-xs);transition:all .22s ease;overflow:hidden;
+}
+.dim-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--border-light)}
+.dim-card-top{padding:18px 20px 16px}
+.dim-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px}
+.dim-badge{
+width:34px;height:34px;border-radius:9px;flex-shrink:0;
+display:flex;align-items:center;justify-content:center;
+font-size:16px;font-weight:800;color:#fff;
+background:linear-gradient(135deg,#2dd4bf,#0d8a7e);
+box-shadow:0 2px 8px rgba(13,138,126,.25);
+}
+.dim-info{flex:1;min-width:0}
+.dim-title{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.dim-q{font-size:12px;color:var(--text-muted);margin-top:3px;font-style:italic;line-height:1.4}
+.dim-ready{
+display:inline-flex;align-items:center;gap:5px;
+font-size:11px;font-weight:600;color:var(--green);
+background:var(--green-bg);border:1px solid var(--green-bd);
+padding:3px 8px;border-radius:20px;white-space:nowrap;
+}
+.ready-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.dim-section{padding:12px 20px;border-top:1px solid var(--border-light)}
+.dim-section:first-of-type{border-top:none}
+.dim-section-label{font-size:10px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.dim-fields{display:flex;flex-wrap:wrap;gap:5px}
+.field-tag{
+font-size:11px;background:#f4f7f8;padding:3px 8px;border-radius:5px;
+font-family:var(--mono);color:var(--text-muted);font-weight:500;
+border:1px solid var(--border-light);transition:all .15s;
+}
+.field-tag:hover{background:var(--teal-bg);color:var(--teal);border-color:var(--teal-bd,#99f6e4)}
+.dim-note{font-size:11px;color:var(--text-light);margin-top:6px;line-height:1.4}
+
+/* SCROLLBAR */
+.pipeline-flow::-webkit-scrollbar{height:6px}
+.pipeline-flow::-webkit-scrollbar-track{background:transparent}
+.pipeline-flow::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.pipeline-flow::-webkit-scrollbar-thumb:hover{background:var(--text-light)}
+
+@media(max-width:768px){
+.sidebar{width:56px}.sidebar-header h1,.sidebar-header p,.sidebar-nav a span,.nav-label,.brand-mark span{display:none}
+.brand-mark{margin:0 auto}
+.main{margin-left:56px}.section{padding:24px 18px}
+}
 </style>
 </head>
 <body>
 <div class="sidebar">
-<div class="sidebar-header"><h1>MIMIC 临床 LLM Benchmark</h1><p>项目进度仪表盘</p></div>
+<div class="sidebar-header">
+<div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+<h1>MIMIC 临床 LLM Benchmark</h1>
+<p>项目进度仪表盘</p>
+</div>
 <nav class="sidebar-nav">
-<a class="active" data-target="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>概览</span></a>
-<a data-target="pipeline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg><span>流水线</span></a>
-<a data-target="dimensions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H5a2 2 0 00-2 2v7h18v-7a2 2 0 00-2-2h-4M9 11V7a3 3 0 116 0v4M9 11h6"/></svg><span>五维就绪度</span></a>
-<a data-target="risks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span>风险与阻塞</span></a>
-<a data-target="timeline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg><span>提交历史</span></a>
-<a data-target="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span>数据编辑</span></a>
+<div class="nav-label">进度</div>
+<a class="active" data-target="pipeline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg><span>数据流水线</span></a>
+<a data-target="dimensions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>五维就绪度</span></a>
 </nav>
-<div class="sidebar-footer">Git HEAD: <code id="git-head-short"></code><br>更新: <span id="updated-date"></span></div>
 </div>
+
 <div class="main">
-<div class="section" id="overview">
-<div class="section-title">项目概览</div>
-<div class="section-sub">基于 MIMIC-IV v3.1 / ED 2.2 / Note 2.2 构建临床 LLM 评测基准 — 先产出五类临床单选题，再从五个维度评估 LLM 临床判断能力</div>
-<div class="stat-grid" id="stat-grid"></div>
-</div>
 <div class="section" id="pipeline">
+<div class="section-head">
+<div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
 <div class="section-title">数据流水线</div>
-<div class="section-sub">五阶段门禁式流水线 — 点击任一阶段查看详情。绿色=完成，蓝色=下一步，黄色=待办，紫色=设计，红色=阻塞</div>
-<div class="data-note">数据底座已切换为 <code>rwd_benchmark_visits.jsonl</code>（37 字段全量 JSONL）。旧的 17 列 CSV 路线（<code>rwd_pipeline/</code>）已由新路线替代。</div>
+</div>
+<div class="section-sub">五阶段门禁式流水线 — 点击任一阶段查看详情</div>
 <div class="pipeline-flow" id="pipeline-flow"></div>
 </div>
+
 <div class="section" id="dimensions">
+<div class="section-head">
+<div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
 <div class="section-title">五个评估维度 · 数据就绪度</div>
-<div class="section-sub">新 37 字段 JSONL 数据底座下，五个维度的答案来源字段已全部覆盖。维度 ④ 转诊科室和 ⑤ 离院指导在旧路线下的数据缺口已根治。</div>
+</div>
+<div class="section-sub">37 字段 JSONL 数据底座下，五个维度的答案来源字段已全部覆盖</div>
 <div class="dim-grid" id="dim-grid"></div>
 </div>
-<div class="section" id="risks">
-<div class="section-title">风险与阻塞项</div>
-<div class="section-sub">当前需关注的问题，按优先级排列</div>
-<div id="risk-list"></div>
 </div>
-<div class="section" id="timeline">
-<div class="section-title">关键提交历史</div>
-<div class="section-sub">项目演进里程碑（近期提交）</div>
-<div id="timeline-list"></div>
-</div>
-<div class="section" id="data">
-<div class="section-title">数据编辑区</div>
-<div class="section-sub">进度变化时，编辑下方 DATA 对象中的对应字段值，保存后刷新页面即可更新仪表盘</div>
-<div class="data-note">更新方法：修改 <code>&lt;script&gt;</code> 标签内的 <code>DATA</code> 对象 — 修改 <code>status</code> 字段值（<code>done</code> / <code>next</code> / <code>pending</code> / <code>design</code> / <code>blocked</code>）和 <code>progress</code> 百分比即可反映最新进度。</div>
-<div style="background:#1e293b;border-radius:6px;padding:16px;overflow-x:auto;max-height:400px;overflow-y:auto;">
-<pre id="data-display" style="font-size:12px;line-height:1.6;font-family:var(--mono);color:#94a3b8;"></pre>
-</div>
-</div>
-</div>
+
 <script>
 var DATA={
-meta:{lastUpdated:"2026-08-07",gitHead:"8540075",gitCommits:33,untrackedFiles:34},
-stats:[
-{label:"提取 visits",value:"320,267",unit:"",hint:"候选 331,537，跳过 11,270"},
-{label:"数据体积",value:"27.4",unit:"GB",hint:"JSONL，均值 89.6 KB/visit"},
-{label:"字段数",value:"37",unit:"fields",hint:"8 顶层分组，覆盖临床全流程"},
-{label:"提取耗时",value:"68",unit:"min",hint:"DuckDB 流式批处理 10K/batch"},
-{label:"评估维度",value:"5",unit:"dims",hint:"检查→诊断→治疗→转诊→离院"},
-{label:"Git 提交",value:"33",unit:"commits",hint:"未跟踪文件 34 个"},
-{label:"题库产出",value:"0",unit:"MCQ",hint:"出题代码待实现"}
-],
 pipeline:[
 {num:"01",name:"数据抽取",status:"done",progress:100,detail:"320K visits JSONL 已产出",expand:["G 盘 episode parquet → visit 级 JSONL 适配层 (src/parquet_to_jsonl/)","37 字段，8 顶层分组：identifiers / demographics / vitals / narrative / investigations / diagnoses / treatments / disposition","排除 ICU 连续监测事件，全量 EDA 已完成 (18 张分析图)","产物：G:/Projects/llm_benchmark/data/rwd_benchmark_visits.jsonl"]},
 {num:"02",name:"清洗",status:"next",progress:0,detail:"7 个 DS 文本字段 → LLM 实体抽取",expand:["目标字段：chief_complaint, HPI, PMH, medications_on_admission, social_history, allergies, physical_exam","输出：JSONL 新增 _entities 数组，原文保留不动","技术路线：DeepSeek API + 多线程 + checkpoint 断点续跑 + fail-closed","状态：待编写清洗 spec + 编码"]},
 {num:"03",name:"标准化",status:"pending",progress:0,detail:"值级术语标准化（不改字段结构）",expand:["诊断名 → 标准疾病名 + ICD 章节归组（EDA 已有归组代码）","药物名 → 标准通用名 / 药物类别","症状实体同义归并（如 SOB = shortness of breath）","radiology exam_name 归一化；年龄 → age_band","双阶段 LLM 映射 + manifest，统计证据不足即终止","状态：待编写标准化 spec + 编码"]},
 {num:"04",name:"MCQ 出题",status:"design",progress:15,detail:"题型 1 有 10 阶段设计，题型 2-5 仅规范",expand:["题型 1（检查检验选择）：完整 10 阶段管线设计 + 8 道统计硬门槛，零实现代码","题型 2-5（诊断/治疗/转诊/离院）：仅有题型规范 + EHR 字段表，无出题设计","核心原则：统计答案先于语言生成，LLM 被严格隔离在答案确定之外","状态：依赖清洗+标准化完成后启动"]},
-{num:"05",name:"LLM 评估",status:"blocked",progress:0,detail:"评估框架完全未启动",expand:["评估脚本 + 指标 + LLM 接入 + subject_id 级防泄漏划分","五个维度逐一评测（含人工/自动审题门禁）","结果分析与报告","阻塞原因：依赖 MCQ 题库产出"]}
+{num:"05",name:"LLM 评估",status:"pending",progress:0,detail:"评估框架未启动",expand:["评估脚本 + 指标 + LLM 接入 + subject_id 级防泄漏划分","五个维度逐一评测（含人工/自动审题门禁）","结果分析与报告","依赖 MCQ 题库产出后启动"]}
 ],
 dimensions:[
-{num:"1",title:"检查检验选择",q:"给定患者表现，最应优先选择哪项检查？",status:"green",statusText:"数据就绪",answerFields:["investigations"],answerNote:"labevents + poe + radiology",stemFields:["age","sex","chief_complaint","HPI","PMH","meds_on_admission"]},
-{num:"2",title:"临床诊断",q:"整合症状、体征和检查结果，最可能的诊断？",status:"green",statusText:"数据就绪",answerFields:["diagnoses.primary","diagnoses.other"],answerNote:"ICD-9/10 + 诊断字典",stemFields:["age","sex","chief_complaint","PMH","investigations","physical_exam"]},
-{num:"3",title:"治疗处置",q:"根据诊断和患者情况，最适当的治疗方案？",status:"green",statusText:"数据就绪",answerFields:["treatments.medications","treatments.procedures"],answerNote:"prescriptions + procedures_icd",stemFields:["age","sex","chief_complaint","primary_dx","PMH","allergies","investigations"]},
-{num:"4",title:"转诊科室",q:"患者当前应转介至哪个科室或服务？",status:"green",statusText:"数据就绪（新修复）",answerFields:["disposition.primary_service","disposition.discharge_location"],answerNote:"services + admissions",stemFields:["age","sex","chief_complaint","admission_type","admission_location","ed_disposition"]},
-{num:"5",title:"离院指导",q:"根据治疗经过和离院状态，最适当的指导？",status:"green",statusText:"数据就绪（新修复）",answerFields:["disposition.discharge_record"],answerNote:"DS → Discharge Instructions (99.2% 覆盖率)",stemFields:["age","sex","primary_dx","brief_hospital_course","discharge_medications","discharge_condition"]}
-],
-risks:[
-{prio:"P0",title:"出题代码零实现",desc:"题型 1 有完整 10 阶段设计但无代码；题型 2-5 连出题设计都缺。依赖清洗+标准化完成后启动。",status:"design"},
-{prio:"P1",title:"清洗 / 标准化 spec 尚未编写",desc:"旧 spec 针对 17 列 CSV，需重新适配 37 字段 JSONL。7 个 DS 文本字段需新增 LLM 实体抽取 prompt。",status:"next"},
-{prio:"P1",title:"34 个文件未纳入版本控制",desc:"research/ 全部文献综述成果、architecture_overview.md、调试脚本等均在工作区未跟踪状态。",status:"next"},
-{prio:"P2",title:"子系统 B 负时长 episode 待删除",desc:"154 个负时长 episode，SQL 已改，脚本待运行。不影响主线但数据底座未闭环。",status:"pending"},
-{prio:"P2",title:"旧路线文档与实际代码脱节",desc:"项目接手文档（8/5）和推进计划（8/6）仍描述 17 列 CSV + 标准化缺失 P0，与 8/7 路线升级矛盾。",status:"pending"},
-{prio:"P2",title:"README 手改语义不清",desc:"README.md 标准化行追加了草稿式中文注释，非正式改动，建议清理。",status:"pending"}
-],
-timeline:[
-{date:"2026-08-07 18:01",hash:"8540075",text:"优化 EDA 报告导航体验 — 粘性导航栏 + 滚动高亮 + 平滑跳转"},
-{date:"2026-08-07 17:54",hash:"ddf13e2",text:"新增图文并茂 EDA 分析报告 (HTML, 18 图 base64 内嵌)"},
-{date:"2026-08-07 17:41",hash:"7fe4f33",text:"疾病分布 EDA 脚本 — ICD 章节归组、年龄/性别交叉分析、共病模式"},
-{date:"2026-08-07 17:27",hash:"c0b260e",text:"全量 EDA 脚本 — 流式扫描 32 万 visit，生成 11 张分析图"},
-{date:"2026-08-07 17:15",hash:"b654be4",text:"实现 G 盘 parquet 到 JSONL 适配层，完成 33 万 visit 全量提取"},
-{date:"2026-08-07 15:27",hash:"fbd0d75",text:"新增 G 盘 parquet 到 JSONL 适配层设计文档"},
-{date:"2026-08-07 15:19",hash:"59a1899",text:"新增 visit 级 JSONL 全量数据提取规范（47 字段，排除 ICU）"},
-{date:"2026-08-06",hash:"469c5a5",text:"重写 README：从 MIMIC 数据提取工具重新定位为香港 RWD 临床基准项目"},
-{date:"2026-08-06",hash:"73e22dd",text:"统一 Python 环境到 3.12：pyproject.toml 合并依赖，重建 .venv"},
-{date:"2026-08-06",hash:"7b61fc4",text:"Initial baseline: RWD clinical benchmark extraction/cleaning pipeline"}
+{num:"1",title:"检查检验选择",q:"给定患者表现，最应优先选择哪项检查？",statusText:"数据就绪",answerFields:["investigations"],answerNote:"labevents + poe + radiology",stemFields:["age","sex","chief_complaint","HPI","PMH","meds_on_admission"]},
+{num:"2",title:"临床诊断",q:"整合症状、体征和检查结果，最可能的诊断？",statusText:"数据就绪",answerFields:["diagnoses.primary","diagnoses.other"],answerNote:"ICD-9/10 + 诊断字典",stemFields:["age","sex","chief_complaint","PMH","investigations","physical_exam"]},
+{num:"3",title:"治疗处置",q:"根据诊断和患者情况，最适当的治疗方案？",statusText:"数据就绪",answerFields:["treatments.medications","treatments.procedures"],answerNote:"prescriptions + procedures_icd",stemFields:["age","sex","chief_complaint","primary_dx","PMH","allergies","investigations"]},
+{num:"4",title:"转诊科室",q:"患者当前应转介至哪个科室或服务？",statusText:"数据就绪",answerFields:["disposition.primary_service","disposition.discharge_location"],answerNote:"services + admissions",stemFields:["age","sex","chief_complaint","admission_type","admission_location","ed_disposition"]},
+{num:"5",title:"离院指导",q:"根据治疗经过和离院状态，最适当的指导？",statusText:"数据就绪",answerFields:["disposition.discharge_record"],answerNote:"DS → Discharge Instructions (99.2% 覆盖率)",stemFields:["age","sex","primary_dx","brief_hospital_course","discharge_medications","discharge_condition"]}
 ]
 };
-var statusMap={done:{cls:"status-done",label:"完成",badge:"badge-green"},next:{cls:"status-next",label:"下一步",badge:"badge-blue"},pending:{cls:"status-pending",label:"待办",badge:"badge-amber"},design:{cls:"status-design",label:"设计中",badge:"badge-purple"},blocked:{cls:"status-blocked",label:"阻塞",badge:"badge-red"}};
-var colorMap={done:"var(--green)",next:"var(--blue)",pending:"var(--amber)",design:"var(--purple)",blocked:"var(--red)"};
-function esc(s){return s}
-function renderStats(){document.getElementById("stat-grid").innerHTML=DATA.stats.map(function(s){return'<div class="stat-card"><div class="stat-label">'+s.label+'</div><div class="stat-value">'+s.value+'<span class="stat-unit"> '+s.unit+'</span></div><div class="stat-hint">'+s.hint+'</div></div>'}).join("")}
-function renderPipeline(){document.getElementById("pipeline-flow").innerHTML=DATA.pipeline.map(function(s,i){var st=statusMap[s.status];var ex=s.expand?'<div class="expand-body"><ul>'+s.expand.map(function(e){return'<li>'+e+'</li>'}).join("")+'</ul></div>':"";var ar=i<DATA.pipeline.length-1?'<div class="pipeline-arrow">\u2192</div>':"";return'<div class="pipeline-stage" onclick="this.classList.toggle(\'open\')"><div class="stage-num">Stage '+s.num+'</div><div class="stage-name">'+s.name+'</div><div class="stage-status '+st.cls+'">'+st.label+'</div><div class="stage-detail">'+s.detail+'</div><div class="stage-progress-bar"><div class="stage-progress-fill" style="width:'+s.progress+'%;background:'+colorMap[s.status]+'"></div></div>'+ex+'</div>'+ar}).join("")}
-function renderDimensions(){document.getElementById("dim-grid").innerHTML=DATA.dimensions.map(function(d){var bc=statusMap[d.status]?statusMap[d.status].badge:'badge-green';return'<div class="dim-card"><div style="display:flex;align-items:center;justify-content:space-between;"><div><span class="dim-num">'+d.num+'</span><span class="dim-title">'+d.title+'</span></div><span class="badge '+bc+'"><span class="badge-dot"></span>'+d.statusText+'</span></div><div class="dim-q">'+d.q+'</div><div style="margin-top:10px;font-size:11px;color:var(--text-muted);font-weight:600;">答案来源</div><div class="dim-fields">'+d.answerFields.map(function(f){return'<span class="field-tag">'+f+'</span>'}).join("")+'</div><div style="font-size:11px;color:var(--text-light);margin-top:2px;">'+d.answerNote+'</div><div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-weight:600;">题干来源</div><div class="dim-fields">'+d.stemFields.map(function(f){return'<span class="field-tag">'+f+'</span>'}).join("")+'</div></div>'}).join("")}
-function renderRisks(){var pm={P0:"P0 阻塞",P1:"P1 重要",P2:"P2 次要"};document.getElementById("risk-list").innerHTML=DATA.risks.map(function(r){var st=statusMap[r.status];return'<div class="risk-item '+r.prio.toLowerCase()+'"><div class="risk-head"><span class="risk-title">'+r.title+'</span><span class="badge '+st.badge+'"><span class="badge-dot"></span>'+pm[r.prio]+'</span></div><div class="risk-desc">'+r.desc+'</div></div>'}).join("")}
-function renderTimeline(){document.getElementById("timeline-list").innerHTML=DATA.timeline.map(function(t){return'<div class="timeline-item"><div class="timeline-date">'+t.date+'</div><div class="timeline-content">'+t.text+'<div class="timeline-hash">'+t.hash+'</div></div></div>'}).join("")}
-function renderDataDisplay(){var json=JSON.stringify(DATA,null,2);var h=json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,function(m){var c='color:#f59e0b';if(/^"/.test(m))c=/:$/.test(m)?'color:#60a5fa':'color:#34d399';if(/true|false/.test(m))c='color:#f472b6';if(/null/.test(m))c='color:#94a3b8';return'<span style="'+c+'">'+m+'</span>'});document.getElementById("data-display").innerHTML=h}
-document.querySelectorAll(".sidebar-nav a").forEach(function(a){a.addEventListener("click",function(){document.querySelectorAll(".sidebar-nav a").forEach(function(x){x.classList.remove("active")});a.classList.add("active");document.getElementById(a.dataset.target).scrollIntoView({behavior:"smooth",block:"start"})})});
-document.getElementById("git-head-short").textContent=DATA.meta.gitHead;
-document.getElementById("updated-date").textContent=DATA.meta.lastUpdated;
-renderStats();renderPipeline();renderDimensions();renderRisks();renderTimeline();renderDataDisplay();
+var statusMap={
+done:{cls:"status-done",label:"完成"},
+next:{cls:"status-next",label:"下一步"},
+pending:{cls:"status-pending",label:"待办"},
+design:{cls:"status-design",label:"设计中"}
+};
+var pctColor={done:"var(--green)",next:"var(--blue)",pending:"var(--text-light)",design:"var(--purple)"};
+function renderPipeline(){
+document.getElementById("pipeline-flow").innerHTML=DATA.pipeline.map(function(s,i){
+var st=statusMap[s.status];
+var pct=s.progress>0?s.progress+"%":"";
+var ex=s.expand?'<div class="expand-body"><ul>'+s.expand.map(function(e){return"<li>"+e+"</li>"}).join("")+"</ul></div>":"";
+var ar=i<DATA.pipeline.length-1?'<div class="pipeline-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg></div>':"";
+return'<div class="pipeline-stage" data-status="'+s.status+'" onclick="this.classList.toggle(\'open\')">'+
+'<div class="stage-top"><div class="stage-num">STAGE '+s.num+'</div>'+(pct?'<div class="stage-pct" style="color:'+pctColor[s.status]+'">'+pct+"</div>":"")+"</div>"+
+'<div class="stage-name">'+s.name+"</div>"+
+'<div class="stage-status '+st.cls+'"><span class="status-dot"></span>'+st.label+"</div>"+
+'<div class="stage-detail">'+s.detail+"</div>"+
+'<div class="stage-progress-bar"><div class="stage-progress-fill" style="width:'+s.progress+"%;background:"+pctColor[s.status]+'"></div></div>'+
+ex+"</div>"+ar
+}).join("")
+}
+function renderDimensions(){
+document.getElementById("dim-grid").innerHTML=DATA.dimensions.map(function(d){
+return'<div class="dim-card">'+
+'<div class="dim-card-top">'+
+'<div class="dim-head">'+
+'<div class="dim-badge">'+d.num+"</div>"+
+'<div class="dim-info"><div class="dim-title">'+d.title+'</div><div class="dim-q">'+d.q+"</div></div>"+
+"</div>"+
+'<div style="margin-top:10px;"><span class="dim-ready"><span class="ready-dot"></span>'+d.statusText+"</span></div>"+
+"</div>"+
+'<div class="dim-section"><div class="dim-section-label">答案来源</div>'+
+'<div class="dim-fields">'+d.answerFields.map(function(f){return'<span class="field-tag">'+f+"</span>"}).join("")+"</div>"+
+'<div class="dim-note">'+d.answerNote+"</div></div>"+
+'<div class="dim-section"><div class="dim-section-label">题干来源</div>'+
+'<div class="dim-fields">'+d.stemFields.map(function(f){return'<span class="field-tag">'+f+"</span>"}).join("")+"</div></div>"+
+"</div>"
+}).join("")
+}
+document.querySelectorAll(".sidebar-nav a").forEach(function(a){
+a.addEventListener("click",function(){
+document.querySelectorAll(".sidebar-nav a").forEach(function(x){x.classList.remove("active")});
+a.classList.add("active");
+document.getElementById(a.dataset.target).scrollIntoView({behavior:"smooth",block:"start"})
+})
+});
+renderPipeline();renderDimensions();
 </script>
 </body>
 </html>
