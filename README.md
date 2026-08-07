@@ -4,100 +4,71 @@
 
 题目围绕统一临床流程 `患者信息 → 检查检验 → 临床诊断 → 治疗处置 → 转诊科室 → 离院指导` 展开，覆盖五个决策点。
 
-## 整体流水线
+## 两层架构
+
+项目从下到上分为**数据层**和**评测层**，数据层的产物直接喂给评测层出题。
 
 ```
 MIMIC-IV v3.1 / ED 2.2 / Note 2.2
         │
-        ├── 子系统 B：episode 聚合底座 ──────────────┐
-        │   mimic_episode/                    OK      │
-        │   41 表 → parquet（768K episode）          │
-        │                                            ▼
-        ├── 子系统 A：RWD 数据底座（主线）     G 盘 episode parquet
-        │   parquet_to_jsonl/                OK          │
-        │   [1] 抽取  37 字段 JSONL  320K visits        │
-        │   [2] 清洗  7 个 DS 文本 → LLM 实体抽取  待办  │
-        │   [3] 标准化  值级术语标准化             待办  │
-        │                                              │
-        └── MCQ 出题 ──────────────────────────────────┘
-            mcq_generation/                  仅设计
-
-  [4] MCQ 生成 → [5] LLM 评估
+        ▼
+  数据层 ──────────────────────────────────────────
+  │  Episode 聚合  mimic_episode/           OK
+  │  41 表 → parquet（768K episode）
+  │                                                ▼
+  │  G 盘 episode parquet
+  │  [1] 抽取      parquet_to_jsonl/        OK
+  │      37 字段 JSONL  320K visits
+  │  [2] 清洗      7 个 DS 文本 → LLM 实体抽取  待办
+  │  [3] 标准化    值级术语标准化             待办
+  └────────────────────────────────────────────────
+        │
+        ▼
+  评测层 ──────────────────────────────────────────
+  │  [4] MCQ 出题  mcq_generation/          仅设计
+  │  [5] LLM 评估                              待办
+  └────────────────────────────────────────────────
 ```
 
-| 阶段 | 完成度 | 说明 |
-|---|---|---|
-| 数据抽取 | ✅ 完成 | 37 字段 visit 级 JSONL，320,267 visits，27.4 GB（`parquet_to_jsonl/`） |
-| 清洗 | ⏳ 待办 | 7 个 DS 章节文本字段 → LLM 实体抽取，新增 `_entities` 数组 |
-| 标准化 | ⏳ 待办 | 诊断/药物/症状值级术语标准化，双阶段 LLM 映射 + manifest |
-| MCQ 出题 | 🔷 设计中 | 题型 1 有完整 Stage 0-10 设计；题型 2-5 仅题型规范；零实现代码 |
-| LLM 评估 | ⏳ 待办 | 评估框架、指标、LLM 接入未启动，依赖题库产出 |
+| 阶段 | 层 | 完成度 | 说明 |
+|---|---|---|---|
+| Episode 聚合 | 数据层 | ✅ 完成 | 41 表 → 11 张 parquet，768K episode，48.9 GB（`mimic_episode/`） |
+| 数据抽取 | 数据层 | ✅ 完成 | 37 字段 visit 级 JSONL，320,267 visits，27.4 GB（`parquet_to_jsonl/`） |
+| 清洗 | 数据层 | ⏳ 待办 | 7 个 DS 章节文本字段 → LLM 实体抽取，新增 `_entities` 数组 |
+| 标准化 | 数据层 | ⏳ 待办 | 诊断/药物/症状值级术语标准化，双阶段 LLM 映射 + manifest |
+| MCQ 出题 | 评测层 | 🔷 设计中 | 题型 1 有完整 Stage 0-10 设计；题型 2-5 仅题型规范；零实现代码 |
+| LLM 评估 | 评测层 | ⏳ 待办 | 评估框架、指标、LLM 接入未启动，依赖题库产出 |
 
 ## 五类题型
 
-| # | 题型 | 考查决策点 | 设计状态 |
+| # | 题型 | 评测层向 LLM 提出的问题 | 设计状态 |
 |---:|---|---|---|
-| 1 | Clinical investigation selection | 检查检验选择 | 完整 10 阶段生成设计 |
-| 2 | Clinical diagnosis | 临床诊断 | 题型规范 |
-| 3 | Treatment and management | 治疗处置 | 题型规范 |
-| 4 | Referral and specialty selection | 转诊科室 | 题型规范 |
-| 5 | Discharge advice and follow-up | 离院指导 | 题型规范 |
+| 1 | Clinical investigation selection | "该患者下一步最可能开什么检查？" | 完整 10 阶段生成设计 |
+| 2 | Clinical diagnosis | "该患者的诊断是什么？" | 题型规范 |
+| 3 | Treatment and management | "该患者的首选治疗方案？" | 题型规范 |
+| 4 | Referral and specialty selection | "该患者应转哪个科室？" | 题型规范 |
+| 5 | Discharge advice and follow-up | "该患者离院后如何随访？" | 题型规范 |
 
 题型 1 的核心原则：统计答案先于语言生成——先从 RWD 挖掘「患者特征 → 检查项」条件概率规则取 rank-1，模型只负责写合成题干和理由，不决定答案、不改选项、不添加规则外的患者事实。
 
 ## 项目结构
 
-| 目录 | 作用 |
-|---|---|
-| `parquet_to_jsonl/` | **数据底座（主线）**：G 盘 episode parquet → visit 级 37 字段 JSONL |
-| `rwd_pipeline/` | 旧版 visit 级提取/清洗/标准化（17 列 CSV 路线，已被新路线替代） |
-| `mimic_episode/` | 子系统 B：episode 聚合（覆盖 41 张源表） |
-| `mcq_generation/` | MCQ 出题模块（当前仅设计文档，代码待实现） |
-| `eda/` | 探索性数据分析（`exploratory/` 早期探索 + `analysis/` 当前分析） |
-| `docs/` | 项目文档（`design/` 方法学、`reports/` 分析报告、`reference/` 参考资料） |
-| `tests/` | 测试套件 |
-| `data/` | 本地数据与工具（`.gitignore` 排除，不推送） |
+| 目录 | 层 | 作用 |
+|---|---|---|
+| `parquet_to_jsonl/` | 数据层 | G 盘 episode parquet → visit 级 37 字段 JSONL |
+| `mimic_episode/` | 数据层 | Episode 聚合（覆盖 41 张源表） |
+| `rwd_pipeline/` | 数据层 | 旧版提取/清洗/标准化（17 列 CSV 路线，已被替代） |
+| `mcq_generation/` | 评测层 | MCQ 出题模块（当前仅设计文档，代码待实现） |
+| `eda/` | — | 探索性数据分析（`exploratory/` 早期探索 + `analysis/` 当前分析） |
+| `docs/` | — | 项目文档（`design/` 方法学、`reports/` 分析报告、`reference/` 参考资料） |
+| `tests/` | — | 测试套件 |
+| `data/` | — | 本地数据与工具（`.gitignore` 排除，不推送） |
 
 目录编排规范详见 [docs/文件保存规范.md](docs/文件保存规范.md)。
 
-## 数据底座（主线）
+## 数据层
 
-从 G 盘 episode parquet 提取 visit 级全量 JSONL，作为五类 MCQ 题型的统一数据底座。每行是一个住院（`hadm_id`）的完整 JSON 对象，37 个字段按 8 个顶层分组嵌套：
-
-`identifiers` / `demographics` / `vitals` / `narrative` / `investigations` / `diagnoses` / `treatments` / `disposition`
-
-抽取层忠实记录全量资料，不做信息隔离；信息隔离由下游出题引擎按题型选择性读取字段实现。
-
-### 关键修复
-
-旧 17 列路线的 `discharge_record` 字段 100% 为空（使用 Follow-up Instructions 章节，100% 被去标识化为 `___`）。新路线改用 **Discharge Instructions** 章节（99.2% 覆盖率），根治了离院指导（题型 5）的数据缺口。同理，转诊科室（题型 4）通过新增 `disposition.primary_service` + `disposition.discharge_location` 字段填补。
-
-### 提取统计
-
-| 指标 | 值 |
-|---|---|
-| 候选 episodes | 331,537 |
-| 写出 visits | 320,267 |
-| 跳过 | 11,270 |
-| 数据体积 | 27.4 GB |
-| 平均每 visit | 89.6 KB |
-| 提取耗时 | 68 min（DuckDB 流式批处理） |
-
-### 运行
-
-```powershell
-.venv\Scripts\python.exe -m parquet_to_jsonl.run_eda
-```
-
-字段规范详见 `data/出题数据抽取字段规范.md`（本地文件，`.gitignore` 排除）。
-
-## 清洗与标准化（待实现）
-
-**清洗**：对 7 个 DS 章节文本字段（chief_complaint, HPI, PMH, medications_on_admission, social_history, allergies, physical_exam）调用 DeepSeek 做 LLM 实体抽取。输出在 JSONL 中新增对应 `_entities` 数组，原文保留不动。技术路线：多线程 + checkpoint 断点续跑 + fail-closed。
-
-**标准化**：值级术语标准化，不改字段结构。诊断名 → 标准疾病名 + ICD 章节归组；药物名 → 标准通用名/类别；症状实体同义归并；radiology exam_name 归一化；年龄 → age_band。双阶段 LLM 映射（build-mappings → transform），统计证据不足即终止。
-
-## 子系统 B：Episode 聚合
+### Episode 聚合
 
 跨系统聚合 MIMIC-IV 3.1、IV-ED 2.2、IV-Note 2.2 的 41 张源表为 episode-level Parquet（768K episode / 48.9 GB）。住院使用 `H:<hadm_id>`；无有效住院关联的急诊使用 `E:<stay_id>`。
 
@@ -110,7 +81,40 @@ mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task aggregate-episodes
 
 本机聚合目录为 `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes`。详见 [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md)。
 
-## MCQ 出题
+### 数据抽取
+
+从 G 盘 episode parquet 提取 visit 级全量 JSONL，作为评测层五类 MCQ 题型的统一数据底座。每行是一个住院（`hadm_id`）的完整 JSON 对象，37 个字段按 8 个顶层分组嵌套：
+
+`identifiers` / `demographics` / `vitals` / `narrative` / `investigations` / `diagnoses` / `treatments` / `disposition`
+
+抽取层忠实记录全量资料，不做信息隔离；信息隔离由下游出题引擎按题型选择性读取字段实现。
+
+**关键修复**：旧 17 列路线的 `discharge_record` 字段 100% 为空（使用 Follow-up Instructions 章节，100% 被去标识化为 `___`）。新路线改用 **Discharge Instructions** 章节（99.2% 覆盖率），根治了离院指导（题型 5）的数据缺口。同理，转诊科室（题型 4）通过新增 `disposition.primary_service` + `disposition.discharge_location` 字段填补。
+
+| 指标 | 值 |
+|---|---|
+| 候选 episodes | 331,537 |
+| 写出 visits | 320,267 |
+| 跳过 | 11,270 |
+| 数据体积 | 27.4 GB |
+| 平均每 visit | 89.6 KB |
+| 提取耗时 | 68 min（DuckDB 流式批处理） |
+
+```powershell
+.venv\Scripts\python.exe -m parquet_to_jsonl.run_eda
+```
+
+字段规范详见 `data/出题数据抽取字段规范.md`（本地文件，`.gitignore` 排除）。
+
+### 清洗与标准化（待实现）
+
+**清洗**：对 7 个 DS 章节文本字段（chief_complaint, HPI, PMH, medications_on_admission, social_history, allergies, physical_exam）调用 DeepSeek 做 LLM 实体抽取。输出在 JSONL 中新增对应 `_entities` 数组，原文保留不动。技术路线：多线程 + checkpoint 断点续跑 + fail-closed。
+
+**标准化**：值级术语标准化，不改字段结构。诊断名 → 标准疾病名 + ICD 章节归组；药物名 → 标准通用名/类别；症状实体同义归并；radiology exam_name 归一化；年龄 → age_band。双阶段 LLM 映射（build-mappings → transform），统计证据不足即终止。
+
+## 评测层
+
+### MCQ 出题
 
 题型 1（检查检验选择）有完整的 Stage 0-10 生成设计，从条件规则挖掘到 gold 发布共 11 个阶段，含 8 道统计硬门槛、干扰项选择、答案位置锁定、独立自动审题、人工审核和 fail-closed 发布门禁。
 
@@ -140,7 +144,7 @@ uv sync --locked
 
 | 文档 | 内容 |
 |---|---|
-| [docs/项目接手文档.md](docs/项目接手文档.md) | 项目总览、数据契约、字段映射（旧版 17 列路线） |
+| `handoffs/项目接手文档.md`（本地） | 项目总览、数据契约、字段映射（不推送） |
 | [docs/项目流程梳理与推进计划.md](docs/项目流程梳理与推进计划.md) | 流程梳理与推进计划 |
 | [docs/文件保存规范.md](docs/文件保存规范.md) | 目录职责、命名约定、新增文件决策流程 |
 
