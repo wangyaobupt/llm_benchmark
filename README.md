@@ -14,7 +14,7 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
         │   41 表 → parquet（768K episode）          │
         │                                            ▼
         ├── 子系统 A：RWD 数据底座（主线）     G 盘 episode parquet
-        │   src/parquet_to_jsonl/             OK         │
+        │   parquet_to_jsonl/                OK          │
         │   [1] 抽取  37 字段 JSONL  320K visits        │
         │   [2] 清洗  7 个 DS 文本 → LLM 实体抽取  待办  │
         │   [3] 标准化  值级术语标准化             待办  │
@@ -27,7 +27,7 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
 
 | 阶段 | 完成度 | 说明 |
 |---|---|---|
-| 数据抽取 | ✅ 完成 | 37 字段 visit 级 JSONL，320,267 visits，27.4 GB（`src/parquet_to_jsonl/`） |
+| 数据抽取 | ✅ 完成 | 37 字段 visit 级 JSONL，320,267 visits，27.4 GB（`parquet_to_jsonl/`） |
 | 清洗 | ⏳ 待办 | 7 个 DS 章节文本字段 → LLM 实体抽取，新增 `_entities` 数组 |
 | 标准化 | ⏳ 待办 | 诊断/药物/症状值级术语标准化，双阶段 LLM 映射 + manifest |
 | MCQ 出题 | 🔷 设计中 | 题型 1 有完整 Stage 0-10 设计；题型 2-5 仅题型规范；零实现代码 |
@@ -49,17 +49,16 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
 
 | 目录 | 作用 |
 |---|---|
-| `src/parquet_to_jsonl/` | **数据底座（主线）**：G 盘 episode parquet → visit 级 37 字段 JSONL |
+| `parquet_to_jsonl/` | **数据底座（主线）**：G 盘 episode parquet → visit 级 37 字段 JSONL |
 | `rwd_pipeline/` | 旧版 visit 级提取/清洗/标准化（17 列 CSV 路线，已被新路线替代） |
 | `mimic_episode/` | 子系统 B：episode 聚合（覆盖 41 张源表） |
-| `mcq_generation/` | MCQ 出题设计文档（题型规范 + 题型 1 详细设计 + 架构总览） |
-| `research/` | 文献综述（6 聚类检索，179 条引用，SCI review landscape） |
-| `eda/` | 探索性数据分析（旧版 17 列 CSV 的 7 维画像） |
-| `mimic_reference/` | MIMIC 全部源表 schema 速查 |
+| `mcq_generation/` | MCQ 出题模块（当前仅设计文档，代码待实现） |
+| `eda/` | 探索性数据分析（`exploratory/` 早期探索 + `analysis/` 当前分析） |
+| `docs/` | 项目文档（`design/` 方法学、`reports/` 分析报告、`reference/` 参考资料） |
 | `tests/` | 测试套件 |
-| `docs/` | 方法学、字段规范、流程图、仪表盘 |
-| `scripts/` | 数据审计与工具脚本 |
-| `data/` | MIMIC 原始表与派生数据（`.gitignore` 排除） |
+| `data/` | 本地数据与工具（`.gitignore` 排除，不推送） |
+
+目录编排规范详见 [docs/文件保存规范.md](docs/文件保存规范.md)。
 
 ## 数据底座（主线）
 
@@ -87,10 +86,10 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
 ### 运行
 
 ```powershell
-.venv\Scripts\python.exe -m src.parquet_to_jsonl.run_eda
+.venv\Scripts\python.exe -m parquet_to_jsonl.run_eda
 ```
 
-字段规范详见 [data/出题数据抽取字段规范.md](data/出题数据抽取字段规范.md)。
+字段规范详见 `data/出题数据抽取字段规范.md`（本地文件，`.gitignore` 排除）。
 
 ## 清洗与标准化（待实现）
 
@@ -103,13 +102,13 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
 跨系统聚合 MIMIC-IV 3.1、IV-ED 2.2、IV-Note 2.2 的 41 张源表为 episode-level Parquet（768K episode / 48.9 GB）。住院使用 `H:<hadm_id>`；无有效住院关联的急诊使用 `E:<stay_id>`。
 
 ```powershell
-mimic_episode\scripts\run_mimic_pipeline.ps1 -Task sync
-mimic_episode\scripts\run_mimic_pipeline.ps1 -Task validate
-mimic_episode\scripts\run_mimic_pipeline.ps1 -Task extract
-mimic_episode\scripts\run_mimic_pipeline.ps1 -Task aggregate-episodes
+mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task sync
+mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task validate
+mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task extract
+mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task aggregate-episodes
 ```
 
-本机聚合目录为 `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes`。详见 [docs/clinical_episode_aggregation_plan.md](docs/clinical_episode_aggregation_plan.md)。
+本机聚合目录为 `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes`。详见 [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md)。
 
 ## MCQ 出题
 
@@ -137,20 +136,30 @@ uv sync --locked
 
 ## 关键文档索引
 
-### 数据底座
+### 项目概览
 
 | 文档 | 内容 |
 |---|---|
-| [data/出题数据抽取字段规范.md](data/出题数据抽取字段规范.md) | 37 字段 JSONL 完整字段定义与抽取规则（v2） |
-
-### 方法学与方案
-
-| 文档 | 内容 |
-|---|---|
-| [项目接手文档.md](项目接手文档.md) | 项目总览、数据契约、字段映射（旧版 17 列路线） |
-| [docs/MIMIC评测数据集构建方法学.md](docs/MIMIC评测数据集构建方法学.md) | 方法学全文 |
+| [docs/项目接手文档.md](docs/项目接手文档.md) | 项目总览、数据契约、字段映射（旧版 17 列路线） |
 | [docs/项目流程梳理与推进计划.md](docs/项目流程梳理与推进计划.md) | 流程梳理与推进计划 |
-| [ehpdcl_data_inventory.md](ehpdcl_data_inventory.md) | 香港医管局数据资产清单 |
+| [docs/文件保存规范.md](docs/文件保存规范.md) | 目录职责、命名约定、新增文件决策流程 |
+
+### 方法学与设计
+
+| 文档 | 内容 |
+|---|---|
+| [docs/design/MIMIC评测数据集构建方法学.md](docs/design/MIMIC评测数据集构建方法学.md) | 方法学全文 |
+| [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md) | Episode 聚合实施方案 |
+| [docs/design/episode_field_mapping.md](docs/design/episode_field_mapping.md) | 字段级映射 |
+| [docs/design/mimic-multimodal-benchmark-guide.md](docs/design/mimic-multimodal-benchmark-guide.md) | 多模态 benchmark 指南 |
+
+### 分析报告
+
+| 文档 | 内容 |
+|---|---|
+| [docs/reports/dashboard.html](docs/reports/dashboard.html) | 动态进度仪表盘（浏览器直接打开） |
+| [docs/reports/data-profiling-report.md](docs/reports/data-profiling-report.md) | 数据质量 profiling 报告 |
+| [docs/reports/ehpdcl_data_inventory.md](docs/reports/ehpdcl_data_inventory.md) | 香港医管局数据资产清单 |
 
 ### MCQ 出题
 
@@ -160,34 +169,13 @@ uv sync --locked
 | [mcq_generation/mcq_generation_design.md](mcq_generation/mcq_generation_design.md) | 题型 1 Stage 0-10 生成设计 |
 | [mcq_generation/question_types.md](mcq_generation/question_types.md) | 五类题型规范 + EHR 字段表 |
 
-### 子系统 B
-
-| 文档 | 内容 |
-|---|---|
-| [docs/clinical_episode_aggregation_plan.md](docs/clinical_episode_aggregation_plan.md) | Episode 聚合实施方案 |
-| [docs/episode_field_mapping.md](docs/episode_field_mapping.md) | 字段级映射 |
-
-### 旧版规格（17 列 CSV 路线）
+### 旧版规格（17 列 CSV 路线，跟模块走）
 
 | 文档 | 内容 |
 |---|---|
 | [rwd_pipeline/rwd_benchmark_extraction_spec.md](rwd_pipeline/rwd_benchmark_extraction_spec.md) | 抽取规格 |
 | [rwd_pipeline/rwd_benchmark_cleaning_spec.md](rwd_pipeline/rwd_benchmark_cleaning_spec.md) | 清洗规格（4 字段，可复用 prompt） |
 | [rwd_pipeline/rwd_benchmark_standardization_spec.md](rwd_pipeline/rwd_benchmark_standardization_spec.md) | 标准化规格 |
-
-### 文献研究
-
-| 文档 | 内容 |
-|---|---|
-| [research/medical_llm_benchmark_landscape.md](research/medical_llm_benchmark_landscape.md) | 医疗 LLM 评测基准领域全景 |
-| [research/literature_analysis.md](research/literature_analysis.md) | 文献分析 |
-| [research/rwd_benchmark_refs.bib](research/rwd_benchmark_refs.bib) | 179 条 BibTeX 引用 |
-
-### 项目管理
-
-| 文档 | 内容 |
-|---|---|
-| [docs/dashboard.html](docs/dashboard.html) | 动态进度仪表盘（浏览器直接打开） |
 
 ## 本地数据状态
 
@@ -197,4 +185,4 @@ uv sync --locked
 - MIMIC-IV-ED 2.2：已下载，SHA-256 8/8 通过
 - CXR、ECG、ECHO、Waveform、FHIR：尚未发现
 
-数据完整性校验：`scripts/audit_mimic_download.ps1` 读取 CSV 表头并可选核验 SHA-256，不读取或输出患者数据行。
+数据完整性校验工具：`data/audit_mimic_download.ps1`（本地文件，`.gitignore` 排除），读取 CSV 表头并可选核验 SHA-256，不读取或输出患者数据行。
