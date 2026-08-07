@@ -1,0 +1,1623 @@
+{
+  "date": "2026-08-06",
+  "collection": "C246",
+  "total_scanned": 650,
+  "dup_groups": 179,
+  "deleted_count": 361,
+  "details": [
+    {
+      "title": "LLM-Generated multiple choice practice quizzes for preclinical medical students",
+      "keep_key": "CUNFCTCF",
+      "dup_count": 2,
+      "deleted_keys": [
+        "PURWSNPM"
+      ]
+    },
+    {
+      "title": "Distractor Generation for Multiple-Choice Questions with Predictive Prompting and Large Language Mod",
+      "keep_key": "VE3ANGTD",
+      "dup_count": 4,
+      "deleted_keys": [
+        "Y7TQEAJ4",
+        "UV3LVSU9",
+        "2M8CMG2Q"
+      ]
+    },
+    {
+      "title": "LiveClin: A Live Clinical Benchmark without Leakage",
+      "keep_key": "KRHRXYZM",
+      "dup_count": 3,
+      "deleted_keys": [
+        "3SPL542B",
+        "YA9IKYH8"
+      ]
+    },
+    {
+      "title": "Intelligent Healthcare Imaging Platform: A VLM-Based Framework for Automated Medical Image Analysis ",
+      "keep_key": "TEN2G8XF",
+      "dup_count": 3,
+      "deleted_keys": [
+        "8UFHTUHY",
+        "ECHKSDUR"
+      ]
+    },
+    {
+      "title": "Vision-Language Models for Medical Report Generation and Visual Question Answering: A Review",
+      "keep_key": "93JVR5GH",
+      "dup_count": 3,
+      "deleted_keys": [
+        "V35FUPF5",
+        "KNHWUW3Q"
+      ]
+    },
+    {
+      "title": "Inflated Excellence or True Performance? Rethinking Medical Diagnostic Benchmarks with Dynamic Evalu",
+      "keep_key": "LXR2QFX4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "FGV4IQ7T",
+        "GYV674CT"
+      ]
+    },
+    {
+      "title": "Beyond the Leaderboard: Rethinking Medical Benchmarks for Large Language Models",
+      "keep_key": "LWGW5W27",
+      "dup_count": 3,
+      "deleted_keys": [
+        "4GLH5X8E",
+        "6E7FHE32"
+      ]
+    },
+    {
+      "title": "PersianMedQA: Evaluating Large Language Models on a Persian-English Bilingual Medical Question Answe",
+      "keep_key": "5C9BYI5I",
+      "dup_count": 3,
+      "deleted_keys": [
+        "G8HXSDTI",
+        "YNI2QVE2"
+      ]
+    },
+    {
+      "title": "Medical Large Language Model Benchmarks Should Prioritize Construct Validity",
+      "keep_key": "ZAF6DC4V",
+      "dup_count": 3,
+      "deleted_keys": [
+        "KQCP5YMA",
+        "BZTWERY2"
+      ]
+    },
+    {
+      "title": "Towards Contamination Resistant Benchmarks",
+      "keep_key": "9NLB887I",
+      "dup_count": 3,
+      "deleted_keys": [
+        "IP8B587U",
+        "G92A6CJT"
+      ]
+    },
+    {
+      "title": "Semantic Textual Similarity Assessment in Chest X-ray Reports Using a Domain-Specific Cosine-Based M",
+      "keep_key": "D956RA93",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NL9PKHLW",
+        "ICLTQEGQ"
+      ]
+    },
+    {
+      "title": "NLP Evaluation in trouble: On the Need to Measure LLM Data Contamination for each Benchmark",
+      "keep_key": "KINGCF7L",
+      "dup_count": 3,
+      "deleted_keys": [
+        "GDR33DFG",
+        "TAZTINPJ"
+      ]
+    },
+    {
+      "title": "LLM-as-a-Judge in Healthcare: A Scoping Analysis of Applications, Methods, and Human Alignment",
+      "keep_key": "FTJ6MVT3",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NXXYXN7E",
+        "8L6JIUX2"
+      ]
+    },
+    {
+      "title": "Evaluating Fine-Tuned LLM Model For Medical Transcription With Small Low-Resource Languages Validate",
+      "keep_key": "K6E5WBRL",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RN4QDTPF",
+        "L7E7BHLH"
+      ]
+    },
+    {
+      "title": "LiveMedBench: A Contamination-Free Medical Benchmark for LLMs with Automated Rubric Evaluation",
+      "keep_key": "STER47SM",
+      "dup_count": 3,
+      "deleted_keys": [
+        "KSALEJEL",
+        "6997Y9CJ"
+      ]
+    },
+    {
+      "title": "MedPriv-Bench: Benchmarking the Privacy-Utility Trade-off of Large Language Models in Medical Open-E",
+      "keep_key": "C4IKUPA7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RLE64JRS",
+        "M7NPDF8S"
+      ]
+    },
+    {
+      "title": "Benchmarking Large Language Models on Answering and Explaining Challenging Medical Questions",
+      "keep_key": "VUKRDTJU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DLG38PNC",
+        "HS47GEXZ"
+      ]
+    },
+    {
+      "title": "ClinicalLab: Aligning Agents for Multi-Departmental Clinical Diagnostics in the Real World",
+      "keep_key": "DRWQZM6N",
+      "dup_count": 3,
+      "deleted_keys": [
+        "4G7SPMJD",
+        "H8NS5ZTL"
+      ]
+    },
+    {
+      "title": "MedTutor: A Retrieval-Augmented LLM System for Case-Based Medical Education",
+      "keep_key": "J8BAPN8W",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZRDAUNAT",
+        "38U5HEER"
+      ]
+    },
+    {
+      "title": "Rate-Distortion Guided Knowledge Graph Construction from Lecture Notes Using Gromov-Wasserstein Opti",
+      "keep_key": "GQF7VYSS",
+      "dup_count": 3,
+      "deleted_keys": [
+        "SP8KV3MG",
+        "RV58RX2X"
+      ]
+    },
+    {
+      "title": "An Automatic Question Usability Evaluation Toolkit",
+      "keep_key": "KP7YDZ8P",
+      "dup_count": 3,
+      "deleted_keys": [
+        "K8KKQQPY",
+        "3466EIMT"
+      ]
+    },
+    {
+      "title": "Are You Doubtful? Oh, It Might Be Difficult Then! Exploring the Use of Model Uncertainty for Questio",
+      "keep_key": "2S9XQI45",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZJERDXLP",
+        "AIY8CPI7"
+      ]
+    },
+    {
+      "title": "Generating AI Literacy MCQs: A Multi-Agent LLM Approach",
+      "keep_key": "RY5TNC7G",
+      "dup_count": 3,
+      "deleted_keys": [
+        "WE6JGMUC",
+        "Q95UXMA4"
+      ]
+    },
+    {
+      "title": "Structure-Aware Modeling of Multiple-Choice Questions Improves Automatic Difficulty Estimation",
+      "keep_key": "97UWYJEZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZT9D97DD",
+        "JW2FPWUV"
+      ]
+    },
+    {
+      "title": "Evaluating the Knowledge Dependency of Questions",
+      "keep_key": "BBQL2UKM",
+      "dup_count": 3,
+      "deleted_keys": [
+        "GQSED2E7",
+        "2ZYKC7AM"
+      ]
+    },
+    {
+      "title": "Hallucination-Free Automatic Question & Answer Generation for Intuitive Learning",
+      "keep_key": "KLJMB2QU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "S9FBXIEB",
+        "W669C7CJ"
+      ]
+    },
+    {
+      "title": "BenchMarker: An Education-Inspired Toolkit for Highlighting Flaws in Multiple-Choice Benchmarks",
+      "keep_key": "XI6GJJWJ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "D2ZCA23M",
+        "8QQLIJ45"
+      ]
+    },
+    {
+      "title": "Learning to Reuse Distractors to support Multiple Choice Question Generation in Education",
+      "keep_key": "IVNNS8ZM",
+      "dup_count": 3,
+      "deleted_keys": [
+        "K6SZRJ2M",
+        "YTLUIK2P"
+      ]
+    },
+    {
+      "title": "Results and Insights from Diagnostic Questions: The NeurIPS 2020 Education Challenge",
+      "keep_key": "PWWLBDCZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EW989ZWD",
+        "CTKC7UJM"
+      ]
+    },
+    {
+      "title": "Automating question generation from educational text",
+      "keep_key": "KBR74UFS",
+      "dup_count": 3,
+      "deleted_keys": [
+        "XLK269TL",
+        "RB8CNSHR"
+      ]
+    },
+    {
+      "title": "Hierarchical Pretraining for Biomedical Term Embeddings",
+      "keep_key": "WWK4WH8C",
+      "dup_count": 3,
+      "deleted_keys": [
+        "7DE8NJJT",
+        "VABHPH7P"
+      ]
+    },
+    {
+      "title": "Improving Automated Distractor Generation for Math Multiple-choice Questions with Overgenerate-and-r",
+      "keep_key": "9GRDEFF8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "R3B8BLBU",
+        "Z3DEBNGY"
+      ]
+    },
+    {
+      "title": "Knowledge Graph Embedding with Electronic Health Records Data via Latent Graphical Block Model",
+      "keep_key": "DPLG9V6U",
+      "dup_count": 3,
+      "deleted_keys": [
+        "6SK3PCHX",
+        "RARUE8RF"
+      ]
+    },
+    {
+      "title": "Interpretable Disease Prediction based on Reinforcement Path Reasoning over Knowledge Graphs",
+      "keep_key": "X44TVNKU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "UVD2K6KX",
+        "FFFK9W8P"
+      ]
+    },
+    {
+      "title": "HoT-SSM:Higher-order Temporal Knowledge Graph Reasoning with State Space Models for Health Care",
+      "keep_key": "L86WRHVT",
+      "dup_count": 3,
+      "deleted_keys": [
+        "23BKN3YQ",
+        "XAFMI9AL"
+      ]
+    },
+    {
+      "title": "Predicting Patient Readmission Risk from Medical Text via Knowledge Graph Enhanced Multiview Graph C",
+      "keep_key": "YH69Q8SA",
+      "dup_count": 3,
+      "deleted_keys": [
+        "JT26HNNM",
+        "ENLEDLVG"
+      ]
+    },
+    {
+      "title": "Synthesize High-dimensional Longitudinal Electronic Health Records via Hierarchical Autoregressive L",
+      "keep_key": "9PHT99F4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "B3878KMR",
+        "EV74XKNN"
+      ]
+    },
+    {
+      "title": "Neural Natural Language Processing for Unstructured Data in Electronic Health Records: a Review",
+      "keep_key": "VA83FJYQ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DKZ5IMXK",
+        "MXH25VLH"
+      ]
+    },
+    {
+      "title": "Intelligent EHRs: Predicting Procedure Codes From Diagnosis Codes",
+      "keep_key": "FVI84SUT",
+      "dup_count": 3,
+      "deleted_keys": [
+        "A47LU8L2",
+        "6XI3WDCI"
+      ]
+    },
+    {
+      "title": "User-Adaptive Meta-Learning for Cold-Start Medication Recommendation with Uncertainty Filtering",
+      "keep_key": "KNRNSZGY",
+      "dup_count": 3,
+      "deleted_keys": [
+        "X2NKWZQT",
+        "QBR3FZES"
+      ]
+    },
+    {
+      "title": "Causal Inference in Observational Data",
+      "keep_key": "UGIJUXIX",
+      "dup_count": 3,
+      "deleted_keys": [
+        "LGJ5NUS6",
+        "8R8ZGY3I"
+      ]
+    },
+    {
+      "title": "KG-MTT-BERT: Knowledge Graph Enhanced BERT for Multi-Type Medical Text Classification",
+      "keep_key": "GKNBNTEW",
+      "dup_count": 3,
+      "deleted_keys": [
+        "YB5XMFRI",
+        "QU3D2YI8"
+      ]
+    },
+    {
+      "title": "Knowledge-Induced Medicine Prescribing Network for Medication Recommendation",
+      "keep_key": "L3NKL2I8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EXXA3ZVI",
+        "IGPEAFZP"
+      ]
+    },
+    {
+      "title": "Robustly Extracting Medical Knowledge from EHRs: A Case Study of Learning a Health Knowledge Graph",
+      "keep_key": "JS3PH4GZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RQI73GKC",
+        "P97IARJK"
+      ]
+    },
+    {
+      "title": "Modeling electronic health record data using a knowledge-graph-embedded topic model",
+      "keep_key": "LW8ZZW7K",
+      "dup_count": 3,
+      "deleted_keys": [
+        "MZCZ9R75",
+        "9NCMCYII"
+      ]
+    },
+    {
+      "title": "Text-Attributed Knowledge Graph Enrichment with Large Language Models for Medical Concept Representa",
+      "keep_key": "H9ZH6NW5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "23PTREGC",
+        "YRN9RWJT"
+      ]
+    },
+    {
+      "title": "Zero-shot Medical Event Prediction Using a Generative Pre-trained Transformer on Electronic Health R",
+      "keep_key": "UR79RZII",
+      "dup_count": 3,
+      "deleted_keys": [
+        "CKBQEX49",
+        "JGMSP6BE"
+      ]
+    },
+    {
+      "title": "SmartAlert: Implementing Machine Learning-Driven Clinical Decision Support for Inpatient Lab Utiliza",
+      "keep_key": "DAPZ4REN",
+      "dup_count": 3,
+      "deleted_keys": [
+        "R6XZ5TZB",
+        "XN8H69FM"
+      ]
+    },
+    {
+      "title": "Leveraging Generative AI Through Prompt Engineering and Rigorous Validation to Create Comprehensive ",
+      "keep_key": "IN8LJNY3",
+      "dup_count": 3,
+      "deleted_keys": [
+        "YVCVG97B",
+        "42CU5VXN"
+      ]
+    },
+    {
+      "title": "Label-dependent and event-guided interpretable disease risk prediction using EHRs",
+      "keep_key": "MML7NYBI",
+      "dup_count": 3,
+      "deleted_keys": [
+        "7KEWNUTB",
+        "HMAYAMZS"
+      ]
+    },
+    {
+      "title": "Generative Adversarial Networks for Electronic Health Records: A Framework for Exploring and Evaluat",
+      "keep_key": "A883Y342",
+      "dup_count": 3,
+      "deleted_keys": [
+        "9GTJT232",
+        "32VJ2UCN"
+      ]
+    },
+    {
+      "title": "Representation Learning of Lab Values via Masked AutoEncoders",
+      "keep_key": "Y6A63Z58",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Y6RNAZYE",
+        "5I4VGBBK"
+      ]
+    },
+    {
+      "title": "Longitudinal Multimodal Transformer Integrating Imaging and Latent Clinical Signatures From Routine ",
+      "keep_key": "ZD3TEL2X",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Q7U7LYW9",
+        "5I73BJVY"
+      ]
+    },
+    {
+      "title": "TEE4EHR: Transformer Event Encoder for Better Representation Learning in Electronic Health Records",
+      "keep_key": "WFGIKXAH",
+      "dup_count": 3,
+      "deleted_keys": [
+        "248FVQNL",
+        "6WEXDSNV"
+      ]
+    },
+    {
+      "title": "Explainable Machine Learning for Sepsis Outcome Prediction Using a Novel Romanian Electronic Health ",
+      "keep_key": "F83GNEVB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "R8U82M4B",
+        "K9LU4KRN"
+      ]
+    },
+    {
+      "title": "Early GVHD Prediction in Liver Transplantation via Multi-Modal Deep Learning on Imbalanced EHR Data",
+      "keep_key": "S4C9G67R",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ENIAJEW6",
+        "QCAAZSS2"
+      ]
+    },
+    {
+      "title": "Large Language Multimodal Models for 5-Year Chronic Disease Cohort Prediction Using EHR Data",
+      "keep_key": "DVIQB5B7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Q79SY6U3",
+        "7U5KK2K3"
+      ]
+    },
+    {
+      "title": "Visualizing Patient Timelines in the Intensive Care Unit",
+      "keep_key": "9QAEB48Q",
+      "dup_count": 3,
+      "deleted_keys": [
+        "WE9AFXZU",
+        "PJBU97DE"
+      ]
+    },
+    {
+      "title": "Evaluation of Embeddings of Laboratory Test Codes for Patients at a Cancer Center",
+      "keep_key": "CZCKGXSS",
+      "dup_count": 3,
+      "deleted_keys": [
+        "7JC6BDD8",
+        "3DELW9RA"
+      ]
+    },
+    {
+      "title": "Coefficient of Variation Masking: A Volatility-Aware Strategy for EHR Foundation Models",
+      "keep_key": "ZMBXYTK3",
+      "dup_count": 3,
+      "deleted_keys": [
+        "W7FSNCF7",
+        "GAL5E5ER"
+      ]
+    },
+    {
+      "title": "Feature importance analysis for patient management decisions",
+      "keep_key": "3PBZPBWH",
+      "dup_count": 3,
+      "deleted_keys": [
+        "3SYXCTZ9",
+        "85XRUHHB"
+      ]
+    },
+    {
+      "title": "Predicting Stroke from Electronic Health Records",
+      "keep_key": "5DAMXNMC",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RS82XRWK",
+        "7SXVAPFK"
+      ]
+    },
+    {
+      "title": "Dynamic Hypergraph-Enhanced Prediction of Sequential Medical Visits",
+      "keep_key": "SCMGVGXR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "AC5PTP4A",
+        "3VCR5HPY"
+      ]
+    },
+    {
+      "title": "Learning to Ask Like a Physician",
+      "keep_key": "JTADJTST",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NTF7CLKD",
+        "EPTMCWEF"
+      ]
+    },
+    {
+      "title": "TarDiff: Target-Oriented Diffusion Guidance for Synthetic Electronic Health Record Time Series Gener",
+      "keep_key": "R92U6YWW",
+      "dup_count": 3,
+      "deleted_keys": [
+        "FDWDMPNG",
+        "ZD42YADJ"
+      ]
+    },
+    {
+      "title": "Multitask learning and benchmarking with clinical time series data",
+      "keep_key": "4ZUIVSE9",
+      "dup_count": 3,
+      "deleted_keys": [
+        "7LFIEGJV",
+        "ER2UB8IX"
+      ]
+    },
+    {
+      "title": "Large Language Model Benchmarks in Medical Tasks",
+      "keep_key": "N9AHSBDR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "FD47WR6T",
+        "EFSJGJ2Z"
+      ]
+    },
+    {
+      "title": "A survey of using EHR as real-world evidence for discovering and validating new drug indications",
+      "keep_key": "CSASXRAR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "95AL88QI",
+        "ZWCSXY5N"
+      ]
+    },
+    {
+      "title": "HypEHR: Hyperbolic Modeling of Electronic Health Records for Efficient Question Answering",
+      "keep_key": "CY8QRTC6",
+      "dup_count": 3,
+      "deleted_keys": [
+        "B8RNF4JF",
+        "GKSQQH46"
+      ]
+    },
+    {
+      "title": "An Extensive Data Processing Pipeline for MIMIC-IV",
+      "keep_key": "B9XCJR7R",
+      "dup_count": 3,
+      "deleted_keys": [
+        "PYYQ5T9N",
+        "YZMPSMVG"
+      ]
+    },
+    {
+      "title": "DySurv: dynamic deep learning model for survival analysis with conditional variational inference",
+      "keep_key": "Y5J846KZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "G5EB5X7G",
+        "X7HUA6D2"
+      ]
+    },
+    {
+      "title": "Benchmarking Foundation Models with Multimodal Public Electronic Health Records",
+      "keep_key": "E9W688DR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "PCPQTX2Q",
+        "YGV6XMFX"
+      ]
+    },
+    {
+      "title": "Revisiting the MIMIC-IV Benchmark: Experiments Using Language Models for Electronic Health Records",
+      "keep_key": "RHQWJSV9",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DB8K6ZE9",
+        "7NXPP475"
+      ]
+    },
+    {
+      "title": "SynEHRgy: Synthesizing Mixed-Type Structured Electronic Health Records using Decoder-Only Transforme",
+      "keep_key": "HAEMQL89",
+      "dup_count": 3,
+      "deleted_keys": [
+        "26FI6V3E",
+        "CQ6Z3B5D"
+      ]
+    },
+    {
+      "title": "Adapting Pretrained Language Models for Solving Tabular Prediction Problems in the Electronic Health",
+      "keep_key": "E8SBJDZP",
+      "dup_count": 3,
+      "deleted_keys": [
+        "UQW9UI5Z",
+        "LNAQLI8A"
+      ]
+    },
+    {
+      "title": "Benchmarking with MIMIC-IV, an irregular, spare clinical time series dataset",
+      "keep_key": "PLYGXGI3",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ASTAE82M",
+        "XE8TN6DZ"
+      ]
+    },
+    {
+      "title": "MedG-KRP: Medical Graph Knowledge Representation Probing",
+      "keep_key": "6GPAGLPV",
+      "dup_count": 3,
+      "deleted_keys": [
+        "GJTUKCLM",
+        "CGX3NKCA"
+      ]
+    },
+    {
+      "title": "A Benchmark for Long-Form Medical Question Answering",
+      "keep_key": "KVTDKE6Q",
+      "dup_count": 3,
+      "deleted_keys": [
+        "IDMJWGHV",
+        "36R2WF8J"
+      ]
+    },
+    {
+      "title": "A Comparative Study of Open-Source Large Language Models, GPT-4 and Claude 2: Multiple-Choice Test T",
+      "keep_key": "RSIFMVLV",
+      "dup_count": 3,
+      "deleted_keys": [
+        "H75L35L2",
+        "5HDPLFV6"
+      ]
+    },
+    {
+      "title": "KorMedMCQA: Multi-Choice Question Answering Benchmark for Korean Healthcare Professional Licensing E",
+      "keep_key": "K9RXDA24",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RDYYYPZQ",
+        "YXR6APIV"
+      ]
+    },
+    {
+      "title": "NurseLLM: The First Specialized Language Model for Nursing",
+      "keep_key": "5ZK8WNJV",
+      "dup_count": 3,
+      "deleted_keys": [
+        "LNLSLDCG",
+        "C9PISVJU"
+      ]
+    },
+    {
+      "title": "When Cases Get Rare: A Retrieval Benchmark for Off-Guideline Clinical Question Answering",
+      "keep_key": "DRBHDP9W",
+      "dup_count": 3,
+      "deleted_keys": [
+        "6UXPGDBV",
+        "EASGUEME"
+      ]
+    },
+    {
+      "title": "Reassessing High-Performing LLMs on Polish Medical Exams: True Competence or Bias-Driven Performance",
+      "keep_key": "UL8N3LA6",
+      "dup_count": 3,
+      "deleted_keys": [
+        "SSQ2X56C",
+        "NTTERZA8"
+      ]
+    },
+    {
+      "title": "Pattern Recognition or Medical Knowledge? The Problem with Multiple-Choice Questions in Medicine",
+      "keep_key": "TQ3JWISY",
+      "dup_count": 3,
+      "deleted_keys": [
+        "XEAK6E5Y",
+        "9CPZMS82"
+      ]
+    },
+    {
+      "title": "HealthBranches: Synthesizing Clinically-Grounded Question Answering Datasets via Decision Pathways",
+      "keep_key": "X3AEHRNR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DSSP7R4W",
+        "G52T9NZL"
+      ]
+    },
+    {
+      "title": "LLMEval-Med: A Real-world Clinical Benchmark for Medical LLMs with Physician Validation",
+      "keep_key": "6MQ95KJ5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "UKL5KYUG",
+        "IMICFCL8"
+      ]
+    },
+    {
+      "title": "Dysphagia Management and Cervical Auscultation: Reliability and Validity Against FEES",
+      "keep_key": "WW4TR7GU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "796B9LR7",
+        "47996AVM"
+      ]
+    },
+    {
+      "title": "ReXInTheWild: A Unified Benchmark for Medical Photograph Understanding",
+      "keep_key": "9RDB8DC5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "BETN9A2G",
+        "K64STM4U"
+      ]
+    },
+    {
+      "title": "Beyond Distillation: Pushing the Limits of Medical LLM Reasoning with Minimalist Rule-Based RL",
+      "keep_key": "5AZXWHWB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "S6S7VELL",
+        "DSPWHB9X"
+      ]
+    },
+    {
+      "title": "Annotation of epilepsy clinic letters for natural language processing",
+      "keep_key": "5WV9RCB3",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZE7E76AP",
+        "NWGGXBHI"
+      ]
+    },
+    {
+      "title": "It is Too Many Options: Pitfalls of Multiple-Choice Questions in Generative AI and Medical Education",
+      "keep_key": "IKIWZG3I",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Q8ZM8BWQ",
+        "7D7I6G9L"
+      ]
+    },
+    {
+      "title": "Med-CoReasoner: Reducing Language Disparities in Medical Reasoning via Language-Informed Co-Reasonin",
+      "keep_key": "SSXRGLLB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "MJHVWCDJ",
+        "VBGTCH9Y"
+      ]
+    },
+    {
+      "title": "Assessment of validity and reliability of the feedback quality instrument",
+      "keep_key": "CUQW25IG",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Y7ILAEJR",
+        "BAMHDTJ6"
+      ]
+    },
+    {
+      "title": "Evaluation of large language model-generated medical information on idiopathic pulmonary fibrosis",
+      "keep_key": "REJGFNER",
+      "dup_count": 3,
+      "deleted_keys": [
+        "I7CG9A9B",
+        "QI7BBXSY"
+      ]
+    },
+    {
+      "title": "Pre-trained language models in medicine: A survey",
+      "keep_key": "C4DCMJEH",
+      "dup_count": 3,
+      "deleted_keys": [
+        "CK59S8L6",
+        "BTHZ3T8Z"
+      ]
+    },
+    {
+      "title": "PDF Entity Annotation Tool (PEAT)",
+      "keep_key": "DVET6H2J",
+      "dup_count": 3,
+      "deleted_keys": [
+        "HSGFUHUG",
+        "VJXKU43L"
+      ]
+    },
+    {
+      "title": "PuMA: PubMed gene/cell type-relation Atlas",
+      "keep_key": "J6W8435X",
+      "dup_count": 3,
+      "deleted_keys": [
+        "LKSIZHYT",
+        "XDH8K35X"
+      ]
+    },
+    {
+      "title": "MediQAl: A French Medical Question Answering Dataset for Knowledge and Reasoning Evaluation",
+      "keep_key": "P8PZJTEZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RH4HMFH5",
+        "CEJZ3LCN"
+      ]
+    },
+    {
+      "title": "Reliability and Validity of GRBASzero in Clinical Environments",
+      "keep_key": "FDGD5UM7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "HQQ2QDZF",
+        "TAZKH3GM"
+      ]
+    },
+    {
+      "title": "The DRAGON benchmark for clinical NLP",
+      "keep_key": "C6AX8EIQ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "MIM3ASRS",
+        "GCDTS4GE"
+      ]
+    },
+    {
+      "title": "Reliability and Validity of the UMove Mobility Screen",
+      "keep_key": "MAMLI4IV",
+      "dup_count": 3,
+      "deleted_keys": [
+        "LPDWT4VN",
+        "FJ4ZJ9WD"
+      ]
+    },
+    {
+      "title": "Automating Access to Real-World Evidence",
+      "keep_key": "U5M9354N",
+      "dup_count": 3,
+      "deleted_keys": [
+        "KUYLCSBK",
+        "GAYSSQP2"
+      ]
+    },
+    {
+      "title": "Mapping the plague through natural language processing",
+      "keep_key": "BP8CVKKW",
+      "dup_count": 3,
+      "deleted_keys": [
+        "MFEYUG4W",
+        "N8Y2JTKY"
+      ]
+    },
+    {
+      "title": "Reliability and validity of quantitative evaluation of anticipatory postural adjustments using smart",
+      "keep_key": "F83LFWP6",
+      "dup_count": 3,
+      "deleted_keys": [
+        "QWDUGQHW",
+        "VAS74Y7B"
+      ]
+    },
+    {
+      "title": "Development and validation of the provider documentation summarization quality instrument for large ",
+      "keep_key": "G9XHNMR8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "X8LD3QEX",
+        "SI8P3DTB"
+      ]
+    },
+    {
+      "title": "ChatGPT Generated Otorhinolaryngology Multiple‐Choice Questions: Quality, Psychometric Properties, a",
+      "keep_key": "PB7DS9VQ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "THG8NIA9",
+        "93GNFC38"
+      ]
+    },
+    {
+      "title": "Accuracy, Validity, and Reliability of Markerless Camera-Based 3D Motion Capture Systems versus Mark",
+      "keep_key": "SPSKYEY4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Z86WCP5U",
+        "7JSAYNZ8"
+      ]
+    },
+    {
+      "title": "Automated Item Generation: impact of item variants on performance and standard setting",
+      "keep_key": "RBBWII6W",
+      "dup_count": 3,
+      "deleted_keys": [
+        "TCYMRSLG",
+        "N9WSL6YR"
+      ]
+    },
+    {
+      "title": "Personalized Cancer Follow-Up Care Pathways: A Delphi Consensus of Research Priorities",
+      "keep_key": "RU569UE7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DD8HZACB",
+        "F77JBHZH"
+      ]
+    },
+    {
+      "title": "Identifying Potential Classification Criteria for Calcium Pyrophosphate Deposition Disease: Item Gen",
+      "keep_key": "H2TZESIW",
+      "dup_count": 3,
+      "deleted_keys": [
+        "IQ74VRIP",
+        "SHQKFSE9"
+      ]
+    },
+    {
+      "title": "Using Automatic Item Generation to Create Multiple-Choice Questions for Pharmacy Assessment",
+      "keep_key": "FJS83DQD",
+      "dup_count": 3,
+      "deleted_keys": [
+        "8VI4RPJZ",
+        "S95PHDJQ"
+      ]
+    },
+    {
+      "title": "Development and Psychometric Evaluation of the Clinical Nursing Cultural Competence Scale",
+      "keep_key": "TF7XGZL5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "BNAICAN2",
+        "SF865IMC"
+      ]
+    },
+    {
+      "title": "The equation for medical multiple-choice question testing time estimation",
+      "keep_key": "9FFSTLCD",
+      "dup_count": 3,
+      "deleted_keys": [
+        "3F686RPD",
+        "MXX2Z3KG"
+      ]
+    },
+    {
+      "title": "Development of the Cold Urticaria Activity Score",
+      "keep_key": "75V8T3QY",
+      "dup_count": 3,
+      "deleted_keys": [
+        "723NPRQB",
+        "RTRPH4GB"
+      ]
+    },
+    {
+      "title": "The Generation and Use of Medical MCQs: A Narrative Review",
+      "keep_key": "DNA78DVP",
+      "dup_count": 3,
+      "deleted_keys": [
+        "4RHDCNFE",
+        "F2VVADZ3"
+      ]
+    },
+    {
+      "title": "Implementing a strategic plan for research",
+      "keep_key": "SR3EEDY6",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZGHPVT7R",
+        "QWH2IDFY"
+      ]
+    },
+    {
+      "title": "Large Language Model Clinical Vignettes and Multiple-Choice Questions for Postgraduate Medical Educa",
+      "keep_key": "DJLSCSII",
+      "dup_count": 3,
+      "deleted_keys": [
+        "M89E4WF5",
+        "27PB6ZTG"
+      ]
+    },
+    {
+      "title": "Learning representations of microbe–metabolite interactions",
+      "keep_key": "X6LIHUVP",
+      "dup_count": 3,
+      "deleted_keys": [
+        "WWTMK3JD",
+        "HVM59U5U"
+      ]
+    },
+    {
+      "title": "Knowledge Graph Embeddings for ICU readmission prediction",
+      "keep_key": "B7LPBSZ9",
+      "dup_count": 3,
+      "deleted_keys": [
+        "G5MG3KNA",
+        "YCVPV8VK"
+      ]
+    },
+    {
+      "title": "Developing and Validating Clinical Questionnaires",
+      "keep_key": "SC4IUIEZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "AYRMJIZG",
+        "B5MC2JV3"
+      ]
+    },
+    {
+      "title": "Feasibility assurance: a review of automatic item generation in medical assessment",
+      "keep_key": "IRACZIIB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "JUCJ4PBN",
+        "HSYCGCVX"
+      ]
+    },
+    {
+      "title": "Multiple choice as formative assessment in dental education",
+      "keep_key": "TWDIEJJZ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "5JXX3CFV",
+        "B3BAWXCE"
+      ]
+    },
+    {
+      "title": "Patient Version of Guideline for Fibromyalgia (2025 Edition)",
+      "keep_key": "PMFVR63U",
+      "dup_count": 3,
+      "deleted_keys": [
+        "CRC8PI3B",
+        "MEIZ74RQ"
+      ]
+    },
+    {
+      "title": "Graph-based biomedical text summarization: An itemset mining and sentence clustering approach",
+      "keep_key": "IV8TZ47W",
+      "dup_count": 3,
+      "deleted_keys": [
+        "8TE9XVZI",
+        "GI3YWSKU"
+      ]
+    },
+    {
+      "title": "Acupuncture and tuina knowledge graph with prompt learning",
+      "keep_key": "S3IFGY4E",
+      "dup_count": 3,
+      "deleted_keys": [
+        "QJPADPNI",
+        "6TNMB62F"
+      ]
+    },
+    {
+      "title": "Constructing knowledge graphs and their biomedical applications",
+      "keep_key": "A5CPKT5Z",
+      "dup_count": 3,
+      "deleted_keys": [
+        "4QSUCIGP",
+        "KC9RMLUA"
+      ]
+    },
+    {
+      "title": "Graph Neural Network-Based Diagnosis Prediction",
+      "keep_key": "BK3LCYN9",
+      "dup_count": 3,
+      "deleted_keys": [
+        "IU9GLDHG",
+        "8PP7MQ84"
+      ]
+    },
+    {
+      "title": "Building a PubMed knowledge graph",
+      "keep_key": "HTJIVDDR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "AF3HNUV9",
+        "JPRD2GJ2"
+      ]
+    },
+    {
+      "title": "A knowledge graph to interpret clinical proteomics data",
+      "keep_key": "TT2IZX3K",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DQ9FASMQ",
+        "Z4RT9NWF"
+      ]
+    },
+    {
+      "title": "Knowledge graph assisted end-to-end medical dialog generation",
+      "keep_key": "IHZDLR9W",
+      "dup_count": 3,
+      "deleted_keys": [
+        "P2YJMFIQ",
+        "NEZGUX8K"
+      ]
+    },
+    {
+      "title": "Defining clinical outcome pathways",
+      "keep_key": "RE4VVGL5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "J4C8I3Y3",
+        "GMANMTWZ"
+      ]
+    },
+    {
+      "title": "A survey on data mining techniques used in medicine",
+      "keep_key": "ICMR3S3B",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RA8IMVFE",
+        "HJVD2N3I"
+      ]
+    },
+    {
+      "title": "Leveraging Medical Knowledge Graphs Into Large Language Models for Diagnosis Prediction: Design and ",
+      "keep_key": "5QK9RHQ4",
+      "dup_count": 6,
+      "deleted_keys": [
+        "MGPLS2GV",
+        "JK7D38WZ",
+        "PXLQNSQI",
+        "6XE8C3Z7",
+        "37BXKFKM"
+      ]
+    },
+    {
+      "title": "Knowledge-Based Biomedical Data Science",
+      "keep_key": "8CVKXRWV",
+      "dup_count": 3,
+      "deleted_keys": [
+        "VIV6TQWZ",
+        "4BHVSKZD"
+      ]
+    },
+    {
+      "title": "Bayesian Networks in Radiology",
+      "keep_key": "T4BM55DR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NMU9AZW4",
+        "YZ8IRLGT"
+      ]
+    },
+    {
+      "title": "A foundation model for clinician-centered drug repurposing",
+      "keep_key": "K7PPAJBJ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "VG5NWFBJ",
+        "WYR2Q3AM"
+      ]
+    },
+    {
+      "title": "Predictors of <scp>COVID</scp>‐19 severity: A literature review",
+      "keep_key": "PJE42NQA",
+      "dup_count": 3,
+      "deleted_keys": [
+        "8ZSMTG74",
+        "59J4NNY9"
+      ]
+    },
+    {
+      "title": "Harmonization and Standardization: Where Are We Now?",
+      "keep_key": "ULFP94JP",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ELMQ35I5",
+        "I9E3XK9I"
+      ]
+    },
+    {
+      "title": "Autoverification of test results in the core clinical laboratory",
+      "keep_key": "TCUKET3J",
+      "dup_count": 3,
+      "deleted_keys": [
+        "FMFRRPNA",
+        "28A636R7"
+      ]
+    },
+    {
+      "title": "Delta Checks in the clinical laboratory",
+      "keep_key": "FXBVD32Q",
+      "dup_count": 3,
+      "deleted_keys": [
+        "Z3XQCNBP",
+        "KKWAD9BV"
+      ]
+    },
+    {
+      "title": "A transformer-based representation-learning model with unified processing of multimodal input for cl",
+      "keep_key": "7FKHTYDG",
+      "dup_count": 3,
+      "deleted_keys": [
+        "BBBSXAL2",
+        "ZCLWJRSN"
+      ]
+    },
+    {
+      "title": "Benchmarking whole exome sequencing in the German network for personalized medicine",
+      "keep_key": "8ZJE5HDB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "6TMGCD52",
+        "TJC92Y72"
+      ]
+    },
+    {
+      "title": "Improving Naloxone Co-prescribing Through Clinical Decision Support",
+      "keep_key": "XVCJ6Y62",
+      "dup_count": 3,
+      "deleted_keys": [
+        "96UBVDRD",
+        "XKCL2B5T"
+      ]
+    },
+    {
+      "title": "Decision Support Tools within the Electronic Health Record",
+      "keep_key": "V98WY3RJ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "4QQJFFAK",
+        "IDGR7PBB"
+      ]
+    },
+    {
+      "title": "Mismatch Repair and Microsatellite Instability Testing for Immune Checkpoint Inhibitor Therapy: Guid",
+      "keep_key": "LEX2X33P",
+      "dup_count": 3,
+      "deleted_keys": [
+        "HBZGD2U9",
+        "Z9MXRTLG"
+      ]
+    },
+    {
+      "title": "A full life cycle biological clock based on routine clinical data and its impact in health and disea",
+      "keep_key": "S8TFQH64",
+      "dup_count": 3,
+      "deleted_keys": [
+        "963M2TY3",
+        "YRKJASDX"
+      ]
+    },
+    {
+      "title": "AI-enabled molecular phenotyping and prognostic predictions in lung cancer through multimodal clinic",
+      "keep_key": "M7QWUP74",
+      "dup_count": 3,
+      "deleted_keys": [
+        "9IGVH6KL",
+        "4A2HCJKW"
+      ]
+    },
+    {
+      "title": "Protein C Deficiency",
+      "keep_key": "P5U97D4Y",
+      "dup_count": 3,
+      "deleted_keys": [
+        "LWUD7V6S",
+        "8MV3DHR5"
+      ]
+    },
+    {
+      "title": "Chronic Pain Syndromes: Fibromyalgia",
+      "keep_key": "29CMCZN5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ABF9QWDF",
+        "4V8DN944"
+      ]
+    },
+    {
+      "title": "Thyroid emergencies",
+      "keep_key": "CPNFFIEI",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EJ9TTD9F",
+        "YK8FB7G5"
+      ]
+    },
+    {
+      "title": "Interventions to reduce medication errors in adult medical and surgical settings: a systematic revie",
+      "keep_key": "3I6VRBS8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "W592QC8S",
+        "CRV924TP"
+      ]
+    },
+    {
+      "title": "Single-arm oncology trials and the nature of external controls arms",
+      "keep_key": "T7SI2HL4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "S885FFGM",
+        "FIKUI7UD"
+      ]
+    },
+    {
+      "title": "Differential dementia detection from multimodal brain images in a real‐world dataset",
+      "keep_key": "TC6QM8V8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "D4F76IF6",
+        "S3DTN7BG"
+      ]
+    },
+    {
+      "title": "Closed-Loop Medication Management with an Electronic Health Record System in U.S. and Finnish Hospit",
+      "keep_key": "BSRFGNPJ",
+      "dup_count": 3,
+      "deleted_keys": [
+        "36EZ7YPW",
+        "2UWGRXFC"
+      ]
+    },
+    {
+      "title": "Can GPT-3.5 generate and code discharge summaries?",
+      "keep_key": "KPVCZZ3I",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NY3DRVYA",
+        "F2IQUFAJ"
+      ]
+    },
+    {
+      "title": "Open-source electronic health record systems: A systematic review of most recent advances",
+      "keep_key": "ZNRAFXTR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZWAQEVLR",
+        "UXWQS66T"
+      ]
+    },
+    {
+      "title": "Optimal Sampling for Positive Only Electronic Health Record Data",
+      "keep_key": "TFSGHST7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "8SFHEUI3",
+        "UESR67NW"
+      ]
+    },
+    {
+      "title": "A Visualization and Benchmarking Simulator for Clinical Data",
+      "keep_key": "3CK56CCF",
+      "dup_count": 3,
+      "deleted_keys": [
+        "HAD9CNXR",
+        "U2PUY5ZM"
+      ]
+    },
+    {
+      "title": "Large language model trained on clinical oncology data predicts cancer progression",
+      "keep_key": "8WSBXND4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "E9KINIAX",
+        "P6WWC7XS"
+      ]
+    },
+    {
+      "title": "Calibrating Observational Health Record Data Against a Randomized Trial",
+      "keep_key": "B62SYJR8",
+      "dup_count": 3,
+      "deleted_keys": [
+        "SWYT244I",
+        "AVGPGHZT"
+      ]
+    },
+    {
+      "title": "Observational designs for real-world evidence studies",
+      "keep_key": "JCQ7VIL7",
+      "dup_count": 3,
+      "deleted_keys": [
+        "B8GZ38GZ",
+        "TAWTFXES"
+      ]
+    },
+    {
+      "title": "Use of the Electronic Health Record to Optimize Antimicrobial Prescribing",
+      "keep_key": "MLRADG7F",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EB2WIYX8",
+        "DA433QIZ"
+      ]
+    },
+    {
+      "title": "Target Trial Emulation for Regulatory and Clinical Decision Making in Cancer",
+      "keep_key": "PIUZSM5J",
+      "dup_count": 3,
+      "deleted_keys": [
+        "J5M9SRAM",
+        "SXH9VURJ"
+      ]
+    },
+    {
+      "title": "Machine learning prediction models for multidrug-resistant organism infections in ICU ventilator-ass",
+      "keep_key": "46IMFGA4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "6W5I3PCJ",
+        "465X8K62"
+      ]
+    },
+    {
+      "title": "MEG Reporting",
+      "keep_key": "VV2NLHTD",
+      "dup_count": 3,
+      "deleted_keys": [
+        "GFZ82V7S",
+        "P8HFC5FX"
+      ]
+    },
+    {
+      "title": "How Does ChatGPT Perform on the United States Medical Licensing Examination (USMLE)? The Implication",
+      "keep_key": "RZBLVNV5",
+      "dup_count": 3,
+      "deleted_keys": [
+        "9MEZVJ4K",
+        "IFXV8PET"
+      ]
+    },
+    {
+      "title": "ChatGPT for assessment writing",
+      "keep_key": "G6T4T6X4",
+      "dup_count": 3,
+      "deleted_keys": [
+        "GK8TK8GR",
+        "SARI7PX9"
+      ]
+    },
+    {
+      "title": "Comparative benchmarking of the DeepSeek large language model on medical tasks and clinical reasonin",
+      "keep_key": "4RZI5FZR",
+      "dup_count": 3,
+      "deleted_keys": [
+        "ZFKJJA78",
+        "NDIQRMWP"
+      ]
+    },
+    {
+      "title": "Creating virtual patients using large language models: scalable, global, and low cost",
+      "keep_key": "FCQW48AU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "5KV4QIQY",
+        "EZ6XWQMV"
+      ]
+    },
+    {
+      "title": "Performance of large language artificial intelligence models on solving restorative dentistry and en",
+      "keep_key": "9WRH2UFU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "MESM6MDT",
+        "SJ4YSUPI"
+      ]
+    },
+    {
+      "title": "Artificial intelligence in undergraduate medical education: an updated scoping review",
+      "keep_key": "CTL7QKQF",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EXUGZCD6",
+        "AIVQ9Q2Q"
+      ]
+    },
+    {
+      "title": "Toward expert-level medical question answering with large language models",
+      "keep_key": "S6N6ASKS",
+      "dup_count": 3,
+      "deleted_keys": [
+        "DS8L7SIU",
+        "5L7XESAV"
+      ]
+    },
+    {
+      "title": "A personal health large language model for sleep and fitness coaching",
+      "keep_key": "HHQQHNWK",
+      "dup_count": 3,
+      "deleted_keys": [
+        "RDB26PLC",
+        "78AP3DNL"
+      ]
+    },
+    {
+      "title": "Performance of ChatGPT Across Different Versions in Medical Licensing Examinations Worldwide: System",
+      "keep_key": "DYAMFKZ9",
+      "dup_count": 3,
+      "deleted_keys": [
+        "PF98TUXH",
+        "HRXY8E65"
+      ]
+    },
+    {
+      "title": "TCMChat: A generative large language model for traditional Chinese medicine",
+      "keep_key": "2CHZG5WB",
+      "dup_count": 3,
+      "deleted_keys": [
+        "2BEQI8F7",
+        "P2LF5GTH"
+      ]
+    },
+    {
+      "title": "Large Language Model Influence on Diagnostic Reasoning",
+      "keep_key": "ZKGYR85U",
+      "dup_count": 3,
+      "deleted_keys": [
+        "NUZRDX9Z",
+        "TCVL2FDR"
+      ]
+    },
+    {
+      "title": "A multimodal generative AI copilot for human pathology",
+      "keep_key": "PZYZL7JE",
+      "dup_count": 3,
+      "deleted_keys": [
+        "BAMSKED8",
+        "MBXX4W9N"
+      ]
+    },
+    {
+      "title": "Performance of a large language model on the reasoning tasks of a physician",
+      "keep_key": "TAG5AGSU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "EI8FZS7V",
+        "S5G4QYR3"
+      ]
+    },
+    {
+      "title": "Large language models encode clinical knowledge",
+      "keep_key": "RRACGJGU",
+      "dup_count": 3,
+      "deleted_keys": [
+        "QIVLVSPV",
+        "3P82ZXSL"
+      ]
+    }
+  ]
+}

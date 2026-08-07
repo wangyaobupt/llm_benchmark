@@ -1,0 +1,2312 @@
+{
+  "_meta": {
+    "source": "Google Scholar",
+    "date": "2026-08-06",
+    "total_raw": 118,
+    "total_new": 112
+  },
+  "raw": [
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessment of large language models in clinical reasoning: a novel benchmarking study",
+      "authors": "LG McCoy, R Swamy, N Sagar, M Wang, S Bacchi",
+      "journal": "NEJM AI",
+      "year": "2025",
+      "citedBy": "81",
+      "href": "https://ai.nejm.org/doi/abs/10.1056/AIdbp2500120",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Medical large language model benchmarks should prioritize construct validity",
+      "authors": "A Alaa, T Hartvigsen, N Golchini, S Dutta",
+      "journal": "arXiv:2503.10694",
+      "year": "2025",
+      "citedBy": "32",
+      "href": "https://arxiv.org/abs/2503.10694",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Performance of large language models on medical oncology examination questions",
+      "authors": "JB Longwell, I Hirsch, F Binder",
+      "journal": "JAMA Network Open",
+      "year": "2024",
+      "citedBy": "106",
+      "href": "https://jamanetwork.com/journals/jamanetworkopen/article-abstract/2820094",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessing and optimizing large language models on spondyloarthritis multi-choice question answering",
+      "authors": "A Wang, Y Wu, X Ji, X Wang, J Hu",
+      "journal": "JMIR Research Protocols",
+      "year": "2024",
+      "citedBy": "11",
+      "href": "https://www.researchprotocols.org/2024/1/e57001",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedGUIDE: benchmarking clinical decision-making in large language models",
+      "authors": "X Li, M Gao, Y Hao, T Li, G Wan, Z Wang",
+      "journal": "arXiv:2505.11613",
+      "year": "2025",
+      "citedBy": "14",
+      "href": "https://arxiv.org/abs/2505.11613",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "EHRNoteQA: an LLM benchmark for real-world clinical practice using discharge summaries",
+      "authors": "S Kweon, J Kim, H Kwak, D Cha",
+      "journal": "NeurIPS 2024",
+      "year": "2024",
+      "citedBy": "58",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2024/hash/e15c4afff22f12c4986c1fcb4e941e03-Abstract-Datasets_and_Benchmarks_Track.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Beyond multiple-choice questions: rethinking evaluation frameworks for LLMs for clinical medicine",
+      "authors": "Z Jiang, H Chen, Y Wu, Y Qin, C Pei, D Zeng",
+      "journal": "Intelligent Medicine",
+      "year": "2026",
+      "citedBy": "5",
+      "href": "https://mednexus.org/doi/abs/10.1016/j.imed.2026.01.001",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Comparative evaluation of LLMs in clinical oncology",
+      "authors": "NR Rydzewski, D Dinakaran, SG Zhao, E Ruppin",
+      "journal": "NEJM AI",
+      "year": "2024",
+      "citedBy": "133",
+      "href": "https://ai.nejm.org/doi/abs/10.1056/AIoa2300151",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Benchmarking LLMs on authentic cases from medical journals",
+      "authors": "W Liu, J Chen, Y Yang, P Tiwari, W Chen",
+      "journal": "Findings of ACL 2026",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://aclanthology.org/2026.findings-acl.767/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedQA-CS: benchmarking large language models clinical skills using an AI-SCE framework",
+      "authors": "Z Yao, Z Zhang, C Tang, X Bian, Y Zhao",
+      "journal": "arXiv",
+      "year": "2024",
+      "citedBy": "42",
+      "href": "https://arxiv.org/abs/2407.04300",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MediQ: question-asking LLMs and a benchmark for reliable interactive clinical reasoning",
+      "authors": "SS Li, V Balachandran, S Feng",
+      "journal": "NeurIPS 2024",
+      "year": "2024",
+      "citedBy": "214",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2024/hash/32b80425554e081204e5988ab1c9719a-Abstract-Conference.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedQA-CS: OSCE-style benchmark for evaluating LLM clinical skills",
+      "authors": "Z Yao, Z Zhang, C Tang, X Bian, Y Zhao",
+      "journal": "EACL 2026",
+      "year": "2026",
+      "citedBy": "6",
+      "href": "https://aclanthology.org/2026.eacl-long.292/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "LLMEval-Med: a real-world clinical benchmark for medical LLMs with physician validation",
+      "authors": "M Zhang, Y Shen, Z Li, H Sha, B Hu",
+      "journal": "Findings of EMNLP 2025",
+      "year": "2025",
+      "citedBy": "21",
+      "href": "https://arxiv.org/abs/2506.04078",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Medical reasoning with large language models: a systematic review and evaluation",
+      "authors": "X Ren, C Fan, W Ma, H He, C Gao, X Zhao",
+      "journal": "Wiley",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/inm3.70056",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Clinician-level agreement without clinical caution: LLM evaluator limits in medical AI benchmarking",
+      "authors": "W Philipp, F Fassbender, T Langer, M Pauly",
+      "journal": "arXiv:2607.01103",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2607.01103",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Benchmarking clinical reasoning in large language models: a comparative assessment study",
+      "authors": "T Prade, M Samwald",
+      "journal": "medRxiv",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://www.medrxiv.org/content/10.64898/2026.03.13.26347597.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedDialogRubrics: benchmark and evaluation framework for multi-turn medical consultations",
+      "authors": "L Gong, W Fang, T Yang, D Tao, C Guo, P Wei",
+      "journal": "arXiv:2601.03023",
+      "year": "2026",
+      "citedBy": "14",
+      "href": "https://arxiv.org/abs/2601.03023",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "A benchmark for long-form medical question answering",
+      "authors": "P Hosseini, JM Sin, B Ren, BG Thomas, E Nouri",
+      "journal": "arXiv:2411.09834",
+      "year": "2024",
+      "citedBy": "32",
+      "href": "https://arxiv.org/abs/2411.09834",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Large language models in the clinic: a comprehensive benchmark",
+      "authors": "F Liu, Z Li, H Zhou, Q Yin, J Yang, X Tang",
+      "journal": "arXiv:2405.00716",
+      "year": "2024",
+      "citedBy": "49",
+      "href": "https://arxiv.org/abs/2405.00716",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessing large language models for medical QA: zero-shot and LLM-as-a-judge evaluation",
+      "authors": "SES Adib, AA Sani, EA Esham, A Abrar",
+      "journal": "IEEE",
+      "year": "2025",
+      "citedBy": "2",
+      "href": "https://ieeexplore.ieee.org/abstract/document/11491589/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Assessment of the integrity of real-time electronic health record data used in clinical research",
+      "authors": "J Liu, S Pandya, A Coppi, HP Young, HM Krumholz",
+      "journal": "PLOS ONE",
+      "year": "2026",
+      "citedBy": "3",
+      "href": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0340287",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHRNoteQA: a patient-specific QA benchmark for evaluating LLMs in clinical settings",
+      "authors": "S Kweon, J Kim, H Kwak, D Cha, H Yoon",
+      "journal": "PhysioNet",
+      "year": "2024",
+      "citedBy": "12",
+      "href": "https://physionet.org/content/ehr-notes-qa-llms/1.0.0/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Generating clinically realistic EHR data via a hierarchy-and-semantics-guided transformer",
+      "authors": "G Zhou, S Barbieri",
+      "journal": "arXiv:2502.20719",
+      "year": "2025",
+      "citedBy": "6",
+      "href": "https://arxiv.org/abs/2502.20719",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHR-Complex: benchmarking medical agents for complex clinical reasoning",
+      "authors": "Y Qiao, L Liu, Y Shen, J Wang, J Gu, Z Chu",
+      "journal": "arXiv:2606.23301",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2606.23301",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Benchmarking emergency department prediction models with ML and public EHR",
+      "authors": "F Xie, J Zhou, JW Lee, M Tan, S Li",
+      "journal": "Scientific Data",
+      "year": "2022",
+      "citedBy": "109",
+      "href": "https://www.nature.com/articles/s41597-022-01782-9",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Framework for real-time anomaly detection in large-scale EHR databases using MIMIC-IV eICU-CRD",
+      "authors": "MX Zhang, D Osei-Bonsu",
+      "journal": "DATAMIND",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://inatgi.in/index.php/dm/article/download/506/424",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Generating synthetic EHR data: a methodological scoping review with benchmarking",
+      "authors": "X Chen, Z Wu, X Shi, H Cho",
+      "journal": "JAMIA",
+      "year": "2025",
+      "citedBy": "27",
+      "href": "https://academic.oup.com/jamia/article-abstract/32/7/1227/8155975",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "CliniQ: a multi-faceted benchmark for EHR retrieval with semantic match assessment",
+      "authors": "Z Zhao, H Yuan, J Liu, H Chen, H Ying, S Zhou",
+      "journal": "arXiv:2502.06252",
+      "year": "2025",
+      "citedBy": "4",
+      "href": "https://arxiv.org/abs/2502.06252",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Real-world clinical datasets in practice: applications for learners and health services teams",
+      "authors": "JF Wood, JJ Tan, HM Eby, WM Rees",
+      "journal": "Clinical and Translational Science",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ascpt.onlinelibrary.wiley.com/doi/abs/10.1111/cts.70625",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHRSQL: a practical text-to-SQL benchmark for electronic health records",
+      "authors": "G Lee, H Hwang, S Bae, Y Kwon",
+      "journal": "NeurIPS 2022",
+      "year": "2022",
+      "citedBy": "131",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2022/hash/643e347250cf9289e5a2a6c1ed5ee42e-Abstract-Datasets_and_Benchmarks.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "An EHR data standardisation pipeline using the MIMIC-III dataset",
+      "authors": "J Gregorio, A Lemanska, B Cieszynski, N Peric",
+      "journal": "BIOSTEC 2026",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Leveraging MIMIC datasets for better digital health: a review on open problems and progress",
+      "authors": "A Khaled, M Sabir, R Qureshi, CM Caruso",
+      "journal": "arXiv:2506.12808",
+      "year": "2025",
+      "citedBy": "10",
+      "href": "https://arxiv.org/abs/2506.12808",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "A multi-world synthetic benchmark for evaluating RSCE in clinical machine learning",
+      "authors": "N Piyavechvirat, YJ Huang, QMU Haq",
+      "journal": "IEEE Access",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ieeexplore.ieee.org/abstract/document/11404134/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "A multifaceted benchmarking of synthetic EHR generation models",
+      "authors": "C Yan, Y Yan, Z Wan, Z Zhang, L Omberg",
+      "journal": "Nature Communications",
+      "year": "2022",
+      "citedBy": "178",
+      "href": "https://www.nature.com/articles/s41467-022-35295-1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Replication of real-world evidence in oncology using EHR data extracted by ML",
+      "authors": "CM Benedum, A Sondhi, E Fidyk, AB Cohen",
+      "journal": "Cancers",
+      "year": "2023",
+      "citedBy": "38",
+      "href": "https://www.mdpi.com/2072-6694/15/6/1853",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Developing real-world evidence from real-world data: transforming raw data into analytical datasets",
+      "authors": "L Bastarache, JS Brown, JJ Cimino",
+      "journal": "Learning Health Systems",
+      "year": "2022",
+      "citedBy": "68",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/lrh2.10293",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Real-world data for clinical evidence generation in oncology",
+      "authors": "S Khozin, GM Blumenthal",
+      "journal": "JNCI",
+      "year": "2017",
+      "citedBy": "394",
+      "href": "https://academic.oup.com/jnci/article-abstract/109/11/djx187/4157738",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "From real-world EHR data to real-world results using AI",
+      "authors": "R Knevel, KP Liao",
+      "journal": "Annals of the Rheumatic Diseases",
+      "year": "2023",
+      "citedBy": "194",
+      "href": "https://ard.bmj.com/content/82/3/306.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Assessing function of electronic health records for real-world data generation",
+      "authors": "D Guinn, EE Wilhelm, G Lieberman",
+      "journal": "BMJ Evidence-Based Medicine",
+      "year": "2019",
+      "citedBy": "13",
+      "href": "https://ebm.bmj.com/content/24/3/95.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Targeting repetitive laboratory testing with EHR-embedded predictive decision support",
+      "authors": "N Rabbani, SP Ma, RC Li, M Winget, S Weber",
+      "journal": "Clinical Chemistry",
+      "year": "2023",
+      "citedBy": "28",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0009912023000024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support for laboratory testing",
+      "authors": "AEO Hughes, R Jackups Jr",
+      "journal": "Clinical Chemistry",
+      "year": "2022",
+      "citedBy": "29",
+      "href": "https://academic.oup.com/clinchem/article-abstract/68/3/402/6453839",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "OrderRex: clinical order decision support and outcome predictions by data-mining EMR",
+      "authors": "JH Chen, T Podchiyska",
+      "journal": "JAMIA",
+      "year": "2016",
+      "citedBy": "74",
+      "href": "https://academic.oup.com/jamia/article-abstract/23/2/339/2572407",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Predicting laboratory test ordering in emergency departments using integrated EHR ML",
+      "authors": "X Zhang, H Ling, X Zhang, A Zhang",
+      "journal": "JMIR Medical Informatics",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://medinform.jmir.org/2026/1/e85255",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Developing and maintaining clinical decision support using clinical knowledge and ML: order sets",
+      "authors": "Y Zhang, R Trepp, W Wang, J Luna",
+      "journal": "JAMIA",
+      "year": "2018",
+      "citedBy": "14",
+      "href": "https://academic.oup.com/jamia/article-abstract/25/11/1547/5067938",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Use of ML to predict CDS compliance reduce alert burden and evaluate duplicate lab test alerts",
+      "authors": "JM Baron, R Huang, D McEvoy, AS Dighe",
+      "journal": "JAMIA Open",
+      "year": "2021",
+      "citedBy": "36",
+      "href": "https://academic.oup.com/jamiaopen/article-abstract/4/1/ooab006/6154712",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Integrating pharmacogenomics into EHR with clinical decision support",
+      "authors": "JK Hicks, HM Dunnenberger",
+      "journal": "American Journal of Health-System Pharmacy",
+      "year": "2016",
+      "citedBy": "180",
+      "href": "https://academic.oup.com/ajhp/article-abstract/73/23/1967/5102166",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Laboratory test-ordering patterns carry an early prognostic signal in EHR",
+      "authors": "S Baichoo, A Abedi, B Rubin, B Wang",
+      "journal": "Research Square",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "The effects of computerized CDS systems on laboratory test ordering: a systematic review",
+      "authors": "N Delvaux, K Van Thienen",
+      "journal": "American Journal of Clinical Pathology",
+      "year": "2017",
+      "citedBy": "66",
+      "href": "https://aplm.kglmeridian.com/view/journals/arpa/141/4/article-p585.xml",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Integrating medication recommendation and lab test response prediction for enhanced CDS",
+      "authors": "S Bhoi, ML Lee, W Hsu, NC Tan",
+      "journal": "AAAI Symposium",
+      "year": "2023",
+      "citedBy": "1",
+      "href": "https://ojs.aaai.org/index.php/AAAI-SS/article/view/27489",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support for hematology laboratory test utilization",
+      "authors": "R Jackups Jr, JJ Szymanski",
+      "journal": "International Journal of Laboratory Hematology",
+      "year": "2017",
+      "citedBy": "23",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1111/ijlh.12679",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Impact of a CDS system in an EHR to enhance detection of alpha1-antitrypsin deficiency",
+      "authors": "A Jain, K McCarthy, M Xu, JK Stoller",
+      "journal": "Chest",
+      "year": "2011",
+      "citedBy": "54",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0012369211603644",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Laboratory test ordering in inpatient hospitals: systematic review on CDS effects",
+      "authors": "S Zare, Z Meidani, M Shirdeli, E Nabovati",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2021",
+      "citedBy": "27",
+      "href": "https://link.springer.com/article/10.1186/s12911-020-01384-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Pharmacogenomics implementation through end-to-end CDS: ten years from PREDICT",
+      "authors": "M Liu, CL Vnencak-Jones, BP Roland",
+      "journal": "Clinical Pharmacology and Therapeutics",
+      "year": "2021",
+      "citedBy": "70",
+      "href": "https://ascpt.onlinelibrary.wiley.com/doi/abs/10.1002/cpt.2079",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "OrderRex clinical user testing: randomized trial of recommender system decision support",
+      "authors": "A Kumar, RC Aikens, J Hom, L Shieh",
+      "journal": "JAMIA",
+      "year": "2020",
+      "citedBy": "23",
+      "href": "https://academic.oup.com/jamia/article-abstract/27/12/1850/5940667",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Decision support tools within the electronic health record",
+      "authors": "JW Rudolf, AS Dighe",
+      "journal": "Clinics in Laboratory Medicine",
+      "year": "2019",
+      "citedBy": "33",
+      "href": "https://www.labmed.theclinics.com/article/S0272-2712(19)30001-0/abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support systems",
+      "authors": "ATM Wasylewicz",
+      "journal": "Fundamentals of Clinical Data Science",
+      "year": "2018",
+      "citedBy": "266",
+      "href": "https://library.oapen.org/bitstream/handle/20.500.12657/22918/1007243.pdf",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support systems for improving diagnostic accuracy and precision medicine",
+      "authors": "C Castaneda, K Nalley, C Mannion",
+      "journal": "Journal of Clinical Bioinformatics",
+      "year": "2015",
+      "citedBy": "593",
+      "href": "https://link.springer.com/article/10.1186/s13336-015-0019-3",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "EHRs connect research and practice: predictive modeling AI and clinical decision support",
+      "authors": "CC Bennett, TW Doub, R Selove",
+      "journal": "Health Policy and Technology",
+      "year": "2012",
+      "citedBy": "74",
+      "href": "https://www.sciencedirect.com/science/article/pii/S221188371200038X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Optimizing CDS alerts in EMR: systematic review of reported strategies",
+      "authors": "BA Van Dort, WY Zheng, V Sundar",
+      "journal": "JAMIA",
+      "year": "2021",
+      "citedBy": "88",
+      "href": "https://academic.oup.com/jamia/article-abstract/28/1/177/5981524",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Comorbidity patterns of older lung cancer patients: association rules analysis based on EMR",
+      "authors": "J Feng, X Mu, L Ma, W Wang",
+      "journal": "IJERPH",
+      "year": "2020",
+      "citedBy": "27",
+      "href": "https://www.mdpi.com/1660-4601/17/23/9119",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Discovering sequential patterns and interrelations among multiple diseases in EMR using cSPADE",
+      "authors": "H Ma, Q Huang, H Zhang, H Song, B Zhang",
+      "journal": "International Journal of Public Health",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "https://link.springer.com/article/10.1186/s13690-025-01589-1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Mining comorbidities of opioid use disorder from FDA AERS and patient EHR",
+      "authors": "Y Pan, R Xu",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2022",
+      "citedBy": "14",
+      "href": "https://link.springer.com/article/10.1186/s12911-022-01869-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Comorbidity combinations in schizophrenia inpatients using association rule mining",
+      "authors": "X Han, F Jiang, J Needleman, H Zhou, C Yao",
+      "journal": "Asian Journal of Psychiatry",
+      "year": "2022",
+      "citedBy": "19",
+      "href": "https://www.sciencedirect.com/science/article/pii/S187620182100383X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Identifying latent patterns of intimate partner violence using EHR and association rule mining",
+      "authors": "A Tabaie, SA Wyand, F Cao",
+      "journal": "AMIA Annual Symposium",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12919600/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Real-time association rule mining for medical diagnosis and patient monitoring",
+      "authors": "P Selvakumar, S Chib, P Kalbande",
+      "journal": "IGI Global",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://www.igi-global.com/chapter/real-time-association-rule-mining-for-medical-diagnosis-and-patient-monitoring/403763",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Uncovering hidden patterns: association rule mining for disease detection and treatment planning",
+      "authors": "A Agrawal, MI Ali, M Shaikh, S Somesula",
+      "journal": "IGI Global",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://www.igi-global.com/chapter/uncovering-hidden-patterns/403755",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Using electronic patient records to discover disease correlations and stratify patient cohorts",
+      "authors": "FS Roque, PB Jensen, H Schmock",
+      "journal": "PLoS Computational Biology",
+      "year": "2011",
+      "citedBy": "388",
+      "href": "https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002141",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Research on basic clinical treatment pattern mining based on EMR big data",
+      "authors": "Q Lu, X Zheng, J Chen",
+      "journal": "IEEE",
+      "year": "2023",
+      "citedBy": "1",
+      "href": "https://ieeexplore.ieee.org/abstract/document/10104953/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Rule mining and sequential pattern based predictive modeling with EMR data",
+      "authors": "O Abar",
+      "journal": "University of Kentucky Thesis",
+      "year": "2019",
+      "citedBy": "1",
+      "href": "https://uknowledge.uky.edu/cs_etds/85/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal data mining in EMR from patients with acute coronary syndrome",
+      "authors": "W Black",
+      "journal": "University of Washington",
+      "year": "2014",
+      "citedBy": "3",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Hidden pattern discovery on clinical data: an approach based on data mining techniques",
+      "authors": "M Roostaee, R Meidanshahi",
+      "journal": "Journal of AI and Data Mining",
+      "year": "2023",
+      "citedBy": "10",
+      "href": "https://jad.shahroodut.ac.ir/article_2857.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Discriminative probabilistic pattern mining using graph for EHR",
+      "authors": "E Li",
+      "journal": "Seoul National University",
+      "year": "2019",
+      "citedBy": "0",
+      "href": "https://s-space.snu.ac.kr/handle/10371/161070",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Exploring the predictive factors of heart disease using rare association rule mining",
+      "authors": "S Darrab, D Broneske, G Saake",
+      "journal": "Scientific Reports",
+      "year": "2024",
+      "citedBy": "25",
+      "href": "https://www.nature.com/articles/s41598-024-69071-6",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Combining unsupervised supervised and rule-based algorithms for text mining of EHR",
+      "authors": "GT Berge, OC Granmo, TO Tveit",
+      "journal": "ISD 2017",
+      "year": "2017",
+      "citedBy": "10",
+      "href": "https://aisel.aisnet.org/isd2014/proceedings2017/CogScience/2/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal pattern discovery in longitudinal electronic patient records",
+      "authors": "GN Noren, J Hopstadius, A Bate, K Star",
+      "journal": "Data Mining and Knowledge Discovery",
+      "year": "2010",
+      "citedBy": "228",
+      "href": "https://link.springer.com/article/10.1007/s10618-009-0152-3",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Patterns of multimorbidity and functional status using cluster analysis and association rule mining",
+      "authors": "M Provinciali, R Lisa, AR Bonfigli, E Filicetti",
+      "journal": "Journal of Translational Medicine",
+      "year": "2024",
+      "citedBy": "14",
+      "href": "https://link.springer.com/article/10.1186/s12967-024-05444-9",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal condition pattern mining in large sparse EHR data: pediatric asthma",
+      "authors": "EA Campbell, EJ Bass, AJ Masino",
+      "journal": "JAMIA",
+      "year": "2020",
+      "citedBy": "18",
+      "href": "https://academic.oup.com/jamia/article-abstract/27/4/558/5734732",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Combining unsupervised supervised and rule-based learning: detecting patient allergies in EHR",
+      "authors": "GT Berge, OC Granmo, TO Tveit, AL Ruthjersen",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2023",
+      "citedBy": "52",
+      "href": "https://link.springer.com/article/10.1186/s12911-023-02271-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Textual analysis and visualization of research trends in data mining for EHR",
+      "authors": "J Chen, W Wei, C Guo, L Tang, L Sun",
+      "journal": "Health Policy and Technology",
+      "year": "2017",
+      "citedBy": "52",
+      "href": "https://www.sciencedirect.com/science/article/pii/S2211883717300692",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "MCQG-SRefine: MCQ generation and evaluation with iterative self-critique correction and comparison",
+      "authors": "Z Yao, A Parashar, H Zhou, WS Jang",
+      "journal": "NAACL 2025",
+      "year": "2025",
+      "citedBy": "38",
+      "href": "https://aclanthology.org/2025.naacl-long.538/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "The use of LLMs in generating MCQs for health professions education: systematic review and meta-analysis",
+      "authors": "L Riehm, K Nanji, M Lakhani, E Pankiv, D Hasanee",
+      "journal": "PLOS ONE",
+      "year": "2026",
+      "citedBy": "4",
+      "href": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0340277",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-generated multiple choice practice quizzes for preclinical medical students",
+      "authors": "T Camarata, L McCoy, R Rosenberg",
+      "journal": "Advances in Physiology Education",
+      "year": "2025",
+      "citedBy": "19",
+      "href": "https://journals.physiology.org/doi/abs/10.1152/advan.00106.2024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Automatic generation of medical case-based MCQs: review of methodologies applications evaluation",
+      "authors": "S Al Shuraiqi, A Aal Abdulsalam, K Masters",
+      "journal": "Big Data and Cognitive Computing",
+      "year": "2024",
+      "citedBy": "32",
+      "href": "https://www.mdpi.com/2504-2289/8/10/139",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Fine-tuned LLMs for generating MCQs in anesthesiology: psychometric comparison",
+      "authors": "CR Holzing, C Meynhardt, P Meybohm",
+      "journal": "JMIR Formative Research",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://formative.jmir.org/2026/1/e84904",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLMs as tools to generate radiology board-style MCQs",
+      "authors": "NP Mistry, H Saeed, S Rafique, T Le, H Obaid",
+      "journal": "Academic Radiology",
+      "year": "2024",
+      "citedBy": "64",
+      "href": "https://www.sciencedirect.com/science/article/pii/S107663322400432X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Docimological quality analysis of LLM-generated MCQs in computer science and medicine",
+      "authors": "C Grevisse, MAS Pavlou, JG Schneider",
+      "journal": "SN Computer Science",
+      "year": "2024",
+      "citedBy": "43",
+      "href": "https://link.springer.com/article/10.1007/s42979-024-02963-6",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Leveraging LLMs to generate MCQs for ophthalmology education",
+      "authors": "S Gholami, DB Mummert, B Wilson, S Page",
+      "journal": "JAMA Ophthalmology",
+      "year": "2025",
+      "citedBy": "9",
+      "href": "https://jamanetwork.com/journals/jamaophthalmology/article-abstract/2839639",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLMs can generate high-quality pathology MCQs comparable to human expert",
+      "authors": "MJ Borowitz, AL Blackford, S Nagelia, RH Hruban",
+      "journal": "Modern Pathology",
+      "year": "2025",
+      "citedBy": "4",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0893395225002388",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Enhancing clinical MCQ benchmarks with knowledge graph guided distractor generation",
+      "authors": "R Yang, W Deng, M Chen, Y Zhou, X Li",
+      "journal": "arXiv:2506.00612",
+      "year": "2025",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2506.00612",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "The effects of LLMs on generation of MCQs in medical education: a scoping review",
+      "authors": "BEA Mohammed, TEA Mohammed",
+      "journal": "International Journal of Medical Education",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Medical large language models are easily distracted",
+      "authors": "K Vishwanath, A Alyakin, DA Alber, JV Lee",
+      "journal": "arXiv:2504.01201",
+      "year": "2025",
+      "citedBy": "19",
+      "href": "https://arxiv.org/abs/2504.01201",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "State of the art survey of automatic question generation based on LLMs",
+      "authors": "OL Abdullah, A Emam, MM Nasef",
+      "journal": "International Journal of Technology",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ijt.journals.ekb.eg/article_513804.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Distractor generation for MCQs with predictive prompting and LLMs",
+      "authors": "SK Bitew, J Deleu, C Develder, T Demeester",
+      "journal": "ECIR 2024",
+      "year": "2023",
+      "citedBy": "54",
+      "href": "https://link.springer.com/chapter/10.1007/978-3-031-74627-7_4",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Evaluation of LLM-generated distractors of MCQs for Japanese National Nursing Examination",
+      "authors": "Y Kido, H Yamada, T Tokunaga, R Kimura, Y Miura",
+      "journal": "CSEDU 2025",
+      "year": "2025",
+      "citedBy": "1",
+      "href": "https://www.scitepress.org/Papers/2025/134603/134603.pdf",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Exploring automated distractor generation for math MCQs via LLMs",
+      "authors": "W Feng, J Lee, H McNichols, A Scarlatos",
+      "journal": "Findings of NAACL 2024",
+      "year": "2024",
+      "citedBy": "67",
+      "href": "https://aclanthology.org/2024.findings-naacl.193/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Automatic distractor generation in MCQs using LLMs with expert-informed strategies",
+      "authors": "Y Nagai, M Uto",
+      "journal": "ICCE 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://library.apsce.net/index.php/ICCE/article/view/5928",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-based automatic generation of MCQs with meaningful distractors",
+      "authors": "VJS Chico, AG Regino, R Bonacin",
+      "journal": "SBIE 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://sol.sbc.org.br/index.php/sbie/article/view/38469",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-generated MCQ practice quizzes for pre-clinical medical students",
+      "authors": "KR Temprine, K Brettschnieder",
+      "journal": "Advances in Physiology Education",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://journals.physiology.org/doi/prev/20250614-aop/pdf/10.1152/advan.00106.2024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "LiveMedBench: a contamination-free medical benchmark for LLMs with automated rubric evaluation",
+      "authors": "Z Yan, D Song, Z Fang, Y Ji, X Li, Q Li, L Sun",
+      "journal": "arXiv:2602.10367",
+      "year": "2026",
+      "citedBy": "9",
+      "href": "https://arxiv.org/abs/2602.10367",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "LiveClin: a live clinical benchmark without leakage",
+      "authors": "X Wang, Y Shen, J Chen, J Wang, J Gu",
+      "journal": "ICLR 2026",
+      "year": "2026",
+      "citedBy": "3",
+      "href": "https://proceedings.iclr.cc/paper_files/paper/2026/hash/9f45b2d4ace7ae425e40c7c1d0d37e64-Abstract-Conference.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A HIPAA-aware benchmark and evaluation harness for clinical LLMs to quantify hallucination bias PHI leakage",
+      "authors": "V Palama",
+      "journal": "Well Testing Journal",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Beyond benchmarks: dynamic automatic and systematic red-teaming agents for trustworthy medical LLMs",
+      "authors": "J Pan, B Jian, P Hager, Y Zhang, C Liu",
+      "journal": "arXiv:2508.00923",
+      "year": "2025",
+      "citedBy": "12",
+      "href": "https://arxiv.org/abs/2508.00923",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Beyond the leaderboard: rethinking medical benchmarks for LLMs",
+      "authors": "W Wang, Z Ma, G Yu, YF Cheung, M Ding",
+      "journal": "ACL 2026",
+      "year": "2026",
+      "citedBy": "15",
+      "href": "https://aclanthology.org/2026.acl-long.1996/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Clinical LLM evaluation by expert review (CLEVER): framework development and validation",
+      "authors": "V Kocaman, MA Kaya, AM Feier, D Talby",
+      "journal": "JMIR AI",
+      "year": "2025",
+      "citedBy": "25",
+      "href": "https://ai.jmir.org/2025/1/e72153/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Leak cheat repeat: data contamination and evaluation malpractices in closed-source LLMs",
+      "authors": "S Balloccu, P Schmidtova, M Lango",
+      "journal": "EACL 2024",
+      "year": "2024",
+      "citedBy": "418",
+      "href": "https://aclanthology.org/2024.eacl-long.5/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmark data contamination of LLMs: a survey",
+      "authors": "C Xu, S Guan, D Greene, M Kechadi",
+      "journal": "arXiv:2406.04244",
+      "year": "2024",
+      "citedBy": "212",
+      "href": "https://arxiv.org/abs/2406.04244",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Contamination in AI evaluation",
+      "authors": "B Mehrbakhsh",
+      "journal": "UPV Technical Report",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Position: the open benchmark paradox must be resolved through sovereign medical evaluation",
+      "authors": "K Kim, H Ko, H Jo, S Kim, Y Choi, JD Lee",
+      "journal": "NeurIPS 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://openreview.net/forum?id=5QNloNBcyn",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Training on the benchmark is not all you need",
+      "authors": "S Ni, X Kong, C Li, X Hu, R Xu, J Zhu",
+      "journal": "AAAI 2025",
+      "year": "2025",
+      "citedBy": "48",
+      "href": "https://ojs.aaai.org/index.php/AAAI/article/view/34678",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Simulating training data leakage in MCQ benchmarks for LLM evaluation",
+      "authors": "NS Hidayat, MD Al Kautsar",
+      "journal": "Eval4NLP 2025",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "https://aclanthology.org/2025.eval4nlp-1.3/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Are LLM benchmarks already contaminated? Systematic review of contamination detection",
+      "authors": "E Nourbakhsh, MS Sirjani, A Mousavi",
+      "journal": "GEM 2026",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://aclanthology.org/2026.gem-main.50/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Generalization or memorization: data contamination and trustworthy evaluation for LLMs",
+      "authors": "Y Dong, X Jiang, H Liu, Z Jin, B Gu",
+      "journal": "Findings of ACL 2024",
+      "year": "2024",
+      "citedBy": "283",
+      "href": "https://aclanthology.org/2024.findings-acl.716/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A survey on evaluating quality and trustworthiness in LLM-generated data",
+      "authors": "K Zhang, M Hu, HAD Le, FK Torsha, Z Jiang",
+      "journal": "arXiv:2601.17717",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://arxiv.org/abs/2601.17717",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmark probing: investigating data leakage in LLMs",
+      "authors": "C Deng, Y Zhao, X Tang, M Gerstein",
+      "journal": "NeurIPS 2023 Workshop",
+      "year": "2023",
+      "citedBy": "44",
+      "href": "https://openreview.net/forum?id=a34bgvner1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmarking truthfulness metrics in health-oriented LLMs via automated fact verification",
+      "authors": "K Das, R Singh",
+      "journal": "IJCHML",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ijchml.com/index.php/ijchml/article/view/257",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Private benchmarking to prevent contamination and improve comparative evaluation (CONFIDE)",
+      "authors": "T Rajore, N Chandran, S Sitaram, D Gupta",
+      "journal": "arXiv:2403.00393",
+      "year": "2024",
+      "citedBy": "24",
+      "href": "https://arxiv.org/abs/2403.00393",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A survey on medical competence evaluation benchmarks for LLMs",
+      "authors": "Q Wang, H Zou, H Zhang, Y Huang, J Tian",
+      "journal": "Health Care Science",
+      "year": "2026",
+      "citedBy": "2",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/hcs2.70050",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Advances evaluation and explainability of LLMs in healthcare: a systematic review",
+      "authors": "SU Amin, M Guizani, MS Hossain",
+      "journal": "ACM TOMM",
+      "year": "2026",
+      "citedBy": "4",
+      "href": "https://dl.acm.org/doi/abs/10.1145/3786334",
+      "source": "Google Scholar"
+    }
+  ],
+  "new": [
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessment of large language models in clinical reasoning: a novel benchmarking study",
+      "authors": "LG McCoy, R Swamy, N Sagar, M Wang, S Bacchi",
+      "journal": "NEJM AI",
+      "year": "2025",
+      "citedBy": "81",
+      "href": "https://ai.nejm.org/doi/abs/10.1056/AIdbp2500120",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Performance of large language models on medical oncology examination questions",
+      "authors": "JB Longwell, I Hirsch, F Binder",
+      "journal": "JAMA Network Open",
+      "year": "2024",
+      "citedBy": "106",
+      "href": "https://jamanetwork.com/journals/jamanetworkopen/article-abstract/2820094",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessing and optimizing large language models on spondyloarthritis multi-choice question answering",
+      "authors": "A Wang, Y Wu, X Ji, X Wang, J Hu",
+      "journal": "JMIR Research Protocols",
+      "year": "2024",
+      "citedBy": "11",
+      "href": "https://www.researchprotocols.org/2024/1/e57001",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedGUIDE: benchmarking clinical decision-making in large language models",
+      "authors": "X Li, M Gao, Y Hao, T Li, G Wan, Z Wang",
+      "journal": "arXiv:2505.11613",
+      "year": "2025",
+      "citedBy": "14",
+      "href": "https://arxiv.org/abs/2505.11613",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "EHRNoteQA: an LLM benchmark for real-world clinical practice using discharge summaries",
+      "authors": "S Kweon, J Kim, H Kwak, D Cha",
+      "journal": "NeurIPS 2024",
+      "year": "2024",
+      "citedBy": "58",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2024/hash/e15c4afff22f12c4986c1fcb4e941e03-Abstract-Datasets_and_Benchmarks_Track.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Beyond multiple-choice questions: rethinking evaluation frameworks for LLMs for clinical medicine",
+      "authors": "Z Jiang, H Chen, Y Wu, Y Qin, C Pei, D Zeng",
+      "journal": "Intelligent Medicine",
+      "year": "2026",
+      "citedBy": "5",
+      "href": "https://mednexus.org/doi/abs/10.1016/j.imed.2026.01.001",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Comparative evaluation of LLMs in clinical oncology",
+      "authors": "NR Rydzewski, D Dinakaran, SG Zhao, E Ruppin",
+      "journal": "NEJM AI",
+      "year": "2024",
+      "citedBy": "133",
+      "href": "https://ai.nejm.org/doi/abs/10.1056/AIoa2300151",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Benchmarking LLMs on authentic cases from medical journals",
+      "authors": "W Liu, J Chen, Y Yang, P Tiwari, W Chen",
+      "journal": "Findings of ACL 2026",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://aclanthology.org/2026.findings-acl.767/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedQA-CS: benchmarking large language models clinical skills using an AI-SCE framework",
+      "authors": "Z Yao, Z Zhang, C Tang, X Bian, Y Zhao",
+      "journal": "arXiv",
+      "year": "2024",
+      "citedBy": "42",
+      "href": "https://arxiv.org/abs/2407.04300",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MediQ: question-asking LLMs and a benchmark for reliable interactive clinical reasoning",
+      "authors": "SS Li, V Balachandran, S Feng",
+      "journal": "NeurIPS 2024",
+      "year": "2024",
+      "citedBy": "214",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2024/hash/32b80425554e081204e5988ab1c9719a-Abstract-Conference.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedQA-CS: OSCE-style benchmark for evaluating LLM clinical skills",
+      "authors": "Z Yao, Z Zhang, C Tang, X Bian, Y Zhao",
+      "journal": "EACL 2026",
+      "year": "2026",
+      "citedBy": "6",
+      "href": "https://aclanthology.org/2026.eacl-long.292/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Medical reasoning with large language models: a systematic review and evaluation",
+      "authors": "X Ren, C Fan, W Ma, H He, C Gao, X Zhao",
+      "journal": "Wiley",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/inm3.70056",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Clinician-level agreement without clinical caution: LLM evaluator limits in medical AI benchmarking",
+      "authors": "W Philipp, F Fassbender, T Langer, M Pauly",
+      "journal": "arXiv:2607.01103",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2607.01103",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Benchmarking clinical reasoning in large language models: a comparative assessment study",
+      "authors": "T Prade, M Samwald",
+      "journal": "medRxiv",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://www.medrxiv.org/content/10.64898/2026.03.13.26347597.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "MedDialogRubrics: benchmark and evaluation framework for multi-turn medical consultations",
+      "authors": "L Gong, W Fang, T Yang, D Tao, C Guo, P Wei",
+      "journal": "arXiv:2601.03023",
+      "year": "2026",
+      "citedBy": "14",
+      "href": "https://arxiv.org/abs/2601.03023",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Large language models in the clinic: a comprehensive benchmark",
+      "authors": "F Liu, Z Li, H Zhou, Q Yin, J Yang, X Tang",
+      "journal": "arXiv:2405.00716",
+      "year": "2024",
+      "citedBy": "49",
+      "href": "https://arxiv.org/abs/2405.00716",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "A_medical_llm_benchmark",
+      "title": "Assessing large language models for medical QA: zero-shot and LLM-as-a-judge evaluation",
+      "authors": "SES Adib, AA Sani, EA Esham, A Abrar",
+      "journal": "IEEE",
+      "year": "2025",
+      "citedBy": "2",
+      "href": "https://ieeexplore.ieee.org/abstract/document/11491589/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Assessment of the integrity of real-time electronic health record data used in clinical research",
+      "authors": "J Liu, S Pandya, A Coppi, HP Young, HM Krumholz",
+      "journal": "PLOS ONE",
+      "year": "2026",
+      "citedBy": "3",
+      "href": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0340287",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHRNoteQA: a patient-specific QA benchmark for evaluating LLMs in clinical settings",
+      "authors": "S Kweon, J Kim, H Kwak, D Cha, H Yoon",
+      "journal": "PhysioNet",
+      "year": "2024",
+      "citedBy": "12",
+      "href": "https://physionet.org/content/ehr-notes-qa-llms/1.0.0/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Generating clinically realistic EHR data via a hierarchy-and-semantics-guided transformer",
+      "authors": "G Zhou, S Barbieri",
+      "journal": "arXiv:2502.20719",
+      "year": "2025",
+      "citedBy": "6",
+      "href": "https://arxiv.org/abs/2502.20719",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHR-Complex: benchmarking medical agents for complex clinical reasoning",
+      "authors": "Y Qiao, L Liu, Y Shen, J Wang, J Gu, Z Chu",
+      "journal": "arXiv:2606.23301",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2606.23301",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Benchmarking emergency department prediction models with ML and public EHR",
+      "authors": "F Xie, J Zhou, JW Lee, M Tan, S Li",
+      "journal": "Scientific Data",
+      "year": "2022",
+      "citedBy": "109",
+      "href": "https://www.nature.com/articles/s41597-022-01782-9",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Framework for real-time anomaly detection in large-scale EHR databases using MIMIC-IV eICU-CRD",
+      "authors": "MX Zhang, D Osei-Bonsu",
+      "journal": "DATAMIND",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://inatgi.in/index.php/dm/article/download/506/424",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Generating synthetic EHR data: a methodological scoping review with benchmarking",
+      "authors": "X Chen, Z Wu, X Shi, H Cho",
+      "journal": "JAMIA",
+      "year": "2025",
+      "citedBy": "27",
+      "href": "https://academic.oup.com/jamia/article-abstract/32/7/1227/8155975",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "CliniQ: a multi-faceted benchmark for EHR retrieval with semantic match assessment",
+      "authors": "Z Zhao, H Yuan, J Liu, H Chen, H Ying, S Zhou",
+      "journal": "arXiv:2502.06252",
+      "year": "2025",
+      "citedBy": "4",
+      "href": "https://arxiv.org/abs/2502.06252",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Real-world clinical datasets in practice: applications for learners and health services teams",
+      "authors": "JF Wood, JJ Tan, HM Eby, WM Rees",
+      "journal": "Clinical and Translational Science",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ascpt.onlinelibrary.wiley.com/doi/abs/10.1111/cts.70625",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "EHRSQL: a practical text-to-SQL benchmark for electronic health records",
+      "authors": "G Lee, H Hwang, S Bae, Y Kwon",
+      "journal": "NeurIPS 2022",
+      "year": "2022",
+      "citedBy": "131",
+      "href": "https://proceedings.neurips.cc/paper_files/paper/2022/hash/643e347250cf9289e5a2a6c1ed5ee42e-Abstract-Datasets_and_Benchmarks.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "An EHR data standardisation pipeline using the MIMIC-III dataset",
+      "authors": "J Gregorio, A Lemanska, B Cieszynski, N Peric",
+      "journal": "BIOSTEC 2026",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Leveraging MIMIC datasets for better digital health: a review on open problems and progress",
+      "authors": "A Khaled, M Sabir, R Qureshi, CM Caruso",
+      "journal": "arXiv:2506.12808",
+      "year": "2025",
+      "citedBy": "10",
+      "href": "https://arxiv.org/abs/2506.12808",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "A multi-world synthetic benchmark for evaluating RSCE in clinical machine learning",
+      "authors": "N Piyavechvirat, YJ Huang, QMU Haq",
+      "journal": "IEEE Access",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ieeexplore.ieee.org/abstract/document/11404134/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "A multifaceted benchmarking of synthetic EHR generation models",
+      "authors": "C Yan, Y Yan, Z Wan, Z Zhang, L Omberg",
+      "journal": "Nature Communications",
+      "year": "2022",
+      "citedBy": "178",
+      "href": "https://www.nature.com/articles/s41467-022-35295-1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Replication of real-world evidence in oncology using EHR data extracted by ML",
+      "authors": "CM Benedum, A Sondhi, E Fidyk, AB Cohen",
+      "journal": "Cancers",
+      "year": "2023",
+      "citedBy": "38",
+      "href": "https://www.mdpi.com/2072-6694/15/6/1853",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Developing real-world evidence from real-world data: transforming raw data into analytical datasets",
+      "authors": "L Bastarache, JS Brown, JJ Cimino",
+      "journal": "Learning Health Systems",
+      "year": "2022",
+      "citedBy": "68",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/lrh2.10293",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Real-world data for clinical evidence generation in oncology",
+      "authors": "S Khozin, GM Blumenthal",
+      "journal": "JNCI",
+      "year": "2017",
+      "citedBy": "394",
+      "href": "https://academic.oup.com/jnci/article-abstract/109/11/djx187/4157738",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "From real-world EHR data to real-world results using AI",
+      "authors": "R Knevel, KP Liao",
+      "journal": "Annals of the Rheumatic Diseases",
+      "year": "2023",
+      "citedBy": "194",
+      "href": "https://ard.bmj.com/content/82/3/306.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "B_ehr_rwd_benchmark",
+      "title": "Assessing function of electronic health records for real-world data generation",
+      "authors": "D Guinn, EE Wilhelm, G Lieberman",
+      "journal": "BMJ Evidence-Based Medicine",
+      "year": "2019",
+      "citedBy": "13",
+      "href": "https://ebm.bmj.com/content/24/3/95.abstract",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Targeting repetitive laboratory testing with EHR-embedded predictive decision support",
+      "authors": "N Rabbani, SP Ma, RC Li, M Winget, S Weber",
+      "journal": "Clinical Chemistry",
+      "year": "2023",
+      "citedBy": "28",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0009912023000024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support for laboratory testing",
+      "authors": "AEO Hughes, R Jackups Jr",
+      "journal": "Clinical Chemistry",
+      "year": "2022",
+      "citedBy": "29",
+      "href": "https://academic.oup.com/clinchem/article-abstract/68/3/402/6453839",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "OrderRex: clinical order decision support and outcome predictions by data-mining EMR",
+      "authors": "JH Chen, T Podchiyska",
+      "journal": "JAMIA",
+      "year": "2016",
+      "citedBy": "74",
+      "href": "https://academic.oup.com/jamia/article-abstract/23/2/339/2572407",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Predicting laboratory test ordering in emergency departments using integrated EHR ML",
+      "authors": "X Zhang, H Ling, X Zhang, A Zhang",
+      "journal": "JMIR Medical Informatics",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://medinform.jmir.org/2026/1/e85255",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Developing and maintaining clinical decision support using clinical knowledge and ML: order sets",
+      "authors": "Y Zhang, R Trepp, W Wang, J Luna",
+      "journal": "JAMIA",
+      "year": "2018",
+      "citedBy": "14",
+      "href": "https://academic.oup.com/jamia/article-abstract/25/11/1547/5067938",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Use of ML to predict CDS compliance reduce alert burden and evaluate duplicate lab test alerts",
+      "authors": "JM Baron, R Huang, D McEvoy, AS Dighe",
+      "journal": "JAMIA Open",
+      "year": "2021",
+      "citedBy": "36",
+      "href": "https://academic.oup.com/jamiaopen/article-abstract/4/1/ooab006/6154712",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Integrating pharmacogenomics into EHR with clinical decision support",
+      "authors": "JK Hicks, HM Dunnenberger",
+      "journal": "American Journal of Health-System Pharmacy",
+      "year": "2016",
+      "citedBy": "180",
+      "href": "https://academic.oup.com/ajhp/article-abstract/73/23/1967/5102166",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Laboratory test-ordering patterns carry an early prognostic signal in EHR",
+      "authors": "S Baichoo, A Abedi, B Rubin, B Wang",
+      "journal": "Research Square",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "The effects of computerized CDS systems on laboratory test ordering: a systematic review",
+      "authors": "N Delvaux, K Van Thienen",
+      "journal": "American Journal of Clinical Pathology",
+      "year": "2017",
+      "citedBy": "66",
+      "href": "https://aplm.kglmeridian.com/view/journals/arpa/141/4/article-p585.xml",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Integrating medication recommendation and lab test response prediction for enhanced CDS",
+      "authors": "S Bhoi, ML Lee, W Hsu, NC Tan",
+      "journal": "AAAI Symposium",
+      "year": "2023",
+      "citedBy": "1",
+      "href": "https://ojs.aaai.org/index.php/AAAI-SS/article/view/27489",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support for hematology laboratory test utilization",
+      "authors": "R Jackups Jr, JJ Szymanski",
+      "journal": "International Journal of Laboratory Hematology",
+      "year": "2017",
+      "citedBy": "23",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1111/ijlh.12679",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Impact of a CDS system in an EHR to enhance detection of alpha1-antitrypsin deficiency",
+      "authors": "A Jain, K McCarthy, M Xu, JK Stoller",
+      "journal": "Chest",
+      "year": "2011",
+      "citedBy": "54",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0012369211603644",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Laboratory test ordering in inpatient hospitals: systematic review on CDS effects",
+      "authors": "S Zare, Z Meidani, M Shirdeli, E Nabovati",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2021",
+      "citedBy": "27",
+      "href": "https://link.springer.com/article/10.1186/s12911-020-01384-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Pharmacogenomics implementation through end-to-end CDS: ten years from PREDICT",
+      "authors": "M Liu, CL Vnencak-Jones, BP Roland",
+      "journal": "Clinical Pharmacology and Therapeutics",
+      "year": "2021",
+      "citedBy": "70",
+      "href": "https://ascpt.onlinelibrary.wiley.com/doi/abs/10.1002/cpt.2079",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "OrderRex clinical user testing: randomized trial of recommender system decision support",
+      "authors": "A Kumar, RC Aikens, J Hom, L Shieh",
+      "journal": "JAMIA",
+      "year": "2020",
+      "citedBy": "23",
+      "href": "https://academic.oup.com/jamia/article-abstract/27/12/1850/5940667",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support systems",
+      "authors": "ATM Wasylewicz",
+      "journal": "Fundamentals of Clinical Data Science",
+      "year": "2018",
+      "citedBy": "266",
+      "href": "https://library.oapen.org/bitstream/handle/20.500.12657/22918/1007243.pdf",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Clinical decision support systems for improving diagnostic accuracy and precision medicine",
+      "authors": "C Castaneda, K Nalley, C Mannion",
+      "journal": "Journal of Clinical Bioinformatics",
+      "year": "2015",
+      "citedBy": "593",
+      "href": "https://link.springer.com/article/10.1186/s13336-015-0019-3",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "EHRs connect research and practice: predictive modeling AI and clinical decision support",
+      "authors": "CC Bennett, TW Doub, R Selove",
+      "journal": "Health Policy and Technology",
+      "year": "2012",
+      "citedBy": "74",
+      "href": "https://www.sciencedirect.com/science/article/pii/S221188371200038X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "C_lab_test_order_prediction",
+      "title": "Optimizing CDS alerts in EMR: systematic review of reported strategies",
+      "authors": "BA Van Dort, WY Zheng, V Sundar",
+      "journal": "JAMIA",
+      "year": "2021",
+      "citedBy": "88",
+      "href": "https://academic.oup.com/jamia/article-abstract/28/1/177/5981524",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Comorbidity patterns of older lung cancer patients: association rules analysis based on EMR",
+      "authors": "J Feng, X Mu, L Ma, W Wang",
+      "journal": "IJERPH",
+      "year": "2020",
+      "citedBy": "27",
+      "href": "https://www.mdpi.com/1660-4601/17/23/9119",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Discovering sequential patterns and interrelations among multiple diseases in EMR using cSPADE",
+      "authors": "H Ma, Q Huang, H Zhang, H Song, B Zhang",
+      "journal": "International Journal of Public Health",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "https://link.springer.com/article/10.1186/s13690-025-01589-1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Mining comorbidities of opioid use disorder from FDA AERS and patient EHR",
+      "authors": "Y Pan, R Xu",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2022",
+      "citedBy": "14",
+      "href": "https://link.springer.com/article/10.1186/s12911-022-01869-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Comorbidity combinations in schizophrenia inpatients using association rule mining",
+      "authors": "X Han, F Jiang, J Needleman, H Zhou, C Yao",
+      "journal": "Asian Journal of Psychiatry",
+      "year": "2022",
+      "citedBy": "19",
+      "href": "https://www.sciencedirect.com/science/article/pii/S187620182100383X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Identifying latent patterns of intimate partner violence using EHR and association rule mining",
+      "authors": "A Tabaie, SA Wyand, F Cao",
+      "journal": "AMIA Annual Symposium",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12919600/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Real-time association rule mining for medical diagnosis and patient monitoring",
+      "authors": "P Selvakumar, S Chib, P Kalbande",
+      "journal": "IGI Global",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://www.igi-global.com/chapter/real-time-association-rule-mining-for-medical-diagnosis-and-patient-monitoring/403763",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Uncovering hidden patterns: association rule mining for disease detection and treatment planning",
+      "authors": "A Agrawal, MI Ali, M Shaikh, S Somesula",
+      "journal": "IGI Global",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://www.igi-global.com/chapter/uncovering-hidden-patterns/403755",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Using electronic patient records to discover disease correlations and stratify patient cohorts",
+      "authors": "FS Roque, PB Jensen, H Schmock",
+      "journal": "PLoS Computational Biology",
+      "year": "2011",
+      "citedBy": "388",
+      "href": "https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002141",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Research on basic clinical treatment pattern mining based on EMR big data",
+      "authors": "Q Lu, X Zheng, J Chen",
+      "journal": "IEEE",
+      "year": "2023",
+      "citedBy": "1",
+      "href": "https://ieeexplore.ieee.org/abstract/document/10104953/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Rule mining and sequential pattern based predictive modeling with EMR data",
+      "authors": "O Abar",
+      "journal": "University of Kentucky Thesis",
+      "year": "2019",
+      "citedBy": "1",
+      "href": "https://uknowledge.uky.edu/cs_etds/85/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal data mining in EMR from patients with acute coronary syndrome",
+      "authors": "W Black",
+      "journal": "University of Washington",
+      "year": "2014",
+      "citedBy": "3",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Hidden pattern discovery on clinical data: an approach based on data mining techniques",
+      "authors": "M Roostaee, R Meidanshahi",
+      "journal": "Journal of AI and Data Mining",
+      "year": "2023",
+      "citedBy": "10",
+      "href": "https://jad.shahroodut.ac.ir/article_2857.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Discriminative probabilistic pattern mining using graph for EHR",
+      "authors": "E Li",
+      "journal": "Seoul National University",
+      "year": "2019",
+      "citedBy": "0",
+      "href": "https://s-space.snu.ac.kr/handle/10371/161070",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Exploring the predictive factors of heart disease using rare association rule mining",
+      "authors": "S Darrab, D Broneske, G Saake",
+      "journal": "Scientific Reports",
+      "year": "2024",
+      "citedBy": "25",
+      "href": "https://www.nature.com/articles/s41598-024-69071-6",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Combining unsupervised supervised and rule-based algorithms for text mining of EHR",
+      "authors": "GT Berge, OC Granmo, TO Tveit",
+      "journal": "ISD 2017",
+      "year": "2017",
+      "citedBy": "10",
+      "href": "https://aisel.aisnet.org/isd2014/proceedings2017/CogScience/2/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal pattern discovery in longitudinal electronic patient records",
+      "authors": "GN Noren, J Hopstadius, A Bate, K Star",
+      "journal": "Data Mining and Knowledge Discovery",
+      "year": "2010",
+      "citedBy": "228",
+      "href": "https://link.springer.com/article/10.1007/s10618-009-0152-3",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Patterns of multimorbidity and functional status using cluster analysis and association rule mining",
+      "authors": "M Provinciali, R Lisa, AR Bonfigli, E Filicetti",
+      "journal": "Journal of Translational Medicine",
+      "year": "2024",
+      "citedBy": "14",
+      "href": "https://link.springer.com/article/10.1186/s12967-024-05444-9",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Temporal condition pattern mining in large sparse EHR data: pediatric asthma",
+      "authors": "EA Campbell, EJ Bass, AJ Masino",
+      "journal": "JAMIA",
+      "year": "2020",
+      "citedBy": "18",
+      "href": "https://academic.oup.com/jamia/article-abstract/27/4/558/5734732",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Combining unsupervised supervised and rule-based learning: detecting patient allergies in EHR",
+      "authors": "GT Berge, OC Granmo, TO Tveit, AL Ruthjersen",
+      "journal": "BMC Medical Informatics and Decision Making",
+      "year": "2023",
+      "citedBy": "52",
+      "href": "https://link.springer.com/article/10.1186/s12911-023-02271-8",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "D_association_rule_clinical",
+      "title": "Textual analysis and visualization of research trends in data mining for EHR",
+      "authors": "J Chen, W Wei, C Guo, L Tang, L Sun",
+      "journal": "Health Policy and Technology",
+      "year": "2017",
+      "citedBy": "52",
+      "href": "https://www.sciencedirect.com/science/article/pii/S2211883717300692",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "MCQG-SRefine: MCQ generation and evaluation with iterative self-critique correction and comparison",
+      "authors": "Z Yao, A Parashar, H Zhou, WS Jang",
+      "journal": "NAACL 2025",
+      "year": "2025",
+      "citedBy": "38",
+      "href": "https://aclanthology.org/2025.naacl-long.538/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "The use of LLMs in generating MCQs for health professions education: systematic review and meta-analysis",
+      "authors": "L Riehm, K Nanji, M Lakhani, E Pankiv, D Hasanee",
+      "journal": "PLOS ONE",
+      "year": "2026",
+      "citedBy": "4",
+      "href": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0340277",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-generated multiple choice practice quizzes for preclinical medical students",
+      "authors": "T Camarata, L McCoy, R Rosenberg",
+      "journal": "Advances in Physiology Education",
+      "year": "2025",
+      "citedBy": "19",
+      "href": "https://journals.physiology.org/doi/abs/10.1152/advan.00106.2024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Automatic generation of medical case-based MCQs: review of methodologies applications evaluation",
+      "authors": "S Al Shuraiqi, A Aal Abdulsalam, K Masters",
+      "journal": "Big Data and Cognitive Computing",
+      "year": "2024",
+      "citedBy": "32",
+      "href": "https://www.mdpi.com/2504-2289/8/10/139",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Fine-tuned LLMs for generating MCQs in anesthesiology: psychometric comparison",
+      "authors": "CR Holzing, C Meynhardt, P Meybohm",
+      "journal": "JMIR Formative Research",
+      "year": "2026",
+      "citedBy": "1",
+      "href": "https://formative.jmir.org/2026/1/e84904",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLMs as tools to generate radiology board-style MCQs",
+      "authors": "NP Mistry, H Saeed, S Rafique, T Le, H Obaid",
+      "journal": "Academic Radiology",
+      "year": "2024",
+      "citedBy": "64",
+      "href": "https://www.sciencedirect.com/science/article/pii/S107663322400432X",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Docimological quality analysis of LLM-generated MCQs in computer science and medicine",
+      "authors": "C Grevisse, MAS Pavlou, JG Schneider",
+      "journal": "SN Computer Science",
+      "year": "2024",
+      "citedBy": "43",
+      "href": "https://link.springer.com/article/10.1007/s42979-024-02963-6",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Leveraging LLMs to generate MCQs for ophthalmology education",
+      "authors": "S Gholami, DB Mummert, B Wilson, S Page",
+      "journal": "JAMA Ophthalmology",
+      "year": "2025",
+      "citedBy": "9",
+      "href": "https://jamanetwork.com/journals/jamaophthalmology/article-abstract/2839639",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLMs can generate high-quality pathology MCQs comparable to human expert",
+      "authors": "MJ Borowitz, AL Blackford, S Nagelia, RH Hruban",
+      "journal": "Modern Pathology",
+      "year": "2025",
+      "citedBy": "4",
+      "href": "https://www.sciencedirect.com/science/article/pii/S0893395225002388",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Enhancing clinical MCQ benchmarks with knowledge graph guided distractor generation",
+      "authors": "R Yang, W Deng, M Chen, Y Zhou, X Li",
+      "journal": "arXiv:2506.00612",
+      "year": "2025",
+      "citedBy": "1",
+      "href": "https://arxiv.org/abs/2506.00612",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "The effects of LLMs on generation of MCQs in medical education: a scoping review",
+      "authors": "BEA Mohammed, TEA Mohammed",
+      "journal": "International Journal of Medical Education",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Medical large language models are easily distracted",
+      "authors": "K Vishwanath, A Alyakin, DA Alber, JV Lee",
+      "journal": "arXiv:2504.01201",
+      "year": "2025",
+      "citedBy": "19",
+      "href": "https://arxiv.org/abs/2504.01201",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "State of the art survey of automatic question generation based on LLMs",
+      "authors": "OL Abdullah, A Emam, MM Nasef",
+      "journal": "International Journal of Technology",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ijt.journals.ekb.eg/article_513804.html",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Distractor generation for MCQs with predictive prompting and LLMs",
+      "authors": "SK Bitew, J Deleu, C Develder, T Demeester",
+      "journal": "ECIR 2024",
+      "year": "2023",
+      "citedBy": "54",
+      "href": "https://link.springer.com/chapter/10.1007/978-3-031-74627-7_4",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Evaluation of LLM-generated distractors of MCQs for Japanese National Nursing Examination",
+      "authors": "Y Kido, H Yamada, T Tokunaga, R Kimura, Y Miura",
+      "journal": "CSEDU 2025",
+      "year": "2025",
+      "citedBy": "1",
+      "href": "https://www.scitepress.org/Papers/2025/134603/134603.pdf",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Exploring automated distractor generation for math MCQs via LLMs",
+      "authors": "W Feng, J Lee, H McNichols, A Scarlatos",
+      "journal": "Findings of NAACL 2024",
+      "year": "2024",
+      "citedBy": "67",
+      "href": "https://aclanthology.org/2024.findings-naacl.193/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "Automatic distractor generation in MCQs using LLMs with expert-informed strategies",
+      "authors": "Y Nagai, M Uto",
+      "journal": "ICCE 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://library.apsce.net/index.php/ICCE/article/view/5928",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-based automatic generation of MCQs with meaningful distractors",
+      "authors": "VJS Chico, AG Regino, R Bonacin",
+      "journal": "SBIE 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://sol.sbc.org.br/index.php/sbie/article/view/38469",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "E_automatic_mcq_generation",
+      "title": "LLM-generated MCQ practice quizzes for pre-clinical medical students",
+      "authors": "KR Temprine, K Brettschnieder",
+      "journal": "Advances in Physiology Education",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://journals.physiology.org/doi/prev/20250614-aop/pdf/10.1152/advan.00106.2024",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A HIPAA-aware benchmark and evaluation harness for clinical LLMs to quantify hallucination bias PHI leakage",
+      "authors": "V Palama",
+      "journal": "Well Testing Journal",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Beyond benchmarks: dynamic automatic and systematic red-teaming agents for trustworthy medical LLMs",
+      "authors": "J Pan, B Jian, P Hager, Y Zhang, C Liu",
+      "journal": "arXiv:2508.00923",
+      "year": "2025",
+      "citedBy": "12",
+      "href": "https://arxiv.org/abs/2508.00923",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Beyond the leaderboard: rethinking medical benchmarks for LLMs",
+      "authors": "W Wang, Z Ma, G Yu, YF Cheung, M Ding",
+      "journal": "ACL 2026",
+      "year": "2026",
+      "citedBy": "15",
+      "href": "https://aclanthology.org/2026.acl-long.1996/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Clinical LLM evaluation by expert review (CLEVER): framework development and validation",
+      "authors": "V Kocaman, MA Kaya, AM Feier, D Talby",
+      "journal": "JMIR AI",
+      "year": "2025",
+      "citedBy": "25",
+      "href": "https://ai.jmir.org/2025/1/e72153/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Leak cheat repeat: data contamination and evaluation malpractices in closed-source LLMs",
+      "authors": "S Balloccu, P Schmidtova, M Lango",
+      "journal": "EACL 2024",
+      "year": "2024",
+      "citedBy": "418",
+      "href": "https://aclanthology.org/2024.eacl-long.5/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmark data contamination of LLMs: a survey",
+      "authors": "C Xu, S Guan, D Greene, M Kechadi",
+      "journal": "arXiv:2406.04244",
+      "year": "2024",
+      "citedBy": "212",
+      "href": "https://arxiv.org/abs/2406.04244",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Contamination in AI evaluation",
+      "authors": "B Mehrbakhsh",
+      "journal": "UPV Technical Report",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Position: the open benchmark paradox must be resolved through sovereign medical evaluation",
+      "authors": "K Kim, H Ko, H Jo, S Kim, Y Choi, JD Lee",
+      "journal": "NeurIPS 2025",
+      "year": "2025",
+      "citedBy": "0",
+      "href": "https://openreview.net/forum?id=5QNloNBcyn",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Training on the benchmark is not all you need",
+      "authors": "S Ni, X Kong, C Li, X Hu, R Xu, J Zhu",
+      "journal": "AAAI 2025",
+      "year": "2025",
+      "citedBy": "48",
+      "href": "https://ojs.aaai.org/index.php/AAAI/article/view/34678",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Simulating training data leakage in MCQ benchmarks for LLM evaluation",
+      "authors": "NS Hidayat, MD Al Kautsar",
+      "journal": "Eval4NLP 2025",
+      "year": "2025",
+      "citedBy": "5",
+      "href": "https://aclanthology.org/2025.eval4nlp-1.3/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Are LLM benchmarks already contaminated? Systematic review of contamination detection",
+      "authors": "E Nourbakhsh, MS Sirjani, A Mousavi",
+      "journal": "GEM 2026",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://aclanthology.org/2026.gem-main.50/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Generalization or memorization: data contamination and trustworthy evaluation for LLMs",
+      "authors": "Y Dong, X Jiang, H Liu, Z Jin, B Gu",
+      "journal": "Findings of ACL 2024",
+      "year": "2024",
+      "citedBy": "283",
+      "href": "https://aclanthology.org/2024.findings-acl.716/",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A survey on evaluating quality and trustworthiness in LLM-generated data",
+      "authors": "K Zhang, M Hu, HAD Le, FK Torsha, Z Jiang",
+      "journal": "arXiv:2601.17717",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://arxiv.org/abs/2601.17717",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmark probing: investigating data leakage in LLMs",
+      "authors": "C Deng, Y Zhao, X Tang, M Gerstein",
+      "journal": "NeurIPS 2023 Workshop",
+      "year": "2023",
+      "citedBy": "44",
+      "href": "https://openreview.net/forum?id=a34bgvner1",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Benchmarking truthfulness metrics in health-oriented LLMs via automated fact verification",
+      "authors": "K Das, R Singh",
+      "journal": "IJCHML",
+      "year": "2026",
+      "citedBy": "0",
+      "href": "https://ijchml.com/index.php/ijchml/article/view/257",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Private benchmarking to prevent contamination and improve comparative evaluation (CONFIDE)",
+      "authors": "T Rajore, N Chandran, S Sitaram, D Gupta",
+      "journal": "arXiv:2403.00393",
+      "year": "2024",
+      "citedBy": "24",
+      "href": "https://arxiv.org/abs/2403.00393",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "A survey on medical competence evaluation benchmarks for LLMs",
+      "authors": "Q Wang, H Zou, H Zhang, Y Huang, J Tian",
+      "journal": "Health Care Science",
+      "year": "2026",
+      "citedBy": "2",
+      "href": "https://onlinelibrary.wiley.com/doi/abs/10.1002/hcs2.70050",
+      "source": "Google Scholar"
+    },
+    {
+      "cluster": "F_benchmark_quality_leakage",
+      "title": "Advances evaluation and explainability of LLMs in healthcare: a systematic review",
+      "authors": "SU Amin, M Guizani, MS Hossain",
+      "journal": "ACM TOMM",
+      "year": "2026",
+      "citedBy": "4",
+      "href": "https://dl.acm.org/doi/abs/10.1145/3786334",
+      "source": "Google Scholar"
+    }
+  ]
+}
