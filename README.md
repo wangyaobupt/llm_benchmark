@@ -144,7 +144,8 @@ uv sync --locked
 
 | 文档 | 内容 |
 |---|---|
-| `handoffs/项目接手文档.md`（本地） | 项目总览、数据契约、字段映射（不推送） |
+| [docs/research-status.md](docs/research-status.md) | 当前研究进度、验证结果、文档差异与下一步入口 |
+| `handoffs/handoff-20260806-1520.md`（本地） | 历史合并记录（不代表当前主线，不推送） |
 | [docs/项目流程梳理与推进计划.md](docs/项目流程梳理与推进计划.md) | 流程梳理与推进计划 |
 | [docs/文件保存规范.md](docs/文件保存规范.md) | 目录职责、命名约定、新增文件决策流程 |
 
