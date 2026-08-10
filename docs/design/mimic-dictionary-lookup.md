@@ -86,6 +86,26 @@ WHERE dictionary_name = 'd_labitems'
 
 原始字段没有塞入统一列的部分保存在 `attributes_json`。例如 `d_labitems.fluid`、`d_items.unitname` 和正常范围仍可完整读取。
 
+## 解析 raw admission JSON
+
+对 raw admission JSON 的可读副本进行编码解析：
+
+```powershell
+.\.venv\Scripts\python.exe -m mimic_dictionary.decode_archive `
+  --input data\validation\mimic-admission-raw-coronary-sample-20-readable.json `
+  --output data\validation\mimic-admission-raw-coronary-sample-20-parsed.json
+```
+
+解析器保留全部原字段，在对应事件行末增加 `itemid_decoded`、`icd_decoded` 或 `hcpcs_cd_decoded`。解析范围固定为：
+
+- `mimic_iv_hosp.labevents.itemid` → `d_labitems`；
+- hosp与ED诊断的 `icd_code + icd_version` → `d_icd_diagnoses`；
+- `mimic_iv_hosp.procedures_icd` → `d_icd_procedures`；
+- `mimic_iv_hosp.hcpcsevents.hcpcs_cd` → `d_hcpcs`；
+- 五类已纳入ICU事件的 `itemid` → `d_items`。
+
+任何非空编码无法匹配时，解析立即失败并报告记录序号、JSON路径和编码，不生成部分结果。原始输入文件不会被覆盖。
+
 ## 验收约束
 
 - 每张字典的源行数必须与独立 Parquet 行数一致；
