@@ -30,6 +30,25 @@
 
 ```text
 data/解析/
+├── csv/
+│   ├── code_lookup.csv
+│   ├── d_hcpcs.csv
+│   ├── d_icd_diagnoses.csv
+│   ├── d_icd_procedures.csv
+│   ├── d_items.csv
+│   └── d_labitems.csv
+├── json/
+│   ├── code_lookup/
+│   │   ├── d_hcpcs.json
+│   │   ├── d_icd_diagnoses.json
+│   │   ├── d_icd_procedures.json
+│   │   ├── d_items.json
+│   │   └── d_labitems.json
+│   ├── d_hcpcs.json
+│   ├── d_icd_diagnoses.json
+│   ├── d_icd_procedures.json
+│   ├── d_items.json
+│   └── d_labitems.json
 ├── tables/
 │   ├── d_hcpcs.parquet
 │   ├── d_icd_diagnoses.parquet
@@ -52,6 +71,10 @@ source_path, attributes_json
 
 ICD编码必须同时使用 `code` 与 `code_version`，不能只按编码字符串连接。
 
+CSV 使用 UTF-8 BOM，并对字段进行标准 CSV 引号转义，可直接由 Excel、WPS、文本编辑器和数据程序读取。CSV 本身没有强制列类型的元数据；若 Excel 自动转换带前导零的 ICD 编码，应使用“从文本/CSV导入”并把编码列指定为文本。JSON 中编码始终保存为字符串，是保留编码原值的权威文本格式。
+
+统一 CSV 为单文件 `csv/code_lookup.csv`。统一 JSON 若写成一个标准数组会超过50 MiB，因此按字典拆分到 `json/code_lookup/`；五个分片使用完全相同的字段，可以直接逐个读取或合并。`json/*.json` 则保留各官方字典的全部原始字段。
+
 ## 查询
 
 ```sql
@@ -68,5 +91,5 @@ WHERE dictionary_name = 'd_labitems'
 - 每张字典的源行数必须与独立 Parquet 行数一致；
 - 字典主键不得为空或重复；
 - 五张字典的行数总和必须等于统一查询表行数；
-- 输出总大小默认不得超过 50 MiB；
+- 任一输出文件默认不得超过 50 MiB；
 - `manifest.json` 必须记录来源、版本、字段、行数、大小和 SHA-256。

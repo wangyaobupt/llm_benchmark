@@ -18,7 +18,20 @@ SOURCE_DATABASE = "MIMIC-IV"
 SOURCE_VERSION = "3.1"
 DEFAULT_DATA_ROOT = Path("D:/Projects/llm_benchmark/data/RawData")
 DEFAULT_OUTPUT_DIR = Path("D:/Projects/llm_benchmark/data/解析")
-DEFAULT_MAX_OUTPUT_BYTES = 50 * 1024 * 1024
+DEFAULT_MAX_FILE_BYTES = 50 * 1024 * 1024
+LOOKUP_EXPORT_COLUMNS: tuple[str, ...] = (
+    "source_database",
+    "source_version",
+    "source_module",
+    "dictionary_name",
+    "code_system",
+    "code",
+    "code_version",
+    "label",
+    "description",
+    "category",
+    "source_path",
+)
 
 
 @dataclass(frozen=True)
@@ -110,6 +123,89 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _file_metadata(path: Path, root: Path) -> dict[str, Any]:
+    return {
+        "path": path.relative_to(root).as_posix(),
+        "bytes": path.stat().st_size,
+        "sha256": _sha256(path),
+    }
+
+
+def _export_csv_with_bom(
+    connection: duckdb.DuckDBPyConnection,
+    query: str,
+    path: Path,
+) -> None:
+    partial = path.with_suffix(path.suffix + ".partial")
+    connection.execute(
+        f"COPY ({query}) TO {_sql_literal(partial)} "
+        "(FORMAT CSV, HEADER true, FORCE_QUOTE *)"
+    )
+    with path.open("wb") as output, partial.open("rb") as source:
+        output.write(b"\xef\xbb\xbf")
+        shutil.copyfileobj(source, output, length=1024 * 1024)
+    partial.unlink()
+
+
+def _export_json_array(
+    connection: duckdb.DuckDBPyConnection,
+    query: str,
+    path: Path,
+) -> None:
+    connection.execute(
+        f"COPY ({query}) TO {_sql_literal(path)} (FORMAT JSON, ARRAY true)"
+    )
+
+
+def _export_open_formats(
+    connection: duckdb.DuckDBPyConnection,
+    staging: Path,
+    entries: list[dict[str, Any]],
+) -> dict[str, Any]:
+    csv_dir = staging / "csv"
+    json_dir = staging / "json"
+    lookup_json_dir = json_dir / "code_lookup"
+    csv_dir.mkdir()
+    json_dir.mkdir()
+    lookup_json_dir.mkdir()
+    by_name = {entry["name"]: entry for entry in entries}
+    lookup_columns = ", ".join(_quoted(column) for column in LOOKUP_EXPORT_COLUMNS)
+
+    for spec in DICTIONARIES:
+        raw_query = f"SELECT * FROM {_quoted(spec.name)}"
+        csv_path = csv_dir / f"{spec.name}.csv"
+        json_path = json_dir / f"{spec.name}.json"
+        lookup_json_path = lookup_json_dir / f"{spec.name}.json"
+        _export_csv_with_bom(connection, raw_query, csv_path)
+        _export_json_array(connection, raw_query, json_path)
+        _export_json_array(
+            connection,
+            f"SELECT {lookup_columns} FROM code_lookup "
+            f"WHERE dictionary_name = '{spec.name}'",
+            lookup_json_path,
+        )
+        by_name[spec.name]["csv"] = _file_metadata(csv_path, staging)
+        by_name[spec.name]["json"] = _file_metadata(json_path, staging)
+        by_name[spec.name]["lookup_json"] = _file_metadata(lookup_json_path, staging)
+
+    lookup_csv = csv_dir / "code_lookup.csv"
+    _export_csv_with_bom(
+        connection,
+        f"SELECT {lookup_columns} FROM code_lookup",
+        lookup_csv,
+    )
+    return {
+        "csv": _file_metadata(lookup_csv, staging),
+        "json_parts": [
+            by_name[spec.name]["lookup_json"] for spec in DICTIONARIES
+        ],
+        "json_split_reason": (
+            "A single standard JSON array exceeded 50 MiB, so the unified lookup is split "
+            "by dictionary while retaining identical columns."
+        ),
+    }
 
 
 def _source_header(path: Path) -> list[str]:
@@ -266,6 +362,9 @@ def _write_readme(path: Path, manifest: dict[str, Any]) -> None:
 - `tables/*.parquet`：保留各官方字典的全部原始字段和原始拼写。
 - `mimic_code_lookup.parquet`：跨字典统一查询视图。
 - `mimic_dictionaries.duckdb`：包含五张原始字典表与 `code_lookup` 表。
+- `csv/*.csv`：UTF-8 BOM CSV；包含五张原始字典和统一索引。
+- `json/*.json`：五张原始字典的标准 JSON 数组。
+- `json/code_lookup/*.json`：按字典拆分的统一索引标准 JSON 数组。
 - `manifest.json`：来源、版本、字段、行数、文件大小和 SHA-256。
 
 ## 查询示例
@@ -297,7 +396,7 @@ ICD 编码必须同时使用 `code_version` 区分 ICD-9 与 ICD-10。
 def build_dictionaries(
     data_root: Path = DEFAULT_DATA_ROOT,
     output_dir: Path = DEFAULT_OUTPUT_DIR,
-    max_output_bytes: int = DEFAULT_MAX_OUTPUT_BYTES,
+    max_file_bytes: int = DEFAULT_MAX_FILE_BYTES,
 ) -> dict[str, Any]:
     data_root = data_root.resolve()
     output_dir = output_dir.resolve()
@@ -318,6 +417,7 @@ def build_dictionaries(
             f"COPY code_lookup TO {_sql_literal(lookup_parquet)} "
             "(FORMAT PARQUET, COMPRESSION ZSTD)"
         )
+        open_formats = _export_open_formats(connection, staging, entries)
         connection.execute("CHECKPOINT")
     finally:
         connection.close()
@@ -342,6 +442,7 @@ def build_dictionaries(
             "bytes": lookup_parquet.stat().st_size,
             "sha256": _sha256(lookup_parquet),
         },
+        "open_formats": open_formats,
         "database": {
             "path": "mimic_dictionaries.duckdb",
             "bytes": database_path.stat().st_size,
@@ -361,10 +462,18 @@ def build_dictionaries(
         manifest["total_output_bytes"] = total_bytes
     else:
         raise RuntimeError("manifest size did not stabilize")
-    if total_bytes > max_output_bytes:
+    oversized = [
+        path for path in staging.rglob("*")
+        if path.is_file() and path.stat().st_size > max_file_bytes
+    ]
+    if oversized:
+        details = ", ".join(
+            f"{path.relative_to(staging).as_posix()}={path.stat().st_size}"
+            for path in oversized
+        )
         shutil.rmtree(staging)
         raise ValueError(
-            f"parsed dictionaries total {total_bytes} bytes, exceeding limit {max_output_bytes}"
+            f"parsed dictionary files exceed per-file limit {max_file_bytes}: {details}"
         )
     staging.replace(output_dir)
     return manifest
@@ -376,11 +485,11 @@ def create_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--data-root", type=Path, default=DEFAULT_DATA_ROOT)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    parser.add_argument("--max-output-bytes", type=int, default=DEFAULT_MAX_OUTPUT_BYTES)
+    parser.add_argument("--max-file-bytes", type=int, default=DEFAULT_MAX_FILE_BYTES)
     return parser
 
 
 def main() -> None:
     args = create_parser().parse_args()
-    manifest = build_dictionaries(args.data_root, args.output_dir, args.max_output_bytes)
+    manifest = build_dictionaries(args.data_root, args.output_dir, args.max_file_bytes)
     print(json.dumps(manifest, ensure_ascii=False, indent=2))

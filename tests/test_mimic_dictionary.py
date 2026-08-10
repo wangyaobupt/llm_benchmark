@@ -54,6 +54,22 @@ class MimicDictionaryTest(unittest.TestCase):
                 manifest["database"]["bytes"],
                 (output / "mimic_dictionaries.duckdb").stat().st_size,
             )
+            lookup_csv = output / "csv" / "code_lookup.csv"
+            self.assertEqual(lookup_csv.read_bytes()[:3], b"\xef\xbb\xbf")
+            with lookup_csv.open("r", encoding="utf-8-sig", newline="") as handle:
+                csv_rows = list(csv.DictReader(handle))
+            self.assertEqual(len(csv_rows), 5)
+            self.assertEqual(
+                next(row for row in csv_rows if row["dictionary_name"] == "d_labitems")["code"],
+                "50878",
+            )
+            lab_json = json.loads((output / "json" / "d_labitems.json").read_text(encoding="utf-8"))
+            lookup_json = json.loads(
+                (output / "json" / "code_lookup" / "d_labitems.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(lab_json[0]["itemid"], "50878")
+            self.assertEqual(lookup_json[0]["code"], "50878")
+            self.assertNotIn("attributes_json", lookup_json[0])
 
             with duckdb.connect(str(output / "mimic_dictionaries.duckdb"), read_only=True) as connection:
                 row = connection.execute(
