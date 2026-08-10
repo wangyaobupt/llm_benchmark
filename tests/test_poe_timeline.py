@@ -159,19 +159,34 @@ class PoeTimelineParserTest(unittest.TestCase):
         self.assertIn("unknown_transaction_type", events[0]["quality_flags"])
         self.assertIn("missing_transaction_type", events[1]["quality_flags"])
 
-    def test_streams_event_jsonl_and_quality_report(self) -> None:
+    def test_streams_complete_admission_jsonl_and_quality_report(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             source = root / "input.jsonl"
-            output = root / "events.jsonl"
+            output = root / "admissions-with-poe-timeline.jsonl"
             report = root / "report.json"
-            source.write_text(json.dumps(record()) + "\n", encoding="utf-8")
+            fixture = record()
+            fixture["untouched_top_level"] = {"text": "keep me", "items": [1, 2]}
+            fixture["mimic_iv_hosp"]["untouched_table"] = [{"value": "unchanged"}]
+            source.write_text(json.dumps(fixture) + "\n", encoding="utf-8")
             metrics = run(source, output, report)
             rows = [json.loads(line) for line in output.read_text(encoding="utf-8").splitlines()]
             self.assertEqual(metrics["admissions"], 1)
             self.assertEqual(metrics["events"], 3)
-            self.assertEqual(len(rows), 3)
-            self.assertEqual(json.loads(report.read_text(encoding="utf-8"))["action_counts"]["change"], 1)
+            self.assertEqual(len(rows), 1)
+            actual = rows[0]
+            events = actual["mimic_iv_hosp"].pop("poe_timeline")
+            self.assertEqual(actual, fixture)
+            self.assertEqual(
+                [event["action"] for event in events],
+                ["create", "change", "discontinue"],
+            )
+            self.assertEqual(
+                json.loads(report.read_text(encoding="utf-8"))["action_counts"][
+                    "change"
+                ],
+                1,
+            )
             self.assertEqual(metrics["schema"]["version"], "2.0.0")
             self.assertIn("content_specificity_counts", metrics)
 

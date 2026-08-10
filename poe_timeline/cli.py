@@ -9,12 +9,17 @@ from .parser import run
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Parse admission-level MIMIC-IV raw JSONL into auditable, "
-            "event-level provider-order timelines."
+            "Add auditable provider-order timelines to complete admission-level "
+            "MIMIC-IV raw JSONL records."
         )
     )
     parser.add_argument("input", type=Path, help="Admission-level raw JSONL")
-    parser.add_argument("--output", type=Path, required=True, help="Event-level JSONL")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        required=True,
+        help="Admission-level JSONL with mimic_iv_hosp.poe_timeline added",
+    )
     parser.add_argument("--report", type=Path, required=True, help="Quality metrics JSON")
     parser.add_argument(
         "--limit",
@@ -32,5 +37,5 @@ def main() -> None:
     metrics = run(args.input, args.output, args.report, limit=args.limit)
     print(
         f"processed {metrics['admissions']} admissions and "
-        f"wrote {metrics['events']} POE events to {args.output}"
+        f"embedded {metrics['events']} POE events in {args.output}"
     )

@@ -2,7 +2,7 @@
 
 ## 目标与命名边界
 
-本模块把 admission 级原始 JSONL 中的 `poe` 医嘱解析为逐事件 JSONL，服务于后续临床决策时间线构建。输出称为“可观察医嘱时间线”，不称为完整 EHR 审计历史。
+本模块把 admission 级原始 JSONL 中的 `poe` 医嘱解析为可观察医嘱时间线，服务于后续临床决策时间线构建。输出仍是完整的 admission 级记录：所有原始字段都保留，解析结果新增到 `mimic_iv_hosp.poe_timeline`。该结果不称为完整 EHR 审计历史。
 
 原因是 MIMIC 官方说明 POE 表示提供者下达或操作医嘱，不证明医嘱已经执行；MIMIC 数据整理还移除了 audit trails。完整证据边界见 [MIMIC-IV v3.x POE 官方语义与时间线解析边界](../reference/mimic-iv-poe-official-evidence.md)。
 
@@ -49,42 +49,40 @@ POE 的 `poe_id`、`poe_seq`、`subject_id`、`ordertime`、`order_type` 是必�
 
 输出会检查目标是否存在、双向链接是否一致、类别是否一致、前驱时间是否晚于当前事件，并生成 `chain_root_poe_id` 和 `chain_position`。
 
-## 事件输出结构
+## 输出结构
 
-每行输出一个按 `(ordertime, poe_seq, poe_id)` 稳定排序的事件：
+每行输入对应一行输出。原始 admission 记录及其中的 `poe`、`poe_detail`、`prescriptions`、`pharmacy` 等表均保留，不修改、不删除；解析器只新增 `mimic_iv_hosp.poe_timeline`。该数组中的事件按 `(ordertime, poe_seq, poe_id)` 稳定排序：
 
 ```json
 {
-  "event_time": "2154-02-06 09:26:50",
-  "poe_id": "19487795-4172",
-  "action": "change",
-  "action_raw": "Change",
-  "display_text_zh": "变更用药医嘱，Oxycodone ...",
-  "content_specificity": "entity_specific",
-  "resolution_sources": ["poe", "prescriptions", "pharmacy"],
-  "medication_resolution": {
-    "medication_count": 1,
-    "with_drug": 1,
-    "with_dose": 1,
-    "with_route": 1,
-    "with_frequency": 1
-  },
-  "order_content": {},
-  "incremental_information": {
-    "comparison_basis": "linked_predecessor",
-    "added_facts": [],
-    "removed_facts": [],
-    "clinical_changes": [],
-    "summary_zh": "给药频次：Q12H → QAM",
-    "observable_content_change": true
-  },
-  "relations": {
-    "chain_complete": true
-  },
-  "quality_flags": [],
-  "provenance": {
-    "current": {},
-    "comparison": {}
+  "subject_id": "19487795",
+  "hadm_id": "...",
+  "mimic_iv_hosp": {
+    "admissions": ["原始内容保持不变"],
+    "poe": ["原始内容保持不变"],
+    "poe_detail": ["原始内容保持不变"],
+    "prescriptions": ["原始内容保持不变"],
+    "pharmacy": ["原始内容保持不变"],
+    "poe_timeline": [
+      {
+        "event_time": "2154-02-06 09:26:50",
+        "poe_id": "19487795-4172",
+        "action": "change",
+        "action_raw": "Change",
+        "display_text_zh": "变更用药医嘱，Oxycodone ...",
+        "content_specificity": "entity_specific",
+        "resolution_sources": ["poe", "prescriptions", "pharmacy"],
+        "order_content": {},
+        "incremental_information": {
+          "comparison_basis": "linked_predecessor",
+          "summary_zh": "给药频次：Q12H → QAM",
+          "observable_content_change": true
+        },
+        "relations": {"chain_complete": true},
+        "quality_flags": [],
+        "provenance": {"current": {}, "comparison": {}}
+      }
+    ]
   }
 }
 ```
@@ -134,7 +132,7 @@ python -m poe_timeline `
   --report docs\reports\mimic-poe-timeline-sample-metrics.json
 ```
 
-用 `--limit N` 做小批验证。输入按行流式读取，事件与报告均先写入各自目标目录的临时文件；两者都成功生成后，再分别原子替换目标文件。两个目标文件不是跨文件系统事务，消费者应同时核对报告中的 schema、输入路径和事件计数。
+用 `--limit N` 做小批验证。输入按行流式读取，完整 admission 记录与报告均先写入各自目标目录的临时文件；两者都成功生成后，再分别原子替换目标文件。两个目标文件不是跨文件系统事务，消费者应同时核对报告中的 schema、输入路径、admission 数和事件计数。
 
 ## 向临床决策时间线推进
 

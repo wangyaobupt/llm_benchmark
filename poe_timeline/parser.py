@@ -987,7 +987,7 @@ def run(
     *,
     limit: int | None = None,
 ) -> dict[str, Any]:
-    """Stream admission JSONL and prepare both outputs before replacing each destination."""
+    """Stream complete admission records with an added parsed POE timeline."""
     input_path = Path(input_path)
     output_path = Path(output_path)
     report_path = Path(report_path)
@@ -1024,8 +1024,11 @@ def run(
                     raise PoeTimelineError(f"input line {line_number}: {exc}") from exc
                 metrics["admissions"] += 1
                 for event in events:
-                    output_tmp.write(json.dumps(event, ensure_ascii=False, separators=(",", ":")) + "\n")
                     _update_metrics(metrics, event)
+                record["mimic_iv_hosp"]["poe_timeline"] = events
+                output_tmp.write(
+                    json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n"
+                )
         result = _serializable_metrics(metrics)
         report_tmp = _atomic_text_writer(report_path)
         with report_tmp:
