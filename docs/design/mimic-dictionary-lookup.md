@@ -86,25 +86,11 @@ WHERE dictionary_name = 'd_labitems'
 
 原始字段没有塞入统一列的部分保存在 `attributes_json`。例如 `d_labitems.fluid`、`d_items.unitname` 和正常范围仍可完整读取。
 
-## 解析 raw admission JSON
+## 下游解码与 POE 清洗
 
-对 raw admission JSON 的可读副本进行编码解析：
+字典构建完成后，统一从 `data_cleaning.clean_clinical_archive` 一次完成编码解码和 POE 医嘱解析。完整命令、字段映射、组合键规则、失败条件及输出契约集中维护在 [临床可读归档清洗器](../../data_cleaning/clean_clinical_archive/README.md) 和其 [字典解码规则](../../data_cleaning/clean_clinical_archive/docs/decoding-rules.md)，本构建文档不再复制运行规则。
 
-```powershell
-.\.venv\Scripts\python.exe -m mimic_dictionary.decode_archive `
-  --input data\validation\mimic-admission-raw-coronary-sample-20-readable.json `
-  --output data\validation\mimic-admission-raw-coronary-sample-20-parsed.json
-```
-
-解析器保留全部原字段，在对应事件行末增加 `itemid_decoded`、`icd_decoded` 或 `hcpcs_cd_decoded`。解析范围固定为：
-
-- `mimic_iv_hosp.labevents.itemid` → `d_labitems`；
-- hosp与ED诊断的 `icd_code + icd_version` → `d_icd_diagnoses`；
-- `mimic_iv_hosp.procedures_icd` → `d_icd_procedures`；
-- `mimic_iv_hosp.hcpcsevents.hcpcs_cd` → `d_hcpcs`；
-- 五类已纳入ICU事件的 `itemid` → `d_items`。
-
-任何非空编码无法匹配时，解析立即失败并报告记录序号、JSON路径和编码，不生成部分结果。原始输入文件不会被覆盖。
+旧入口 `mimic_dictionary.decode_archive` 仍可用于只增加字典释义的兼容场景，但它与统一入口调用同一个共享解码内核，不维护第二套规则。
 
 ## 验收约束
 

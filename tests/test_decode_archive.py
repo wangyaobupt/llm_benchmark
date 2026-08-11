@@ -20,10 +20,10 @@ class DecodeArchiveTest(unittest.TestCase):
                 "'Chemistry' AS category"
             )
             connection.execute(
-                "CREATE TABLE d_items AS SELECT '220045' AS itemid, 'Heart Rate' AS \"label\", "
-                "'HR' AS abbreviation, 'chartevents' AS linksto, "
-                "'Routine Vital Signs' AS category, 'bpm' AS unitname, 'Numeric' AS param_type, "
-                "'60' AS lownormalvalue, '100' AS highnormalvalue"
+                "CREATE TABLE d_items AS SELECT '225158' AS itemid, 'NaCl 0.9%' AS \"label\", "
+                "'NaCl 0.9%' AS abbreviation, 'inputevents' AS linksto, "
+                "'Fluids/Intake' AS category, 'mL' AS unitname, 'Numeric' AS param_type, "
+                "NULL AS lownormalvalue, NULL AS highnormalvalue"
             )
             connection.execute(
                 "CREATE TABLE d_icd_diagnoses AS SELECT '41001' AS icd_code, "
@@ -54,7 +54,7 @@ class DecodeArchiveTest(unittest.TestCase):
             "mimic_iv_icu": {
                 "datetimeevents": [],
                 "ingredientevents": [],
-                "inputevents": [{"itemid": "220045", "amount": "80"}],
+                "inputevents": [{"itemid": "225158", "amount": "80"}],
                 "outputevents": [],
                 "procedureevents": [],
             },
@@ -81,8 +81,51 @@ class DecodeArchiveTest(unittest.TestCase):
             self.assertEqual(lab["fluid"], "Blood")
             self.assertEqual(
                 parsed[0]["mimic_iv_icu"]["inputevents"][0]["itemid_decoded"]["label"],
-                "Heart Rate",
+                "NaCl 0.9%",
             )
+
+    def test_streams_jsonl_without_changing_original_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            database = root / "dictionary.duckdb"
+            source = root / "source.jsonl"
+            output = root / "parsed.jsonl"
+            self._database(database)
+            original = [self._record(), self._record()]
+            source.write_text(
+                "".join(json.dumps(record) + "\n" for record in original),
+                encoding="utf-8",
+            )
+
+            report = decode_file(source, output, database)
+            parsed = [
+                json.loads(line)
+                for line in output.read_text(encoding="utf-8").splitlines()
+            ]
+
+            self.assertEqual(report["records"], 2)
+            self.assertEqual(report["decoded_total"], 12)
+            self.assertEqual(report["input_format"], "jsonl")
+            self.assertEqual(report["output_format"], "jsonl")
+            self.assertEqual(strip_decoded_fields(parsed), original)
+
+    def test_rejects_d_items_code_linked_to_another_event_table(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            database = root / "dictionary.duckdb"
+            source = root / "source.jsonl"
+            output = root / "parsed.jsonl"
+            self._database(database)
+            with duckdb.connect(str(database)) as connection:
+                connection.execute(
+                    "UPDATE d_items SET linksto = 'chartevents' WHERE itemid = '225158'"
+                )
+            source.write_text(json.dumps(self._record()) + "\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(DecodeError, "links to 'chartevents'.*'inputevents'"):
+                decode_file(source, output, database)
+            self.assertFalse(output.exists())
+            self.assertFalse(output.with_suffix(".jsonl.partial").exists())
 
     def test_rejects_unresolved_nonempty_code(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
