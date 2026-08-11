@@ -27,7 +27,7 @@ mimic-iv-3.1/hosp/d_hcpcs.csv.gz
 ## 构建字典
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_dictionary `
+.\.venv\Scripts\python.exe -m data_pipeline.tools.mimic_dictionary `
   --data-root data\RawData `
   --output-dir data\解析 `
   --max-file-bytes 52428800
@@ -58,7 +58,7 @@ data_pipeline/clean_clinical_archive/dictionaries/
 如果只需要给已有 admission JSON/JSONL 增加编码释义，而不解析 POE，可使用：
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_dictionary.decode_archive `
+.\.venv\Scripts\python.exe -m data_pipeline.tools.mimic_dictionary.decode_archive `
   --input data\mimic-admission-raw.jsonl `
   --output data\mimic-admission-decoded.jsonl `
   --dictionary-db data\解析\mimic_dictionaries.duckdb

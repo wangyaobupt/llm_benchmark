@@ -12,15 +12,15 @@ Admission 级原始 JSONL
 字典解码 + POE 解析后的临床可读 JSONL
 ```
 
-`mimic_dictionary` 是字典生成工具，为清洗器提供五份官方字典；正常清洗时不需要重复执行。
+`tools/mimic_dictionary` 是字典生成工具，为清洗器提供五份官方字典；正常清洗时不需要重复执行。
 
 ## 可选 Episode/visit 路线
 
 ```text
 MIMIC 原始 CSV.GZ 表
-    ↓ mimic_episode
+    ↓ archived/mimic_episode
 Episode Parquet 数据集
-    ↓ parquet_to_jsonl
+    ↓ archived/parquet_to_jsonl
 Visit 级 JSONL + 决策快照
 ```
 
@@ -32,11 +32,12 @@ Visit 级 JSONL + 决策快照
 |---|---|---|---|
 | `mimic_raw_archive/` | 主流程第一步 | MIMIC CSV.GZ 原始表 | `mimic_admission_raw/1.0.0` JSONL |
 | `clean_clinical_archive/` | 主流程第二步 | Admission 原始 JSONL | `mimic_admission_clinical_readable/1.0.0` JSONL |
-| `mimic_dictionary/` | 辅助工具 | 五张官方字典表 | JSON、CSV、Parquet、DuckDB 字典 |
-| `mimic_episode/` | 可选下游路线 | 41 张 MIMIC 源表 | Episode/事件 Parquet |
-| `parquet_to_jsonl/` | 可选下游路线 | Episode Parquet | `mimic_visit_archive/1.0.0` JSONL |
+| `mimic_source_catalog.py` | 活动共享契约 | MIMIC 文件目录与锁定表头 | 供原始归档和归档 Episode 复用的源表定义 |
+| `tools/mimic_dictionary/` | 辅助工具 | 五张官方字典表 | JSON、CSV、Parquet、DuckDB 字典 |
+| `archived/mimic_episode/` | 已归档路线 | 41 张 MIMIC 源表 | Episode/事件 Parquet |
+| `archived/parquet_to_jsonl/` | 已归档路线 | Episode Parquet | `mimic_visit_archive/1.0.0` JSONL |
 
-注意：`mimic_raw_archive` 当前复用 `mimic_episode/source_catalog.py` 中的源表字段定义。这是代码层依赖，不代表运行原始归档前需要先执行 Episode 管道。
+`mimic_raw_archive` 与归档 Episode 路线共同读取根目录的 `mimic_source_catalog.py`。活动主流程不再依赖 `archived/` 内的任何文件。
 
 ## 主流程命令
 
@@ -61,7 +62,7 @@ Visit 级 JSONL + 决策快照
 
 ## 共同约束
 
-- 所有模块命令都从项目根目录以 `python -m data_pipeline.<module>` 形式执行。
+- 当前主流程从项目根目录以 `python -m data_pipeline.<module>` 形式执行；辅助工具使用 `data_pipeline.tools.<module>`，归档代码使用 `data_pipeline.archived.<module>`。
 - 原始 MIMIC 数据、生成数据和五份授权字典不得提交到 Git。
 - 输出已存在时，相关主流程默认拒绝覆盖；应明确处理旧输出，不能依赖隐式覆盖。
 - admission 主流程以 schema 标识连接：清洗器只接受 `mimic_admission_raw/1.0.0`。

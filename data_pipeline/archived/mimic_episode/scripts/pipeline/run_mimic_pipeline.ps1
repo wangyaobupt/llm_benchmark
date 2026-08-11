@@ -27,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($EnvironmentPath)) {
 }
 
 $env:UV_PROJECT_ENVIRONMENT = $EnvironmentPath
-$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..\..')).Path
+$projectRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..\..\..\..\..')).Path
 $uv = (Get-Command uv -ErrorAction Stop).Source
 
 function Invoke-Uv {
@@ -53,7 +53,7 @@ try {
         }
         'validate' {
             Invoke-Uv -Arguments @(
-                'run', '--locked', 'python', '-m', 'data_pipeline.mimic_episode',
+                'run', '--locked', 'python', '-m', 'data_pipeline.archived.mimic_episode',
                 'validate', '--data-root', $DataRoot
             )
         }
@@ -64,7 +64,7 @@ try {
                 $OutputDir
             }
             $arguments = @(
-                'run', '--locked', 'python', '-m', 'data_pipeline.mimic_episode',
+                'run', '--locked', 'python', '-m', 'data_pipeline.archived.mimic_episode',
                 'extract', '--data-root', $DataRoot,
                 '--output-dir', $resolvedOutputDir,
                 '--memory-limit', $MemoryLimit,
@@ -77,7 +77,7 @@ try {
         }
         'validate-episodes' {
             Invoke-Uv -Arguments @(
-                'run', '--locked', 'python', '-m', 'data_pipeline.mimic_episode',
+                'run', '--locked', 'python', '-m', 'data_pipeline.archived.mimic_episode',
                 'validate-episodes', '--data-root', $DataRoot
             )
         }
@@ -88,7 +88,7 @@ try {
                 $OutputDir
             }
             $arguments = @(
-                'run', '--locked', 'python', '-m', 'data_pipeline.mimic_episode',
+                'run', '--locked', 'python', '-m', 'data_pipeline.archived.mimic_episode',
                 'aggregate-episodes', '--data-root', $DataRoot,
                 '--output-dir', $resolvedOutputDir,
                 '--memory-limit', $MemoryLimit,
@@ -112,7 +112,7 @@ try {
                 $OutputDir
             }
             $arguments = @(
-                'run', '--locked', 'python', '-m', 'data_pipeline.mimic_episode',
+                'run', '--locked', 'python', '-m', 'data_pipeline.archived.mimic_episode',
                 'export-episode', '--output-dir', $resolvedOutputDir,
                 '--episode-id', $EpisodeId,
                 '--destination', $Destination

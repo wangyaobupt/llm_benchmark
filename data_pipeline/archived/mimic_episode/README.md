@@ -19,20 +19,20 @@ MIMIC 原始表 → mimic_episode → Episode Parquet
 查看所有子命令：
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode --help
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode --help
 ```
 
 ### 1. 验证第一阶段源文件
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode validate `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode validate `
   --data-root data\RawData
 ```
 
 ### 2. 抽取文本和病例索引
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode extract `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode extract `
   --data-root data\RawData `
   --output-dir data\episodes\stage1 `
   --memory-limit 8GB `
@@ -44,7 +44,7 @@ MIMIC 原始表 → mimic_episode → Episode Parquet
 ### 3. 验证 Episode 全量源表
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode validate-episodes `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode validate-episodes `
   --data-root data\RawData
 ```
 
@@ -53,7 +53,7 @@ MIMIC 原始表 → mimic_episode → Episode Parquet
 ### 4. 聚合 Episode
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode aggregate-episodes `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode aggregate-episodes `
   --data-root data\RawData `
   --output-dir data\episodes\full `
   --memory-limit 8GB `
@@ -78,7 +78,7 @@ MIMIC 原始表 → mimic_episode → Episode Parquet
 ### 5. 导出单个 Episode JSON
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.mimic_episode export-episode `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.mimic_episode export-episode `
   --output-dir data\episodes\full `
   --episode-id EPISODE_ID `
   --destination data\episodes\one-episode.json
@@ -105,7 +105,7 @@ MIMIC 原始表 → mimic_episode → Episode Parquet
 ## 限制
 
 - `scripts/` 中部分辅助脚本仍包含旧项目的 `G:` 盘绝对路径，不属于通用 CLI；迁移环境时不要直接运行这些脚本。
-- 正式入口是 `python -m data_pipeline.mimic_episode ...`，所有关键路径都应通过命令行显式传入。
+- 归档入口是 `python -m data_pipeline.archived.mimic_episode ...`，所有关键路径都应通过命令行显式传入。
 - 模块依赖 Python 3.12、DuckDB 和本地授权 MIMIC 数据。
 
 ## 验证

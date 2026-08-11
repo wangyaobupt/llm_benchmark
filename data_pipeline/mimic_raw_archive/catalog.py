@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from data_pipeline.mimic_episode.source_catalog import SOURCE_BY_KEY, SourceSpec
+from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY, SourceSpec
 
 
 @dataclass(frozen=True)

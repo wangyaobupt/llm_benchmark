@@ -15,7 +15,7 @@ from typing import Any
 
 import duckdb
 
-from data_pipeline.mimic_episode.source_catalog import SOURCE_BY_KEY
+from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY
 
 from . import SCHEMA_NAME, SCHEMA_VERSION
 from .catalog import (

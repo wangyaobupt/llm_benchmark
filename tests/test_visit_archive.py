@@ -3,14 +3,14 @@ from __future__ import annotations
 import copy
 import unittest
 
-from data_pipeline.parquet_to_jsonl.assembler import assemble_visit
-from data_pipeline.parquet_to_jsonl.partitioning import assign_subject_partition
-from data_pipeline.parquet_to_jsonl.schema import (
+from data_pipeline.archived.parquet_to_jsonl.assembler import assemble_visit
+from data_pipeline.archived.parquet_to_jsonl.partitioning import assign_subject_partition
+from data_pipeline.archived.parquet_to_jsonl.schema import (
     SCHEMA_VERSION,
     TOP_LEVEL_FIELDS,
     validate_visit_archive,
 )
-from data_pipeline.parquet_to_jsonl.snapshots import (
+from data_pipeline.archived.parquet_to_jsonl.snapshots import (
     FutureInformationLeakageError,
     QUESTION_TYPES,
     validate_snapshot_evidence,

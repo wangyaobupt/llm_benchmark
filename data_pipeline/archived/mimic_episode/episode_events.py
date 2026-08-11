@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .source_catalog import SOURCE_BY_KEY
+from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY
 
 
 @dataclass(frozen=True)

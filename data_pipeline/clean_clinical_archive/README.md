@@ -54,7 +54,7 @@ python -m clean_clinical_archive.verify_bundle
 - `docs/poe-rules.md`：POE 连接、动作和证据边界；
 - `docs/schema-contract.md`：输入、输出及可逆性契约。
 
-`data_pipeline.mimic_dictionary.decode_archive` 仍提供只做字典解码的入口，但调用本目录中的唯一解码内核。POE 实现只保存在本目录的 `poe/`，不再维护独立兼容包。五份字典受 MIMIC 数据使用协议约束，随本地文件夹使用，不进入 Git 或公开分发。
+`data_pipeline.tools.mimic_dictionary.decode_archive` 仍提供只做字典解码的入口，但调用本目录中的唯一解码内核。POE 实现只保存在本目录的 `poe/`，不再维护独立兼容包。五份字典受 MIMIC 数据使用协议约束，随本地文件夹使用，不进入 Git 或公开分发。
 
 本模块不调用 `rwd_pipeline.standardization.common`。该标准化包是否完整不会影响本清洗入口。
 

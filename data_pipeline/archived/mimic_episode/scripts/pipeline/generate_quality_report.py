@@ -3,10 +3,10 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
 
 import duckdb
-from data_pipeline.mimic_episode import __version__
+from data_pipeline.archived.mimic_episode import __version__
 
 OUTPUT_DIR = Path(r"G:\Projects\医疗数据集评测-MIMIC\outputs\episodes")
 

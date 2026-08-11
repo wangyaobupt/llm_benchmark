@@ -69,10 +69,10 @@ MIMIC-IV v3.1 / ED 2.2 / Note 2.2
 跨系统聚合 MIMIC-IV 3.1、IV-ED 2.2、IV-Note 2.2 的 41 张源表为 episode-level Parquet（768K episode / 48.9 GB）。住院使用 `H:<hadm_id>`；无有效住院关联的急诊使用 `E:<stay_id>`。
 
 ```powershell
-data_pipeline\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task sync
-data_pipeline\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task validate
-data_pipeline\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task extract
-data_pipeline\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task aggregate-episodes
+data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task sync
+data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task validate
+data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task extract
+data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task aggregate-episodes
 ```
 
 本机聚合目录为 `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes`。详见 [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md)。

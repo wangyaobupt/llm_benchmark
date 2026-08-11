@@ -10,7 +10,7 @@ from typing import Any
 
 import duckdb
 
-from data_pipeline.mimic_episode.source_catalog import SOURCE_BY_KEY
+from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY
 
 from .config import RawArchiveConfig
 from .selection import subject_bucket

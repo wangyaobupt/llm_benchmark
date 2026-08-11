@@ -21,7 +21,7 @@ from .episode_events import (
     generic_event_select,
     generic_item_select,
 )
-from .source_catalog import EpisodeDatasetPaths, SOURCE_SPECS
+from data_pipeline.mimic_source_catalog import EpisodeDatasetPaths, SOURCE_SPECS
 
 logger = logging.getLogger(__name__)
 

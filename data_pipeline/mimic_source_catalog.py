@@ -1,3 +1,5 @@
+"""Shared locked MIMIC source-file, header, and type contracts."""
+
 from __future__ import annotations
 
 import csv

@@ -37,7 +37,7 @@ mimic_visit_archive/1.0.0 JSONL + 决策快照
 ## 运行
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.parquet_to_jsonl.adapter `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.parquet_to_jsonl.adapter `
   --limit 100 `
   --output data\visit_archive\sample-100.jsonl
 ```
@@ -49,7 +49,7 @@ mimic_visit_archive/1.0.0 JSONL + 决策快照
 ## 验证输出
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.parquet_to_jsonl.validate_archive `
+.\.venv\Scripts\python.exe -m data_pipeline.archived.parquet_to_jsonl.validate_archive `
   data\visit_archive\sample-100.jsonl `
   --report data\visit_archive\sample-100.validation.json
 ```

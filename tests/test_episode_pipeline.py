@@ -9,10 +9,10 @@ from pathlib import Path
 
 import duckdb
 
-from data_pipeline.mimic_episode.cli import create_parser
-from data_pipeline.mimic_episode.episode_export import export_episode_json
-from data_pipeline.mimic_episode.episode_pipeline import build_episode_outputs
-from data_pipeline.mimic_episode.source_catalog import (
+from data_pipeline.archived.mimic_episode.cli import create_parser
+from data_pipeline.archived.mimic_episode.episode_export import export_episode_json
+from data_pipeline.archived.mimic_episode.episode_pipeline import build_episode_outputs
+from data_pipeline.mimic_source_catalog import (
     EpisodeDatasetPaths,
     SOURCE_BY_KEY,
     SOURCE_SPECS,
@@ -551,6 +551,7 @@ class EpisodeSourceCatalogTest(unittest.TestCase):
         sql_path = (
             Path(__file__).resolve().parents[1]
             / "data_pipeline"
+            / "archived"
             / "mimic_episode"
             / "sql"
             / "episode_aggregation"

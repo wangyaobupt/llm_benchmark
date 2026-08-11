@@ -7,7 +7,7 @@ from pathlib import Path
 
 import duckdb
 
-from data_pipeline.mimic_dictionary.decode_archive import (
+from data_pipeline.tools.mimic_dictionary.decode_archive import (
     DecodeError,
     decode_file,
     strip_decoded_fields,

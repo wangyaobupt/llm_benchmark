@@ -19,7 +19,7 @@ from data_pipeline.clean_clinical_archive import decoder as shared_decoder
 from data_pipeline.clean_clinical_archive.pipeline import (
     DEFAULT_DICTIONARY_DIRECTORY,
 )
-from data_pipeline.mimic_dictionary import decode_archive as dictionary_decoder
+from data_pipeline.tools.mimic_dictionary import decode_archive as dictionary_decoder
 
 
 class CleanClinicalArchiveTest(unittest.TestCase):

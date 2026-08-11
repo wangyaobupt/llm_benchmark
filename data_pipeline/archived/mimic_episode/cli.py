@@ -8,7 +8,7 @@ from .episode_export import export_episode_json
 from .episode_pipeline import build_episode_outputs
 from .paths import DatasetPaths
 from .pipeline import build_outputs
-from .source_catalog import EpisodeDatasetPaths
+from data_pipeline.mimic_source_catalog import EpisodeDatasetPaths
 
 
 def create_parser() -> argparse.ArgumentParser:

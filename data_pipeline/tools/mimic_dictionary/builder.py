@@ -350,7 +350,7 @@ def _write_readme(path: Path, manifest: dict[str, Any]) -> None:
     path.write_text(
         f"""# MIMIC-IV 3.1 编码解析字典
 
-本目录由 `python -m data_pipeline.mimic_dictionary` 从本机授权的 MIMIC-IV 3.1 原始文件生成。
+本目录由 `python -m data_pipeline.tools.mimic_dictionary` 从本机授权的 MIMIC-IV 3.1 原始文件生成。
 仅包含 MIMIC-IV，不包含 MIMIC-III、患者事件、`provider` 或 `caregiver`。
 
 ## 内容

@@ -10,9 +10,9 @@ Architecture:
         - Assemble visit JSON objects and write JSONL
 
 Usage:
-    python -m data_pipeline.parquet_to_jsonl.adapter
-    python -m data_pipeline.parquet_to_jsonl.adapter --limit 100
-    python -m data_pipeline.parquet_to_jsonl.adapter --limit 100 --output path.jsonl
+    python -m data_pipeline.archived.parquet_to_jsonl.adapter
+    python -m data_pipeline.archived.parquet_to_jsonl.adapter --limit 100
+    python -m data_pipeline.archived.parquet_to_jsonl.adapter --limit 100 --output path.jsonl
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from data_pipeline.mimic_episode.source_catalog import SOURCE_BY_KEY
+from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY
 
 from .catalog import ARCHIVE_SOURCES, REFERENCE_SOURCE_KEYS
 from .schema import TOP_LEVEL_FIELDS

@@ -99,8 +99,8 @@ MIMIC 原始表 → mimic_raw_archive → Admission 原始 JSONL
 ## 依赖与限制
 
 - 运行依赖 Python 3.12、DuckDB 和项目中锁定的 MIMIC 表头定义。
-- `catalog.py`、`cohort.py`、`extractor.py` 和 `field_dictionary.py` 当前复用 `data_pipeline.mimic_episode.source_catalog`。这只是共享源表目录依赖，不需要执行 Episode 管道。
-- 当前模块还不是可单独复制包；若未来删除 `mimic_episode`，必须先把共享 `source_catalog` 迁入独立公共模块。
+- `catalog.py`、`cohort.py`、`extractor.py` 和 `field_dictionary.py` 统一读取 `data_pipeline.mimic_source_catalog`。
+- 共享源表契约位于活动 `data_pipeline` 根目录，主流程不依赖 `archived/` 中的 Episode 代码。
 
 ## 验证
 

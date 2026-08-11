@@ -47,4 +47,4 @@
 
 ## 共享实现
 
-规则和实现的唯一来源是 `data_pipeline.clean_clinical_archive.decoder`。统一清洗入口和 `data_pipeline.mimic_dictionary.decode_archive` 都调用这一内核，因此修正规则时不需要维护两份逻辑。
+规则和实现的唯一来源是 `data_pipeline.clean_clinical_archive.decoder`。统一清洗入口和 `data_pipeline.tools.mimic_dictionary.decode_archive` 都调用这一内核，因此修正规则时不需要维护两份逻辑。
