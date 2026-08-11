@@ -5,8 +5,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from poe_timeline import parse_admission, run
-from poe_timeline.parser import PoeTimelineError
+from data_pipeline.clean_clinical_archive.poe import (
+    PoeTimelineError,
+    parse_admission,
+    run,
+)
 
 
 def order(

@@ -6,7 +6,7 @@
 - admission：100
 - 原始 POE / 输出事件：12,773 / 12,773
 - 解析方式：规则与显式键连接，不调用 LLM
-- 官方语义依据：[MIMIC-IV v3.x POE 官方语义与时间线解析边界](../../data_cleaning/clean_clinical_archive/docs/mimic-poe-official-evidence.md)
+- 官方语义依据：[MIMIC-IV v3.x POE 官方语义与时间线解析边界](../../data_pipeline/clean_clinical_archive/docs/mimic-poe-official-evidence.md)
 - 完整机器指标：[mimic-poe-timeline-sample-metrics.json](mimic-poe-timeline-sample-metrics.json)
 
 ## 样本结论

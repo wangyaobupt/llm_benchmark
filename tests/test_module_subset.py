@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mimic_raw_archive.module_subset import (
+from data_pipeline.mimic_raw_archive.module_subset import (
     ModuleSubsetError,
     classify_record,
     extract_subset,

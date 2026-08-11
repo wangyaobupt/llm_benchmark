@@ -1,13 +1,13 @@
 # 当前研究进度与下一步
 
-> 核对日期：2026-08-09
-> 当前主线：MIMIC episode Parquet → 37 字段 visit JSONL → 清洗 → 标准化 → 五类 MCQ → LLM 评测
+> 核对日期：2026-08-10
+> 当前主线：MIMIC 原始表 → `mimic_admission_raw` 1.0.0 → 清洗 sidecar → 标准化 sidecar → 动态读取规则 → 五类 MCQ → LLM 评测
 
 ## 结论
 
-项目已经完成数据底座聚合、visit 级抽取和全量 EDA，但尚未产出题库，也尚未开展 LLM 评测。当前不是“继续扩展数据”的阶段，而是要把已经生成的 37 字段 JSONL 转化为可审计、可复现的评测样本。
+legacy visit JSONL 和派生 visit archive 已被新的原始住院归档方案取代。当前已冻结32张住院内源表、7张公共字典和2张排除表的字段与连接规则；10,000次一般住院验证和108,833次冠状动脉疾病谱全量归档均已完成。疾病谱JSONL为50.392 GiB、218个分片，schema、原生父子键、chartevents排除和manifest均通过验证。
 
-下一项完整任务应是：**定义并实现 37 字段 JSONL 主线的清洗契约**。旧版 `rwd_pipeline/` 的 17 列 CSV 清洗代码只能作为 prompt、checkpoint 和失败恢复机制的参考，不能直接视为当前主线已经完成。
+全量流式EDA已经覆盖32张表、52个原始时间字段、模块覆盖率、父子孤立行、患者级分区、疾病谱构成和五维题型来源准备度。冠状动脉疾病谱固定为ICD-9 410–414 / ICD-10 I20–I25，共108,833次住院、46,062名患者；交互式报告为`docs/reports/mimic-raw-coronary-eda.html`。逐字段数据字典已经对账7个顶层字段、JSONL内32张表380个字段和7张外置公共字典25个字段，并标注源类型、空值、键角色、时间语义、后验阶段和Benchmark使用限制。
 
 在调用任何外部模型处理文本前，必须先解决数据治理冲突：当前文档一处计划把 7 个患者级出院小结字段发送给 DeepSeek，另一处明确禁止把 MIMIC 患者级内容发送到普通在线 API。未经明确的数据边界和合规决策，不应启动全量 API 清洗。
 
@@ -30,17 +30,17 @@
 | 阶段 | 当前状态 | 已核对证据 | 尚缺什么 |
 |---|---|---|---|
 | Episode 聚合 | 已完成 | `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes` 当前可见 9 个 Parquet 产物及质量报告；画像报告记录 768,125 episodes | README 写“11 张 Parquet”，与当前目录可见数量不一致，后续应按产物契约核清统计口径 |
-| Visit 抽取 | 已完成 | `G:\Projects\llm_benchmark\data\rwd_benchmark_visits.jsonl` 存在，29,391,481,925 bytes（约 27.37 GiB）；EDA 报告记录 320,267 visits、37 字段、8 个顶层分组 | 把输出路径从代码中的旧 `G:\Projects\llm_benchmark` 硬编码改为配置不是研究阻塞，但应在下次修改抽取模块时处理 |
-| 全量 EDA | 已完成 | `eda/analysis/EDA分析报告.md`、HTML 报告和 18 张图均已生成 | 进入出题前需增加面向题目可生成性的画像，例如每类题的候选量、标签分布和患者级切分统计 |
-| 主线清洗 | 未实现 | README 仅描述 7 个 DS 文本字段的目标 `_entities` 数组；仓库没有面向 37 字段 JSONL 的清洗实现 | 输入/输出契约、字段级 prompt、隐私边界、流式处理、checkpoint、抽样质检和失败语义 |
-| 主线标准化 | 未实现 | `rwd_pipeline/standardization/README.md` 明确核心模块缺失；测试无法导入 `common`、`mapping`、`pipeline` | 先基于当前 JSONL 字段重新确定标准化对象和术语体系，再实现映射、manifest 和可复现转换 |
+| Raw admission 抽取 | 冠状动脉疾病谱全量完成 | 108,833次住院、46,062名患者、50.392 GiB、218分片；32表对账、schema、原生父子键、chartevents排除均通过 | 将原始归档冻结为只读输入 |
+| Raw archive EDA | 全量完成 | `docs/reports/mimic-raw-coronary-eda.html`及metrics/Markdown；32表、52个时间字段、疾病谱、患者分区、来源准备度均已统计 | 基于EDA冻结cleaned event逐表时间语义 |
+| 主线清洗 | 流程已指定，未实现 | raw row 展开、source-specific 时间解释、质量标记和文书结构化流程已写入设计文档 | 10K profiling 后冻结 cleaned event schema |
+| 主线标准化 | 流程已指定，未实现 | 代码字典、药物、检验单位和文本实体的 sidecar 映射流程已定义 | 清洗门禁通过后实现映射表与 transform |
 | MCQ 生成 | 设计阶段 | 题型 1 有 Stage 0–10 设计、统计硬门槛和发布门禁；题型 2–5 有题型规范 | 题型 1 零实现；题型 2–5 尚缺与题型 1 同等级的标签、干扰项和审题设计 |
 | LLM 评测 | 未开始 | README 仅给出目标 | 模型范围、提示策略、患者级数据划分、指标、统计检验、错误分析和报告协议 |
 
 ## 已形成的可复用资产
 
-- 数据层代码：`mimic_episode/`、`parquet_to_jsonl/`。
-- 主线数据：320,267 条 visit 的 37 字段 JSONL；数据文件在 G 盘，不纳入 Git。
+- 当前数据层代码统一位于 `data_pipeline/`：`mimic_raw_archive/` 与 `clean_clinical_archive/` 是当前主线，`mimic_episode/` 和 `parquet_to_jsonl/` 保留为历史审计资产。
+- Legacy 数据：320,267 条 visit JSONL；数据文件在 G 盘，不纳入 Git。
 - 数据理解：字段参考、全量 EDA、疾病分布分析和数据画像报告。
 - 评测设计：五类题型规范；题型 1 的 Stage 0–10 生成、审核和 gold 发布设计。
 - 旧路线经验：17 列 CSV 的清洗实现具备字段专用 prompt、checkpoint、重试和 fail-closed 机制，可迁移机制，不能迁移“已完成”状态。
@@ -59,6 +59,8 @@
 1. `tests/test_standardization.py` 无法导入缺失的标准化模块。这直接验证了标准化尚未实现。
 2. `test_retries_invalid_response` 在创建 OpenAI 兼容客户端时读取了 SOCKS 代理配置，但环境未安装 `socksio`。这是测试隔离和依赖声明问题，不代表清洗算法断言失败。
 
+2026-08-10 新增raw archive、外部selection、EDA与看板相关定向回归，8项全部通过。全仓库的上述2个legacy错误未在本任务中修改。
+
 README 推荐的 `python -m pytest` 当前不能直接执行，因为项目环境没有安装 `pytest`。项目使用的测试均基于 `unittest`，因此现阶段应以上述 `unittest discover` 命令作为可执行验证入口，或在后续明确补齐开发依赖后再统一为 pytest。
 
 ## 文档与仓库事实的差异
@@ -74,23 +76,21 @@ README 推荐的 `python -m pytest` 当前不能直接执行，因为项目环�
 
 ## 下一步执行顺序
 
-### P0：冻结主线清洗契约与数据治理边界
+### P0：运行10,000例 raw archive（已完成）
 
-先写清 37 字段 JSONL 中哪 7 个字段进入清洗、输出 schema、空值和失败语义、患者原文是否允许离开本机，以及使用本地模型、合规端点或纯规则处理的选择。原因是接口与治理边界不冻结，后续代码和大规模 API 成本都可能作废；对用户的影响是避免数据合规风险和重复跑 27.37 GiB 数据。
+使用 `data_pipeline.mimic_raw_archive` 的分片 staging 和 manifest 续跑生成10,000次住院。验收32张住院内源表的字段、父子连接、逐表行数、体积、分片 SHA-256 和中断续跑。`chartevents`、`omr` 或任何派生字段进入输出均视为失败。
 
-验收标准：契约有字段级输入输出示例；明确禁止字段；100 条脱敏样本可在不修改原文的前提下生成 `_entities`；单条失败不会污染正式输出；全过程可断点续跑。
+### P0.5：冠状动脉疾病谱全量原始归档（已完成）
 
-### P1：实现并验证 JSONL 流式清洗
+已按外部selection完成108,833次相关住院的原始归档，最终JSONL为50.392 GiB、218个分片。全量EDA与交互式HTML均已生成，后续不再以10K估算代替全量事实。
 
-复用旧路线已经验证过的 checkpoint、重试、响应校验和原子替换思想，但为嵌套 JSONL 重写输入输出层。先跑 100 条代表性样本并人工审查实体边界、否定、时态和遗漏，再决定是否扩大运行。
+### P1：冻结并实现 cleaned event schema
 
-对用户的影响：把当前“有大数据文件”推进到“有可用于规则挖掘的可靠临床特征”，同时避免直接投入全量调用成本。
+将 raw source row 展开为可追溯 cleaned sidecar，逐表定义数字/时间解释、质量失败语义和 post-hoc 属性。先在100例 development 患者上人工审查，再扩至1,000例。原始 JSONL 永不修改。
 
-### P2：按题型需求实现最小标准化集合
+### P2：实现标准化 sidecar
 
-不先做包罗万象的医学术语平台。以题型 1 的最小闭环为边界，优先标准化 age band、主诉/症状和 investigation concept；用冻结映射表与 manifest 保证重跑一致。之后再为诊断、治疗、转诊和随访逐类扩展。
-
-对用户的影响：更快得到第一批可检验题目，同时保留后续扩展能力。
+基于清洗通过的事件建立版本锁定映射表，依次处理代码字典、药物、检验与单位、文本实体。正式 transform 遇到映射缺项必须终止；unresolved 项进入人工 review queue。
 
 ### P3：做题型 1 的端到端小规模闭环
 
@@ -104,7 +104,7 @@ README 推荐的 `python -m pytest` 当前不能直接执行，因为项目环�
 
 ## 下一次接手入口
 
-下一次工作从 **P0：37 字段 JSONL 主线清洗契约** 开始。开始编码前应先回答两个决定性问题：
+下一次工作有两个互不替代的入口：确认后执行冠状动脉疾病谱全量原始归档，或直接基于已完成的10K EDA冻结cleaned event schema。进入文本清洗前仍需回答两个决定性问题：
 
 1. MIMIC 患者级文本允许由哪类模型或端点处理？
 2. 项目最终声称的是 MIMIC 基准，还是面向香港临床场景、后续另做外部验证的方法学？

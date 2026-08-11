@@ -9,7 +9,7 @@ from pathlib import Path
 
 import duckdb
 
-from mimic_dictionary.builder import DICTIONARIES, build_dictionaries
+from data_pipeline.mimic_dictionary.builder import DICTIONARIES, build_dictionaries
 
 
 class MimicDictionaryTest(unittest.TestCase):

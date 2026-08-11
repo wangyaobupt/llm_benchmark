@@ -13,7 +13,7 @@ mimic/
 data/
 
 # Licensed MIMIC dictionaries bundled locally with the portable cleaner
-data_cleaning/clean_clinical_archive/dictionaries/
+data_pipeline/clean_clinical_archive/dictionaries/
 
 # Python bytecode and caches
 __pycache__/

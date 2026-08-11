@@ -8,22 +8,18 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from data_cleaning.clean_clinical_archive import (
+from data_pipeline.clean_clinical_archive import (
     INPUT_SCHEMA,
     OUTPUT_SCHEMA,
     ClinicalReadableArchiveError,
     prepare_archive,
     restore_source_record,
 )
-from data_cleaning.clean_clinical_archive import decoder as shared_decoder
-from data_cleaning.clean_clinical_archive.poe import (
-    parse_admission as portable_parse_admission,
-)
-from data_cleaning.clean_clinical_archive.pipeline import (
+from data_pipeline.clean_clinical_archive import decoder as shared_decoder
+from data_pipeline.clean_clinical_archive.pipeline import (
     DEFAULT_DICTIONARY_DIRECTORY,
 )
-from mimic_dictionary import decode_archive as compatibility_decoder
-from poe_timeline import parse_admission as compatibility_parse_admission
+from data_pipeline.mimic_dictionary import decode_archive as dictionary_decoder
 
 
 class CleanClinicalArchiveTest(unittest.TestCase):
@@ -167,18 +163,14 @@ class CleanClinicalArchiveTest(unittest.TestCase):
             )
             self.assertEqual(restore_source_record(actual), original)
 
-    def test_compatibility_entry_uses_shared_decode_core(self) -> None:
+    def test_dictionary_entry_uses_shared_decode_core(self) -> None:
         self.assertIs(
-            compatibility_decoder.decode_records,
+            dictionary_decoder.decode_records,
             shared_decoder.decode_records,
         )
         self.assertIs(
-            compatibility_decoder.strip_decoded_fields,
+            dictionary_decoder.strip_decoded_fields,
             shared_decoder.strip_decoded_fields,
-        )
-        self.assertIs(
-            compatibility_parse_admission,
-            portable_parse_admission,
         )
 
     def test_default_dictionary_location_is_inside_portable_package(self) -> None:
@@ -197,9 +189,7 @@ class CleanClinicalArchiveTest(unittest.TestCase):
             report = root / "report.json"
             original = self._record()
             source.write_text(json.dumps(original) + "\n", encoding="utf-8")
-            package_parent = (
-                Path(__file__).resolve().parents[1] / "data_cleaning"
-            )
+            package_parent = Path(__file__).resolve().parents[1] / "data_pipeline"
             environment = os.environ.copy()
             environment["PYTHONPATH"] = str(package_parent)
             probe = (

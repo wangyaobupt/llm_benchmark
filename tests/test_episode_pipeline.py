@@ -9,10 +9,10 @@ from pathlib import Path
 
 import duckdb
 
-from mimic_episode.cli import create_parser
-from mimic_episode.episode_export import export_episode_json
-from mimic_episode.episode_pipeline import build_episode_outputs
-from mimic_episode.source_catalog import (
+from data_pipeline.mimic_episode.cli import create_parser
+from data_pipeline.mimic_episode.episode_export import export_episode_json
+from data_pipeline.mimic_episode.episode_pipeline import build_episode_outputs
+from data_pipeline.mimic_episode.source_catalog import (
     EpisodeDatasetPaths,
     SOURCE_BY_KEY,
     SOURCE_SPECS,
@@ -550,6 +550,7 @@ class EpisodeSourceCatalogTest(unittest.TestCase):
     def test_large_item_sources_do_not_require_global_window_sort(self) -> None:
         sql_path = (
             Path(__file__).resolve().parents[1]
+            / "data_pipeline"
             / "mimic_episode"
             / "sql"
             / "episode_aggregation"
@@ -627,6 +628,16 @@ class EpisodePipelineTest(unittest.TestCase):
         self.assertIn(("ED:200", "E:200", "emergency_department", "native_link"), rows)
         self.assertIn(("ICU:1000", "H:10", "icu", "native_link"), rows)
         self.assertIn(("TR:500", "H:10", "transfer", "native_link"), rows)
+
+    def test_preserves_ed_disposition_and_icu_metadata(self) -> None:
+        rows = self.query(
+            "care_contacts.parquet",
+            "contact_id, ed_disposition, first_careunit, last_careunit, los_days",
+            "contact_id",
+        )
+        by_contact = {row[0]: row[1:] for row in rows}
+        self.assertEqual(by_contact["ED:100"][0], "ADMITTED")
+        self.assertEqual(by_contact["ICU:1000"], (None, "MICU", "MICU", 1.0))
 
     def test_uses_native_temporal_and_unresolved_links(self) -> None:
         events = self.query(

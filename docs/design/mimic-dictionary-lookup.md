@@ -21,7 +21,7 @@
 ## 构建
 
 ```powershell
-.\.venv\Scripts\python.exe -m mimic_dictionary
+.\.venv\Scripts\python.exe -m data_pipeline.mimic_dictionary
 ```
 
 构建器要求目标目录不存在，避免静默覆盖已有解析结果。需要重建时，应先明确删除旧目录，再重新运行。
@@ -88,9 +88,9 @@ WHERE dictionary_name = 'd_labitems'
 
 ## 下游解码与 POE 清洗
 
-字典构建完成后，统一从 `data_cleaning.clean_clinical_archive` 一次完成编码解码和 POE 医嘱解析。完整命令、字段映射、组合键规则、失败条件及输出契约集中维护在 [临床可读归档清洗器](../../data_cleaning/clean_clinical_archive/README.md) 和其 [字典解码规则](../../data_cleaning/clean_clinical_archive/docs/decoding-rules.md)，本构建文档不再复制运行规则。
+字典构建完成后，统一从 `data_pipeline.clean_clinical_archive` 一次完成编码解码和 POE 医嘱解析。完整命令、字段映射、组合键规则、失败条件及输出契约集中维护在 [临床可读归档清洗器](../../data_pipeline/clean_clinical_archive/README.md) 和其 [字典解码规则](../../data_pipeline/clean_clinical_archive/docs/decoding-rules.md)，本构建文档不再复制运行规则。
 
-旧入口 `mimic_dictionary.decode_archive` 仍可用于只增加字典释义的兼容场景，但它与统一入口调用同一个共享解码内核，不维护第二套规则。
+`data_pipeline.mimic_dictionary.decode_archive` 可用于只增加字典释义的场景，但它与统一入口调用同一个共享解码内核，不维护第二套规则。
 
 ## 验收约束
 

@@ -7,7 +7,11 @@ from pathlib import Path
 
 import duckdb
 
-from mimic_dictionary.decode_archive import DecodeError, decode_file, strip_decoded_fields
+from data_pipeline.mimic_dictionary.decode_archive import (
+    DecodeError,
+    decode_file,
+    strip_decoded_fields,
+)
 
 
 class DecodeArchiveTest(unittest.TestCase):
