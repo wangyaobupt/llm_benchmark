@@ -10,8 +10,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import duckdb
-
 
 class DecodeError(ValueError):
     """Raised when a coded source row cannot be decoded without guessing."""
@@ -196,6 +194,13 @@ def load_json_dictionaries(
 
 
 def load_duckdb_dictionaries(database_path: Path) -> DictionaryIndex:
+    try:
+        import duckdb
+    except ModuleNotFoundError as exc:
+        raise DecodeError(
+            "DuckDB support is only required by the legacy dictionary-only "
+            "entry point; install duckdb before reading a DuckDB dictionary"
+        ) from exc
     if not database_path.is_file():
         raise FileNotFoundError(
             f"dictionary database does not exist: {database_path}"

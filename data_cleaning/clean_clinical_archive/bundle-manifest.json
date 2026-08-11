@@ -1,0 +1,57 @@
+{
+  "schema": {
+    "name": "clean_clinical_archive_portable_bundle",
+    "version": "1.0.0"
+  },
+  "python": {
+    "minimum": "3.12",
+    "maximum_exclusive": "3.13",
+    "runtime_dependencies": "Python standard library only"
+  },
+  "required_files": [
+    "README.md",
+    "__init__.py",
+    "__main__.py",
+    "decoder.py",
+    "pipeline.py",
+    "verify_bundle.py",
+    "poe/__init__.py",
+    "poe/parser.py",
+    "docs/decoding-rules.md",
+    "docs/poe-rules.md",
+    "docs/schema-contract.md",
+    "docs/mimic-poe-official-evidence.md"
+  ],
+  "dictionaries": {
+    "d_labitems": {
+      "file": "dictionaries/d_labitems.json",
+      "rows": 1650,
+      "bytes": 143264,
+      "sha256": "b475f43371d4f8fa6c78a17ad4892690ee3e83c6d47d59207cf5117cd9f3efc8"
+    },
+    "d_items": {
+      "file": "dictionaries/d_items.json",
+      "rows": 4095,
+      "bytes": 945036,
+      "sha256": "d697d0c068e56e1eb8ee363328b32e074860bf2bfd4441d561cf258f3d7edffd"
+    },
+    "d_icd_diagnoses": {
+      "file": "dictionaries/d_icd_diagnoses.json",
+      "rows": 112107,
+      "bytes": 14304859,
+      "sha256": "bc8278865262eb49993f9e6f6e3ea0095e4f5d63a6e2925e69ab3ee9117fc778"
+    },
+    "d_icd_procedures": {
+      "file": "dictionaries/d_icd_procedures.json",
+      "rows": 86423,
+      "bytes": 11454618,
+      "sha256": "e47d11073e0f9cb29949d44afab1a4158d881886e72beb89e27b3b1a3c114d77"
+    },
+    "d_hcpcs": {
+      "file": "dictionaries/d_hcpcs.json",
+      "rows": 89208,
+      "bytes": 9650079,
+      "sha256": "392f9f6c30bb42d04a58d8fb4a2da9342807bf114d397c82e5c083f01012ab2e"
+    }
+  }
+}

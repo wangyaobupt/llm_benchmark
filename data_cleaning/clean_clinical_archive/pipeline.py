@@ -8,10 +8,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-from poe_timeline import OUTPUT_SCHEMA as POE_OUTPUT_SCHEMA
-from poe_timeline import parse_admission
-from poe_timeline.parser import PoeTimelineError
-
 from .decoder import (
     DecodeError,
     DictionaryIndex,
@@ -20,6 +16,8 @@ from .decoder import (
     load_json_dictionaries,
     strip_decoded_fields,
 )
+from .poe import OUTPUT_SCHEMA as POE_OUTPUT_SCHEMA
+from .poe import PoeTimelineError, parse_admission
 
 
 INPUT_SCHEMA = {"name": "mimic_admission_raw", "version": "1.0.0"}
@@ -36,7 +34,7 @@ INPUT_TOP_LEVEL_FIELDS = (
     "mimic_iv_ed",
     "mimic_iv_note",
 )
-DEFAULT_DICTIONARY_DIRECTORY = Path("data/解析/json")
+DEFAULT_DICTIONARY_DIRECTORY = Path(__file__).resolve().parent / "dictionaries"
 
 
 class ClinicalReadableArchiveError(ValueError):

@@ -6,7 +6,7 @@
 
 ## 所需字典
 
-默认从 `data/解析/json/` 读取以下标准 JSON 数组：
+默认从清洗包自身的 `dictionaries/` 读取以下标准 JSON 数组：
 
 - `d_labitems.json`
 - `d_items.json`
@@ -14,7 +14,7 @@
 - `d_icd_procedures.json`
 - `d_hcpcs.json`
 
-字典 JSON 由 `mimic_dictionary` 构建。每张表的键必须完整且唯一；文件缺失、根节点不是数组、行不是对象、键为空或键重复都会立即失败。
+这些字典 JSON 已作为本地授权资源纳入便携目录。每张表的键必须完整且唯一；文件缺失、根节点不是数组、行不是对象、键为空或键重复都会立即失败。`bundle-manifest.json` 固定记录文件名、行数、大小和 SHA-256，可通过 `python -m clean_clinical_archive.verify_bundle` 自检。
 
 ## 固定映射
 

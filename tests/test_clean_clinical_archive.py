@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -13,7 +16,14 @@ from data_cleaning.clean_clinical_archive import (
     restore_source_record,
 )
 from data_cleaning.clean_clinical_archive import decoder as shared_decoder
+from data_cleaning.clean_clinical_archive.poe import (
+    parse_admission as portable_parse_admission,
+)
+from data_cleaning.clean_clinical_archive.pipeline import (
+    DEFAULT_DICTIONARY_DIRECTORY,
+)
 from mimic_dictionary import decode_archive as compatibility_decoder
+from poe_timeline import parse_admission as compatibility_parse_admission
 
 
 class CleanClinicalArchiveTest(unittest.TestCase):
@@ -166,6 +176,68 @@ class CleanClinicalArchiveTest(unittest.TestCase):
             compatibility_decoder.strip_decoded_fields,
             shared_decoder.strip_decoded_fields,
         )
+        self.assertIs(
+            compatibility_parse_admission,
+            portable_parse_admission,
+        )
+
+    def test_default_dictionary_location_is_inside_portable_package(self) -> None:
+        package_root = Path(shared_decoder.__file__).resolve().parent
+        self.assertEqual(
+            DEFAULT_DICTIONARY_DIRECTORY,
+            package_root / "dictionaries",
+        )
+
+    def test_runs_from_portable_package_without_project_imports(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            dictionaries = self._dictionary_directory(root)
+            source = root / "source.jsonl"
+            output = root / "readable.jsonl"
+            report = root / "report.json"
+            original = self._record()
+            source.write_text(json.dumps(original) + "\n", encoding="utf-8")
+            package_parent = (
+                Path(__file__).resolve().parents[1] / "data_cleaning"
+            )
+            environment = os.environ.copy()
+            environment["PYTHONPATH"] = str(package_parent)
+            probe = (
+                "import importlib.util,sys; "
+                "assert importlib.util.find_spec('poe_timeline') is None; "
+                "import clean_clinical_archive; "
+                "assert 'duckdb' not in sys.modules"
+            )
+            subprocess.run(
+                [sys.executable, "-c", probe],
+                cwd=root,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "clean_clinical_archive",
+                    str(source),
+                    "--output",
+                    str(output),
+                    "--report",
+                    str(report),
+                    "--dictionary-dir",
+                    str(dictionaries),
+                ],
+                cwd=root,
+                env=environment,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            actual = json.loads(output.read_text(encoding="utf-8"))
+            self.assertEqual(actual["schema"], OUTPUT_SCHEMA)
+            self.assertEqual(restore_source_record(actual), original)
 
     def test_rejects_wrong_input_schema_without_partial_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

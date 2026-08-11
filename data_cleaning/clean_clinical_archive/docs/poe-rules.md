@@ -2,7 +2,7 @@
 
 ## 证据边界
 
-POE 表示提供者下达或操作医嘱，不证明医嘱已经执行；MIMIC 数据整理还移除了 audit trails。因此输出称为“可观察医嘱时间线”，不称为完整 EHR 审计历史。官方证据见 [MIMIC-IV v3.x POE 官方语义与时间线解析边界](../../../docs/reference/mimic-iv-poe-official-evidence.md)。
+POE 表示提供者下达或操作医嘱，不证明医嘱已经执行；MIMIC 数据整理还移除了 audit trails。因此输出称为“可观察医嘱时间线”，不称为完整 EHR 审计历史。官方证据见同目录的 [MIMIC-IV v3.x POE 官方语义与时间线解析边界](mimic-poe-official-evidence.md)。
 
 ## 输入和连接
 
@@ -66,4 +66,4 @@ POE 表示提供者下达或操作医嘱，不证明医嘱已经执行；MIMIC �
 
 ## 实现来源
 
-底层规则实现由 `poe_timeline.parse_admission` 唯一维护；本清洗器直接调用它，不复制 POE 解析代码。后续若需判断医嘱是否执行，应另行连接 `emar/emar_detail`、检验结果、影像报告或 ICU 执行事件，不能改写 POE 本身的证据层级。
+底层规则实现由包内 `poe.parse_admission` 唯一维护。项目根目录的 `poe_timeline.parse_admission` 只是兼容转发入口，不保存第二份 POE 解析代码。后续若需判断医嘱是否执行，应另行连接 `emar/emar_detail`、检验结果、影像报告或 ICU 执行事件，不能改写 POE 本身的证据层级。
