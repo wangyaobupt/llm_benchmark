@@ -1,5 +1,17 @@
 # 临床可读归档清洗器
 
+## 当前定位
+
+这是当前推荐清洗主流程的第二步，也是把 admission 原始 JSONL 转为可直接分析资料的统一入口：
+
+```text
+mimic_admission_raw/1.0.0 JSONL
+    ↓ 字典解码 + POE 解析
+mimic_admission_clinical_readable/1.0.0 JSONL
+```
+
+它直接接收 `mimic_raw_archive` 输出，不需要运行 `mimic_episode` 或 `parquet_to_jsonl`。
+
 本目录是完整可搬移的清洗包：一次读取 admission 级 raw JSONL，同时完成官方字典解码和 POE 医嘱时间线解析，输出可直接供后续分析使用的临床可读 JSONL。运行所需的项目代码、规则文档和五份授权字典都在本目录内；清洗主流程只需要 Python 3.12 标准库。
 
 ## 运行
@@ -43,3 +55,13 @@ python -m clean_clinical_archive.verify_bundle
 - `docs/schema-contract.md`：输入、输出及可逆性契约。
 
 `data_pipeline.mimic_dictionary.decode_archive` 仍提供只做字典解码的入口，但调用本目录中的唯一解码内核。POE 实现只保存在本目录的 `poe/`，不再维护独立兼容包。五份字典受 MIMIC 数据使用协议约束，随本地文件夹使用，不进入 Git 或公开分发。
+
+本模块不调用 `rwd_pipeline.standardization.common`。该标准化包是否完整不会影响本清洗入口。
+
+## 验证
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest -v `
+  tests.test_clean_clinical_archive `
+  tests.test_poe_timeline
+```
