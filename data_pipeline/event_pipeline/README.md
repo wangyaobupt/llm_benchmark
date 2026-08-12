@@ -71,6 +71,12 @@ event_pipeline_NEW_BATCH/
 │   ├── cleaned-events-acceptance-audit.json
 │   ├── normalized-events-acceptance-audit.json
 │   └── reproducibility-report.json
+├── review/                         # 显式执行 review 后生成
+│   ├── normalization_review_summary.json
+│   ├── normalization_review_samples.parquet
+│   ├── normalization_review_decisions.parquet
+│   ├── normalization_review_decisions.csv
+│   └── normalization_review_checklist.md
 └── workflow_manifest.json
 ```
 
@@ -132,3 +138,14 @@ Cleaning audit 全量复算来源、身份、时间和逐表对账；normalizati
 ```
 
 新批次不会自动写入人工回归 fixture。只有人工确认后才允许显式执行 `regression capture`。
+
+## 生成归一化审阅包
+
+完整 event workflow 通过后，显式生成只读输入、独立输出的审阅包：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline review `
+  data\derived\event_pipeline_NEW_BATCH
+```
+
+该命令重新计算当前 cleaning/normalization Parquet 的 SHA-256，要求 workflow 和 normalization audit 均通过，再生成：全部待复核术语、每类高频映射、按 `source_table × event_kind × normalization_status` 确定性分层的事件样本。`normalization_review_decisions.csv` 供人工填写，源 Parquet 不被修改。自动门禁通过只表示可以开始人工审阅，不表示人工审阅已经完成。

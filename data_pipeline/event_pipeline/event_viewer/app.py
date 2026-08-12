@@ -169,6 +169,73 @@ _DATASETS = {
             "first_event_id",
         ),
     },
+    "normalization_review_samples": {
+        "stage": "review",
+        "filename": "normalization_review_samples.parquet",
+        "title": "归一化事件抽审样本",
+        "default_sort": (
+            "source_table",
+            "event_kind",
+            "normalization_status",
+            "event_id",
+        ),
+        "preview_columns": (
+            "sample_reasons",
+            "subject_id",
+            "hadm_id",
+            "source_table",
+            "event_kind",
+            "source_label",
+            "concept_id",
+            "normalization_status",
+            "mapping_rule",
+            "raw_row_ref",
+        ),
+        "search_columns": (
+            "event_id",
+            "source_label",
+            "source_concept_id",
+            "concept_id",
+            "preferred_name",
+            "mapping_rule",
+            "sample_reasons",
+            "raw_row_ref",
+        ),
+    },
+    "normalization_review_decisions": {
+        "stage": "review",
+        "filename": "normalization_review_decisions.parquet",
+        "title": "归一化人工决策表",
+        "default_sort": (
+            "priority_rank",
+            "review_scope",
+            "entity_type",
+            "normalized_source_label",
+        ),
+        "preview_columns": (
+            "priority_rank",
+            "review_scope",
+            "review_reasons",
+            "entity_type",
+            "source_label_example",
+            "concept_id",
+            "normalization_status",
+            "mapping_rule",
+            "event_count",
+            "review_status",
+        ),
+        "search_columns": (
+            "review_id",
+            "review_reasons",
+            "source_concept_id",
+            "source_label_example",
+            "concept_id",
+            "preferred_name",
+            "mapping_rule",
+            "first_event_id",
+            "review_comment",
+        ),
+    },
 }
 
 _FILTER_COLUMNS = (
@@ -185,6 +252,9 @@ _FILTER_COLUMNS = (
     "unit_normalization_status",
     "mapping_rule",
     "review_reason",
+    "priority_rank",
+    "review_scope",
+    "review_status",
 )
 
 _RAW_REF_RE = re.compile(
@@ -296,6 +366,8 @@ class CleaningViewerStore:
             self.cleaning_dir = requested_directory
             normalization_dir = requested_directory / "normalization"
         has_normalization = normalization_dir.is_dir()
+        review_dir = self.event_directory / "review"
+        has_review = review_dir.is_dir()
 
         self._connection = duckdb.connect(database=":memory:")
         self._lock = threading.Lock()
@@ -305,9 +377,14 @@ class CleaningViewerStore:
             stage = config.get("stage", "cleaning")
             if stage == "normalization" and not has_normalization:
                 continue
-            base_directory = (
-                normalization_dir if stage == "normalization" else self.cleaning_dir
-            )
+            if stage == "review" and not has_review:
+                continue
+            if stage == "normalization":
+                base_directory = normalization_dir
+            elif stage == "review":
+                base_directory = review_dir
+            else:
+                base_directory = self.cleaning_dir
             parquet_path = base_directory / str(config["filename"])
             if not parquet_path.is_file():
                 raise FileNotFoundError(parquet_path)

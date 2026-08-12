@@ -139,6 +139,53 @@ class CleaningViewerStoreTest(unittest.TestCase):
         self.assertEqual(str((self.validation / "sample.jsonl").resolve()), catalog["source_jsonl"])
         self.assertEqual(2, catalog["datasets"][0]["count"])
 
+    def test_catalog_includes_optional_review_package(self) -> None:
+        review = self.cleaning / "review"
+        review.mkdir()
+        pq.write_table(
+            pa.Table.from_pylist(
+                [
+                    {
+                        "review_sample_id": "sample-1",
+                        "event_id": "event-1",
+                        "sample_reasons": ["TERM_UNRESOLVED"],
+                        "raw_row_ref": "sample.jsonl#L1/mimic_iv_ed.triage[0]",
+                    }
+                ]
+            ),
+            review / "normalization_review_samples.parquet",
+        )
+        pq.write_table(
+            pa.Table.from_pylist(
+                [
+                    {
+                        "review_id": "mapping-1",
+                        "priority_rank": 1,
+                        "review_scope": "required",
+                        "review_status": "pending",
+                    }
+                ]
+            ),
+            review / "normalization_review_decisions.parquet",
+        )
+        self.store.close()
+        self.store = CleaningViewerStore(self.cleaning)
+        catalog = self.store.catalog()
+        self.assertEqual(6, len(catalog["datasets"]))
+        self.assertEqual(
+            {
+                "normalization_review_samples",
+                "normalization_review_decisions",
+            },
+            {item["name"] for item in catalog["datasets"]}
+            - {
+                "cleaned_events",
+                "cleaning_rejected",
+                "term_inventory",
+                "encounter_manifest",
+            },
+        )
+
     def test_query_filters_searches_and_pages_without_loading_all_rows(self) -> None:
         filtered = self.store.query(
             "cleaned_events", filters={"subject_id": "10"}, page_size=20

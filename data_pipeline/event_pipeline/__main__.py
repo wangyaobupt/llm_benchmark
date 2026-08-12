@@ -9,6 +9,7 @@ from pathlib import Path
 from .event_cleaning.pipeline import run_cleaning
 from .event_normalization.pipeline import run_normalization
 from .event_quality import regression
+from .event_quality.review_normalization import generate_review_package
 from .event_viewer import app as viewer
 from .workflow import run_workflow
 
@@ -50,6 +51,14 @@ def _parser() -> argparse.ArgumentParser:
     view.add_argument("--port", type=int, default=8765)
     view.add_argument("--no-browser", action="store_true")
     view.add_argument("--check", action="store_true")
+
+    review = subparsers.add_parser(
+        "review", help="Generate automated checks and a human normalization review package"
+    )
+    review.add_argument("event_directory", type=Path)
+    review.add_argument("--output-dir", type=Path)
+    review.add_argument("--samples-per-stratum", type=int, default=3)
+    review.add_argument("--top-mappings-per-entity", type=int, default=10)
 
     regression_parser = subparsers.add_parser(
         "regression", help="Capture or verify privacy-safe cleaning baselines"
@@ -98,6 +107,15 @@ def main() -> None:
         if args.check:
             viewer_args.append("--check")
         viewer.main(viewer_args)
+        return
+    if args.command == "review":
+        result = generate_review_package(
+            args.event_directory,
+            args.output_dir,
+            samples_per_stratum=args.samples_per_stratum,
+            top_mappings_per_entity=args.top_mappings_per_entity,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
         return
     raise SystemExit(regression.main(args.regression_args))
 
