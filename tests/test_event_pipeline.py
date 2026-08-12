@@ -331,6 +331,56 @@ class EventPipelineTest(unittest.TestCase):
                     table["accepted_source_rows"] + table["rejected_source_rows"],
                 )
 
+    def test_available_before_event_time_rejects_source_rows_without_stopping_run(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record = self._record()
+            record["mimic_iv_hosp"]["labevents"][0]["storetime"] = (  # type: ignore[index]
+                "2150-01-01 08:00:00"
+            )
+            record["mimic_iv_note"]["radiology"][0]["storetime"] = (  # type: ignore[index]
+                "2150-01-01 11:55:00"
+            )
+            source = self._write_source(root, record)
+
+            manifest = run_cleaning(source, root / "cleaning")
+            cleaned = pq.read_table(
+                root / "cleaning" / "cleaned_events.parquet"
+            ).to_pylist()
+            rejected = pq.read_table(
+                root / "cleaning" / "cleaning_rejected.parquet"
+            ).to_pylist()
+
+            self.assertEqual(manifest["counts"]["rejected"], 2)
+            self.assertEqual(
+                {row["source_table"] for row in rejected},
+                {"hosp.labevents", "note.radiology"},
+            )
+            self.assertEqual(
+                {row["reason_code"] for row in rejected},
+                {"AVAILABLE_BEFORE_EVENT_TIME"},
+            )
+            rejected_source_ids = {row["source_row_id"] for row in rejected}
+            self.assertTrue(
+                rejected_source_ids.isdisjoint(
+                    {row["source_row_id"] for row in cleaned}
+                )
+            )
+            reconciliation = json.loads(
+                (root / "cleaning" / "source_reconciliation.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                reconciliation["source_rows"],
+                reconciliation["classified_source_rows"],
+            )
+            for table in reconciliation["tables"]:
+                self.assertEqual(
+                    table["input_rows"],
+                    table["accepted_source_rows"] + table["rejected_source_rows"],
+                )
+
     def test_stable_ids_do_not_depend_on_output_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

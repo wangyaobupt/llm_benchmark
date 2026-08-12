@@ -91,6 +91,7 @@
 - eMAR：`event_time=charttime`，`available_time=recorded_time=storetime`；允许提前记录的未给药/计划事件并加质量标志。
 - ICU procedure：`event_time=starttime`，`recorded_time=storetime`，`available_time=max(endtime, storetime)`，防止“已执行”在完成前暴露。
 - `procedures_icd` 和出院小结均标记 `post_hoc`；行政出院时间、死亡和出院去向才属于 `administrative_end`。
+- 对结果类事件，如果源数据出现 `available_time < event_time`，不改写或清空原始时间；整条源行进入 `cleaning_rejected.parquet`，reason code 固定为 `AVAILABLE_BEFORE_EVENT_TIME`。其他 schema、来源追踪和身份约束错误仍会原子终止运行。
 
 ## 事件和来源身份
 

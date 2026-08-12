@@ -35,6 +35,7 @@ from .validation import (
 
 OUTPUT_SCHEMA = {"name": "mimic_cleaned_events", "version": "1.1.0"}
 PARQUET_ROW_GROUP_SIZE = 5000
+REJECTABLE_EVENT_VALIDATION_ERRORS = frozenset({"AVAILABLE_BEFORE_EVENT_TIME"})
 
 
 class BufferedParquetWriter:
@@ -263,12 +264,18 @@ def run_cleaning(
                                 raise KnownTransformationError(
                                     "NO_EVENT_GENERATED", "accepted source row produced no event"
                                 )
+                            generated_event_ids: set[str] = set()
                             for event in generated:
                                 validator.validate(event, known_source_ids)
-                                if event["event_id"] in global_event_ids:
+                                if (
+                                    event["event_id"] in global_event_ids
+                                    or event["event_id"] in generated_event_ids
+                                ):
                                     raise EventPipelineError(
                                         "DUPLICATE_EVENT_ID", event["event_id"]
                                     )
+                                generated_event_ids.add(event["event_id"])
+                            for event in generated:
                                 global_event_ids.add(event["event_id"])
                                 event_writer.write(event)
                                 admission_event_count += 1
@@ -298,7 +305,13 @@ def run_cleaning(
                                     )
                                     inventory["event_count"] += 1
                             metrics["accepted_source_rows"] += 1
-                        except KnownTransformationError as error:
+                        except (KnownTransformationError, EventPipelineError) as error:
+                            if (
+                                isinstance(error, EventPipelineError)
+                                and error.reason_code
+                                not in REJECTABLE_EVENT_VALIDATION_ERRORS
+                            ):
+                                raise
                             rejected_writer.write(
                                 {
                                     "schema_version": "1.1.0",
