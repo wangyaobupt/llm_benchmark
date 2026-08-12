@@ -8,7 +8,7 @@ import unittest
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline.regression import (
+from data_pipeline.event_pipeline.event_quality.regression import (
     _fingerprint,
     _select_cases,
     _verify_cases,

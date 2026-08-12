@@ -1,4 +1,4 @@
-"""Deterministic second-stage terminology and unit normalization."""
+"""Deterministic second-stage terminology and unit normalization pipeline."""
 
 from __future__ import annotations
 
@@ -11,18 +11,15 @@ from typing import Any
 
 import pyarrow.parquet as pq
 
-from .pipeline import (
+from .io import (
     PARQUET_ROW_GROUP_SIZE,
     BufferedParquetWriter,
-    _json_dump,
-    _safe_remove_temporary,
-    _sha256,
+    remove_temporary,
+    sha256_file,
+    write_json,
 )
-from .schemas import (
-    EVENT_ARROW_SCHEMA,
-    MAPPING_ARROW_SCHEMA,
-    REVIEW_ARROW_SCHEMA,
-)
+from ..event_contracts.schemas import EVENT_ARROW_SCHEMA
+from .schemas import MAPPING_ARROW_SCHEMA, REVIEW_ARROW_SCHEMA
 from .terminology import (
     MAPPING_VERSION,
     normalize_event,
@@ -30,7 +27,7 @@ from .terminology import (
     resolve_term,
     resolve_unit,
 )
-from .validation import EventPipelineError, EventValidator
+from ..event_cleaning.validation import EventPipelineError, EventValidator
 
 
 def _term_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
@@ -194,8 +191,8 @@ def run_normalization(
             "normalization_mappings.parquet",
             "normalization_review_queue.parquet",
         )
-        output_hashes = {name: _sha256(temporary / name) for name in output_files}
-        input_hash = _sha256(cleaned_events_path)
+        output_hashes = {name: sha256_file(temporary / name) for name in output_files}
+        input_hash = sha256_file(cleaned_events_path)
         manifest = {
             "schema": {"name": "normalization_run_manifest", "version": "1.0.0"},
             "run_id": hashlib.sha256(
@@ -205,7 +202,7 @@ def run_normalization(
                 "cleaned_events": cleaned_events_path.name,
                 "cleaned_events_sha256": input_hash,
                 "term_inventory": term_inventory_path.name,
-                "term_inventory_sha256": _sha256(term_inventory_path),
+                "term_inventory_sha256": sha256_file(term_inventory_path),
             },
             "mapping_version": MAPPING_VERSION,
             "counts": {
@@ -221,7 +218,7 @@ def run_normalization(
             "unit_normalization_status_counts": dict(sorted(unit_status_counts.items())),
             "output_sha256": output_hashes,
         }
-        _json_dump(temporary / "normalization_manifest.json", manifest)
+        write_json(temporary / "normalization_manifest.json", manifest)
         os.replace(temporary, output_directory)
         return manifest
     except Exception:
@@ -231,5 +228,5 @@ def run_normalization(
             except Exception:
                 pass
         if temporary.exists():
-            _safe_remove_temporary(temporary, output_directory.parent)
+            remove_temporary(temporary, output_directory.parent)
         raise

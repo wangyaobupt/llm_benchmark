@@ -1,4 +1,4 @@
-"""Internal data models for the clinical event pipeline."""
+"""Internal data models for structured event cleaning and eventization."""
 
 from __future__ import annotations
 

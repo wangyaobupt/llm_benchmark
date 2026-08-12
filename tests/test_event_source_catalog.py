@@ -6,9 +6,12 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from data_pipeline.event_pipeline.ids import SourceIdentityError, build_source_row_id
-from data_pipeline.event_pipeline.pipeline import run_cleaning
-from data_pipeline.event_pipeline.source_registry import (
+from data_pipeline.event_pipeline.event_cleaning.ids import (
+    SourceIdentityError,
+    build_source_row_id,
+)
+from data_pipeline.event_pipeline.event_cleaning.pipeline import run_cleaning
+from data_pipeline.event_pipeline.event_cleaning.source_catalog import (
     EVENT_SOURCE_REGISTRY,
     REGISTERED_SOURCE_PATHS,
     SOURCE_BY_PATH,
@@ -19,8 +22,8 @@ from data_pipeline.event_pipeline.source_registry import (
     UPSTREAM_EXCLUDED_SOURCES,
     validate_source_catalog,
 )
-from data_pipeline.event_pipeline.transformers import TRANSFORMERS
-from data_pipeline.event_pipeline.validation import (
+from data_pipeline.event_pipeline.event_cleaning.transformers import TRANSFORMERS
+from data_pipeline.event_pipeline.event_cleaning.validation import (
     EventPipelineError,
     validate_admission_shell,
 )

@@ -13,7 +13,7 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline.schemas import (
+from ..event_contracts.schemas import (
     EVENT_ARROW_SCHEMA,
     MAPPING_ARROW_SCHEMA,
     REVIEW_ARROW_SCHEMA,

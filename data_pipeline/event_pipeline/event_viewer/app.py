@@ -97,6 +97,78 @@ _DATASETS = {
         ),
         "search_columns": ("subject_id", "hadm_id"),
     },
+    "normalized_events": {
+        "stage": "normalization",
+        "filename": "normalized_events.parquet",
+        "title": "归一化事件",
+        "default_sort": ("jsonl_line_number", "source_array_index", "event_id"),
+        "preview_columns": (
+            "jsonl_line_number",
+            "subject_id",
+            "hadm_id",
+            "event_kind",
+            "source_table",
+            "source_label",
+            "concept_id",
+            "preferred_name",
+            "normalization_status",
+            "normalized_unit",
+        ),
+        "search_columns": (
+            "event_id",
+            "source_label",
+            "source_concept_id",
+            "concept_id",
+            "preferred_name",
+            "raw_row_ref",
+        ),
+    },
+    "normalization_mappings": {
+        "stage": "normalization",
+        "filename": "normalization_mappings.parquet",
+        "title": "归一化映射",
+        "default_sort": ("entity_type", "normalized_source_label", "source_unit"),
+        "preview_columns": (
+            "entity_type",
+            "source_concept_id",
+            "source_label_example",
+            "concept_id",
+            "preferred_name",
+            "normalization_status",
+            "source_unit",
+            "normalized_unit",
+            "mapping_rule",
+            "event_count",
+        ),
+        "search_columns": (
+            "source_concept_id",
+            "source_label_example",
+            "concept_id",
+            "preferred_name",
+            "mapping_rule",
+        ),
+    },
+    "normalization_review_queue": {
+        "stage": "normalization",
+        "filename": "normalization_review_queue.parquet",
+        "title": "归一化审核队列",
+        "default_sort": ("review_reason", "entity_type", "normalized_source_label"),
+        "preview_columns": (
+            "review_reason",
+            "entity_type",
+            "source_concept_id",
+            "source_label_example",
+            "unit",
+            "event_count",
+            "first_event_id",
+        ),
+        "search_columns": (
+            "review_reason",
+            "source_concept_id",
+            "source_label_example",
+            "first_event_id",
+        ),
+    },
 }
 
 _FILTER_COLUMNS = (
@@ -109,6 +181,10 @@ _FILTER_COLUMNS = (
     "reason_code",
     "time_resolution_status",
     "content_specificity",
+    "normalization_status",
+    "unit_normalization_status",
+    "mapping_rule",
+    "review_reason",
 )
 
 _RAW_REF_RE = re.compile(
@@ -208,16 +284,31 @@ class CleaningViewerStore:
     """Small query interface over immutable Parquet and manifest files."""
 
     def __init__(self, cleaning_dir: Path, source_jsonl: Path | None = None):
-        self.cleaning_dir = cleaning_dir.resolve()
-        if not self.cleaning_dir.is_dir():
-            raise NotADirectoryError(self.cleaning_dir)
+        requested_directory = cleaning_dir.resolve()
+        if not requested_directory.is_dir():
+            raise NotADirectoryError(requested_directory)
+        if (requested_directory / "cleaning").is_dir():
+            self.event_directory = requested_directory
+            self.cleaning_dir = requested_directory / "cleaning"
+            normalization_dir = requested_directory / "normalization"
+        else:
+            self.event_directory = requested_directory
+            self.cleaning_dir = requested_directory
+            normalization_dir = requested_directory / "normalization"
+        has_normalization = normalization_dir.is_dir()
 
         self._connection = duckdb.connect(database=":memory:")
         self._lock = threading.Lock()
         self._columns: dict[str, tuple[str, ...]] = {}
         self._counts: dict[str, int] = {}
         for dataset, config in _DATASETS.items():
-            parquet_path = self.cleaning_dir / str(config["filename"])
+            stage = config.get("stage", "cleaning")
+            if stage == "normalization" and not has_normalization:
+                continue
+            base_directory = (
+                normalization_dir if stage == "normalization" else self.cleaning_dir
+            )
+            parquet_path = base_directory / str(config["filename"])
             if not parquet_path.is_file():
                 raise FileNotFoundError(parquet_path)
             self._connection.execute(
@@ -263,7 +354,8 @@ class CleaningViewerStore:
 
     def catalog(self) -> dict[str, Any]:
         datasets = []
-        for name, config in _DATASETS.items():
+        for name in self._columns:
+            config = _DATASETS[name]
             columns = self._columns[name]
             datasets.append(
                 {
@@ -279,6 +371,7 @@ class CleaningViewerStore:
             )
         return {
             "cleaning_dir": str(self.cleaning_dir),
+            "event_directory": str(self.event_directory),
             "read_only": True,
             "source_jsonl": (
                 str(self.source_reader.source_path) if self.source_reader else None
@@ -378,7 +471,7 @@ class CleaningViewerStore:
         return self.source_reader.resolve(raw_row_ref)
 
     def _validate_dataset(self, dataset: str) -> None:
-        if dataset not in _DATASETS:
+        if dataset not in self._columns:
             raise ValueError(f"未知数据集 {dataset}")
 
 
@@ -492,8 +585,8 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
-    args = _parser().parse_args()
+def main(argv: list[str] | None = None) -> None:
+    args = _parser().parse_args(argv)
     if not 1 <= args.port <= 65535:
         raise ValueError("端口必须在 1 到 65535 之间")
     store = CleaningViewerStore(args.cleaning_dir, args.source_jsonl)

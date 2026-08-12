@@ -19,14 +19,14 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline.ids import build_source_row_id, canonical_json
-from data_pipeline.event_pipeline.pipeline import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA
-from data_pipeline.event_pipeline.schemas import (
+from ..event_cleaning.ids import build_source_row_id, canonical_json
+from ..event_cleaning.pipeline import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA
+from ..event_contracts.schemas import (
     EVENT_ARROW_SCHEMA,
     QUALITY_FLAG_CODES,
     REJECTED_ARROW_SCHEMA,
 )
-from data_pipeline.event_pipeline.source_registry import (
+from ..event_cleaning.source_catalog import (
     EVENT_SOURCE_REGISTRY,
     SOURCE_BY_PATH,
     SOURCE_CATALOG,

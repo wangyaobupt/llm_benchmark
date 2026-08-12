@@ -18,7 +18,7 @@ from typing import Any, Iterable
 
 import pyarrow.parquet as pq
 
-from .pipeline import run_cleaning
+from ..event_cleaning.pipeline import run_cleaning
 
 
 FIXTURE_SCHEMA = {"name": "event_cleaning_regression", "version": "1.1.0"}
@@ -530,7 +530,7 @@ def verify_fixture(
 
 
 def _repository_root() -> Path:
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[3]
 
 
 def _selected_definitions(batch_ids: list[str]) -> tuple[BatchDefinition, ...]:
@@ -548,7 +548,7 @@ def _selected_definitions(batch_ids: list[str]) -> tuple[BatchDefinition, ...]:
     return definitions
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     capture = subparsers.add_parser("capture", help="Capture accepted local artifacts")
@@ -558,7 +558,7 @@ def main() -> int:
     verify.add_argument("--fixture", type=Path, default=DEFAULT_FIXTURE)
     verify.add_argument("--batch", action="append", default=[])
     verify.add_argument("--rerun", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     repository = _repository_root()
     fixture_path = args.fixture

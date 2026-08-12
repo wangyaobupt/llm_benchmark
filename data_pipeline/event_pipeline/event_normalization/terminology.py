@@ -1,4 +1,4 @@
-"""Frozen deterministic normalization, separate from source transformers."""
+"""Frozen terminology and unit rules for deterministic normalization."""
 
 from __future__ import annotations
 
@@ -15,15 +15,6 @@ REVIEWED_TEXT_MAPPINGS = {
         "General radiography",
         "reviewed-local-order-subtype",
     ),
-}
-
-VITAL_CONCEPTS = {
-    "heart_rate": ("vital:heart_rate", "Heart rate", "/min"),
-    "blood_pressure": ("vital:blood_pressure", "Blood pressure", "mmHg"),
-    "temperature": ("vital:temperature", "Temperature", "°F"),
-    "respiratory_rate": ("vital:respiratory_rate", "Respiratory rate", "/min"),
-    "oxygen_saturation": ("vital:oxygen_saturation", "Oxygen saturation", "%"),
-    "pain_score": ("vital:pain_score", "Pain score", None),
 }
 
 UNIT_ALIASES = {

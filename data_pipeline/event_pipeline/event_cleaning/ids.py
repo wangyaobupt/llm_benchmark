@@ -1,4 +1,4 @@
-"""Stable identifiers derived from native MIMIC keys."""
+"""Stable event-cleaning identifiers derived from native MIMIC keys."""
 
 from __future__ import annotations
 

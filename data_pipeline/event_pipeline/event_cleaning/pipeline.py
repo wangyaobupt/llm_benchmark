@@ -1,4 +1,4 @@
-"""Streaming admission JSONL to validated one-event-per-row Parquet."""
+"""Stream admission JSONL into validated one-event-per-row cleaning outputs."""
 
 from __future__ import annotations
 
@@ -16,19 +16,19 @@ import pyarrow.parquet as pq
 
 from .ids import SourceIdentityError, build_source_row_id, canonical_json
 from .models import AdmissionContext, SourceRow, SourceSpec
-from .schemas import (
+from ..event_contracts.schemas import (
     ENCOUNTER_ARROW_SCHEMA,
     EVENT_ARROW_SCHEMA,
     REJECTED_ARROW_SCHEMA,
     TERM_INVENTORY_ARROW_SCHEMA,
 )
-from .source_registry import (
+from .source_catalog import (
     EVENT_SOURCE_REGISTRY,
     SOURCE_CATALOG,
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
 )
-from .terminology import normalized_text
+from .source_concepts import normalized_text
 from .transformers import KnownTransformationError, TRANSFORMERS
 from .validation import (
     EventPipelineError,

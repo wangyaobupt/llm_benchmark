@@ -11,21 +11,31 @@ import pyarrow.parquet as pq
 
 from data_pipeline.event_pipeline import (
     CLEANING_LOGIC_VERSION,
+    EventWorkflowError,
     run_cleaning,
     run_normalization,
+    run_workflow,
 )
-from data_pipeline.event_pipeline.schemas import (
+from data_pipeline.event_pipeline.event_contracts.schemas import (
     EVENT_ARROW_SCHEMA,
     EVENT_JSON_SCHEMA_PATH,
     QUALITY_FLAG_CODES,
 )
-from data_pipeline.event_pipeline.source_registry import (
+from data_pipeline.event_pipeline.event_cleaning.source_catalog import (
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
 )
-from data_pipeline.event_pipeline.validation import EventPipelineError, EventValidator
-from eda.analysis.audit_cleaned_events_acceptance import audit as audit_cleaned
-from eda.analysis.audit_normalized_events_acceptance import audit as audit_normalized
+from data_pipeline.event_pipeline.event_cleaning.validation import (
+    EventPipelineError,
+    EventValidator,
+)
+from data_pipeline.event_pipeline.event_quality.audit_cleaning import (
+    audit as audit_cleaned,
+)
+from data_pipeline.event_pipeline.event_quality.audit_normalization import (
+    audit as audit_normalized,
+)
+from data_pipeline.event_pipeline.event_viewer.app import CleaningViewerStore
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -272,6 +282,116 @@ class EventPipelineTest(unittest.TestCase):
         path = root / "source.jsonl"
         path.write_text(json.dumps(record) + "\n", encoding="utf-8")
         return path
+
+    def test_single_workflow_runs_all_gates_and_publishes_atomically(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            enriched = self._record()
+            source = self._write_source(root, enriched)
+            raw = deepcopy(enriched)
+
+            def without_enrichment(value):
+                if isinstance(value, dict):
+                    return {
+                        key: without_enrichment(item)
+                        for key, item in value.items()
+                        if not key.endswith("_decoded") and key != "poe_timeline"
+                    }
+                if isinstance(value, list):
+                    return [without_enrichment(item) for item in value]
+                return value
+
+            raw_path = root / "raw.jsonl"
+            raw_path.write_text(
+                json.dumps(without_enrichment(raw)) + "\n", encoding="utf-8"
+            )
+            output = root / "workflow-output"
+            manifest = run_workflow(
+                source,
+                raw_path,
+                output,
+                batch_size=3,
+                replay_batch_size=2,
+            )
+            self.assertEqual(
+                manifest["acceptance"],
+                {
+                    "cleaning": True,
+                    "normalization": True,
+                    "reproducible": True,
+                    "can_start_text_ner": True,
+                },
+            )
+            self.assertTrue((output / "cleaning" / "cleaned_events.parquet").is_file())
+            self.assertTrue(
+                (output / "normalization" / "normalized_events.parquet").is_file()
+            )
+            self.assertTrue(
+                (output / "quality" / "reproducibility-report.json").is_file()
+            )
+            saved = json.loads(
+                (output / "workflow_manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(saved, manifest)
+            audit_result = json.loads(
+                (output / "quality" / "normalized-events-acceptance-audit.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                audit_result["inputs"]["normalized_events"],
+                "normalization/normalized_events.parquet",
+            )
+            store = CleaningViewerStore(output, source)
+            try:
+                self.assertEqual(len(store.catalog()["datasets"]), 7)
+            finally:
+                store.close()
+            second_output = root / "workflow-output-second-location"
+            second_manifest = run_workflow(
+                source,
+                raw_path,
+                second_output,
+                batch_size=3,
+                replay_batch_size=2,
+            )
+            self.assertEqual(second_manifest, manifest)
+
+    def test_single_workflow_does_not_publish_after_cleaning_audit_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            enriched = self._record()
+            source = self._write_source(root, enriched)
+            raw = deepcopy(enriched)
+            raw["subject_id"] = "different-subject"
+            raw["mimic_iv_hosp"].pop("poe_timeline")
+            for module in (
+                "mimic_iv_hosp",
+                "mimic_iv_icu",
+                "mimic_iv_ed",
+                "mimic_iv_note",
+            ):
+                for rows in raw[module].values():
+                    if not isinstance(rows, list):
+                        continue
+                    for row in rows:
+                        if isinstance(row, dict):
+                            for key in list(row):
+                                if key.endswith("_decoded"):
+                                    del row[key]
+            raw_path = root / "bad-raw.jsonl"
+            raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            output = root / "must-not-exist"
+            with self.assertRaises(EventWorkflowError):
+                run_workflow(
+                    source,
+                    raw_path,
+                    output,
+                    batch_size=3,
+                    replay_batch_size=2,
+                )
+            self.assertFalse(output.exists())
+            self.assertFalse(any(root.glob(".must-not-exist.tmp-*")))
 
     def test_two_stage_pipeline_is_traceable_and_category_order_stays_unresolved(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

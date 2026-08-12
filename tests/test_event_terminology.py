@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from data_pipeline.event_pipeline.terminology import (
+from data_pipeline.event_pipeline.event_normalization.terminology import (
     MAPPING_VERSION,
     resolve_term,
     resolve_unit,

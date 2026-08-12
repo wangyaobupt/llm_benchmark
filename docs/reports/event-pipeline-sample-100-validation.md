@@ -140,7 +140,7 @@ unit_normalization_status
 ## 验证命令
 
 ```powershell
-.\.venv\Scripts\python.exe -m eda.analysis.audit_normalized_events_acceptance `
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline.event_quality.audit_normalization `
   --cleaned data\derived\event_pipeline_sample_100\cleaning\cleaned_events.parquet `
   --term-inventory data\derived\event_pipeline_sample_100\cleaning\term_inventory.parquet `
   --normalized data\derived\event_pipeline_sample_100\normalization\normalized_events.parquet `

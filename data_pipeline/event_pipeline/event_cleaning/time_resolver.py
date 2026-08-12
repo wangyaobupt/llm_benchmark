@@ -1,4 +1,4 @@
-"""Source-specific time semantics without guessed fallbacks."""
+"""Source-specific cleaning-time semantics without guessed fallbacks."""
 
 from __future__ import annotations
 

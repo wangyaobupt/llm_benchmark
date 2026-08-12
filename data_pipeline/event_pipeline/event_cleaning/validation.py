@@ -1,4 +1,4 @@
-"""Structural, semantic, provenance, and POE cross-check gates."""
+"""Structural, semantic, provenance, and POE cross-check gates for cleaning."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from .schemas import EVENT_JSON_SCHEMA_PATH
-from .source_registry import (
+from ..event_contracts.schemas import EVENT_JSON_SCHEMA_PATH
+from .source_catalog import (
     REGISTERED_SOURCE_PATHS,
     REQUIRED_SOURCE_PATHS,
     SOURCE_BY_PATH,

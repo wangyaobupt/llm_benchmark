@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline.viewer import (
+from data_pipeline.event_pipeline.event_viewer.app import (
     CleaningViewerStore,
     _make_handler,
 )

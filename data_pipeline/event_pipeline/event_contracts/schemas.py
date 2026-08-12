@@ -1,4 +1,4 @@
-"""JSON Schema locations and stable Arrow output schemas."""
+"""Shared JSON and Arrow contracts for every event-processing stage."""
 
 from __future__ import annotations
 
