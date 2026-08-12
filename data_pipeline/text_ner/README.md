@@ -36,6 +36,25 @@
   --output-markdown docs\reports\text-ner-input-manifest-acceptance.md
 ```
 
+## 本地 A/B 双标与裁决界面
+
+标注界面只监听 `127.0.0.1`，每个进程固定一个角色。A 与 B 的服务只加载各自任务和决定日志；裁决服务只有在同一标注单元的 A/B 决定均已追加后才开放详情。界面不调用模型或外部服务，任务原文和人工结果仍只保存在被 Git 忽略的本地标注包中。
+
+分别启动三个角色（端口可自行调整）：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner.annotation_app `
+  data\derived\text_ner_annotation_pilot --role annotator_a --port 8765
+
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner.annotation_app `
+  data\derived\text_ner_annotation_pilot --role annotator_b --port 8766
+
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner.annotation_app `
+  data\derived\text_ner_annotation_pilot --role adjudicator --port 8767
+```
+
+浏览器中的 exact span 会显式转换 JavaScript UTF-16 offset 到 Python Unicode code-point offset，并处理 CRLF/LF 差异；后端在写入前再次核对 surface text、关系 evidence 覆盖、输入哈希和两个 JSON Schema。每次提交生成新的 payload 文件并向角色日志追加一行；修改必须通过 `supersedes_decision_id` 引用旧决定，旧文件不会被覆盖。`blocked_pending_calibration` 状态的 evaluation 任务会返回锁定错误，不能从界面打开。
+
 对真实 pilot 做只输出聚合计数的标注范围演练：
 
 ```powershell
