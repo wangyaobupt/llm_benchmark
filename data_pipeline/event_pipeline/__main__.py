@@ -11,6 +11,7 @@ from .event_normalization.pipeline import run_normalization
 from .event_quality import regression
 from .event_quality.review_normalization import generate_review_package
 from .event_viewer import app as viewer
+from .event_viewer import review_app as review_ui
 from .workflow import run_workflow
 
 
@@ -59,6 +60,15 @@ def _parser() -> argparse.ArgumentParser:
     review.add_argument("--output-dir", type=Path)
     review.add_argument("--samples-per-stratum", type=int, default=3)
     review.add_argument("--top-mappings-per-entity", type=int, default=10)
+
+    review_view = subparsers.add_parser(
+        "review-ui", help="Open the local normalization human-review window"
+    )
+    review_view.add_argument("event_directory", type=Path)
+    review_view.add_argument("--source-jsonl", type=Path)
+    review_view.add_argument("--port", type=int, default=8766)
+    review_view.add_argument("--no-browser", action="store_true")
+    review_view.add_argument("--check", action="store_true")
 
     regression_parser = subparsers.add_parser(
         "regression", help="Capture or verify privacy-safe cleaning baselines"
@@ -117,6 +127,20 @@ def main() -> None:
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return
+    if args.command == "review-ui":
+        review_directory = (
+            args.event_directory
+            if args.event_directory.name == "review"
+            else args.event_directory / "review"
+        )
+        ui_args = [str(review_directory), "--port", str(args.port)]
+        if args.source_jsonl:
+            ui_args.extend(["--source-jsonl", str(args.source_jsonl)])
+        if args.no_browser:
+            ui_args.append("--no-browser")
+        if args.check:
+            ui_args.append("--check")
+        raise SystemExit(review_ui.main(ui_args))
     raise SystemExit(regression.main(args.regression_args))
 
 

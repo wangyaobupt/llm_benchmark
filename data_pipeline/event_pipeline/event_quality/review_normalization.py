@@ -21,7 +21,7 @@ from ..event_normalization.io import remove_temporary, sha256_file, write_json
 from ..event_normalization.terminology import normalized_text
 
 
-REVIEW_CODE_VERSION = "normalization-human-review/1.0.0"
+REVIEW_CODE_VERSION = "normalization-human-review/1.1.0"
 PARQUET_ROW_GROUP_SIZE = 5000
 SANITY_ISSUE_CODES = (
     "event_mapping_missing",
@@ -67,6 +67,7 @@ DECISION_SCHEMA = pa.schema(
 SAMPLE_SCHEMA = pa.schema(
     [
         ("review_sample_id", pa.string()),
+        ("mapping_review_id", pa.string()),
         ("sample_reasons", pa.list_(pa.string())),
         ("event_id", pa.string()),
         ("subject_id", pa.string()),
@@ -121,6 +122,18 @@ def _stable_id(prefix: str, value: Any) -> str:
     return prefix + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
 
 
+def _mapping_review_id(mapping: dict[str, Any] | None) -> str | None:
+    if mapping is None:
+        return None
+    return _stable_id(
+        "mapping-",
+        {
+            "key": _term_key(mapping, unit_field="source_unit"),
+            "mapping_version": mapping.get("mapping_version"),
+        },
+    )
+
+
 def _same_value(left: Any, right: Any) -> bool:
     if isinstance(left, float) and isinstance(right, float):
         if math.isnan(left) and math.isnan(right):
@@ -133,6 +146,7 @@ def _event_projection(
 ) -> dict[str, Any]:
     return {
         "review_sample_id": _stable_id("sample-", event["event_id"]),
+        "mapping_review_id": _mapping_review_id(mapping),
         "sample_reasons": [],
         "event_id": event["event_id"],
         "subject_id": event.get("subject_id"),
@@ -403,13 +417,8 @@ def generate_review_package(
         if first_event_id and review_scope != "optional":
             for reason in reasons:
                 targeted_event_reasons[first_event_id].add(reason)
-        review_id = _stable_id(
-            "mapping-",
-            {
-                "key": key,
-                "mapping_version": mapping.get("mapping_version"),
-            },
-        )
+        review_id = _mapping_review_id(mapping)
+        assert review_id is not None
         decisions.append(
             {
                 "review_id": review_id,
@@ -625,6 +634,14 @@ def generate_review_package(
         _write_decision_csv(
             temporary / "normalization_review_decisions.csv", decisions
         )
+        review_app_source = (
+            Path(__file__).resolve().parents[1]
+            / "event_viewer"
+            / "review_app.py"
+        )
+        if not review_app_source.is_file():
+            raise FileNotFoundError(review_app_source)
+        (temporary / "review_app.py").write_bytes(review_app_source.read_bytes())
         (temporary / "normalization_review_checklist.md").write_text(
             _checklist(summary), encoding="utf-8"
         )
@@ -633,6 +650,7 @@ def generate_review_package(
             "normalization_review_decisions.parquet",
             "normalization_review_decisions.csv",
             "normalization_review_checklist.md",
+            "review_app.py",
         )
         summary["outputs_sha256"] = {
             name: sha256_file(temporary / name) for name in output_names

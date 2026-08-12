@@ -72,6 +72,7 @@ event_pipeline_NEW_BATCH/
 │   ├── normalized-events-acceptance-audit.json
 │   └── reproducibility-report.json
 ├── review/                         # 显式执行 review 后生成
+│   ├── review_app.py
 │   ├── normalization_review_summary.json
 │   ├── normalization_review_samples.parquet
 │   ├── normalization_review_decisions.parquet
@@ -149,3 +150,17 @@ Cleaning audit 全量复算来源、身份、时间和逐表对账；normalizati
 ```
 
 该命令重新计算当前 cleaning/normalization Parquet 的 SHA-256，要求 workflow 和 normalization audit 均通过，再生成：全部待复核术语、每类高频映射、按 `source_table × event_kind × normalization_status` 确定性分层的事件样本。`normalization_review_decisions.csv` 供人工填写，源 Parquet 不被修改。自动门禁通过只表示可以开始人工审阅，不表示人工审阅已经完成。
+
+启动审阅窗口有两种等价方式：
+
+```powershell
+# 从总入口启动
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline review-ui `
+  data\derived\event_pipeline_NEW_BATCH
+
+# 直接运行审阅包内的单文件
+.\.venv\Scripts\python.exe `
+  data\derived\event_pipeline_NEW_BATCH\review\review_app.py
+```
+
+窗口只监听 `127.0.0.1`。人工决定以追加式日志写入 `review/normalization_review_annotations.jsonl`，不会修改 Parquet、CSV、cleaning 或 normalization 产物。需要连接非自动发现位置的源 JSONL 时，使用 `--source-jsonl PATH`。

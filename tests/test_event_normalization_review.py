@@ -245,11 +245,16 @@ class NormalizationReviewTest(unittest.TestCase):
             self.assertTrue(
                 (review_directory / "normalization_review_summary.json").is_file()
             )
+            self.assertTrue((review_directory / "review_app.py").is_file())
             decisions = pq.read_table(
                 review_directory / "normalization_review_decisions.parquet"
             ).to_pylist()
             self.assertEqual([row["priority_rank"] for row in decisions], [1, 2])
             self.assertEqual(decisions[0]["review_status"], "pending")
+            samples = pq.read_table(
+                review_directory / "normalization_review_samples.parquet"
+            ).to_pylist()
+            self.assertTrue(all(row["mapping_review_id"] for row in samples))
 
             manifest_path = root / "normalization" / "normalization_manifest.json"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
