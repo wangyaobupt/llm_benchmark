@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "section-annotation.schema.json",
+  "title": "Section-level candidate entity and explicit-relation annotation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_row_id",
+    "document_id",
+    "section_id",
+    "section_text_sha256",
+    "mentions",
+    "relations"
+  ],
+  "properties": {
+    "schema_version": {"const": "section-annotation/1.0.0"},
+    "manifest_row_id": {"type": "string", "minLength": 1},
+    "document_id": {"type": "string", "minLength": 1},
+    "section_id": {"type": "string", "minLength": 1},
+    "section_text_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mentions": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/mention"}
+    },
+    "relations": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/relation"}
+    }
+  },
+  "$defs": {
+    "mention": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_id",
+        "surface_text",
+        "section_span_start",
+        "section_span_end",
+        "entity_type",
+        "assertion",
+        "temporality",
+        "experiencer",
+        "laterality",
+        "severity",
+        "trend",
+        "normalization_status",
+        "concept_id",
+        "preferred_name",
+        "terminology",
+        "quality_flags"
+      ],
+      "properties": {
+        "local_id": {"type": "string", "pattern": "^m[1-9][0-9]*$"},
+        "surface_text": {"type": "string", "minLength": 1},
+        "section_span_start": {"type": "integer", "minimum": 0},
+        "section_span_end": {"type": "integer", "minimum": 1},
+        "entity_type": {
+          "enum": [
+            "symptom_or_sign",
+            "clinical_problem",
+            "imaging_finding",
+            "anatomical_site",
+            "procedure_or_test",
+            "device",
+            "medication_or_substance",
+            "measurement",
+            "temporal_expression"
+          ]
+        },
+        "assertion": {"enum": ["present", "absent", "possible", "unknown"]},
+        "temporality": {"enum": ["current", "historical", "future_planned", "unclear"]},
+        "experiencer": {"enum": ["patient", "family_member", "other", "unknown"]},
+        "laterality": {"enum": ["left", "right", "bilateral", "midline", "not_stated", "not_applicable"]},
+        "severity": {"enum": ["mild", "moderate", "severe", "not_stated", "not_applicable"]},
+        "trend": {"enum": ["new", "increased", "decreased", "stable", "resolved", "not_stated", "not_applicable"]},
+        "normalization_status": {"const": "unattempted"},
+        "concept_id": {"type": "null"},
+        "preferred_name": {"type": "null"},
+        "terminology": {"type": "null"},
+        "quality_flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SPAN_AMBIGUOUS",
+              "ENTITY_TYPE_AMBIGUOUS",
+              "ASSERTION_AMBIGUOUS",
+              "TEMPORALITY_AMBIGUOUS",
+              "EXPERIENCER_AMBIGUOUS",
+              "RELATION_AMBIGUOUS",
+              "ABBREVIATION_UNRESOLVED",
+              "COREFERENCE_UNRESOLVED"
+            ]
+          }
+        }
+      }
+    },
+    "relation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "local_id",
+        "source_mention_id",
+        "target_mention_id",
+        "relation_type",
+        "evidence_text",
+        "section_evidence_start",
+        "section_evidence_end",
+        "relation_basis",
+        "quality_flags"
+      ],
+      "properties": {
+        "local_id": {"type": "string", "pattern": "^r[1-9][0-9]*$"},
+        "source_mention_id": {"type": "string", "pattern": "^m[1-9][0-9]*$"},
+        "target_mention_id": {"type": "string", "pattern": "^m[1-9][0-9]*$"},
+        "relation_type": {
+          "enum": [
+            "located_at",
+            "has_measurement",
+            "has_temporal_context",
+            "compared_with",
+            "suggestive_of",
+            "device_positioned_at",
+            "recommendation_for"
+          ]
+        },
+        "evidence_text": {"type": "string", "minLength": 1},
+        "section_evidence_start": {"type": "integer", "minimum": 0},
+        "section_evidence_end": {"type": "integer", "minimum": 1},
+        "relation_basis": {"const": "text_explicit"},
+        "quality_flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "SPAN_AMBIGUOUS",
+              "ENTITY_TYPE_AMBIGUOUS",
+              "ASSERTION_AMBIGUOUS",
+              "TEMPORALITY_AMBIGUOUS",
+              "EXPERIENCER_AMBIGUOUS",
+              "RELATION_AMBIGUOUS",
+              "ABBREVIATION_UNRESOLVED",
+              "COREFERENCE_UNRESOLVED"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

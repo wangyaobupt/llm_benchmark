@@ -345,6 +345,8 @@ term inventory
 
 **当前状态：输入清单已完成并通过独立验收。** 100例输入生成2,812行 manifest，覆盖100条ED chief complaint、443份放射报告和2,724个纳入文本单元；88份出院小结全部以 `POST_HOC_DISCHARGE` 排除。200份pilot由100条ED主诉和100份分层放射报告组成；双跑的Parquet、摘要和run manifest哈希完全一致，模型调用为0。下一门禁是冻结实体/属性Schema、人工标注规范和本地模型运行协议，当前结果不授权模型调用。
 
+**Schema与标注协议状态：已冻结首版。** `section-annotation/1.0.0`、`entity-mention/1.0.0` 和 `text-relation/1.0.0` 已形成机器合同；真实pilot的828个文本单元完成聚合范围演练，来源/span错误0、`post_hoc` 0、模型调用0。下一门禁是患者隔离的50份calibration和150份blinded evaluation分配、人工双标、裁决与一致性验收；在该门禁通过前不运行模型。
+
 ## 10. J0：Patient journey 事件流
 
 ### 10.1 journey 不是刚性直线

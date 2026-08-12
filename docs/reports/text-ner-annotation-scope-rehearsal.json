@@ -1,0 +1,165 @@
+{
+  "artifacts": {
+    "input_sha256": "e864e858c7352bedd12fc4a704e52965d77d1c9d28a7e393b841d6a21a3a928e",
+    "manifest_sha256": "7dc5106214da7becbf2a9409cf5a1766996262a3e03179b8580a731cb1eab4e1"
+  },
+  "checks": {
+    "expected_pilot_documents": 200,
+    "model_calls": 0,
+    "pilot_documents": 200,
+    "post_hoc_text_units": 0,
+    "raw_text_written": false,
+    "source_and_span_hash_failures": 0
+  },
+  "context_signals": {
+    "device": {
+      "documents": 40,
+      "text_units": 77
+    },
+    "historical_or_comparison": {
+      "documents": 59,
+      "text_units": 105
+    },
+    "laterality": {
+      "documents": 92,
+      "text_units": 214
+    },
+    "measurement": {
+      "documents": 45,
+      "text_units": 100
+    },
+    "negation": {
+      "documents": 90,
+      "text_units": 278
+    },
+    "recommendation": {
+      "documents": 15,
+      "text_units": 21
+    },
+    "temporal_expression": {
+      "documents": 57,
+      "text_units": 77
+    },
+    "uncertainty": {
+      "documents": 47,
+      "text_units": 75
+    }
+  },
+  "counts": {
+    "ed_text_units": 100,
+    "maximum_characters": 2856,
+    "median_characters": 88,
+    "minimum_characters": 3,
+    "p95_characters": 665,
+    "pilot_documents": 200,
+    "pilot_subjects": 99,
+    "pilot_text_units": 828,
+    "radiology_text_units": 728
+  },
+  "frozen_scope": {
+    "entity_types": [
+      "symptom_or_sign",
+      "clinical_problem",
+      "imaging_finding",
+      "anatomical_site",
+      "procedure_or_test",
+      "device",
+      "medication_or_substance",
+      "measurement",
+      "temporal_expression"
+    ],
+    "relation_types": [
+      "located_at",
+      "has_measurement",
+      "has_temporal_context",
+      "compared_with",
+      "suggestive_of",
+      "device_positioned_at",
+      "recommendation_for"
+    ]
+  },
+  "passed": true,
+  "schema_version": "text-ner-annotation-scope-rehearsal/1.0.0",
+  "section_counts": {
+    "abdomen": 12,
+    "adrenals": 8,
+    "anesthesia": 4,
+    "base_of_neck": 5,
+    "bile_ducts": 3,
+    "bones": 8,
+    "bones_and_chest_wall": 1,
+    "bones_and_skeletal_soft_tissues": 1,
+    "bones_and_soft_tissues": 3,
+    "breast_and_axilla": 1,
+    "chest": 5,
+    "chief_complaint": 100,
+    "clinical_information": 2,
+    "comparison": 77,
+    "comparisons": 1,
+    "contrast": 4,
+    "ct_head_without_contrast": 1,
+    "ct_of_the_thorax": 1,
+    "cta_head": 2,
+    "cta_neck": 1,
+    "cta_thorax": 1,
+    "ctdi": 1,
+    "dlp": 2,
+    "dose": 24,
+    "esophagus_and_neck": 1,
+    "exam": 2,
+    "examination": 53,
+    "findings": 78,
+    "fluoroscopy_time_and_dose": 4,
+    "full_report": 5,
+    "gallbladder": 3,
+    "gastrointestinal": 8,
+    "head_and_neck_cta": 1,
+    "heart_and_vasculature": 4,
+    "heart_and_vessels": 1,
+    "hepatobiliary": 8,
+    "history": 11,
+    "impression": 85,
+    "indication": 76,
+    "kidneys": 3,
+    "left": 1,
+    "liver": 3,
+    "lower_chest": 3,
+    "lung": 1,
+    "lung_bases": 1,
+    "lungs": 2,
+    "lungs/airways": 5,
+    "lungs_and_airways": 1,
+    "lymph_nodes": 9,
+    "mediastinum": 5,
+    "medical_history": 1,
+    "medications": 4,
+    "mra_brain": 1,
+    "mra_neck": 1,
+    "mri_brain": 1,
+    "non-contrast_head_ct": 2,
+    "notification": 7,
+    "osseous_structures": 2,
+    "other": 1,
+    "pancreas": 11,
+    "pelvis": 10,
+    "pleura": 3,
+    "pleura/pericardium": 1,
+    "pleural_spaces": 5,
+    "preamble": 3,
+    "procedure": 5,
+    "procedure_details": 1,
+    "reason_for_examination": 3,
+    "recommendation(s)": 5,
+    "reproductive_organs": 8,
+    "retroperitoneum": 3,
+    "right": 1,
+    "soft_tissues": 6,
+    "spleen": 11,
+    "technique": 70,
+    "thoracic_inlet": 1,
+    "total_dose": 1,
+    "upper_abdomen": 2,
+    "urinary": 8,
+    "vascular": 8
+  }
+}

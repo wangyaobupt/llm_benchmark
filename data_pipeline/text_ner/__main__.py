@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .audit import audit_manifest
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
+from .scope_rehearsal import rehearse_scope
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -27,6 +28,15 @@ def _parser() -> argparse.ArgumentParser:
     audit.add_argument("--replay-directory", type=Path)
     audit.add_argument("--output-json", type=Path)
     audit.add_argument("--output-markdown", type=Path)
+    rehearse = subparsers.add_parser(
+        "rehearse-scope",
+        help="Profile annotation scenarios on pilot spans without saving raw text",
+    )
+    rehearse.add_argument("input_jsonl", type=Path)
+    rehearse.add_argument("manifest", type=Path)
+    rehearse.add_argument("--expected-pilot-documents", type=int, default=200)
+    rehearse.add_argument("--output-json", type=Path)
+    rehearse.add_argument("--output-markdown", type=Path)
     return parser
 
 
@@ -39,11 +49,19 @@ def main() -> None:
             pilot_size=args.pilot_size,
             pilot_seed=args.pilot_seed,
         )
-    else:
+    elif args.command == "audit":
         result = audit_manifest(
             args.input_jsonl,
             args.manifest_directory,
             replay_directory=args.replay_directory,
+            output_json=args.output_json,
+            output_markdown=args.output_markdown,
+        )
+    else:
+        result = rehearse_scope(
+            args.input_jsonl,
+            args.manifest,
+            expected_pilot_documents=args.expected_pilot_documents,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )
