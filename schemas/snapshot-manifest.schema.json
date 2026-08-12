@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://llm-benchmark.local/schemas/snapshot-manifest/1.0.0",
+  "title": "Decision snapshot visibility manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "index_time", "policy_sha256", "counts", "events",
+    "snapshot_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "snapshot-manifest/1.0.0"},
+    "index_time": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{6}$"
+    },
+    "policy_sha256": {"$ref": "#/$defs/sha256"},
+    "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "visible", "excluded", "exclusion_reason_counts"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 0},
+        "visible": {"type": "integer", "minimum": 0},
+        "excluded": {"type": "integer", "minimum": 0},
+        "exclusion_reason_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "SNAPSHOT_NOT_YET_OCCURRED", "SNAPSHOT_NOT_YET_AVAILABLE",
+            "SNAPSHOT_TIME_UNKNOWN", "SNAPSHOT_POST_HOC",
+            "SNAPSHOT_ADMINISTRATIVE_END", "SNAPSHOT_FIELD_NOT_ALLOWED",
+            "SNAPSHOT_SPLIT_FORBIDDEN", "SNAPSHOT_SEMANTIC_LEAKAGE",
+            "SNAPSHOT_IDENTITY_LEAKAGE"
+          ],
+          "properties": {
+            "SNAPSHOT_NOT_YET_OCCURRED": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_NOT_YET_AVAILABLE": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_TIME_UNKNOWN": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_POST_HOC": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_ADMINISTRATIVE_END": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_FIELD_NOT_ALLOWED": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_SPLIT_FORBIDDEN": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_SEMANTIC_LEAKAGE": {"type": "integer", "minimum": 0},
+            "SNAPSHOT_IDENTITY_LEAKAGE": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/eventDecision"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reasonCode": {
+      "enum": [
+        "SNAPSHOT_NOT_YET_OCCURRED", "SNAPSHOT_NOT_YET_AVAILABLE",
+        "SNAPSHOT_TIME_UNKNOWN", "SNAPSHOT_POST_HOC",
+        "SNAPSHOT_ADMINISTRATIVE_END", "SNAPSHOT_FIELD_NOT_ALLOWED",
+        "SNAPSHOT_SPLIT_FORBIDDEN", "SNAPSHOT_SEMANTIC_LEAKAGE",
+        "SNAPSHOT_IDENTITY_LEAKAGE"
+      ]
+    },
+    "eventDecision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id", "source_event_sha256", "visibility_status",
+        "exclusion_reason_codes", "visible_evidence"
+      ],
+      "properties": {
+        "event_id": {"type": "string", "minLength": 1},
+        "source_event_sha256": {"$ref": "#/$defs/sha256"},
+        "visibility_status": {"enum": ["visible", "excluded"]},
+        "exclusion_reason_codes": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/reasonCode"},
+          "uniqueItems": true
+        },
+        "visible_evidence": {"type": ["object", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"visibility_status": {"const": "visible"}}},
+          "then": {
+            "properties": {
+              "exclusion_reason_codes": {"maxItems": 0},
+              "visible_evidence": {"type": "object"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"visibility_status": {"const": "excluded"}}},
+          "then": {
+            "properties": {
+              "exclusion_reason_codes": {"minItems": 1},
+              "visible_evidence": {"type": "null"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
