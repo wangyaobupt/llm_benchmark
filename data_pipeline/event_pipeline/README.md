@@ -70,6 +70,17 @@
 输出目录已存在时程序拒绝覆盖。每个阶段先写同目录临时文件；组合命令也只在两个阶段全部通过后一次发布输出根目录。
 读取批大小可以调整，但 Parquet 固定按 5000 行写 row group；因此批大小不会改变输出字节和 manifest 哈希。
 
+## 逐项查看清洗结果
+
+清洗目录可通过本机只读浏览器分页查看，不需要 Excel，也不会改写 Parquet：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline.viewer `
+  data\derived\event_pipeline_sample_100\cleaning
+```
+
+程序只监听 `127.0.0.1:8765` 并自动打开浏览器。页面可在四份 Parquet 间切换，按 JSONL 行号、患者、住院、事件类型、源表或拒绝原因筛选；点击任一行可检查全部字段，并由 `raw_row_ref` 回读原始 JSONL 数组元素。若源文件不在默认的 `data\validation` 位置，使用 `--source-jsonl PATH` 指定。运行前只验证文件而不启动服务时使用 `--check`。
+
 ## 时间政策
 
 - ED triage 没有原生时间：三个时间均保留 `null`，`time_resolution_status=unresolved`。
