@@ -146,6 +146,14 @@ uv run --no-cache python -m data_pipeline.event_pipeline.regression capture
 - `event_id` 由 `source_row_id + event component` 生成，不依赖 JSONL 行号或数组位置。
 - `raw_row_ref` 保留文件名、JSONL 行号、模块、表名和数组下标，供来源门禁回读。
 - 跨表派生字段同时保留 `supporting_source_row_ids` 与 `supporting_raw_row_refs`；处方下单时间引用已经与 raw POE 交叉核验的 `poe_timeline` 源行。
+
+### 药物原生键连接
+
+- prescription与POE只允许使用 `poe_id + poe_seq`；只有二者同时匹配时才能取得下单时间。
+- prescription与pharmacy、eMAR与pharmacy只允许使用 `pharmacy_id`；eMAR再使用自身 `poe_id` 连接POE。禁止药名相似度、时间邻近或LLM补链。
+- eMAR detail使用 `subject_id + emar_id + emar_seq` 回到父eMAR，只作为支持证据，不独立生成药物事实。
+- pharmacy的 `medication` 为空时，先按 `pharmacy_id` 读取所有关联prescription。药名唯一则接受，并标记 `MEDICATION_LABEL_RESOLVED_FROM_LINKED_SOURCE`；存在多个不同药名则拒绝为 `PHARMACY_MEDICATION_AMBIGUOUS`；没有候选则拒绝为 `PHARMACY_MEDICATION_UNRESOLVED`。
+- 两条原生键链对 `poe_id` 给出不同结果时保留原值和全部来源，标记 `PHARMACY_POE_ID_CONFLICT`，不得覆盖成某一侧的值。
 - 一条复合源行可以生成多条原子事件，例如 triage 一行可生成主诉、心率和血压事件；逐表对账按源行而不是事件数计算。
 
 质量标志在事件边界规范为冻结的大写下划线编码；schema 拒绝非规范格式和重复值。

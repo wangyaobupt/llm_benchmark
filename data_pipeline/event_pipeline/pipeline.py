@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections import Counter
+from collections import Counter, defaultdict
 import hashlib
 import json
 import os
@@ -39,6 +39,7 @@ from .validation import (
 
 
 OUTPUT_SCHEMA = {"name": "mimic_cleaned_events", "version": "1.1.0"}
+CLEANING_LOGIC_VERSION = "1.2.0"
 PARQUET_ROW_GROUP_SIZE = 5000
 REJECTABLE_EVENT_VALIDATION_ERRORS = frozenset({"AVAILABLE_BEFORE_EVENT_TIME"})
 
@@ -160,12 +161,42 @@ def _clean(value: Any) -> str | None:
 def _build_context(
     admission: dict[str, Any], source_rows: dict[tuple[str, str], list[SourceRow]]
 ) -> AdmissionContext:
+    def index_many(
+        module: str,
+        table: str,
+        fields: tuple[str, ...],
+    ) -> dict[Any, list[SourceRow]]:
+        result: dict[Any, list[SourceRow]] = defaultdict(list)
+        for source in source_rows.get((module, table), []):
+            values = tuple(_clean(source.row.get(field)) for field in fields)
+            if not all(values):
+                continue
+            key: Any = values[0] if len(values) == 1 else values
+            result[key].append(source)
+        return dict(result)
+
     indexes = {
-        "poe_timeline_source_by_id": {
-            _clean(source.row.get("poe_id")): source
-            for source in source_rows.get(("mimic_iv_hosp", "poe_timeline"), [])
-            if _clean(source.row.get("poe_id"))
-        },
+        "poe_timeline_by_id": index_many(
+            "mimic_iv_hosp", "poe_timeline", ("poe_id",)
+        ),
+        "poe_timeline_by_pair": index_many(
+            "mimic_iv_hosp", "poe_timeline", ("poe_id", "poe_seq")
+        ),
+        "prescriptions_by_pharmacy_id": index_many(
+            "mimic_iv_hosp", "prescriptions", ("pharmacy_id",)
+        ),
+        "prescriptions_by_poe_id": index_many(
+            "mimic_iv_hosp", "prescriptions", ("poe_id",)
+        ),
+        "poe_details_by_id": index_many(
+            "mimic_iv_hosp", "poe_detail", ("poe_id",)
+        ),
+        "pharmacy_by_id": index_many(
+            "mimic_iv_hosp", "pharmacy", ("pharmacy_id",)
+        ),
+        "emar_details_by_parent": index_many(
+            "mimic_iv_hosp", "emar_detail", ("subject_id", "emar_id", "emar_seq")
+        ),
     }
     return AdmissionContext(admission=admission, source_rows=source_rows, indexes=indexes)
 
@@ -411,6 +442,7 @@ def run_cleaning(
         manifest = {
             "schema": {"name": "event_pipeline_run_manifest", "version": "1.0.0"},
             "output_schema": OUTPUT_SCHEMA,
+            "cleaning_logic_version": CLEANING_LOGIC_VERSION,
             "source_catalog": {
                 "version": SOURCE_CATALOG_VERSION,
                 "sha256": SOURCE_CATALOG_SHA256,
@@ -419,7 +451,7 @@ def run_cleaning(
             },
             "run_id": hashlib.sha256(
                 (
-                    f"{input_hash}|cleaning/1.1.0|"
+                    f"{input_hash}|cleaning/{CLEANING_LOGIC_VERSION}|"
                     f"{SOURCE_CATALOG_SHA256}|{limit}"
                 ).encode("utf-8")
             ).hexdigest()[:24],

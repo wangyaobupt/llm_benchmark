@@ -8,7 +8,11 @@ import unittest
 
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline import run_cleaning, run_normalization
+from data_pipeline.event_pipeline import (
+    CLEANING_LOGIC_VERSION,
+    run_cleaning,
+    run_normalization,
+)
 from data_pipeline.event_pipeline.schemas import EVENT_JSON_SCHEMA_PATH, QUALITY_FLAG_CODES
 from data_pipeline.event_pipeline.source_registry import (
     SOURCE_CATALOG_SHA256,
@@ -138,6 +142,8 @@ class EventPipelineTest(unittest.TestCase):
                         "hadm_id": "10",
                         "emar_id": "e1",
                         "emar_seq": "1",
+                        "poe_id": "1-1",
+                        "pharmacy_id": "p1",
                         "medication": "Aspirin",
                         "event_txt": "Not Given",
                         "charttime": "2150-01-01 10:00:00",
@@ -275,6 +281,9 @@ class EventPipelineTest(unittest.TestCase):
 
             self.assertEqual(source.read_bytes(), source_before)
             self.assertEqual(cleaning["counts"]["admissions"], 1)
+            self.assertEqual(
+                cleaning["cleaning_logic_version"], CLEANING_LOGIC_VERSION
+            )
             self.assertEqual(cleaning["source_catalog"]["sources"], 33)
             self.assertEqual(cleaning["source_catalog"]["event_sources"], 21)
             self.assertEqual(
@@ -323,11 +332,24 @@ class EventPipelineTest(unittest.TestCase):
             prescription = next(
                 row for row in cleaned if row["event_kind"] == "medication_ordered"
             )
-            self.assertEqual(len(prescription["supporting_source_row_ids"]), 1)
+            self.assertEqual(len(prescription["supporting_source_row_ids"]), 2)
             self.assertEqual(
                 prescription["supporting_raw_row_refs"],
-                ["source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]"],
+                [
+                    "source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+                    "source.jsonl#L1/mimic_iv_hosp.pharmacy[0]",
+                ],
             )
+            emar = next(row for row in cleaned if row["source_table"] == "hosp.emar")
+            self.assertEqual(
+                emar["supporting_raw_row_refs"],
+                [
+                    "source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+                    "source.jsonl#L1/mimic_iv_hosp.pharmacy[0]",
+                    "source.jsonl#L1/mimic_iv_hosp.prescriptions[0]",
+                ],
+            )
+            self.assertEqual(emar["quality_flags"], [])
             discharge = next(
                 row for row in cleaned if row["source_table"] == "note.discharge"
             )
@@ -410,6 +432,148 @@ class EventPipelineTest(unittest.TestCase):
                     table["input_rows"],
                     table["accepted_source_rows"] + table["rejected_source_rows"],
                 )
+
+    def test_pharmacy_missing_medication_is_resolved_by_native_pharmacy_id(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record = self._record()
+            record["mimic_iv_hosp"]["pharmacy"][0]["medication"] = None  # type: ignore[index]
+            record["mimic_iv_hosp"]["emar"][0]["medication"] = None  # type: ignore[index]
+            record["mimic_iv_hosp"]["emar_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "emar_id": "e1",
+                    "emar_seq": "1",
+                    "parent_field_ordinal": "1.1",
+                    "pharmacy_id": "p1",
+                    "dose_given": "81",
+                    "dose_given_unit": "mg",
+                }
+            ]
+            source = self._write_source(root, record)
+
+            manifest = run_cleaning(source, root / "cleaning")
+            cleaned = pq.read_table(
+                root / "cleaning" / "cleaned_events.parquet"
+            ).to_pylist()
+            rejected = pq.read_table(
+                root / "cleaning" / "cleaning_rejected.parquet"
+            ).to_pylist()
+
+            self.assertEqual(manifest["counts"]["rejected"], 0)
+            self.assertEqual(rejected, [])
+            pharmacy = next(
+                row for row in cleaned if row["source_table"] == "hosp.pharmacy"
+            )
+            self.assertEqual(pharmacy["source_label"], "Aspirin")
+            self.assertEqual(
+                pharmacy["quality_flags"],
+                ["MEDICATION_LABEL_RESOLVED_FROM_LINKED_SOURCE"],
+            )
+            self.assertEqual(
+                pharmacy["supporting_raw_row_refs"],
+                [
+                    "source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+                    "source.jsonl#L1/mimic_iv_hosp.prescriptions[0]",
+                ],
+            )
+            pharmacy_value = json.loads(pharmacy["value_structured_json"])
+            self.assertIsNone(pharmacy_value["medication_raw"])
+            self.assertEqual(
+                pharmacy_value["medication_resolution"],
+                "prescriptions.drug_by_pharmacy_id",
+            )
+            emar = next(row for row in cleaned if row["source_table"] == "hosp.emar")
+            self.assertEqual(emar["source_label"], "Aspirin")
+            self.assertEqual(
+                emar["quality_flags"],
+                ["MEDICATION_LABEL_RESOLVED_FROM_LINKED_SOURCE"],
+            )
+            self.assertEqual(
+                emar["supporting_raw_row_refs"][-1],
+                "source.jsonl#L1/mimic_iv_hosp.emar_detail[0]",
+            )
+            self.assertEqual(
+                json.loads(emar["value_structured_json"])[
+                    "linked_emar_detail_count"
+                ],
+                1,
+            )
+            self.assertEqual(
+                json.loads(emar["value_structured_json"])[
+                    "medication_resolution"
+                ],
+                "linked_source_by_pharmacy_id",
+            )
+
+    def test_pharmacy_rejects_only_after_native_link_is_ambiguous_or_empty(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ambiguous = self._record()
+            ambiguous["mimic_iv_hosp"]["pharmacy"][0]["medication"] = None  # type: ignore[index]
+            second = deepcopy(ambiguous["mimic_iv_hosp"]["prescriptions"][0])  # type: ignore[index]
+            second["drug"] = "Clopidogrel"
+            second["ndc"] = "456"
+            ambiguous["mimic_iv_hosp"]["prescriptions"].append(second)  # type: ignore[index]
+            first_source = self._write_source(root, ambiguous)
+            first_manifest = run_cleaning(first_source, root / "ambiguous")
+            first_rejected = pq.read_table(
+                root / "ambiguous" / "cleaning_rejected.parquet"
+            ).to_pylist()
+            self.assertEqual(first_manifest["counts"]["rejected"], 1)
+            self.assertEqual(
+                first_rejected[0]["reason_code"],
+                "PHARMACY_MEDICATION_AMBIGUOUS",
+            )
+
+            unresolved = self._record()
+            unresolved["mimic_iv_hosp"]["pharmacy"][0]["medication"] = None  # type: ignore[index]
+            unresolved["mimic_iv_hosp"]["prescriptions"] = []  # type: ignore[index]
+            second_source = root / "unresolved.jsonl"
+            second_source.write_text(json.dumps(unresolved) + "\n", encoding="utf-8")
+            second_manifest = run_cleaning(second_source, root / "unresolved")
+            second_rejected = pq.read_table(
+                root / "unresolved" / "cleaning_rejected.parquet"
+            ).to_pylist()
+            self.assertEqual(second_manifest["counts"]["rejected"], 1)
+            self.assertEqual(
+                second_rejected[0]["reason_code"],
+                "PHARMACY_MEDICATION_UNRESOLVED",
+            )
+
+    def test_medication_links_preserve_poe_conflicts_and_require_exact_pair(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record = self._record()
+            record["mimic_iv_hosp"]["prescriptions"][0]["poe_seq"] = "999"  # type: ignore[index]
+            record["mimic_iv_hosp"]["emar"][0]["poe_id"] = "1-2"  # type: ignore[index]
+            source = self._write_source(root, record)
+            run_cleaning(source, root / "cleaning")
+            cleaned = pq.read_table(
+                root / "cleaning" / "cleaned_events.parquet"
+            ).to_pylist()
+
+            prescription = next(
+                row
+                for row in cleaned
+                if row["source_table"] == "hosp.prescriptions"
+            )
+            self.assertIsNone(prescription["event_time"])
+            self.assertIn("ORDER_TIME_UNRESOLVED", prescription["quality_flags"])
+            self.assertNotIn(
+                "source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+                prescription["supporting_raw_row_refs"],
+            )
+
+            emar = next(row for row in cleaned if row["source_table"] == "hosp.emar")
+            self.assertIn("PHARMACY_POE_ID_CONFLICT", emar["quality_flags"])
+            self.assertEqual(
+                json.loads(emar["value_structured_json"])["poe_id"], "1-2"
+            )
+            self.assertIn(
+                "source.jsonl#L1/mimic_iv_hosp.poe_timeline[1]",
+                emar["supporting_raw_row_refs"],
+            )
 
     def test_stable_ids_do_not_depend_on_output_directory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
