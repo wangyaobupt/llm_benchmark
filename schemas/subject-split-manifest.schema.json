@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subject-split-manifest.schema.json",
+  "title": "Public patient-level benchmark split manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "split_id",
+    "protocol_lock_sha256",
+    "subject_ref_key_id",
+    "assignment",
+    "input_population_sha256",
+    "counts",
+    "assignments_sha256",
+    "assignments"
+  ],
+  "properties": {
+    "schema_version": {"const": "subject-split-manifest/1.0.0"},
+    "split_id": {"type": "string", "minLength": 1},
+    "protocol_lock_sha256": {"$ref": "#/$defs/sha256"},
+    "subject_ref_key_id": {"type": "string", "minLength": 1},
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method", "assignment_seed_sha256", "requested_ratios"],
+      "properties": {
+        "method": {"const": "sha256-ranked-largest-remainder/1.0.0"},
+        "assignment_seed_sha256": {"$ref": "#/$defs/sha256"},
+        "requested_ratios": {"$ref": "#/$defs/ratios"}
+      }
+    },
+    "input_population_sha256": {"$ref": "#/$defs/sha256"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "formal_total", "development", "validation", "final_test", "engineering_audit"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 3},
+        "formal_total": {"type": "integer", "minimum": 3},
+        "development": {"type": "integer", "minimum": 1},
+        "validation": {"type": "integer", "minimum": 1},
+        "final_test": {"type": "integer", "minimum": 1},
+        "engineering_audit": {"type": "integer", "minimum": 0}
+      }
+    },
+    "assignments_sha256": {"$ref": "#/$defs/sha256"},
+    "assignments": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/assignment"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ratios": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["development", "validation", "final_test"],
+      "properties": {
+        "development": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "validation": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "final_test": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}
+      }
+    },
+    "assignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_ref", "subject_role", "formal_test_eligible"],
+      "properties": {
+        "subject_ref": {"type": "string", "pattern": "^sub_[0-9a-f]{64}$"},
+        "subject_role": {"enum": ["development", "validation", "final_test", "engineering_audit"]},
+        "formal_test_eligible": {"type": "boolean"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"subject_role": {"const": "engineering_audit"}}, "required": ["subject_role"]},
+          "then": {"properties": {"formal_test_eligible": {"const": false}}},
+          "else": {"properties": {"formal_test_eligible": {"const": true}}}
+        }
+      ]
+    }
+  }
+}
