@@ -1,0 +1,4230 @@
+{
+  "schema": {
+    "name": "event_cleaning_regression",
+    "version": "1.0.0"
+  },
+  "acceptance_basis": "User-confirmed batch-level manual testing; representative raw rows are selected deterministically from the accepted outputs.",
+  "privacy": {
+    "patient_and_admission_values": "sha256_fingerprint_only",
+    "time_values": "presence_and_sha256_fingerprint_only",
+    "raw_patient_level_values": "remain_in_gitignored_local_data"
+  },
+  "selection": {
+    "event_kind_coverage": "first source row for every source_table/event_kind",
+    "one_to_many_coverage": "maximum event fan-out source row for every source_table"
+  },
+  "batches": [
+    {
+      "batch_id": "sample_100",
+      "input_path": "data/validation/mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl",
+      "accepted_cleaning_directory": "data/derived/event_pipeline_sample_100/cleaning",
+      "input_bytes": 92157181,
+      "input_sha256": "e9e7d4612dcefa0810ae9f7330f12a40750ce1d75ad98c357c1d30243b94b3b0",
+      "accepted_run_manifest_sha256": "4cb6b7199195ee5ca2ebe9bfcfc694fbe85873535bff2daedda792544756d87c",
+      "expected": {
+        "run_id": "4d438ffc0e328d65c21fa4eb",
+        "counts": {
+          "admissions": 100,
+          "events": 57777,
+          "rejected": 251,
+          "source_rows": 57144,
+          "term_inventory_rows": 2495
+        },
+        "event_kind_counts": {
+          "clinical_ordered": 10081,
+          "document_recorded": 68,
+          "imaging_ordered": 415,
+          "imaging_reported": 307,
+          "laboratory_ordered": 2277,
+          "laboratory_resulted": 21225,
+          "medication_administered": 7677,
+          "medication_administration_documented": 2053,
+          "medication_not_administered": 1613,
+          "medication_order_status_recorded": 4349,
+          "medication_ordered": 5183,
+          "microbiology_resulted": 379,
+          "patient_transferred": 389,
+          "procedure_performed": 348,
+          "procedure_recorded_post_hoc": 225,
+          "service_changed": 109,
+          "symptom_reported": 35,
+          "triage_acuity_recorded": 34,
+          "vital_measured": 1010
+        },
+        "evidence_phase_counts": {
+          "post_hoc": 293,
+          "source_event": 57484
+        },
+        "observed_event_rows": 57777,
+        "observed_accepted_source_rows": 56893,
+        "observed_rejected_rows": 251,
+        "event_id_sequence_sha256": "e4533b5fbe2e837f31106b8ed6f29e96622e4c1708f5fd71dc5d7a2304e56e2e",
+        "source_row_id_sequence_sha256": "d3537f82678cd70d940b077711aa3dada6db15b9990a138a2aeab227a53ec40e",
+        "event_semantics_sha256": "049c5067e9e659f5af894450ca2bdc7b616664a6b1aac866cf084d777ba762b7",
+        "rejected_semantics_sha256": "2b08e74ac1c1f3075f98a426e64121dbbd1769c69afef5522f165f8316c8fdb7",
+        "cases": [
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:ee197ec4ff24ba96788aa456",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:10eea4bdbe154531210d74ef",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:1467410bdfb646e4f7d9ac89",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:391982d6d05d88654eaf507f",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:4f42378f8c9ec247eb7e0c07",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:6b604ce503b95ddd2f870a96",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:7e3f5cf7d7992ea52758281e",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:e5eaa841cc61579e07f93c35",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:ed5c20045098f2ce8f9dadf4",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L94/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:ab80ebd422e5cfab62d1272a",
+            "identity_sha256": "aa471e64f8733e220f60d978aac5deb8fd11ef9ddd1d08ff7200371d7fb33870",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:03246e89936b55173c806772",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:433cd64c6005310629a90ce5",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:4675332a9e81e9d6646d252d",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:9a54befa94ea1134e11ea60e",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:a1d13a525c892bd28c3ca1af",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:b72a4e34cbca42b113840938",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c30b3e6ce1278340dd37dd2b",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c77a0c899ca3e3685dfd1214",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L2/mimic_iv_ed.vitalsign[0]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:3ef12a0c01e1783b87a8f623",
+            "identity_sha256": "4386b90ec2813318380dc3183969e3e12939edbb60537bce13c79d500c40eeb5",
+            "expected_event_count": 5,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:2db56fa8260483bb3fd465bb",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2f47a01dc85a93447673449288c6d7410929c57ad9b05776835dffd840c079a1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:9d970a1831cb55400d93a81c",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2f47a01dc85a93447673449288c6d7410929c57ad9b05776835dffd840c079a1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:a36fd1ce8ad5e409739f4b50",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2f47a01dc85a93447673449288c6d7410929c57ad9b05776835dffd840c079a1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:a9c9a1a5fa39e51adb256e16",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2f47a01dc85a93447673449288c6d7410929c57ad9b05776835dffd840c079a1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:e6dd6f1ce80761b4c2c6e86d",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2f47a01dc85a93447673449288c6d7410929c57ad9b05776835dffd840c079a1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L94/mimic_iv_ed.vitalsign[4]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:48f1df5022ab3fe1b633648e",
+            "identity_sha256": "aa471e64f8733e220f60d978aac5deb8fd11ef9ddd1d08ff7200371d7fb33870",
+            "expected_event_count": 6,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:0c3a48a153065b95fed5f9ed",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:23ae92120fd6a8789b10a2a1",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:34dfdfdece5a9655368eb868",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:404c6e256d100e1247c39cc9",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:95bff707165e483b2a115cf8",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:bc314f685172b97265150668",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6225e09c45fb1d2423c10da0bb560c3f63f4bf27858c0d47c4722b6b25b3356c"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L2/mimic_iv_hosp.emar[0]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:8d8026100bcb314d1c140f18",
+            "identity_sha256": "4386b90ec2813318380dc3183969e3e12939edbb60537bce13c79d500c40eeb5",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1e769b7b44350f22ac5037de",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "308c772536a86791ef3b97aae03607b42ff2e694a7714b44bdefe3d827dfd5c2"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "308c772536a86791ef3b97aae03607b42ff2e694a7714b44bdefe3d827dfd5c2"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "308c772536a86791ef3b97aae03607b42ff2e694a7714b44bdefe3d827dfd5c2"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L2/mimic_iv_hosp.emar[19]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:438fe095c85b187a2376ba7b",
+            "identity_sha256": "4386b90ec2813318380dc3183969e3e12939edbb60537bce13c79d500c40eeb5",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:39d044120f08dab792ce1661",
+                "event_kind": "medication_administration_documented",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "75ba90c7f410451e0151fbc1714c041d79596841de0a8f61990561c6e98de25a"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "b2cd3ea4b2898b40ddb8c6ee56d3bdf69ed6b16a4779310ce33a45cac38187d9"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "b2cd3ea4b2898b40ddb8c6ee56d3bdf69ed6b16a4779310ce33a45cac38187d9"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L2/mimic_iv_hosp.emar[5]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:1215c16afa061a3d71711552",
+            "identity_sha256": "4386b90ec2813318380dc3183969e3e12939edbb60537bce13c79d500c40eeb5",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:db643870d4b23d4f89238f37",
+                "event_kind": "medication_not_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "204605fe35b4c5aefd69fd69fa0cf2d60981545d1a7315b3b3ca103d90196654"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "d6f8e1215e34d103ebffc2d0aa5f4c98858a95f529b2f5198fb290022dd5cb45"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "d6f8e1215e34d103ebffc2d0aa5f4c98858a95f529b2f5198fb290022dd5cb45"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.emar[9]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:c334552d476d38c17fbb9e6d",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:d5dc5f78d50a83c89b104c73",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "c3c0833c6d034b37df49e7cb2a9bbe1bd7b34b1d1c9f84acfe1e3cae791426ce"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "a48f22cf862e14d22470a4fbe148939d86af94143ef4fc4cb799ca33f993300c"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "a48f22cf862e14d22470a4fbe148939d86af94143ef4fc4cb799ca33f993300c"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.labevents[0]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:43f18747047956e04e9a4b4a",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:d93ed44ad4f75a62262558a4",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "acc134a6fddfc47b59379dad8c137350c08d5b01122fa7d215cbea3f57c7670a"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "513bab4778808590c8d4bc4efee2083e21d06d52288daaaa180d200238f427c7"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "513bab4778808590c8d4bc4efee2083e21d06d52288daaaa180d200238f427c7"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.labevents[9]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:2f89936ba66c1429797f8fe2",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a1c97c99633feb23313b5519",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2bc76631f36a4f53eea46974d607a251be03e596c9d62f33589955a3ed33eb92"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "7dd7d278c72401a21ff3f2914cc8ac5d44e68e8f9a10fc28633df6f2f3c6468a"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "7dd7d278c72401a21ff3f2914cc8ac5d44e68e8f9a10fc28633df6f2f3c6468a"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.microbiologyevents[0]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:051f843eb38ef1aa6f49d00a",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:47c15b3f8b036daae35ed3fe",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "acc134a6fddfc47b59379dad8c137350c08d5b01122fa7d215cbea3f57c7670a"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "eef501301398a2dbfbe459b5685692bd6f65314b1d67af80615dbac66d2880e8"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "eef501301398a2dbfbe459b5685692bd6f65314b1d67af80615dbac66d2880e8"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.microbiologyevents[3]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:cad151f063fe0f04c1fd76b7",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:d1bce22b784d1476c5f2565b",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "d6306e195d75b2f71223e5deee0722a6fb01165065adaec8f64596d9d7966c97"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "d62a78edd15171302d2c0ed65508ec78d153f710779d2f53ffbac6a2947fa332"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "d62a78edd15171302d2c0ed65508ec78d153f710779d2f53ffbac6a2947fa332"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.pharmacy[0]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:2eb0f5c9d81044b30e61b718",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:b74fc434040b8ebcd2edaa93",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "67aa1d8544a786e09bd6a8cba5445cc9ad4beb83e9baa1a25f03ac28933a4311"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "67aa1d8544a786e09bd6a8cba5445cc9ad4beb83e9baa1a25f03ac28933a4311"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "67aa1d8544a786e09bd6a8cba5445cc9ad4beb83e9baa1a25f03ac28933a4311"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.pharmacy[9]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:3d8a3b2c6a48439db966bafd",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:8c451e2187e7581e1140b448",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "4866f38394874895d7bf0fe30abdbd376c9920cc7acb5d94d380eede15d73a1f"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "4866f38394874895d7bf0fe30abdbd376c9920cc7acb5d94d380eede15d73a1f"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "4866f38394874895d7bf0fe30abdbd376c9920cc7acb5d94d380eede15d73a1f"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:69468951d34107952bcb5f9e",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:a930e9a44f6fd8ca4e26a42c",
+                "event_kind": "laboratory_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "fe5f0bfe36c3e2903b4c16e36ab5a09479d3349ab49c5dadb291af49513b012b"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "fe5f0bfe36c3e2903b4c16e36ab5a09479d3349ab49c5dadb291af49513b012b"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.poe_timeline[4]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:98d1d4c9a834aa03ab7df666",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:93f38ff6f75fbcc37e4621ae",
+                "event_kind": "imaging_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "231c79aec4bb7a42150660da7b6e6178f66a8095aeb2d9279695556431e95757"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "231c79aec4bb7a42150660da7b6e6178f66a8095aeb2d9279695556431e95757"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.poe_timeline[5]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:a13e0f2cbc5158432e9b167d",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:1d33f0332afcf210b669337e",
+                "event_kind": "clinical_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "231c79aec4bb7a42150660da7b6e6178f66a8095aeb2d9279695556431e95757"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "231c79aec4bb7a42150660da7b6e6178f66a8095aeb2d9279695556431e95757"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.poe_timeline[9]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:1250a99a06de797ba63c6e16",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:ea6881be647af90fb593a589",
+                "event_kind": "clinical_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "64338dda555fdf0d8f4118f1f44a250ff33645d95eb848e0be90f4d0a1f53811"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "64338dda555fdf0d8f4118f1f44a250ff33645d95eb848e0be90f4d0a1f53811"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.prescriptions[0]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:139fd77fbe599e9ecde189a8",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:c90e55944250b61746c26fbc",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "d321d7c30361f5332f83e9e48c9136386cf3c8b26bbae995eabb7137a500e383"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "d321d7c30361f5332f83e9e48c9136386cf3c8b26bbae995eabb7137a500e383"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.prescriptions[9]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:6455a206535b9b5c241116d0",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:23f362002ebc849b9a3934bd",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "64338dda555fdf0d8f4118f1f44a250ff33645d95eb848e0be90f4d0a1f53811"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "64338dda555fdf0d8f4118f1f44a250ff33645d95eb848e0be90f4d0a1f53811"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.procedures_icd[0]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:80bc084154443f022390e89e",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:b257dfdd6f491bc9580d0ca7",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "115efcbf2f879a891ee9009aa3ad32af61629bb854f405cb1bd734121d9d9e66"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L98/mimic_iv_hosp.procedures_icd[1]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:772a57c29c0eee8d1153e9d1",
+            "identity_sha256": "94c4b9b7f62342a4354c8064e4260723d7e170ae930bceccd1dc0834ff8fcddb",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:c4f0a4a73c72d73ce9294e9a",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "4ab28d3727d4fe4ff1eaf95d136799af3fc3566ef45e2acc7202e441a65a243b"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.services[0]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:1d97301aecb4f4c00d46c55f",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:4e580b93567f33e1d3449a55",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "a64d7fc52e051b1d1fd8a286f133095c2465d685444ef18df65f13a690c3a1e0"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "a64d7fc52e051b1d1fd8a286f133095c2465d685444ef18df65f13a690c3a1e0"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.services[1]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:c1b40a61ee13860ef2803e0b",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:6a49a0cf2dc88c2d3a8cfad3",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "127a30182c6a7902ad4507ee92272e342300d7b67ff066544c547efa567db253"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "127a30182c6a7902ad4507ee92272e342300d7b67ff066544c547efa567db253"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_hosp.transfers[0]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:f7d5ba3a33414feca6fb1dee",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:3131c728c9a9fa3561436cb2",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "b29ddab9bdbaa1e3b99b1e648f9236ad2996140bbb146b0436106e475d286494"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_hosp.transfers[2]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:719ff2b80df479a09304e19c",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:56f699c98b2be755797e05f7",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "365571e758a06715ebde60c27f8ccfc2f17c39e862283d03efbcef1aa37747e5"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L11/mimic_iv_icu.procedureevents[0]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:2c5459955d64f7205cb3eed7",
+            "identity_sha256": "80489faa10ab43f6902570e5ffb55290525627d6688dd26d3353dc67b8857e96",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:cf2eeddc9c51979054aed81d",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "d3c7ae8e89dbfa2a2aad0e4105a79224a84674cd41e5ceaa6a2c5e16d73dec01"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "d331ede45ee5c6d71861af467c87815a9e62444cf4467a632af1671516b5c1cd"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "d331ede45ee5c6d71861af467c87815a9e62444cf4467a632af1671516b5c1cd"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L96/mimic_iv_icu.procedureevents[9]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:eaa550bd50d19abdf2984c3e",
+            "identity_sha256": "10983226c380f5da20778b99ebe3c05b651b2523b4e3043c55764d9ac5adef49",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:ab54bd06f35aa2b17b35f0ba",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "d85631f7602f4b0874c5061996e0b2ef3e19cffe47a576a6dd163b15673afa5f"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "49bb02f2ff63a5b0373b24887c9a23b16235582f7edcf37888d87e2066abb921"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "49bb02f2ff63a5b0373b24887c9a23b16235582f7edcf37888d87e2066abb921"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:6d0c027e0eb8e7540ae3cade",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:df8a6a68f7926de5992b5f27",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "526ec7647525dc4facffeeba44d780bc0b673316cb3b2a887e171e9866cb2861"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "e2facfd194011175010a2dfc7e8d165835b7450eab864da3f2c33bcb01089c81"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "e2facfd194011175010a2dfc7e8d165835b7450eab864da3f2c33bcb01089c81"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:b32c86dbe3deebd75c865754",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:0fa23a4aa290054dbb19ac67",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "70d66d267315d4a356da1c4a50144ae550e69b6396f7cf8b959a308e738eeed1"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "ddff5888d2519444102ef4b6bf645a35d29489e4f5972609e5410fddec03175f"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "ddff5888d2519444102ef4b6bf645a35d29489e4f5972609e5410fddec03175f"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L1/mimic_iv_note.radiology[0]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:68b1589a62593f1f4c11257c",
+            "identity_sha256": "3f8d63d17f4eb23d78df867bcbaf0b3aa90d7496a8d2f7465d17e939fb57c608",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:2ea8ff47abdbc1fb90174b76",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "9c3e32b3dac3f8bbf03a36627b35224da452267c5cd1624bf9eecb160e312d74"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "70d155b2624fba897f2fd0d502d075945dd73e28effa1e61d2c7144e6d08adb8"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "70d155b2624fba897f2fd0d502d075945dd73e28effa1e61d2c7144e6d08adb8"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_note.radiology[7]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:61449a2939a1c1dd84508ace",
+            "identity_sha256": "9f3096681eaf2d327ce6bc1df444b8e9aaabe8845b6b372049b947e5a74bbed6",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:64b477f626b2e7a5fae598c7",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "1cc455d755d8f40aa41b609dc1e3906c4051e67c76a875be60740838b1b6a4bd"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "b04a7a2ff87c4cc9853067154da0acf13b4688abdb0b2964e19a922759869af0"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "b04a7a2ff87c4cc9853067154da0acf13b4688abdb0b2964e19a922759869af0"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batch_id": "random_1000_a",
+      "input_path": "data/test_1000_0812/mimic-admission-clinical-readable-coronary-random-1000.jsonl",
+      "accepted_cleaning_directory": "data/test_1000_0812/event_pipeline_coronary_random_1000/cleaning",
+      "input_bytes": 1000639576,
+      "input_sha256": "c1dc7a7d518f881edf3f898bd66a344b226426d4e24182e373e1bb438477215b",
+      "accepted_run_manifest_sha256": "f421a65a7925fa7a73a153736abef0866b43d613fc2146b7438ee8258e0a1435",
+      "expected": {
+        "run_id": "c07df489fe8412862c7f9794",
+        "counts": {
+          "admissions": 1000,
+          "events": 661753,
+          "rejected": 2488,
+          "source_rows": 635186,
+          "term_inventory_rows": 5960
+        },
+        "event_kind_counts": {
+          "clinical_ordered": 111618,
+          "document_recorded": 933,
+          "imaging_ordered": 4916,
+          "imaging_reported": 3753,
+          "laboratory_ordered": 26850,
+          "laboratory_resulted": 231423,
+          "medication_administered": 92428,
+          "medication_administration_documented": 20198,
+          "medication_not_administered": 19245,
+          "medication_order_status_recorded": 45411,
+          "medication_ordered": 54578,
+          "microbiology_resulted": 4765,
+          "patient_transferred": 4306,
+          "procedure_performed": 2745,
+          "procedure_recorded_post_hoc": 1745,
+          "service_changed": 1143,
+          "symptom_reported": 1003,
+          "triage_acuity_recorded": 981,
+          "vital_measured": 33712
+        },
+        "evidence_phase_counts": {
+          "post_hoc": 2678,
+          "source_event": 659075
+        },
+        "observed_event_rows": 661753,
+        "observed_accepted_source_rows": 632698,
+        "observed_rejected_rows": 2488,
+        "event_id_sequence_sha256": "80ec3acfb8dae6e9de55c614f1283f9d3a7cb0bce319356b3d00fc64957d85c9",
+        "source_row_id_sequence_sha256": "5f319e87dc95a65f675bfc8ce613016a1a6bbe9665ceb234cb7704c5cfd1c5ca",
+        "event_semantics_sha256": "c27fa60c49adf39437c1332c828df8d896bd6456d050c4c8e73ea1e97baca521",
+        "rejected_semantics_sha256": "8d18497f6b0b69cc87f947eae8180619431fab616d5129ca550e07facec413de",
+        "cases": [
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:093ce6d9696cd92da530c025",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:43cb085a81836d1c1a6af4b4",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:54adcb021258d89f6ead6838",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:8a6cdf81eb6b04d59f9c2ecb",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:aba12d5ca711708185ba8496",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c1668d3092819fc071386f0b",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c43e33620ef4a1b07d28df01",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:d9d3c6695a37700b92d9a08f",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:ea23d2cd7ef3adbf46b0fabd",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:4c7e09e3edaf31a8be3ef066",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:0374ab1738f297bcccb4690c",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:07d75e51c6d2b1d9de7cd5a1",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:25f20a2fab2de6f796391413",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:3cb6db05cd7e6547fb8d3539",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:63667f79fe32f09a31969881",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:85bacd4dc03e7e2022bfb564",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:d62d02f1e3adb2e6dea33983",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:f57f5968ddcaa541970c02ee",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_ed.vitalsign[0]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:a7f762c8674b19c5bd175cf5",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 6,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:05d98b80c9a45a6145295b6c",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:1dc47ee9a7d08991c2e49842",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:1e8dd390742f73be20f34d6f",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:85f1a5f020573358949d29b5",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:be1b98c5191a103895a09f9b",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:d93cd8d0f34a0a5636f067ac",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f3a99aa776f4f05141fae4d5484c61c8263e3c3c85d04f4d5198f18bcf866d46"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_ed.vitalsign[1]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:a0f756162eb11971e6909be2",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 6,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1d525455ad5ac11812a14402",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:580ca1300f82dea7211c9222",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:90d7b84da9ab9284afd0fd59",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:a6cc1d96423be3ad6e500497",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:e4b974c606a1294e4dbd303b",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:e5beee9d7bce57ce161aac9d",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "66f43a0af49ecb19c2eb2c24057ea942ed324298cab529c24c612a175b12bc0a"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.emar[0]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:74791faebc8b6d66fdcd00c5",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1b48dee3607508d426700543",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "9107726db438597c8f1af71b209b44a64822c865985f2bc8ceb2495b683981d2"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "2180ccd6c78f2d52d898256d34f95023d58189d78633422998b5935782e35b65"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "2180ccd6c78f2d52d898256d34f95023d58189d78633422998b5935782e35b65"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L3/mimic_iv_hosp.emar[16]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:6ccbc6a3e5750c6e613ae7e0",
+            "identity_sha256": "5bc30ea7960565cde2fcc880f27723565b70cafa74199a2e0bd3c359c085a84c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:27873bd7c70e614231249b4c",
+                "event_kind": "medication_not_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "4ad3abd4d811e8adb5574ee5938346a6dde726ba8840e86253086772cb35b7df"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "7c1a00b6898a8f650358886d8e3580debfd68fe98c81fa0985ae79f3ba11da2f"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "7c1a00b6898a8f650358886d8e3580debfd68fe98c81fa0985ae79f3ba11da2f"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L3/mimic_iv_hosp.emar[5]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:b40ba9c6fd7d3fa7ed1df80f",
+            "identity_sha256": "5bc30ea7960565cde2fcc880f27723565b70cafa74199a2e0bd3c359c085a84c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:348a43a9f5c5ca700b328e88",
+                "event_kind": "medication_administration_documented",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "17e5220533e8f9ba412ee1c29b62d779994671f048e568f3d76aa23f7b2faf96"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "f087f327809eaf15738888504491c8219117a74f2c86d9878290cfbdd53f5687"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "f087f327809eaf15738888504491c8219117a74f2c86d9878290cfbdd53f5687"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L996/mimic_iv_hosp.emar[9]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:5b2e821daed50ab8804acb80",
+            "identity_sha256": "574a574f6b7fe494c131b0d21b8eeb552f4754ee23766201ef8583caa86ee06c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:01d2cd1741774840122d989d",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6a312ae743e9e6eb565e8990014f0b96c955bd114e86b5908433d42d751cbf07"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "98cd59be7f875694530d432c408c37ddb8061d053f189687fd8495d38da64daf"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "98cd59be7f875694530d432c408c37ddb8061d053f189687fd8495d38da64daf"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.labevents[0]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:df485f12c5d14b97143b5930",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:320d061ece27caa1b75384c3",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "5ecb69ded7012fbeacc61b3ca689d91e00e6be360b4956e0f77f79208b6fa9c5"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "df109d9d377807d5b9a7824c3dbf295c161d7593d22046787d6422f0b097eebd"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "df109d9d377807d5b9a7824c3dbf295c161d7593d22046787d6422f0b097eebd"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.labevents[9]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:0e5e55f89a1cb2b9ecb22d8f",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:4866c1829fc0b73c4898d406",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a7ec1969efd8682b973cb339fd64791d5999b08dc6098c55d8ca451ae69c82b"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "2c77e5d6066584409d254c1a19c88de1d1d34630ae4d95c9e9fc59dcee39d1a4"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "2c77e5d6066584409d254c1a19c88de1d1d34630ae4d95c9e9fc59dcee39d1a4"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.microbiologyevents[0]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:da9db3fb9b8c3eec47a86040",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:717ae1e9e54884ad40949acd",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "940ce7c63c395c93216a7aacd9c97c1584fcafe4e2dfcd199b95fa0d58dc0bb6"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "def9edd638756ec00f61714f461906328cc47eaa3bb22351b2dbb993b53cfbe9"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "def9edd638756ec00f61714f461906328cc47eaa3bb22351b2dbb993b53cfbe9"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.microbiologyevents[0]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:4019ad0eeeb5d3dcb3fee854",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:2a78290aac47b18b926461bc",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a7ec1969efd8682b973cb339fd64791d5999b08dc6098c55d8ca451ae69c82b"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "dcfec2bd7240317555602840d2f24df412e4282db8acb22cbf789246122b0e88"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "dcfec2bd7240317555602840d2f24df412e4282db8acb22cbf789246122b0e88"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.pharmacy[0]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:24036a1c02832f34c4c0573d",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:de9336fb178b59cf5c8d4b04",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "9cb490f4074f4f0f688abb53a2ea793a11352f958112f0509bdc40caf2c28970"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "9cb490f4074f4f0f688abb53a2ea793a11352f958112f0509bdc40caf2c28970"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "9cb490f4074f4f0f688abb53a2ea793a11352f958112f0509bdc40caf2c28970"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.pharmacy[9]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:4741093d35777a07b84d029f",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:807cdec451dd3a2316f35117",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "44536df6d1b7021b086272fe15bbf473ab972451f2cd5f9c103420ed7876ab81"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "44536df6d1b7021b086272fe15bbf473ab972451f2cd5f9c103420ed7876ab81"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "44536df6d1b7021b086272fe15bbf473ab972451f2cd5f9c103420ed7876ab81"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:ee38c315b9705f6d034e823d",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:df88f83830e0e6da8ecfcdb0",
+                "event_kind": "laboratory_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "cd905d7f57a7a1ffeeb0b5f6a2583338074f26ae197e2ca7fface71fe594f398"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "cd905d7f57a7a1ffeeb0b5f6a2583338074f26ae197e2ca7fface71fe594f398"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[2]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:669d9529af9d20533294f64a",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:67d51233e03a8224f9af6fa2",
+                "event_kind": "imaging_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "1139e1c66949231d2fad3e23256984dec551ece3ff17bdce8f065028fcdbaaeb"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "1139e1c66949231d2fad3e23256984dec551ece3ff17bdce8f065028fcdbaaeb"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[3]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:d577368bc042282f5d01c3c7",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:833dbc8dc4f0fd41506a9dbb",
+                "event_kind": "clinical_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "1139e1c66949231d2fad3e23256984dec551ece3ff17bdce8f065028fcdbaaeb"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "1139e1c66949231d2fad3e23256984dec551ece3ff17bdce8f065028fcdbaaeb"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.poe_timeline[9]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:2fd2dc3afeeb3ea169cbb9e1",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:6f50f3e954dba9f5da64ee67",
+                "event_kind": "clinical_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "cf0f66899a2fb4a5d0bca0dc909634f2002d58bc2bebc949a320d1cb948d93d5"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "cf0f66899a2fb4a5d0bca0dc909634f2002d58bc2bebc949a320d1cb948d93d5"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.prescriptions[0]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:fed06f92e5d0f809e4991454",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:0f2806cb8aaa0acad3e65a80",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "a9ef3a3eecebb358036454371fd7933eec0dac09fd9651c7b28b73d8141615fc"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "a9ef3a3eecebb358036454371fd7933eec0dac09fd9651c7b28b73d8141615fc"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.prescriptions[9]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:9de1b0f995ef87703415d904",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:4d51b15131eeaf6d180b9188",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "446d88627e04ccdd33cb381dbb74b51cca4e99e1b259b907696f85c483c1f7ab"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "446d88627e04ccdd33cb381dbb74b51cca4e99e1b259b907696f85c483c1f7ab"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.procedures_icd[0]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:44daca325ec1d3cb5a6e3421",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:8318cdc7243e408bca611b6e",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "c3cca908b235c1a051091435d94fb19851d97b53ddd832fdedec3f6203936610"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L998/mimic_iv_hosp.procedures_icd[1]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:3f195d546f6ceff5b08e8433",
+            "identity_sha256": "152e9ff15d26b5d4fe8ad351f134b720f5841483b21387c6fd3dc1d9df9c10cb",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:f0cca6740957f04806136b31",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "62c399ad5595c237a171be46ffff0bf619b46616aa95325d7c01dca5820373f6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.services[0]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:253a186efb7b2766f043ec87",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:f45269fa9606cc0835ecf8c9",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "7dca3ff9504df7f2b766ae5447412bff8d05f402ba67217f4e83972d8535dab5"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "7dca3ff9504df7f2b766ae5447412bff8d05f402ba67217f4e83972d8535dab5"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.services[0]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:3a98d7dcb396947b4222d20d",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:5490f180b3c448a5de6062e5",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "7aed8ced8382ec5a70f7cbb8ddd8fe131d283c491510ce2d1b3e496d2f3be5a6"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "7aed8ced8382ec5a70f7cbb8ddd8fe131d283c491510ce2d1b3e496d2f3be5a6"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.transfers[0]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:fee32db07fa8c2084998822c",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:252c2ce73d0d112734074f88",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2b34edf0caa88a5c224e4781795ba2abff2f26abf755ad5fa47253f3d344064b"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.transfers[3]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:a977a9de42f2c3d1ac559dc2",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:bf0b26bb7a798393d9ff64ae",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "e1ff6f6b1598edf11240d029a27980c3303ffc5457f56cb0a8d0cfe0d054e8f1"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L11/mimic_iv_icu.procedureevents[0]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:a4ec76b056a990530e6bd921",
+            "identity_sha256": "0a65c1c4e277671dba01044cec5625feb6bb6dd2b8a91833100b3818d39d3af9",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a02384d1ba71bd33ffe54eca",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "be5a73e70897e75d78c0fdca5a3591020cd0198e570086f37e0094bdb26d0be1"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "8c298b7a64eb5c640f916b6279eae518ae28c25912834d337104787e4388ecde"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "8c298b7a64eb5c640f916b6279eae518ae28c25912834d337104787e4388ecde"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L998/mimic_iv_icu.procedureevents[5]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:dd5072864ab55d7914f8ad15",
+            "identity_sha256": "152e9ff15d26b5d4fe8ad351f134b720f5841483b21387c6fd3dc1d9df9c10cb",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:0f3ce9db7433510ea7eee4c5",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "29fde331438e72009832e1ddc2d89d7cd4f6bd2cbaed30eca8420eed7cb0d957"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "7ade243a36ee5162b0fee254ce725b167fd51eebd791b5f6b339263e6e2645bc"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "7ade243a36ee5162b0fee254ce725b167fd51eebd791b5f6b339263e6e2645bc"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:13de3601d707318120f425de",
+            "identity_sha256": "698e7cec166672faa8b5d509064cab5ef34d32d2244f7d83b7e0d21a0f2c5e8d",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:204f5f80f75a72992cc80420",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "b3a5974a2342c5544d6eb9431e0de40352687402acf7b5a69c2c54ea9e900912"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "3c6f5208b71a580e280d81c54427f7748efbbc5db3cef9e8b7d8814d50065e43"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "3c6f5208b71a580e280d81c54427f7748efbbc5db3cef9e8b7d8814d50065e43"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:86d5e808d8980f908634d3bb",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:6b0d055e94175c2bb3835783",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "f15fc660a1496b4521b4741aeb92e06f83beda3be56668a8f0d48a66cf62a244"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "9da924bc57e95412868f79bfabc257bdc0f8d0e195fb0f07204dae135e7e6792"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "9da924bc57e95412868f79bfabc257bdc0f8d0e195fb0f07204dae135e7e6792"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_note.radiology[0]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:2d3d7b067e3f9ed10ba9a818",
+            "identity_sha256": "946a066d35fa51eff505278aedc22601d4059e8c9aa42be33646ae526c60bae7",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:3b601574155610a3bc5c4a4a",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6ed656209cde5c52d1468b0abfae15094ec426efc45e4e3e10eb970d481895af"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "a86f0f4148be08b778b9a417a48ef2eb6a47c627ac947d372f97d6bfc52bb227"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "a86f0f4148be08b778b9a417a48ef2eb6a47c627ac947d372f97d6bfc52bb227"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_note.radiology[0]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:835cae7a1e73aaf0ac667909",
+            "identity_sha256": "4c20b13706a6dcac8892c8ee6c08fadabde0d46bfc5f12f06d305d7355c34b7f",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a17a443aa6c796b2037f1a6a",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "37692c7572fa90d35ec3f9544ec170c501e8af94b51d62f01b030554cded1bd4"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "2722d65941405c95d15841b919ea265e28931f4e8a2572b425d3caca2569144d"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "2722d65941405c95d15841b919ea265e28931f4e8a2572b425d3caca2569144d"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batch_id": "random_1000_b",
+      "input_path": "data/test_1000_0812_2/mimic-admission-clinical-readable-coronary-random-1000.jsonl",
+      "accepted_cleaning_directory": "data/test_1000_0812_2/event_pipeline_coronary_random_1000/cleaning",
+      "input_bytes": 877406729,
+      "input_sha256": "dbda731cc406e3d2599061617a8297d7119f2e73b88fd5db75cea04cab30ccc0",
+      "accepted_run_manifest_sha256": "2111f4175a3b81243cccd4c7c28f5671c215eb14cebb26104c6c0ea5f4897e32",
+      "expected": {
+        "run_id": "6647625d734a2d0e86e195bf",
+        "counts": {
+          "admissions": 1000,
+          "events": 581078,
+          "rejected": 2178,
+          "source_rows": 554765,
+          "term_inventory_rows": 5700
+        },
+        "event_kind_counts": {
+          "clinical_ordered": 99872,
+          "document_recorded": 914,
+          "imaging_ordered": 4487,
+          "imaging_reported": 3436,
+          "laboratory_ordered": 23810,
+          "laboratory_resulted": 195402,
+          "medication_administered": 81026,
+          "medication_administration_documented": 18673,
+          "medication_not_administered": 15784,
+          "medication_order_status_recorded": 41008,
+          "medication_ordered": 48940,
+          "microbiology_resulted": 3522,
+          "patient_transferred": 4116,
+          "procedure_performed": 2342,
+          "procedure_recorded_post_hoc": 1471,
+          "service_changed": 1134,
+          "symptom_reported": 1003,
+          "triage_acuity_recorded": 978,
+          "vital_measured": 33160
+        },
+        "evidence_phase_counts": {
+          "post_hoc": 2385,
+          "source_event": 578693
+        },
+        "observed_event_rows": 581078,
+        "observed_accepted_source_rows": 552587,
+        "observed_rejected_rows": 2178,
+        "event_id_sequence_sha256": "a792a6e669eb85b3781c540d2e7649e6800f2218b8341bb382d87dba08fe581d",
+        "source_row_id_sequence_sha256": "0c266564d71c9866290daf229407fe3fce9c9de05b9c8dbfc9c0ac59113bc7fb",
+        "event_semantics_sha256": "609be5e3bba07b55fafc29467e93ddc2470e00e696c938e3a791c0ad6d6858d8",
+        "rejected_semantics_sha256": "12d34af4cdc841a329b703a1bfce88c1bcc6f770f054921b10b25dff9b586e42",
+        "cases": [
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:853cb0b96ca30c9271bab1f6",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:018c4caea8b49246f9108aa4",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:18703036c08de5b64ffb7f1e",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:3e835a5d54008e0fdf7b2199",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:98c180475d041563e22f55f8",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:aced7f28a8c88f6e05b1e618",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c7b5c9e32c6977c32aa56a8f",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:e9bc7d4b215c703881fd119a",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:eca524991899ceec795077cb",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L997/mimic_iv_ed.triage[0]",
+            "source_table": "ed.triage",
+            "source_row_id": "src:844f1e603d2a1498e7f9fe2b",
+            "identity_sha256": "c03dccc995aff5a7fd6a8ff249bbc4e3a93d866db651e64d8af92cd08dbcaae4",
+            "expected_event_count": 8,
+            "allowed_quality_flags": [
+              "TIME_UNAVAILABLE_IN_SOURCE"
+            ],
+            "events": [
+              {
+                "event_id": "evt:27e3cbadd51a0414c860d0f0",
+                "event_kind": "triage_acuity_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:4a5e25074aeb78c423c63fc6",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:6757b504a59cbdc89f66c208",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:6d79233cfba06ae464ea45a3",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:72bc45c5e36eb886ce800dd0",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:7db03d0bc832206dafd5fb7e",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:7e2a03505fbcccc45be67ad0",
+                "event_kind": "symptom_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "TIME_UNAVAILABLE_IN_SOURCE"
+                ]
+              },
+              {
+                "event_id": "evt:9548736fc01284b5213207c8",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_ed.vitalsign[0]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:3d2dc94f63fe0d488b97c652",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 5,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:5fd8c009c12e0ac223a13f43",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a17e47251897998c6188835c98565143570ccbcaa3fd3a3a74be4487e8ffcf6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:81619d09a29295808782cb2f",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a17e47251897998c6188835c98565143570ccbcaa3fd3a3a74be4487e8ffcf6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:cf7219738b4ecf0a255bf136",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a17e47251897998c6188835c98565143570ccbcaa3fd3a3a74be4487e8ffcf6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:dee47b9e00d6cecce1de9e3e",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a17e47251897998c6188835c98565143570ccbcaa3fd3a3a74be4487e8ffcf6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:fe1aed72baa6dffe607e68c3",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3a17e47251897998c6188835c98565143570ccbcaa3fd3a3a74be4487e8ffcf6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L998/mimic_iv_ed.vitalsign[0]",
+            "source_table": "ed.vitalsign",
+            "source_row_id": "src:afbaaf26e1944d61cea7451e",
+            "identity_sha256": "1003c9b6f80716e5e916ec3b13e57b9a8b5b98ed90070027770ae67350487ca4",
+            "expected_event_count": 6,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1b6905a372e3403226e35be0",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:3dd238acc670cb92a1b34953",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:65b9bc669d7c97f121a3eecc",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:75f265cd82d7634a260efd9b",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c19daed847eb40815d01ea66",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              },
+              {
+                "event_id": "evt:c1eca990d3d0cceb6ef2163e",
+                "event_kind": "vital_measured",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "93ef85d47da75c01fcc7f87a4d2ebd03d26f3deefc7504ce3a0ee229e6295057"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.emar[0]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:d4d4477405ed2f445f7b2c16",
+            "identity_sha256": "4d1e4a4cba914c28fbffc927d68e6caf5c96701c8466071ef290bd3326d90620",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:4b5d2af8dae52ce6514eca51",
+                "event_kind": "medication_not_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "b24639b01bff4f32deff84fcd2e2bc62ed4587bebca2ff851fac002ffe7bac04"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "bfea6bacaee41be87edcfc7c39e0778ed0023b817a900a64a2e9752a6e42bf49"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "bfea6bacaee41be87edcfc7c39e0778ed0023b817a900a64a2e9752a6e42bf49"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.emar[16]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:adfa91fa597c1d745730f22b",
+            "identity_sha256": "4d1e4a4cba914c28fbffc927d68e6caf5c96701c8466071ef290bd3326d90620",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a6b69ed3bfdd5962b10392cc",
+                "event_kind": "medication_administration_documented",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "1a03ed5558176c792b63b916c8c83392a22e907492a49b39f955214766ba80f5"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "d0a4de9ddd07a5e0a4f2f4bb782e24651442b14c175eaf662cf887a9fea75ab3"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "d0a4de9ddd07a5e0a4f2f4bb782e24651442b14c175eaf662cf887a9fea75ab3"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.emar[7]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:b623b303b42352fad705a014",
+            "identity_sha256": "4d1e4a4cba914c28fbffc927d68e6caf5c96701c8466071ef290bd3326d90620",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:317860ac5ef8a1355ae20675",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "5a352cda99dc7c2789c4dc3516458f7bc8b922297d94880050b7f53599dc1f14"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "5a352cda99dc7c2789c4dc3516458f7bc8b922297d94880050b7f53599dc1f14"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "5a352cda99dc7c2789c4dc3516458f7bc8b922297d94880050b7f53599dc1f14"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.emar[9]",
+            "source_table": "hosp.emar",
+            "source_row_id": "src:05e9c4d0816c484217fd2dbc",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:29f38c8a17c177a8ecd2c62c",
+                "event_kind": "medication_administered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "bef68198c50de49061dc68ba7708afba34dd82203ad1d32a63e3395728ef3968"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "bef68198c50de49061dc68ba7708afba34dd82203ad1d32a63e3395728ef3968"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "bef68198c50de49061dc68ba7708afba34dd82203ad1d32a63e3395728ef3968"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.labevents[0]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:923134636672bbacf9d9794d",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:7468854ee6d481fbae264d83",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "215518e7452ace6e01ab5b9df82ab3a7adbf0620abaa3516dfd8987daa2aec0d"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "f203f81efd6a19cf0b386646b11585b49b56f33d4b3b9435486b45d609918419"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "f203f81efd6a19cf0b386646b11585b49b56f33d4b3b9435486b45d609918419"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.labevents[9]",
+            "source_table": "hosp.labevents",
+            "source_row_id": "src:ce2fa9e42b5adbe6f0dc8fe3",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1f5bc4a85321c7a867660a85",
+                "event_kind": "laboratory_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "38fa5d48bbe2c93013cfd1a2326737ef4e6d2a9637d9c4bf785c2f4324e19b1b"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "c98e6b745c77169e37a8a16e16cbe74830c3a0c63c0feb2a9e4d8f767fac755c"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "c98e6b745c77169e37a8a16e16cbe74830c3a0c63c0feb2a9e4d8f767fac755c"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.microbiologyevents[0]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:eeebae6b9bf8ab06d38a3e6c",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:f9ab6cc31c20f494874465bd",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "636362c624c3852a709596271d9304410f7281aa1771e2e0b046d9a4490bb161"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "224f75e46ae331559ff99d57e2381ea70703c2bcc18e9ef224c98b08c811b5a3"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "224f75e46ae331559ff99d57e2381ea70703c2bcc18e9ef224c98b08c811b5a3"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L995/mimic_iv_hosp.microbiologyevents[7]",
+            "source_table": "hosp.microbiologyevents",
+            "source_row_id": "src:8ccbacbb8a4a4b0ddd57c8b0",
+            "identity_sha256": "cd28236fdbfd64246a679b37b2ab9b80aa88c2bebee560c9df10d9f6984c39d0",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:80766a145fbca85acf4e3423",
+                "event_kind": "microbiology_resulted",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "b35a791db40b4d3b93d39f2b06b71317b0192f4c267c4086b329fa6c7d1f3c93"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "418111314051f2f162e6632df2e04be03af1e5cb934efb1a1e4761fe3894938e"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "418111314051f2f162e6632df2e04be03af1e5cb934efb1a1e4761fe3894938e"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.pharmacy[0]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:986c121f680a7b53e55ca5e4",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:b4ff3671b5cccac36f02465e",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "c8bdc82eb01da616450dfb7fa570b577ce3b88b1b30d63fa803088ea660f8602"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "c8bdc82eb01da616450dfb7fa570b577ce3b88b1b30d63fa803088ea660f8602"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "c8bdc82eb01da616450dfb7fa570b577ce3b88b1b30d63fa803088ea660f8602"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.pharmacy[9]",
+            "source_table": "hosp.pharmacy",
+            "source_row_id": "src:bc69e491821887344884f16c",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:5586dffbc03fa85846ac3c1c",
+                "event_kind": "medication_order_status_recorded",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "2adb9017d483ab3a447d93faa04ed147f4aac328659cccc965f6f8bc25f3cc21"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "2adb9017d483ab3a447d93faa04ed147f4aac328659cccc965f6f8bc25f3cc21"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "2adb9017d483ab3a447d93faa04ed147f4aac328659cccc965f6f8bc25f3cc21"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[0]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:a115056459f80cfd7b37871c",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:a3f7d3040c235c0b13b11e64",
+                "event_kind": "clinical_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "81b8e6a6205e48beaaf80fbc994193d8cb6b29366b5194576d83b13314291093"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "81b8e6a6205e48beaaf80fbc994193d8cb6b29366b5194576d83b13314291093"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[1]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:4ad625b86338f96f9a851e99",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+            ],
+            "events": [
+              {
+                "event_id": "evt:e37451ee175e9789f92b606d",
+                "event_kind": "laboratory_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "dc228f3af513425fde5777d6cf2d1b88e5069850c71ce6d60103cb50be6a3cc7"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "dc228f3af513425fde5777d6cf2d1b88e5069850c71ce6d60103cb50be6a3cc7"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.poe_timeline[3]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:90a412c892208edc114a1ddc",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:573fe2b1aa38bfc90bca32e5",
+                "event_kind": "imaging_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "dc228f3af513425fde5777d6cf2d1b88e5069850c71ce6d60103cb50be6a3cc7"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "dc228f3af513425fde5777d6cf2d1b88e5069850c71ce6d60103cb50be6a3cc7"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.poe_timeline[9]",
+            "source_table": "hosp.poe_timeline",
+            "source_row_id": "src:e737c30e1df340252f239804",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:269622957afad56118dd9710",
+                "event_kind": "imaging_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "25040d8289d768001c2739e5797bf71869ae2a80b3a15f881bdc1aac1adb3317"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "25040d8289d768001c2739e5797bf71869ae2a80b3a15f881bdc1aac1adb3317"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.prescriptions[0]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:37d5619a6602ed818b8276bc",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:15b07a411ed05b66bca83a61",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "9b866c4fb21bddc7825ea54b5bada7f45c20f6f734cd6aca98aed0fff5d425ed"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "9b866c4fb21bddc7825ea54b5bada7f45c20f6f734cd6aca98aed0fff5d425ed"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.prescriptions[9]",
+            "source_table": "hosp.prescriptions",
+            "source_row_id": "src:3cc46db6ba1084fdd6b52fbe",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:1fa89f81f2c3db2dadd33b83",
+                "event_kind": "medication_ordered",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "6b25b804590a0ec45d8b588571b70795c76a0ef98a292a0c762314a262013dfc"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "6b25b804590a0ec45d8b588571b70795c76a0ef98a292a0c762314a262013dfc"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_hosp.procedures_icd[0]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:b5fd271524aa25def66d6a67",
+            "identity_sha256": "4d1e4a4cba914c28fbffc927d68e6caf5c96701c8466071ef290bd3326d90620",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:2e683db0f686f54b696281a5",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "3c5b4d97b4cacf593e470b06f01aaa62b468ebe4ff5b3496ef659abbc1bc7042"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L997/mimic_iv_hosp.procedures_icd[0]",
+            "source_table": "hosp.procedures_icd",
+            "source_row_id": "src:1fe8ff96bbdcab0c609767a9",
+            "identity_sha256": "c03dccc995aff5a7fd6a8ff249bbc4e3a93d866db651e64d8af92cd08dbcaae4",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:67d56763db0fbe8c82f007af",
+                "event_kind": "procedure_recorded_post_hoc",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "0eaca5521edb84e48390e361b54780354fa61632cb145c6d5dcdf222a84a28bf"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.services[0]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:dcbcc02ddb2cf3cb554bdd8c",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:541b862ab90e85218c717750",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "e98eef759365e8fbfd2dcd315a471fafdbeb950ceba18aec7fd749ca2277fc3d"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "e98eef759365e8fbfd2dcd315a471fafdbeb950ceba18aec7fd749ca2277fc3d"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.services[0]",
+            "source_table": "hosp.services",
+            "source_row_id": "src:e9404daa9fc25483d44df797",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a6d0e3f3d840746952924dda",
+                "event_kind": "service_changed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "c0fd54035613dcd4de8e3facbfe4ee19aac2191b032e5ad0a4266e678a259f75"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "c0fd54035613dcd4de8e3facbfe4ee19aac2191b032e5ad0a4266e678a259f75"
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_hosp.transfers[0]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:a61e1ab0ff95f0e26dcdf7da",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:105a0c1ab43d7c2f0fe369d9",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "51e771505cdd9f90c5c1763f07a8f48fc4643b5773554556baae4d680b855e93"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_hosp.transfers[2]",
+            "source_table": "hosp.transfers",
+            "source_row_id": "src:0345c67445be1f357b57b054",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [
+              "AVAILABLE_TIME_UNKNOWN"
+            ],
+            "events": [
+              {
+                "event_id": "evt:6492030a241511a0d6b62c25",
+                "event_kind": "patient_transferred",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "cb65bdb1921b5e4b4f8ca2175f33cf24984059d01ba3670664694dfffcc6a5f6"
+                },
+                "available_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "recorded_time": {
+                  "present": false,
+                  "sha256": null
+                },
+                "expected_quality_flags": [
+                  "AVAILABLE_TIME_UNKNOWN"
+                ]
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L2/mimic_iv_icu.procedureevents[0]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:a147b0072c050404f836b103",
+            "identity_sha256": "4d1e4a4cba914c28fbffc927d68e6caf5c96701c8466071ef290bd3326d90620",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:a059f2099ecc822cff3f86d1",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "d53b2585bfa6b2a5121fc6d5089b661add393c1f860c8461c93a0a930ee184c7"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "dc3f45908be19c25c1600c4c6bc21c752e541b7f09c3df6cecd5fce30b7cec08"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "dc3f45908be19c25c1600c4c6bc21c752e541b7f09c3df6cecd5fce30b7cec08"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L998/mimic_iv_icu.procedureevents[2]",
+            "source_table": "icu.procedureevents",
+            "source_row_id": "src:5e8b8f51f698408a81330a02",
+            "identity_sha256": "1003c9b6f80716e5e916ec3b13e57b9a8b5b98ed90070027770ae67350487ca4",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:de2b2a2a35eb46609552ec7e",
+                "event_kind": "procedure_performed",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "51a3e58b111c034ac6af2689382b71f42877d8d438649d345fbf668392c2a973"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "34f79cd9a3de82e6cf683bfeb259349ce381c280b6fe0096fc91706ca5ba38ab"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "34f79cd9a3de82e6cf683bfeb259349ce381c280b6fe0096fc91706ca5ba38ab"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:766457e7ff7881d49752301b",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:08544e7cc69b704da3939616",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "eea941e02c9c3f12d7f9a2b784d49a5677bac9646a873877080dcfd73673384d"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "5c53b9840b0522f2ea3aa0e31afdcd3233368ed329632c7e9ed5d28a79c185dc"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "5c53b9840b0522f2ea3aa0e31afdcd3233368ed329632c7e9ed5d28a79c185dc"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_note.discharge[0]",
+            "source_table": "note.discharge",
+            "source_row_id": "src:5ab47e91be65ca13e44b7e24",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:de5caf5f6b160063fe50d9e2",
+                "event_kind": "document_recorded",
+                "evidence_phase": "post_hoc",
+                "event_time": {
+                  "present": true,
+                  "sha256": "4afdd07b07634aebb9e252f8e66a5bc08f5a1908cb1667b1881ff1106c15eba0"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "938451a5d6e4f49534e11af173a0f13eff5cd61ab372014dea3fe747a2995553"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "938451a5d6e4f49534e11af173a0f13eff5cd61ab372014dea3fe747a2995553"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L1/mimic_iv_note.radiology[0]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:f7e5fff184dc90ca321952dd",
+            "identity_sha256": "40e8fa690429426ade5bd7dfccaa299499daf68aa4d0684f988a6c89250efb23",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:331e0ea75b5f6c6409013567",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "7b8793343e8d15f4573a4feceb5becf91e049919496902b339e440cea13f3bbe"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "f0363715af5073f210cc4e0ed22ba176dc4973f3512125f53a535faac462ad1d"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "f0363715af5073f210cc4e0ed22ba176dc4973f3512125f53a535faac462ad1d"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          },
+          {
+            "raw_row_ref": "mimic-admission-clinical-readable-coronary-random-1000.jsonl#L999/mimic_iv_note.radiology[3]",
+            "source_table": "note.radiology",
+            "source_row_id": "src:8fbf5f454030db34202680ec",
+            "identity_sha256": "a1c333157fb4bcaefe5c6474de90b4e02add30cbeed5c2b8515c4b1d47beae7c",
+            "expected_event_count": 1,
+            "allowed_quality_flags": [],
+            "events": [
+              {
+                "event_id": "evt:6ae01b7e1bb1c62471f33c7b",
+                "event_kind": "imaging_reported",
+                "evidence_phase": "source_event",
+                "event_time": {
+                  "present": true,
+                  "sha256": "200be35d07215152baaca785bac3b4466ad454dfc03fdac2c3eae00d8afc9a76"
+                },
+                "available_time": {
+                  "present": true,
+                  "sha256": "603986d60beb109e2a84310ed67b59ddf05358fe2d35cb2b5c18dc00115b4d3f"
+                },
+                "recorded_time": {
+                  "present": true,
+                  "sha256": "603986d60beb109e2a84310ed67b59ddf05358fe2d35cb2b5c18dc00115b4d3f"
+                },
+                "expected_quality_flags": []
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

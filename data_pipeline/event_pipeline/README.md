@@ -70,6 +70,38 @@
 输出目录已存在时程序拒绝覆盖。每个阶段先写同目录临时文件；组合命令也只在两个阶段全部通过后一次发布输出根目录。
 读取批大小可以调整，但 Parquet 固定按 5000 行写 row group；因此批大小不会改变输出字节和 manifest 哈希。
 
+## 三批清洗回归基线
+
+`tests/fixtures/event-cleaning-regression.json` 固化了人工测试过的100例和两批随机1000例。清单记录每批输入文件的大小与 SHA-256，并对全量事件保存以下逻辑摘要：
+
+- `source_row_id` 与 `event_id` 的有序摘要；
+- 全部 cleaned event 和 rejected row 的语义摘要；
+- manifest 计数、`event_kind` 和 `evidence_phase` 分布；
+- 每个 `source_table × event_kind` 的代表源行；
+- 每张源表事件拆分数最大的代表源行。
+
+代表案例保存 `raw_row_ref`、预期事件类型、一对多事件数和允许的质量标志。患者、住院和三个时间字段只保存 SHA-256 期望值，原值继续留在被 Git 忽略的本地数据中。
+
+快速验证三批既有产物没有漂移：
+
+```powershell
+uv run --no-cache python -m data_pipeline.event_pipeline.regression verify
+```
+
+重新运行清洗并与基线比较：
+
+```powershell
+uv run --no-cache python -m data_pipeline.event_pipeline.regression verify --rerun
+```
+
+可用 `--batch sample_100`、`--batch random_1000_a` 或 `--batch random_1000_b` 单独复跑。只有在人工确认行为变化符合新的清洗合同后，才允许显式更新基线：
+
+```powershell
+uv run --no-cache python -m data_pipeline.event_pipeline.regression capture
+```
+
+该回归基线证明原有已验收输出没有被后续修改意外破坏，不代表旧 `SOURCE_REGISTRY` 已经覆盖全部临床源表。源表覆盖完整性仍由独立的 source coverage 门禁负责。
+
 ## 逐项查看清洗结果
 
 清洗目录可通过本机只读浏览器分页查看，不需要 Excel，也不会改写 Parquet：
