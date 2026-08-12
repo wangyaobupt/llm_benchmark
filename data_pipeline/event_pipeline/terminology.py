@@ -6,7 +6,7 @@ import re
 from typing import Any
 
 
-MAPPING_VERSION = "event-terminology/1.0.0"
+MAPPING_VERSION = "event-terminology/1.1.0"
 
 REVIEWED_TEXT_MAPPINGS = {
     ("symptom", "chest pain"): ("symptom:chest_pain", "Chest pain", "reviewed-synonym"),
@@ -28,15 +28,54 @@ VITAL_CONCEPTS = {
 
 UNIT_ALIASES = {
     "/min": "/min",
-    "mmhg": "mmHg",
+    "#/hpf": "#/hpf",
+    "#/lpf": "#/lpf",
+    "#/ul": "#/uL",
     "%": "%",
+    "/hpf": "/hpf",
+    "day": "day",
+    "fl": "fL",
     "g/dl": "g/dL",
+    "grams": "g",
+    "hour": "h",
+    "iu/l": "IU/L",
+    "iu/ml": "IU/mL",
     "mg/dl": "mg/dL",
+    "mg/l": "mg/L",
+    "mg/mg": "mg/mg",
+    "mg/24hr": "mg/24 h",
+    "mg": "mg",
+    "min": "min",
+    "m/ul": "m/uL",
+    "mcg": "mcg",
     "meq/l": "mEq/L",
+    "meq": "mEq",
+    "meq.": "mEq",
+    "ml": "mL",
+    "mm hg": "mmHg",
+    "mm/hr": "mm/h",
+    "mmhg": "mmHg",
+    "mmol": "mmol",
     "mmol/l": "mmol/L",
+    "mosm/kg": "mOsm/kg",
+    "ng/dl": "ng/dL",
+    "ng/ml": "ng/mL",
+    "ng/ml feu": "ng/mL FEU",
+    "pg": "pg",
+    "pg/ml": "pg/mL",
+    "ratio": "ratio",
+    "sec": "s",
+    "uiu/ml": "uIU/mL",
+    "units": "units",
+    "ug/dl": "ug/dL",
+    "ug/ml": "ug/mL",
     "k/ul": "K/uL",
+    "l": "L",
+    "l/min": "L/min",
+    "log10 iu/ml": "log10 IU/mL",
     "°f": "°F",
 }
+NON_UNIT_VALUES = {"n/a"}
 
 
 def normalized_text(value: Any) -> str | None:
@@ -45,18 +84,36 @@ def normalized_text(value: Any) -> str | None:
     return re.sub(r"\s+", " ", str(value).strip()).casefold()
 
 
+def _source_code_is_usable(source_concept_id: str) -> bool:
+    vocabulary, separator, code = source_concept_id.partition(":")
+    if not separator or not code:
+        return False
+    if vocabulary == "ndc":
+        return bool(re.fullmatch(r"\d{11}", code)) and set(code) != {"0"}
+    if vocabulary == "gsn":
+        return bool(re.fullmatch(r"\d{6}", code))
+    return True
+
+
 def resolve_term(
     entity_type: str | None,
     source_concept_id: str | None,
     source_label: str | None,
 ) -> dict[str, str | None]:
     raw_label = normalized_text(source_label)
-    if source_concept_id:
+    if source_concept_id and _source_code_is_usable(source_concept_id):
         return {
             "concept_id": source_concept_id,
             "preferred_name": source_label or source_concept_id,
             "normalization_status": "mapped",
             "mapping_rule": "source-code",
+        }
+    if source_concept_id:
+        return {
+            "concept_id": None,
+            "preferred_name": source_label,
+            "normalization_status": "unresolved",
+            "mapping_rule": "invalid-source-code",
         }
     reviewed = REVIEWED_TEXT_MAPPINGS.get((entity_type, raw_label))
     if reviewed:
@@ -85,7 +142,10 @@ def resolve_term(
 def resolve_unit(unit: str | None) -> tuple[str | None, str]:
     if unit in (None, ""):
         return None, "not_applicable"
-    mapped_unit = UNIT_ALIASES.get(normalized_text(unit))
+    normalized = normalized_text(unit)
+    if normalized in NON_UNIT_VALUES:
+        return None, "not_applicable"
+    mapped_unit = UNIT_ALIASES.get(normalized)
     return mapped_unit, "mapped" if mapped_unit else "unresolved"
 
 

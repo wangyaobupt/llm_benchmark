@@ -127,12 +127,12 @@
 
 ## 下一步门禁
 
-旧 `normalization/normalization_manifest.json` 记录的 cleaned SHA-256 为 `edf5296f5f73f3d50c628d7277bff80790b992b5bc7a99171cafbdf6e1a33a5a`，与当前 `bda93a98...` 不匹配，且旧事件数为57,777。因此旧归一化结果已失效。
+确定性结构化归一化已经完成并通过独立验收：
 
-下一项任务应重新执行确定性结构化归一化，并要求新的 normalization manifest：
+1. normalization manifest 的 cleaned SHA-256 为 `bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb`，与当前 cleaning 输入一致；
+2. 输入和输出事件数均为 66,652；
+3. 使用本轮 3,895 行 `term_inventory.parquet`，映射版本为 `event-terminology/1.1.0`；
+4. 除 8 个归一化结果字段外，原事件事实、来源、时间和证据阶段逐项不变；
+5. 独立审计的 normalization 阻断问题为 0。
 
-1. 输入 cleaned SHA-256 等于 `bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb`；
-2. 输入事件数等于66,652；
-3. 使用本轮重新生成的3,895行 `term_inventory.parquet`；
-4. 不把 `post_hoc` 事件用于前瞻决策快照；
-5. 归一化完成并审计后，才筛选ED主诉和影像报告进入首批NER。
+下一项任务应建立首批文本 NER 输入清单，只纳入 ED 主诉和影像报告。出院小结继续继承 `post_hoc`，结构化 unresolved 队列继续走确定性规则或人工审核，不交给 NER。

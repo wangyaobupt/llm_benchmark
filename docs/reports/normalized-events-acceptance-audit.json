@@ -1,0 +1,359 @@
+{
+  "audit_schema": "normalized_events_acceptance_audit/1.0.0",
+  "inputs": {
+    "cleaned_events": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\cleaning\\cleaned_events.parquet",
+    "term_inventory": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\cleaning\\term_inventory.parquet",
+    "normalized_events": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\normalization\\normalized_events.parquet",
+    "normalization_mappings": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\normalization\\normalization_mappings.parquet",
+    "normalization_review_queue": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\normalization\\normalization_review_queue.parquet",
+    "normalization_manifest": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\normalization\\normalization_manifest.json"
+  },
+  "rows": {
+    "cleaned_events": 66652,
+    "term_inventory": 3895,
+    "normalized_events": 66652,
+    "normalization_mappings": 3895,
+    "normalization_review_queue": 1001
+  },
+  "hashes": {
+    "cleaned_events.parquet": "bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb",
+    "term_inventory.parquet": "d88dca8d27c7530a2d98156c684eda9b51edb992aecbe6641413b45405f00f69",
+    "normalized_events.parquet": "50698a7cf988c98a1b0efc27a404ad37d7f054f7c3d6c28810dfe65a49647ed4",
+    "normalization_mappings.parquet": "e7be0e83ecf51abfdde7fb612d20e3a9925eb999cfe6d8b4609c1dddc704c4c5",
+    "normalization_review_queue.parquet": "57b373c15bfb42588b998c937c49d2312052161e7e7f17c56c709740f2439853"
+  },
+  "schema_matches": {
+    "cleaned_events": true,
+    "term_inventory": true,
+    "normalized_events": true,
+    "normalization_mappings": true,
+    "normalization_review_queue": true
+  },
+  "manifest_contract": {
+    "schema": true,
+    "mapping_version": true,
+    "cleaned_events_sha256": true,
+    "term_inventory_sha256": true,
+    "events": true,
+    "mapping_rows": true,
+    "review_queue_rows": true,
+    "normalization_status_counts": true,
+    "unit_normalization_status_counts": true,
+    "hash:normalized_events.parquet": true,
+    "hash:normalization_mappings.parquet": true,
+    "hash:normalization_review_queue.parquet": true
+  },
+  "event_invariants": {
+    "same_row_count": true,
+    "event_id_sequence_equal": true,
+    "immutable_fields_checked": [
+      "schema_version",
+      "cleaning_status",
+      "event_id",
+      "entity_id",
+      "source_row_id",
+      "subject_id",
+      "hadm_id",
+      "encounter_id",
+      "event_kind",
+      "lifecycle_action",
+      "status",
+      "assertion",
+      "event_time",
+      "source_available_time",
+      "available_time",
+      "recorded_time",
+      "time_resolution_status",
+      "time_precision",
+      "time_policy_id",
+      "time_resolution_reasons",
+      "evidence_phase",
+      "source_concept_id",
+      "source_label",
+      "entity_type",
+      "content_specificity",
+      "value_numeric",
+      "value_text",
+      "value_structured_json",
+      "unit",
+      "abnormal_flag",
+      "source_module",
+      "source_table",
+      "source_array_index",
+      "jsonl_line_number",
+      "raw_row_ref",
+      "source_action",
+      "quality_flags",
+      "supporting_source_row_ids",
+      "supporting_raw_row_refs"
+    ],
+    "mutable_fields_allowed": [
+      "concept_id",
+      "normalization_status",
+      "normalized_unit",
+      "normalized_value_numeric",
+      "normalized_value_text",
+      "preferred_name",
+      "terminology_mapping_version",
+      "unit_normalization_status"
+    ]
+  },
+  "normalization_status_counts": {
+    "mapped": 36755,
+    "unresolved": 29897
+  },
+  "unit_normalization_status_counts": {
+    "mapped": 25490,
+    "not_applicable": 40849,
+    "unresolved": 313
+  },
+  "mapping_rule_counts": {
+    "invalid-source-code": 29,
+    "reviewed-local-order-subtype": 1,
+    "reviewed-synonym": 1,
+    "source-code": 2911,
+    "unresolved": 953
+  },
+  "review_reason_counts": {
+    "TERM_UNRESOLVED": 982,
+    "UNIT_UNRESOLVED": 19
+  },
+  "status_by_source": [
+    {
+      "source_table": "ed.diagnosis",
+      "normalization_status": "mapped",
+      "events": 80
+    },
+    {
+      "source_table": "ed.medrecon",
+      "normalization_status": "mapped",
+      "events": 518
+    },
+    {
+      "source_table": "ed.medrecon",
+      "normalization_status": "unresolved",
+      "events": 3
+    },
+    {
+      "source_table": "ed.pyxis",
+      "normalization_status": "mapped",
+      "events": 135
+    },
+    {
+      "source_table": "ed.pyxis",
+      "normalization_status": "unresolved",
+      "events": 8
+    },
+    {
+      "source_table": "ed.triage",
+      "normalization_status": "mapped",
+      "events": 227
+    },
+    {
+      "source_table": "ed.triage",
+      "normalization_status": "unresolved",
+      "events": 32
+    },
+    {
+      "source_table": "ed.vitalsign",
+      "normalization_status": "mapped",
+      "events": 820
+    },
+    {
+      "source_table": "hosp.diagnoses_icd",
+      "normalization_status": "mapped",
+      "events": 1727
+    },
+    {
+      "source_table": "hosp.emar",
+      "normalization_status": "unresolved",
+      "events": 11343
+    },
+    {
+      "source_table": "hosp.hcpcsevents",
+      "normalization_status": "mapped",
+      "events": 33
+    },
+    {
+      "source_table": "hosp.labevents",
+      "normalization_status": "mapped",
+      "events": 21225
+    },
+    {
+      "source_table": "hosp.microbiologyevents",
+      "normalization_status": "mapped",
+      "events": 379
+    },
+    {
+      "source_table": "hosp.pharmacy",
+      "normalization_status": "unresolved",
+      "events": 4557
+    },
+    {
+      "source_table": "hosp.poe_timeline",
+      "normalization_status": "mapped",
+      "events": 261
+    },
+    {
+      "source_table": "hosp.poe_timeline",
+      "normalization_status": "unresolved",
+      "events": 12512
+    },
+    {
+      "source_table": "hosp.prescriptions",
+      "normalization_status": "mapped",
+      "events": 4546
+    },
+    {
+      "source_table": "hosp.prescriptions",
+      "normalization_status": "unresolved",
+      "events": 637
+    },
+    {
+      "source_table": "hosp.procedures_icd",
+      "normalization_status": "mapped",
+      "events": 225
+    },
+    {
+      "source_table": "hosp.services",
+      "normalization_status": "unresolved",
+      "events": 109
+    },
+    {
+      "source_table": "hosp.transfers",
+      "normalization_status": "unresolved",
+      "events": 389
+    },
+    {
+      "source_table": "icu.inputevents",
+      "normalization_status": "mapped",
+      "events": 4352
+    },
+    {
+      "source_table": "icu.outputevents",
+      "normalization_status": "mapped",
+      "events": 1811
+    },
+    {
+      "source_table": "icu.procedureevents",
+      "normalization_status": "mapped",
+      "events": 348
+    },
+    {
+      "source_table": "note.discharge",
+      "normalization_status": "mapped",
+      "events": 68
+    },
+    {
+      "source_table": "note.radiology",
+      "normalization_status": "unresolved",
+      "events": 307
+    }
+  ],
+  "status_by_entity": [
+    {
+      "entity_type": "care_unit",
+      "normalization_status": "unresolved",
+      "events": 389
+    },
+    {
+      "entity_type": "clinical_document",
+      "normalization_status": "mapped",
+      "events": 68
+    },
+    {
+      "entity_type": "clinical_order",
+      "normalization_status": "unresolved",
+      "events": 4491
+    },
+    {
+      "entity_type": "clinical_service",
+      "normalization_status": "unresolved",
+      "events": 109
+    },
+    {
+      "entity_type": "coded_clinical_concept",
+      "normalization_status": "mapped",
+      "events": 2065
+    },
+    {
+      "entity_type": "icu_item",
+      "normalization_status": "mapped",
+      "events": 6511
+    },
+    {
+      "entity_type": "imaging_report",
+      "normalization_status": "unresolved",
+      "events": 307
+    },
+    {
+      "entity_type": "imaging_study",
+      "normalization_status": "mapped",
+      "events": 261
+    },
+    {
+      "entity_type": "imaging_study",
+      "normalization_status": "unresolved",
+      "events": 154
+    },
+    {
+      "entity_type": "laboratory_test",
+      "normalization_status": "mapped",
+      "events": 21225
+    },
+    {
+      "entity_type": "laboratory_test",
+      "normalization_status": "unresolved",
+      "events": 2277
+    },
+    {
+      "entity_type": "medication",
+      "normalization_status": "mapped",
+      "events": 5199
+    },
+    {
+      "entity_type": "medication",
+      "normalization_status": "unresolved",
+      "events": 16548
+    },
+    {
+      "entity_type": "medication_order_category",
+      "normalization_status": "unresolved",
+      "events": 5590
+    },
+    {
+      "entity_type": "microbiology_test",
+      "normalization_status": "mapped",
+      "events": 379
+    },
+    {
+      "entity_type": "symptom",
+      "normalization_status": "mapped",
+      "events": 3
+    },
+    {
+      "entity_type": "symptom",
+      "normalization_status": "unresolved",
+      "events": 32
+    },
+    {
+      "entity_type": "triage_acuity",
+      "normalization_status": "mapped",
+      "events": 34
+    },
+    {
+      "entity_type": "vital_sign",
+      "normalization_status": "mapped",
+      "events": 1010
+    }
+  ],
+  "issues": {
+    "counts": {},
+    "examples": {}
+  },
+  "acceptance": {
+    "can_publish_normalization": true,
+    "can_start_text_ner": true,
+    "blocking_issue_codes": []
+  }
+}

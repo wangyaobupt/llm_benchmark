@@ -49,6 +49,8 @@
 - 本地审核同义词表；
 - 冻结单位别名表。
 
+药物编码不是“非空即有效”：NDC 必须是非全零的 11 位数字，GSN 必须是单个 6 位编码；`ndc:0` 或一格多值 GSN 会保留原始值并进入 `invalid-source-code` 审核队列。明确单位通过冻结别名表归一化，含义不确定的 `dose` 不自动猜测。
+
 输出：
 
 - `normalization_mappings.parquet`：每个术语和单位使用的映射、状态、规则和版本。
@@ -93,7 +95,7 @@
 - 每个 `source_table × event_kind` 的代表源行；
 - 每张源表事件拆分数最大的代表源行。
 
-代表案例保存 `raw_row_ref`、预期事件类型、一对多事件数和允许的质量标志。患者、住院和三个时间字段只保存 SHA-256 期望值，原值继续留在被 Git 忽略的本地数据中。
+代表案例保存 `raw_row_ref`、预期事件类型、一对多事件数和允许的质量标志。患者、住院以及源端/有效时间字段只保存 SHA-256 期望值，原值继续留在被 Git 忽略的本地数据中。
 
 快速验证三批既有产物没有漂移：
 
@@ -107,7 +109,7 @@ uv run --no-cache python -m data_pipeline.event_pipeline.regression verify
 uv run --no-cache python -m data_pipeline.event_pipeline.regression verify --rerun
 ```
 
-当前仓库正在扩展旧14张事件源到21张事实拥有者，已发布Parquet仍对应旧合同。因此在新的cleaned events完成并人工验收前，`--rerun` 会按设计报告合同差异；此时不得执行 `capture` 覆盖旧基线。快速 `verify` 仍用于确认三批既有产物自身没有漂移。
+当前 21 张事实拥有者合同已完成，三批 fixture 已迁移到清洗合同 1.3.0，并从各自源 JSONL 真实复跑通过。`verify --rerun` 用于证明同一输入仍生成相同的 `source_row_id`、`event_id`、事件语义和拒绝语义。
 
 可用 `--batch sample_100`、`--batch random_1000_a` 或 `--batch random_1000_b` 单独复跑。只有在人工确认行为变化符合新的清洗合同后，才允许显式更新基线：
 
@@ -115,7 +117,7 @@ uv run --no-cache python -m data_pipeline.event_pipeline.regression verify --rer
 uv run --no-cache python -m data_pipeline.event_pipeline.regression capture
 ```
 
-该回归基线证明原有已验收输出没有被后续修改意外破坏，不代表旧 `SOURCE_REGISTRY` 已经覆盖全部临床源表。源表覆盖完整性仍由独立的 source coverage 门禁负责。
+该回归基线证明已验收输出没有被后续修改意外破坏；33 张输入表的登记完整性和角色边界仍由独立的 source coverage 门禁负责。
 
 ## 逐项查看清洗结果
 

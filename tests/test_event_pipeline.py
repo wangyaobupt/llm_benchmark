@@ -24,7 +24,8 @@ from data_pipeline.event_pipeline.source_registry import (
     SOURCE_CATALOG_VERSION,
 )
 from data_pipeline.event_pipeline.validation import EventPipelineError, EventValidator
-from eda.analysis.audit_cleaned_events_acceptance import audit
+from eda.analysis.audit_cleaned_events_acceptance import audit as audit_cleaned
+from eda.analysis.audit_normalized_events_acceptance import audit as audit_normalized
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -378,7 +379,7 @@ class EventPipelineTest(unittest.TestCase):
             cleaning = root / "cleaning"
             run_cleaning(source, cleaning, batch_size=3)
 
-            valid = audit(
+            valid = audit_cleaned(
                 cleaning / "cleaned_events.parquet",
                 cleaning / "cleaning_rejected.parquet",
                 source,
@@ -406,7 +407,7 @@ class EventPipelineTest(unittest.TestCase):
                 compression="zstd",
             )
 
-            corrupted = audit(
+            corrupted = audit_cleaned(
                 corrupted_path,
                 cleaning / "cleaning_rejected.parquet",
                 source,
@@ -433,7 +434,7 @@ class EventPipelineTest(unittest.TestCase):
                 missing_field_path,
                 compression="zstd",
             )
-            missing_field = audit(
+            missing_field = audit_cleaned(
                 missing_field_path,
                 cleaning / "cleaning_rejected.parquet",
                 source,
@@ -448,6 +449,60 @@ class EventPipelineTest(unittest.TestCase):
             self.assertIn(
                 "required_event_field_missing",
                 missing_field["acceptance"]["blocking_issue_codes"],
+            )
+
+    def test_normalization_acceptance_audit_preserves_facts_and_blocks_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self._write_source(root, self._record())
+            cleaning = root / "cleaning"
+            normalization = root / "normalization"
+            run_cleaning(source, cleaning, batch_size=3)
+            run_normalization(
+                cleaning / "cleaned_events.parquet",
+                cleaning / "term_inventory.parquet",
+                normalization,
+                batch_size=3,
+            )
+
+            valid = audit_normalized(
+                cleaning / "cleaned_events.parquet",
+                cleaning / "term_inventory.parquet",
+                normalization / "normalized_events.parquet",
+                normalization / "normalization_mappings.parquet",
+                normalization / "normalization_review_queue.parquet",
+                normalization / "normalization_manifest.json",
+            )
+            self.assertTrue(valid["acceptance"]["can_publish_normalization"])
+
+            rows = pq.read_table(
+                normalization / "normalized_events.parquet"
+            ).to_pylist()
+            rows[0]["event_time"] = "2150-01-01T23:59:59"
+            corrupted_path = root / "corrupted_normalized_events.parquet"
+            pq.write_table(
+                pa.Table.from_pylist(rows, schema=EVENT_ARROW_SCHEMA),
+                corrupted_path,
+                compression="zstd",
+            )
+            corrupted = audit_normalized(
+                cleaning / "cleaned_events.parquet",
+                cleaning / "term_inventory.parquet",
+                corrupted_path,
+                normalization / "normalization_mappings.parquet",
+                normalization / "normalization_review_queue.parquet",
+                normalization / "normalization_manifest.json",
+            )
+            self.assertFalse(
+                corrupted["acceptance"]["can_publish_normalization"]
+            )
+            self.assertIn(
+                "immutable_event_field_changed",
+                corrupted["acceptance"]["blocking_issue_codes"],
+            )
+            self.assertIn(
+                "manifest_contract_mismatch",
+                corrupted["acceptance"]["blocking_issue_codes"],
             )
 
     def test_reconciliation_is_per_source_row_and_known_data_error_is_rejected(self) -> None:
