@@ -18,6 +18,7 @@ data_pipeline/clean_clinical_archive/dictionaries/
 # Python bytecode and caches
 __pycache__/
 *.py[cod]
+.test-tmp/
 
 # Local environments and credentials
 .env
