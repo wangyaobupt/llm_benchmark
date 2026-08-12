@@ -287,7 +287,6 @@ class EventPipelineTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             enriched = self._record()
-            source = self._write_source(root, enriched)
             raw = deepcopy(enriched)
 
             def without_enrichment(value):
@@ -301,10 +300,19 @@ class EventPipelineTest(unittest.TestCase):
                     return [without_enrichment(item) for item in value]
                 return value
 
+            raw = without_enrichment(raw)
+            source_schema = deepcopy(enriched["schema"])
+            enriched = {
+                "schema": {
+                    "name": "mimic_admission_clinical_readable",
+                    "version": "1.0.0",
+                },
+                "source_schema": source_schema,
+                **{key: value for key, value in enriched.items() if key != "schema"},
+            }
+            source = self._write_source(root, enriched)
             raw_path = root / "raw.jsonl"
-            raw_path.write_text(
-                json.dumps(without_enrichment(raw)) + "\n", encoding="utf-8"
-            )
+            raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
             output = root / "workflow-output"
             manifest = run_workflow(
                 source,
@@ -495,7 +503,26 @@ class EventPipelineTest(unittest.TestCase):
     def test_independent_acceptance_audit_passes_valid_output_and_blocks_corruption(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            source = self._write_source(root, self._record())
+            enriched = self._record()
+            source = self._write_source(root, enriched)
+            raw = deepcopy(enriched)
+            raw["mimic_iv_hosp"].pop("poe_timeline")
+            for module in (
+                "mimic_iv_hosp",
+                "mimic_iv_icu",
+                "mimic_iv_ed",
+                "mimic_iv_note",
+            ):
+                for rows in raw[module].values():
+                    if not isinstance(rows, list):
+                        continue
+                    for row in rows:
+                        if isinstance(row, dict):
+                            for key in list(row):
+                                if key.endswith("_decoded"):
+                                    del row[key]
+            raw_path = root / "raw.jsonl"
+            raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
             cleaning = root / "cleaning"
             run_cleaning(source, cleaning, batch_size=3)
 
@@ -503,7 +530,7 @@ class EventPipelineTest(unittest.TestCase):
                 cleaning / "cleaned_events.parquet",
                 cleaning / "cleaning_rejected.parquet",
                 source,
-                source,
+                raw_path,
                 cleaning / "source_reconciliation.json",
                 cleaning / "run_manifest.json",
                 samples_per_table=1,
@@ -531,7 +558,7 @@ class EventPipelineTest(unittest.TestCase):
                 corrupted_path,
                 cleaning / "cleaning_rejected.parquet",
                 source,
-                source,
+                raw_path,
                 cleaning / "source_reconciliation.json",
                 cleaning / "run_manifest.json",
                 samples_per_table=1,
@@ -558,7 +585,7 @@ class EventPipelineTest(unittest.TestCase):
                 missing_field_path,
                 cleaning / "cleaning_rejected.parquet",
                 source,
-                source,
+                raw_path,
                 cleaning / "source_reconciliation.json",
                 cleaning / "run_manifest.json",
                 samples_per_table=1,

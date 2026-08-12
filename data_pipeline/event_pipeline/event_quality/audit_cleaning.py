@@ -184,6 +184,24 @@ def _without_enrichment(value: Any) -> Any:
     return value
 
 
+def _restore_raw_record(value: dict[str, Any]) -> dict[str, Any]:
+    """Reverse the clinical-readable wrapper before raw-content comparison."""
+    restored = _without_enrichment(value)
+    schema = restored.get("schema")
+    if schema != {
+        "name": "mimic_admission_clinical_readable",
+        "version": "1.0.0",
+    }:
+        return restored
+    source_schema = restored.pop("source_schema", None)
+    if not isinstance(source_schema, dict):
+        return restored
+    return {
+        "schema": source_schema,
+        **{key: item for key, item in restored.items() if key != "schema"},
+    }
+
+
 def _raw_row(
     raw_ref: str,
     records: dict[int, dict[str, Any]],
@@ -989,7 +1007,7 @@ def audit(
             (str(raw.get("subject_id")), str(raw.get("hadm_id")))
             == (str(enriched.get("subject_id")), str(enriched.get("hadm_id")))
         )
-        content_matches = _without_enrichment(raw) == _without_enrichment(enriched)
+        content_matches = raw == _restore_raw_record(enriched)
         raw_content_matches += int(content_matches)
         if not content_matches and len(raw_difference_lines) < 20:
             raw_difference_lines.append(line_number)
@@ -1061,6 +1079,7 @@ def audit(
         "upstream_raw_equivalence": {
             "lines": len(all_line_numbers),
             "identity_matches": raw_identity_matches,
+            "raw_content_matches_after_reversing_enrichment": raw_content_matches,
             "raw_content_matches_after_dropping_decoded_fields_and_poe_timeline": raw_content_matches,
             "difference_lines": raw_difference_lines,
         },
