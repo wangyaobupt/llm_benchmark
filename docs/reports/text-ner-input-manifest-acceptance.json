@@ -1,0 +1,136 @@
+{
+  "artifacts": {
+    "input_sha256": "e864e858c7352bedd12fc4a704e52965d77d1c9d28a7e393b841d6a21a3a928e",
+    "manifest_sha256": "7dc5106214da7becbf2a9409cf5a1766996262a3e03179b8580a731cb1eab4e1",
+    "run_manifest_sha256": "521528981bcf5ca676efad04f90a16ccc06dd46606f9e2f01314a781d1ebe9aa",
+    "summary_sha256": "9137593d8e25d8e031720d847581196cc472aec09da212cf9df98d2770e9b5e4"
+  },
+  "checks": [
+    {
+      "check": "arrow_schema",
+      "expected": "{b'schema': b'text-ner-input-manifest/1.0.0'}",
+      "observed": "{b'schema': b'text-ner-input-manifest/1.0.0'}",
+      "passed": true
+    },
+    {
+      "check": "schema_version",
+      "expected": [
+        "text-ner-input-manifest/1.0.0"
+      ],
+      "observed": [
+        "text-ner-input-manifest/1.0.0"
+      ],
+      "passed": true
+    },
+    {
+      "check": "raw_text_columns_absent",
+      "expected": [],
+      "observed": [],
+      "passed": true
+    },
+    {
+      "check": "manifest_row_ids_unique",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "source_hash_and_locator",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "included_spans_exact",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "section_coverage_exact",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "source_document_reconciliation",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "time_policy",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "post_hoc_exclusion",
+      "expected": 0,
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "check": "pilot_document_count",
+      "expected": 200,
+      "observed": 200,
+      "passed": true
+    },
+    {
+      "check": "pilot_source_balance",
+      "expected": {
+        "ed.triage": 100,
+        "note.radiology": 100
+      },
+      "observed": {
+        "ed.triage": 100,
+        "note.radiology": 100
+      },
+      "passed": true
+    },
+    {
+      "check": "model_calls",
+      "expected": {
+        "run": 0,
+        "summary": 0
+      },
+      "observed": {
+        "run": 0,
+        "summary": 0
+      },
+      "passed": true
+    },
+    {
+      "check": "input_hash",
+      "expected": "e864e858c7352bedd12fc4a704e52965d77d1c9d28a7e393b841d6a21a3a928e",
+      "observed": "e864e858c7352bedd12fc4a704e52965d77d1c9d28a7e393b841d6a21a3a928e",
+      "passed": true
+    },
+    {
+      "check": "repeat_run_hashes",
+      "expected": "identical to primary run",
+      "observed": {
+        "run_manifest.json": "521528981bcf5ca676efad04f90a16ccc06dd46606f9e2f01314a781d1ebe9aa",
+        "text_ner_input_manifest.parquet": "7dc5106214da7becbf2a9409cf5a1766996262a3e03179b8580a731cb1eab4e1",
+        "text_ner_input_manifest_summary.json": "9137593d8e25d8e031720d847581196cc472aec09da212cf9df98d2770e9b5e4"
+      },
+      "passed": true
+    }
+  ],
+  "counts": {
+    "discharge_documents_excluded": 88,
+    "ed_chief_complaint_documents": 100,
+    "excluded_documents": 88,
+    "included_text_units": 2724,
+    "manifest_rows": 2812,
+    "model_calls": 0,
+    "pilot_documents": 200,
+    "pilot_subjects": 99,
+    "radiology_documents": 443
+  },
+  "passed": true,
+  "schema": {
+    "name": "text_ner_input_manifest_acceptance",
+    "version": "1.0.0"
+  }
+}

@@ -8,12 +8,14 @@
 MIMIC 原始 CSV.GZ 表
     ↓ mimic_raw_archive
 Admission 级原始 JSONL
-    ↓ clean_clinical_archive
-字典解码 + POE 解析后的临床可读 JSONL
-    ↓ event_pipeline clean
-结构化临床事件 Parquet + 术语清单
-    ↓ event_pipeline normalize
-确定性归一化事件 Parquet + 审核队列
+    ├─→ clean_clinical_archive
+    │     ↓
+    │   字典解码 + POE 解析后的临床可读 JSONL
+    │     ↓ event_pipeline clean / normalize
+    │   结构化及确定性归一化事件 Parquet + 审核队列
+    └─→ text_ner prepare
+          ↓
+        可追溯文本 NER 输入清单（不调用模型）
 ```
 
 `tools/mimic_dictionary` 是字典生成工具，为清洗器提供五份官方字典；正常清洗时不需要重复执行。
@@ -37,6 +39,7 @@ Visit 级 JSONL + 决策快照
 | `mimic_raw_archive/` | 主流程第一步 | MIMIC CSV.GZ 原始表 | `mimic_admission_raw/1.0.0` JSONL |
 | `clean_clinical_archive/` | 主流程第二步 | Admission 原始 JSONL | `mimic_admission_clinical_readable/1.0.0` JSONL |
 | `event_pipeline/` | 主流程第三、四步 | 字典解码与 POE 解析后的 Admission JSONL | 结构化及确定性归一化事件 Parquet |
+| `text_ner/` | 文本事实支路输入准备 | Admission 原始 JSONL | 文档/章节/span 清单、pilot 选择与独立验收 |
 | `mimic_source_catalog.py` | 活动共享契约 | MIMIC 文件目录与锁定表头 | 供原始归档和归档 Episode 复用的源表定义 |
 | `tools/mimic_dictionary/` | 辅助工具 | 五张官方字典表 | JSON、CSV、Parquet、DuckDB 字典 |
 | `archived/mimic_episode/` | 已归档路线 | 41 张 MIMIC 源表 | Episode/事件 Parquet |
@@ -61,6 +64,12 @@ Visit 级 JSONL + 决策快照
   data\mimic-admission-raw.jsonl `
   --output data\clean_clinical_archive\clinical-readable.jsonl `
   --report data\clean_clinical_archive\clinical-readable.report.json
+
+# 3. 生成文本 NER 输入清单；该命令不调用模型
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare `
+  data\mimic-admission-raw-coronary-all-three-modules-random-100.jsonl `
+  --output-dir data\derived\text_ner_sample_100 `
+  --pilot-size 200
 ```
 
 各模块的完整参数、数据约束和文件职责见对应目录的 `README.md`。

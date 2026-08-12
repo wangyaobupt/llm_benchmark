@@ -343,7 +343,7 @@ term inventory
 - 未经明确合规审查，不向普通外部模型 API 发送患者级文本。
 - 先做约 200 份分层文档 pilot 和双人审核，再扩容。
 
-**当前状态：输入清单待生成。** 首批只纳入 ED chief complaint 和按文档/章节拆分的放射报告；出院小结保留为 `post_hoc`，不进入首批 NER；结构化标准化中的 unresolved 继续走字典、原生编码或人工审核，不送入文本 NER。当前门禁只授权生成输入清单，不授权调用任何外部模型。
+**当前状态：输入清单已完成并通过独立验收。** 100例输入生成2,812行 manifest，覆盖100条ED chief complaint、443份放射报告和2,724个纳入文本单元；88份出院小结全部以 `POST_HOC_DISCHARGE` 排除。200份pilot由100条ED主诉和100份分层放射报告组成；双跑的Parquet、摘要和run manifest哈希完全一致，模型调用为0。下一门禁是冻结实体/属性Schema、人工标注规范和本地模型运行协议，当前结果不授权模型调用。
 
 ## 10. J0：Patient journey 事件流
 
@@ -669,6 +669,8 @@ flowchart TD
 ## 18. 当前执行队列
 
 ### 18.1 当前数据支路：生成首批文本证据输入清单
+
+**状态：已完成。** 以下五项均已由 `data_pipeline.text_ner` 实现，并由 `docs/reports/text-ner-input-manifest-acceptance.md` 独立验收：
 
 1. 从 100 例 admission 中枚举 ED chief complaint 和放射报告文档，不复制或改写原始文本。
 2. 对放射报告生成稳定的 `note_id + section_id + span` 定位；保留 chart/store time、文本哈希和来源。
