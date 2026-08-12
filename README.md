@@ -1,204 +1,67 @@
 # MIMIC 临床 LLM Benchmark
 
-基于 MIMIC-IV v3.1 / ED 2.2 / Note 2.2 构建临床 LLM 评测基准：先用真实世界数据产出五类英文 A-D 单选临床 MCQ，再用这五类题目从五个维度评估 LLM 的临床判断能力。
+## 项目要做什么
 
-题目围绕统一临床流程 `患者信息 → 检查检验 → 临床诊断 → 治疗处置 → 转诊科室 → 离院指导` 展开，覆盖五个决策点。
+本项目基于 MIMIC-IV v3.1、MIMIC-IV-ED 2.2 和 MIMIC-IV-Note 2.2，构建可追溯、可复现、可审计的临床大语言模型评测基准。
 
-## 两层架构
+最终产物是五类英文 A–D 单选临床决策题，用于评估 LLM 在一次诊疗流程中的五项能力：
 
-项目从下到上分为**数据层**和**评测层**，数据层的产物直接喂给评测层出题。
+1. 检查检验选择；
+2. 临床诊断；
+3. 治疗与处置；
+4. 转诊与科室选择；
+5. 离院指导与随访。
 
+项目以真实世界数据中的结构化事实和时间关系为依据，先冻结可用证据、答案定义与数据划分，再生成题目和开展模型评测。行为一致性任务回答“真实临床中最可能发生什么”，规范性任务回答“依据临床证据最应该做什么”；两类 gold 不混用。所有前瞻性题目只允许使用在决策时点已经发生且已经可用的信息，后验资料和行政终点信息不能进入题干。
+
+## 整体计划
+
+项目按“数据层 → 评测层”串行推进。上一阶段没有通过验收，不启动下一阶段。
+
+```text
+MIMIC 原始表
+    ↓
+单次住院原始归档
+    ↓
+字典解码与 POE 解析
+    ↓
+临床事件清洗
+    ↓
+确定性标准化
+    ↓
+决策时点快照与 gold 构建
+    ↓
+五类 MCQ 生成与临床审核
+    ↓
+LLM 评测、统计分析与报告
 ```
-MIMIC-IV v3.1 / ED 2.2 / Note 2.2
-        │
-        ▼
-  数据层 ──────────────────────────────────────────
-  │  原始住院归档  data_pipeline/mimic_raw_archive/  10K与冠状动脉疾病谱全量运行完成
-  │  32张住院内源表 → 一行一个 hadm_id
-  │  7张公共字典单独保存；排除 ICU chartevents 与 OMR
-  │  [2] 清洗      类型/时间/质量/文书结构化   已指定流程
-  │  [3] 标准化    代码/药物/检验/文本术语映射 已指定流程
-  └────────────────────────────────────────────────
-        │
-        ▼
-  评测层 ──────────────────────────────────────────
-  │  [4] MCQ 出题  mcq_generation/          仅设计
-  │  [5] LLM 评估                              待办
-  └────────────────────────────────────────────────
-```
 
-| 阶段 | 层 | 完成度 | 说明 |
-|---|---|---|---|
-| Episode 聚合 | 数据层 | 🟤 历史中间层 | 41 表 episode Parquet 仍保留供审计，新的 raw archive 直接按原始主键关联 |
-| 数据抽取 | 数据层 | ✅ 已完成验证 | `mimic_admission_raw` 1.0.0；10K与108,833次冠状动脉疾病谱全量提取完成，分片、续跑和原始字段验证通过 |
-| 清洗 | 数据层 | 📋 流程已指定 | raw row 展开、类型与时间解释、质量标记、文书结构化；不覆盖原始归档 |
-| 标准化 | 数据层 | 📋 流程已指定 | 代码字典、药物、检验单位和文本实体映射；结果以 sidecar 保存 |
-| MCQ 出题 | 评测层 | 🔷 设计中 | 题型 1 有完整 Stage 0-10 设计；题型 2-5 仅题型规范；零实现代码 |
-| LLM 评估 | 评测层 | ⏳ 待办 | 评估框架、指标、LLM 接入未启动，依赖题库产出 |
-
-## 五类题型
-
-| # | 题型 | 评测层向 LLM 提出的问题 | 设计状态 |
-|---:|---|---|---|
-| 1 | Clinical investigation selection | "该患者下一步最可能开什么检查？" | 完整 10 阶段生成设计 |
-| 2 | Clinical diagnosis | "该患者的诊断是什么？" | 题型规范 |
-| 3 | Treatment and management | "该患者的首选治疗方案？" | 题型规范 |
-| 4 | Referral and specialty selection | "该患者应转哪个科室？" | 题型规范 |
-| 5 | Discharge advice and follow-up | "该患者离院后如何随访？" | 题型规范 |
-
-题型 1 的核心原则：统计答案先于语言生成——先从 RWD 挖掘「患者特征 → 检查项」条件概率规则取 rank-1，模型只负责写合成题干和理由，不决定答案、不改选项、不添加规则外的患者事实。
-
-## 项目结构
-
-| 目录 | 层 | 作用 |
+| 阶段 | 要解决的问题 | 核心产物与完成条件 |
 |---|---|---|
-| `data_pipeline/` | 数据层 | 格式转换、原始归档、字典构建、临床可读清洗和 Episode 聚合 |
-| `rwd_pipeline/` | 数据层 | 旧版提取/清洗/标准化（17 列 CSV 路线，已被替代） |
-| `mcq_generation/` | 评测层 | MCQ 出题模块（当前仅设计文档，代码待实现） |
-| `eda/` | — | 探索性数据分析（`exploratory/` 早期探索 + `analysis/` 当前分析） |
-| `docs/` | — | 项目文档（`design/` 方法学、`reports/` 分析报告、`reference/` 参考资料） |
-| `tests/` | — | 测试套件 |
-| `data/` | — | 本地数据与工具（`.gitignore` 排除，不推送） |
+| 单次住院原始归档 | 在不改写源记录的前提下，按住院聚合 HOSP、ED、ICU 和 Note | 原始 JSONL、字段与来源清单、manifest、完整性验证 |
+| 字典解码与 POE 解析 | 将代码映射为可读含义，并保留医嘱生命周期和原生连接 | 解码 sidecar、POE timeline、可逆性与连接验证 |
+| 临床事件清洗 | 将嵌套源行转换为一行一个可追溯临床事件 | cleaned events、拒绝记录、来源对账、时间与身份门禁 |
+| 确定性标准化 | 统一代码、药物、检验、单位和术语，不由 LLM 猜测映射 | normalized events、映射表、审核队列、版本化 manifest |
+| 决策快照与 gold | 冻结每个决策时点可见证据，并区分行为 gold 与规范性 gold | 无未来信息泄漏的病例快照、标签与患者级数据划分 |
+| MCQ 生成与审核 | 基于已冻结证据和答案生成题干、选项与解释 | 五类候选题、自动门禁、临床人工审核和发布集 |
+| LLM 评测 | 比较不同模型的临床决策能力、稳定性和错误类型 | 评测协议、指标、置信区间、错误分析与最终报告 |
 
-目录编排规范详见 [docs/文件保存规范.md](docs/文件保存规范.md)。
+原始归档始终保持不变；清洗、标准化、快照和题目均作为带版本与来源信息的派生产物保存。患者级数据按患者划分训练、开发和测试集合，避免同一患者跨集合泄漏。
 
-## 数据层
+## 当前进展
 
-### Episode 聚合
+截至 2026-08-12，项目处于“100例临床事件清洗验收完成，准备重新执行确定性标准化”阶段。
 
-跨系统聚合 MIMIC-IV 3.1、IV-ED 2.2、IV-Note 2.2 的 41 张源表为 episode-level Parquet（768K episode / 48.9 GB）。住院使用 `H:<hadm_id>`；无有效住院关联的急诊使用 `E:<stay_id>`。
+| 阶段 | 状态 | 已完成的证据 | 尚未完成 |
+|---|---|---|---|
+| 单次住院原始归档 | 已完成 | 冠状动脉疾病谱共 108,833 次住院、46,062 名患者、50.392 GiB、218 个分片；32张住院内源表的 schema、原生父子键、患者分区和 `chartevents` 排除均通过验证 | 将该归档继续作为只读上游输入，不再改写 |
+| 原始归档 EDA | 已完成 | 已完成全量流式分析，覆盖32张表、原始时间字段、疾病谱、模块覆盖和五类题型数据源准备度 | 后续数据层变化需继续以正式 metrics 和 manifest 对账 |
+| 字典解码与 POE 解析 | 已完成 | 已实现可携带的字典解码与 POE timeline；保留源字段、原生键和可逆追溯关系 | 新输入版本出现时重新执行合同验证 |
+| 临床事件清洗代码 | 已完成当前合同 | 已建立33张输入表的封闭式来源合同：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 在扩大样本前继续保持合同、回归基线和来源对账一致 |
+| 100例 cleaned events | 已通过独立验收 | 65,811个输入事实源行产生66,652条 accepted 事件和43条 rejected 记录；全部事件、拒绝原因、支持来源、时间语义、manifest 和文件哈希通过独立复算，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
+| 确定性标准化 | 下一项任务 | 标准化代码路径和产物合同已经存在 | 旧标准化产物与新版 cleaned SHA-256 不一致，必须基于66,652条新事件和3,895条术语清单重新执行并独立审计 |
+| 决策快照与 gold | 尚未实现 | 已明确 `available_time <= index_time`、排除 `post_hoc` 与 `administrative_end` 等基本边界 | 冻结可执行协议、生成快照并验证无未来信息泄漏 |
+| MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
+| LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |
 
-```powershell
-data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task sync
-data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task validate
-data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task extract
-data_pipeline\archived\mimic_episode\scripts\pipeline\run_mimic_pipeline.ps1 -Task aggregate-episodes
-```
-
-本机聚合目录为 `G:\Projects\医疗数据集评测-MIMIC\outputs\episodes`。详见 [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md)。
-
-### 单次住院原始归档
-
-新的数据层从原始 MIMIC CSV 构建 `mimic_admission_raw` 1.0.0：每行对应一个 `hadm_id`，各模块内按原始表名保存原始字段和原始行，不解析出院章节、不聚合 lab panel、不生成专科标签、标准名称、患者分区或决策快照。
-
-纳入32张住院内源表；7张公共字典单独保存。明确排除 ICU `chartevents` 高频监护数据；`omr` 没有原生 `hadm_id`，也不通过时间推断纳入住院。层级、连接键与排除边界见 [MIMIC 单次住院原始归档 JSONL schema](docs/design/mimic-admission-raw-jsonl-schema.md)；全部412个顶层/源表/公共字典字段的逐字段解释见[原始归档逐字段数据字典](docs/design/mimic-admission-raw-field-dictionary.md)。
-
-| 指标 | 值 |
-|---|---|
-| 候选 episodes | 331,537 |
-| 写出 visits | 320,267 |
-| 跳过 | 11,270 |
-| 数据体积 | 27.4 GB |
-| 平均每 visit | 89.6 KB |
-| 提取耗时 | 68 min（DuckDB 流式批处理） |
-
-以上指标属于 legacy visit JSONL，仅作为历史基线，不代表新的 raw archive。
-
-```powershell
-.venv\Scripts\python.exe -m data_pipeline.mimic_raw_archive --sample-size 10000
-```
-
-默认使用2个 worker、每个4个 DuckDB线程；每1,000例形成一个原子分片。中断后根据 manifest 只运行未完成的源表 staging 或 JSONL 分片。
-
-2026-08-10 的10,000次住院验证运行已完成：最终 JSONL 为3,399,458,012字节（3.166 GiB），工作目录与最终文件合计6.442 GiB，实际耗时5分57秒。只读本地监控页面使用：
-
-```powershell
-.venv\Scripts\python.exe -m data_pipeline.mimic_raw_archive.monitor --open-browser
-```
-
-页面每5秒读取 manifest、文件元数据、磁盘和系统内存，不读取患者记录内容。单张大表扫描期间只报告表级状态，不提供无法验证的表内百分比。
-
-当前10,000例的流式EDA见 [EDA报告](docs/reports/mimic-raw-10000-eda.md)。全患者与冠状动脉疾病谱的规模、时间和磁盘估算见 [疾病谱提取估算](docs/reports/coronary-cohort-extraction-estimate.md)。疾病谱固定为ICD-9 410–414 / ICD-10 I20–I25，外部selection不会把队列标签写进raw JSON。
-
-2026-08-10 的冠状动脉疾病谱全量提取与 EDA 已完成：108,833 次住院、46,062 名患者、50.392 GiB、218 个分片。交互式结果见 [冠状动脉疾病谱全量 EDA](docs/reports/mimic-raw-coronary-eda.html)，可搜索/排序32张源表、筛选52个时间字段，并查看疾病谱、患者级分区、五维来源准备度和 JSONL 字段说明；页面自包含，可离线打开。
-
-### 清洗与标准化（待实现）
-
-清洗和标准化不修改 raw archive，分别生成可追溯 sidecar。清洗处理 source row 展开、类型/时间语义、质量标记和文书结构；标准化处理字典代码、药物、检验单位和文本实体映射。动态读取规则属于评测层，只为入选候选题生成小型 view manifest。完整流程见 [原始住院归档后的清洗与标准化流程](docs/design/raw-archive-cleaning-standardization.md)。
-
-## 评测层
-
-### MCQ 出题
-
-题型 1（检查检验选择）有完整的 Stage 0-10 生成设计，从条件规则挖掘到 gold 发布共 11 个阶段，含 8 道统计硬门槛、干扰项选择、答案位置锁定、独立自动审题、人工审核和 fail-closed 发布门禁。
-
-详见 [mcq_generation/mcq_generation_design.md](mcq_generation/mcq_generation_design.md)（题型 1 详细设计）和 [mcq_generation/architecture_overview.md](mcq_generation/architecture_overview.md)（跨文档架构总览）。题型 2-5 规范见 [mcq_generation/question_types.md](mcq_generation/question_types.md)。
-
-## 环境配置
-
-- **Python 3.12**（固定，`pyproject.toml` + `.python-version` 锁定）
-- **uv** 管理依赖，`uv.lock` 锁定版本
-- **DeepSeek API**：设置 `DEEPSEEK_API_KEY` 环境变量（`.env` 已被 `.gitignore` 排除）
-- **WDAC 约束**：本机应用控制策略禁止从 `G:\` 和 `C:\Users` 运行 Python，仅 D 盘可用
-
-```powershell
-uv sync --locked
-.venv\Scripts\python.exe -m pytest tests/ -v
-```
-
-## 数据安全
-
-- 不提交原始 CSV、影像、波形、Parquet、DuckDB 或病例输出（`.gitignore` 已覆盖 `*.csv`、`*.parquet`、`data/`、`*.pdf`）
-- 不把 MIMIC 患者级内容发送到普通在线 LLM/API
-- 公开成果只包含代码、配置、字段定义、汇总结果和合规文档
-
-## 关键文档索引
-
-### 项目概览
-
-| 文档 | 内容 |
-|---|---|
-| [docs/research-status.md](docs/research-status.md) | 当前研究进度、验证结果、文档差异与下一步入口 |
-| `handoffs/handoff-20260806-1520.md`（本地） | 历史合并记录（不代表当前主线，不推送） |
-| [docs/项目流程梳理与推进计划.md](docs/项目流程梳理与推进计划.md) | 流程梳理与推进计划 |
-| [docs/文件保存规范.md](docs/文件保存规范.md) | 目录职责、命名约定、新增文件决策流程 |
-
-### 方法学与设计
-
-| 文档 | 内容 |
-|---|---|
-| [docs/design/MIMIC评测数据集构建方法学.md](docs/design/MIMIC评测数据集构建方法学.md) | 方法学全文 |
-| [docs/design/clinical_episode_aggregation_plan.md](docs/design/clinical_episode_aggregation_plan.md) | Episode 聚合实施方案 |
-| [docs/design/episode_field_mapping.md](docs/design/episode_field_mapping.md) | 字段级映射 |
-| [docs/design/mimic-admission-raw-jsonl-schema.md](docs/design/mimic-admission-raw-jsonl-schema.md) | 当前 raw JSONL 字段、原始连接与排除边界 |
-| [docs/design/mimic-admission-raw-field-dictionary.md](docs/design/mimic-admission-raw-field-dictionary.md) | 7个顶层字段、JSONL内380个字段和7张外置公共字典25个字段的逐字段说明 |
-| [docs/design/raw-archive-cleaning-standardization.md](docs/design/raw-archive-cleaning-standardization.md) | 下一步清洗、标准化和动态读取流程 |
-| [docs/design/mimic-multimodal-benchmark-guide.md](docs/design/mimic-multimodal-benchmark-guide.md) | 多模态 benchmark 指南 |
-
-### 分析报告
-
-| 文档 | 内容 |
-|---|---|
-| [docs/reports/dashboard.html](docs/reports/dashboard.html) | 动态进度仪表盘（浏览器直接打开） |
-| [docs/reports/mimic-raw-coronary-eda.html](docs/reports/mimic-raw-coronary-eda.html) | 108,833次冠状动脉疾病谱住院的交互式全量EDA与JSONL字段说明 |
-| [docs/reports/mimic-admission-raw-field-dictionary.json](docs/reports/mimic-admission-raw-field-dictionary.json) | 与逐字段Markdown一致的机器可读字段字典 |
-| [docs/reports/mimic-raw-coronary-eda.md](docs/reports/mimic-raw-coronary-eda.md) | 同一全量EDA的静态Markdown报告 |
-| [docs/reports/data-profiling-report.md](docs/reports/data-profiling-report.md) | 数据质量 profiling 报告 |
-| [docs/reports/visit-archive-p0-validation.md](docs/reports/visit-archive-p0-validation.md) | 新 schema P0 修复与 100 episode 小样本验证 |
-| [docs/reports/ehpdcl_data_inventory.md](docs/reports/ehpdcl_data_inventory.md) | 香港医管局数据资产清单 |
-
-### MCQ 出题
-
-| 文档 | 内容 |
-|---|---|
-| [mcq_generation/architecture_overview.md](mcq_generation/architecture_overview.md) | MCQ 生成跨文档架构总览 |
-| [mcq_generation/mcq_generation_design.md](mcq_generation/mcq_generation_design.md) | 题型 1 Stage 0-10 生成设计 |
-| [mcq_generation/question_types.md](mcq_generation/question_types.md) | 五类题型规范 + EHR 字段表 |
-
-### 旧版规格（17 列 CSV 路线，跟模块走）
-
-| 文档 | 内容 |
-|---|---|
-| [rwd_pipeline/rwd_benchmark_extraction_spec.md](rwd_pipeline/rwd_benchmark_extraction_spec.md) | 抽取规格 |
-| [rwd_pipeline/rwd_benchmark_cleaning_spec.md](rwd_pipeline/rwd_benchmark_cleaning_spec.md) | 清洗规格（4 字段，可复用 prompt） |
-| [rwd_pipeline/rwd_benchmark_standardization_spec.md](rwd_pipeline/rwd_benchmark_standardization_spec.md) | 标准化规格 |
-
-## 本地数据状态
-
-- MIMIC-IV 3.1：已下载，SHA-256 33/33 通过
-- MIMIC-III 1.4：已下载，SHA-256 30/30 通过
-- MIMIC-IV-Note 2.2：已下载，SHA-256 5/5 通过
-- MIMIC-IV-ED 2.2：已下载，SHA-256 8/8 通过
-- CXR、ECG、ECHO、Waveform、FHIR：尚未发现
-
-数据完整性校验工具：`data/audit_mimic_download.ps1`（本地文件，`.gitignore` 排除），读取 CSV 表头并可选核验 SHA-256，不读取或输出患者数据行。
+当前最近的执行顺序是：先重跑并审计100例确定性标准化，再冻结首个决策任务的数据快照与 gold 协议；只有这两个门禁通过后，才开始生成首批 MCQ。
