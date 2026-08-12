@@ -24,8 +24,13 @@ class EventCleaningRegressionTest(unittest.TestCase):
             "hadm_id": "admission-1",
             "event_kind": kind,
             "event_time": "2150-01-01T08:00:00",
+            "source_available_time": None,
             "available_time": None,
             "recorded_time": None,
+            "time_resolution_status": "partially_resolved",
+            "time_precision": "second",
+            "time_policy_id": "triage_no_time_v1",
+            "time_resolution_reasons": [],
             "evidence_phase": "source_event",
             "quality_flags": ["AVAILABLE_TIME_UNKNOWN"],
             "raw_row_ref": "input.jsonl#L1/mimic_iv_ed.triage[0]",
@@ -57,7 +62,12 @@ class EventCleaningRegressionTest(unittest.TestCase):
         columns = tuple(rows[0])
         schema = pa.schema(
             [
-                (name, pa.list_(pa.string()) if name == "quality_flags" else pa.string())
+                (
+                    name,
+                    pa.list_(pa.string())
+                    if name in {"quality_flags", "time_resolution_reasons"}
+                    else pa.string(),
+                )
                 for name in columns
             ]
         )
@@ -82,6 +92,10 @@ class EventCleaningRegressionTest(unittest.TestCase):
         )
         fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
         self.assertEqual(
+            fixture["schema"],
+            {"name": "event_cleaning_regression", "version": "1.1.0"},
+        )
+        self.assertEqual(
             [batch["batch_id"] for batch in fixture["batches"]],
             ["sample_100", "random_1000_a", "random_1000_b"],
         )
@@ -90,7 +104,12 @@ class EventCleaningRegressionTest(unittest.TestCase):
             if isinstance(value, dict):
                 self.assertNotIn("subject_id", value)
                 self.assertNotIn("hadm_id", value)
-                for key in ("event_time", "available_time", "recorded_time"):
+                for key in (
+                    "event_time",
+                    "source_available_time",
+                    "available_time",
+                    "recorded_time",
+                ):
                     if key in value:
                         self.assertEqual(set(value[key]), {"present", "sha256"})
                 for child in value.values():

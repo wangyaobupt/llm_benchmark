@@ -105,6 +105,26 @@
 
 因此，本轮没有通过删除或改写旧事实来换取新覆盖。
 
+### 三批自动回归基线
+
+第一阶段建立的三批回归fixture已迁移到清洗契约1.3.0，fixture schema同步升级为 `event_cleaning_regression/1.1.0`。除原有输入SHA-256、`raw_row_ref`、事件类型、患者/住院指纹、三类时间、一对多数量和质量标志外，现额外冻结：
+
+- `source_available_time`；
+- `time_resolution_status`；
+- `time_precision`；
+- `time_policy_id`；
+- `time_resolution_reasons`。
+
+三批均已从源JSONL真实复跑并与新基线一致：
+
+| 批次 | 住院数 | 新事件数 | rejected | 旧事件缺失 | 核心语义意外变化 | 复跑结果 |
+|---|---:|---:|---:|---:|---:|---|
+| `sample_100` | 100 | 66,652 | 43 | 0 | 0 | 通过 |
+| `random_1000_a` | 1,000 | 757,036 | 218 | 0 | 0 | 通过 |
+| `random_1000_b` | 1,000 | 665,184 | 207 | 0 | 0 | 通过 |
+
+三批新产物均无 `available_time < event_time`，且同一输入重新生成相同的 `source_row_id`、`event_id`、完整事件语义摘要和拒绝语义摘要。
+
 ## 下一步门禁
 
 旧 `normalization/normalization_manifest.json` 记录的 cleaned SHA-256 为 `edf5296f5f73f3d50c628d7277bff80790b992b5bc7a99171cafbdf6e1a33a5a`，与当前 `bda93a98...` 不匹配，且旧事件数为57,777。因此旧归一化结果已失效。

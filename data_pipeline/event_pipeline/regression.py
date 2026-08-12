@@ -21,7 +21,7 @@ import pyarrow.parquet as pq
 from .pipeline import run_cleaning
 
 
-FIXTURE_SCHEMA = {"name": "event_cleaning_regression", "version": "1.0.0"}
+FIXTURE_SCHEMA = {"name": "event_cleaning_regression", "version": "1.1.0"}
 DEFAULT_FIXTURE = Path("tests/fixtures/event-cleaning-regression.json")
 
 
@@ -80,10 +80,13 @@ EVENT_COLUMNS = (
     "status",
     "assertion",
     "event_time",
+    "source_available_time",
     "available_time",
     "recorded_time",
     "time_resolution_status",
     "time_precision",
+    "time_policy_id",
+    "time_resolution_reasons",
     "evidence_phase",
     "source_concept_id",
     "concept_id",
@@ -170,8 +173,15 @@ def _snapshot_case(rows: list[dict[str, Any]]) -> dict[str, Any]:
                 "event_kind": row["event_kind"],
                 "evidence_phase": row["evidence_phase"],
                 "event_time": _time_expectation(row.get("event_time")),
+                "source_available_time": _time_expectation(
+                    row.get("source_available_time")
+                ),
                 "available_time": _time_expectation(row.get("available_time")),
                 "recorded_time": _time_expectation(row.get("recorded_time")),
+                "time_resolution_status": row["time_resolution_status"],
+                "time_precision": row["time_precision"],
+                "time_policy_id": row["time_policy_id"],
+                "time_resolution_reasons": row["time_resolution_reasons"],
                 "expected_quality_flags": flags,
             }
         )
@@ -363,8 +373,13 @@ def _verify_cases(
         "hadm_id",
         "event_kind",
         "event_time",
+        "source_available_time",
         "available_time",
         "recorded_time",
+        "time_resolution_status",
+        "time_precision",
+        "time_policy_id",
+        "time_resolution_reasons",
         "evidence_phase",
         "quality_flags",
         "raw_row_ref",
@@ -407,6 +422,16 @@ def _verify_cases(
                 errors.append(f"{batch_id}:{raw_ref}:{event_id}: event_kind changed")
             if actual["evidence_phase"] != expected_event["evidence_phase"]:
                 errors.append(f"{batch_id}:{raw_ref}:{event_id}: evidence_phase changed")
+            for field in (
+                "time_resolution_status",
+                "time_precision",
+                "time_policy_id",
+                "time_resolution_reasons",
+            ):
+                if actual[field] != expected_event[field]:
+                    errors.append(
+                        f"{batch_id}:{raw_ref}:{event_id}: {field} changed"
+                    )
             actual_flags = sorted(actual.get("quality_flags") or [])
             if not set(actual_flags).issubset(allowed):
                 errors.append(
@@ -416,7 +441,12 @@ def _verify_cases(
                 errors.append(
                     f"{batch_id}:{raw_ref}:{event_id}: quality flags changed"
                 )
-            for field in ("event_time", "available_time", "recorded_time"):
+            for field in (
+                "event_time",
+                "source_available_time",
+                "available_time",
+                "recorded_time",
+            ):
                 _compare_time(
                     batch_id,
                     raw_ref,
