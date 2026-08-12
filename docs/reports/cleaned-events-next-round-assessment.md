@@ -1,173 +1,118 @@
-# Cleaned events 下一轮改善评估
+# Cleaned events 改善完成与验收报告
 
 ## 结论
 
-当前 `data/derived/event_pipeline_sample_100/cleaning/` **不能判定为 cleaned events 阶段已经完成，必须进行下一轮清洗修复**。现有结果可以作为可复用基础，但不能据此开始新的结构化归一化或文本实体识别。
+`data/derived/event_pipeline_sample_100/cleaning/` 已按新源表、药物连接和时间契约重新生成，并通过独立验收。当前100例清洗层达到“可以开始重新执行结构化归一化”的标准；旧 normalization 产物不匹配新 cleaned SHA-256，不能继续使用。
 
-原因不是现有 57,777 条事件整体失效，而是当前验收只证明了旧 `SOURCE_REGISTRY` 中 14 张事件源的内部一致性，没有覆盖本轮拟纳入的诊断、HCPCS、ED 药物和 ICU 输入输出事件；同时 pharmacy 的拒绝发生在原生键连接之前，eMAR 没有形成可追溯的药物连接，全事件时间倒置也没有得到完整解释。
+本轮没有运行结构化归一化、NER或外部模型。
 
-## 审计范围
+## 正式产物
 
-- 清洗目录：`data/derived/event_pipeline_sample_100/cleaning/`
-- 事件输入：`data/validation/mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl`
-- 原始回查输入：`data/validation/mimic-admission-raw-coronary-sample-100.jsonl`
-- 样本：100 次住院
-- 审计方式：只读检查 Parquet、manifest、源表对账、全量追溯、原生键连接和时间关系；未调用归一化、NER 或外部模型。
-
-## 当前结果中可以保留的部分
-
-| 检查项 | 结果 | 判定 |
-|---|---:|---|
-| `cleaned_events.parquet` | 57,777 行，12 个 row groups，ZSTD | 结构可读 |
-| `cleaning_rejected.parquet` | 251 行 | 结构可读，但拒绝逻辑需修复 |
-| `encounter_manifest.parquet` | 100 行 | 与100次住院一致 |
-| `event_id` | 57,777 行均非空且全局唯一 | 通过 |
-| 已注册源表对账 | 57,144 个源行全部被 accepted 或 rejected 分类 | 仅在旧注册范围内通过 |
-| 现有事件追溯 | 57,777 条事件及251条拒绝记录均可回查 | 通过 |
-| 文件哈希 | manifest 中所有输出哈希均与当前文件一致 | 通过 |
-| 上游原始内容 | 去除解码字段和 `poe_timeline` 后，100行内容与原始输入一致 | 通过 |
-| `post_hoc` | `procedures_icd` 225条、出院小结68条 | 当前范围内正确 |
-
-旧验收脚本复跑结果仍为 `can_start_normalization=true`，但其覆盖集合直接来自旧 `SOURCE_REGISTRY`，因此这个结论只能解释为“旧范围内部通过”，不能解释为“完整 cleaned events 已完成”。
-
-## 阻断问题
-
-### P0-1：源表覆盖契约不完整
-
-100例输入中存在33个表或派生表数组，当前 `source_reconciliation.json` 只覆盖14张事件源，而且没有为其余表提供 `support`、`context` 或 `excluded` 的逐表理由。
-
-以下8,667个拟作为事实拥有者的源行完全没有进入当前 cleaned events：
-
-| 待纳入源表 | 源行数 | 应保持的语义 |
-|---|---:|---|
-| `hosp.diagnoses_icd` | 1,727 | 诊断记录，`post_hoc` |
-| `ed.diagnosis` | 80 | ED诊断记录，`post_hoc` |
-| `hosp.hcpcsevents` | 33 | HCPCS记录，`post_hoc` |
-| `ed.medrecon` | 521 | 药物核对/用药史，不等于给药 |
-| `ed.pyxis` | 143 | 药品取用或发放，不等于给药 |
-| `icu.inputevents` | 4,352 | ICU输入/输注事实 |
-| `icu.outputevents` | 1,811 | ICU输出测量事实 |
-| **合计** | **8,667** |  |
-
-辅助表也没有得到明确的非事实角色。例如 `poe`/`poe_detail`、`emar_detail`、`ingredientevents`、住院和就诊主表应参与连接或提供上下文，但不能因注册而重复产生临床事实。
-
-**影响：** 当前事件集合存在系统性缺失；继续归一化会把旧覆盖范围固化为新的下游版本。
-
-### P0-2：pharmacy 在原生键连接前错误拒绝
-
-当前251条拒绝记录全部为 `PHARMACY_MEDICATION_MISSING`。对100例输入重新按 `pharmacy_id` 和 `poe_id` 核查后：
-
-| 连接结果 | 行数 |
+| 项目 | 当前值 |
 |---|---:|
-| 可唯一确定药物 | 208 |
-| 多候选，需 review | 23 |
-| 无候选，需 unresolved/review | 20 |
+| 住院记录 | 100 |
+| 事实源 | 21张 |
+| support源 | 6张 |
+| context源 | 6张 |
+| 输入事实源行 | 65,811 |
+| accepted源行 | 65,768 |
+| rejected源行 | 43 |
+| 事件 | 66,652 |
+| term inventory | 3,895 |
+| cleaned Parquet大小 | 5,851,276 bytes |
+| Parquet row groups | 14 |
+| cleaned SHA-256 | `bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb` |
 
-至少208条记录本可通过原生键确定性补充，不应被直接拒绝。多候选也不应任选一个；无候选时还需先判断 pharmacy 工作流事实本身是否成立，不能把“药名未解析”等同于“源事件无效”。
+清洗契约为：
 
-**影响：** 当前 rejected 队列混入了可确定性恢复的事实，accepted/rejected 对账在形式上成立，但分类语义错误。
+- 输出schema：`mimic_cleaned_events/1.2.0`
+- 清洗逻辑：`1.3.0`
+- source catalog：`1.1.0`
+- source catalog SHA-256：`037f3265a9ba3c13c145dd8e47ca820e7f0bb0854ce87b5d1307dec6d819b57e`
 
-### P0-3：eMAR 没有形成可追溯的药物连接
+## 本轮完成的修复
 
-100例中共有11,343条 eMAR：
+### 1. 封闭式覆盖33张输入表
 
-| 检查项 | 行数 |
+`SOURCE_CATALOG` 对全部33张表逐一指定唯一角色、事实归属、身份策略、时间策略、evidence phase和纳入理由：21张表生成事实，6张表只提供support，6张表只提供context。`EVENT_SOURCE_REGISTRY` 只包含21张事实拥有者；出现未登记输入表时流水线直接失败。
+
+本轮新增进入事件层的源表与事件数：
+
+| 源表 | event_kind | 事件数 |
+|---|---|---:|
+| `hosp.diagnoses_icd` | `condition_recorded_post_hoc` | 1,727 |
+| `ed.diagnosis` | `condition_recorded_post_hoc` | 80 |
+| `hosp.hcpcsevents` | `procedure_recorded_post_hoc` | 33 |
+| `ed.medrecon` | `medication_reconciled` | 521 |
+| `ed.pyxis` | `medication_dispensed` | 143 |
+| `icu.inputevents` | `input_administered` | 4,352 |
+| `icu.outputevents` | `output_measured` | 1,811 |
+
+### 2. 修复药物原生键连接
+
+- pharmacy先按 `pharmacy_id` 连接prescriptions，再决定是否接受。
+- 原本因药名缺失而被拒绝的251行中，208行得到唯一药名并进入accepted。
+- 剩余23行多候选，以 `PHARMACY_MEDICATION_AMBIGUOUS` 拒绝；20行无候选，以 `PHARMACY_MEDICATION_UNRESOLVED` 拒绝。
+- eMAR使用 `pharmacy_id`、`poe_id`/`poe_seq` 建立到pharmacy、prescriptions、POE timeline和eMAR detail的supporting lineage。
+- 288条eMAR事件的缺失药名通过唯一原生键连接确定性补全，没有调用LLM。
+
+### 3. 统一全事件时间下界
+
+所有事件同时保留源端 `source_available_time` 和泄漏安全的有效 `available_time`。当源端可用时间早于事件发生时间时，保留原始时间并写入原因与质量标志，再将有效可用时间提高到事件发生时间；ICU区间事件还应用完成时间下界。
+
+| 时间处理 | 事件数 |
 |---|---:|
-| 存在 `pharmacy_id` | 9,434 |
-| `pharmacy_id` 可匹配 pharmacy | 9,414 |
-| `poe_id` 可匹配 prescription | 9,710 |
-| 任一原生键可匹配 | 10,880 |
-| eMAR 原始药名缺失 | 539 |
-| 缺失药名且可唯一解析 | 302 |
-| 缺失药名且多候选 | 217 |
-| 缺失药名且未解析 | 20 |
+| 发现源端 `available < event` | 791 |
+| 有效时间按 `event_time` 提高 | 525 |
+| 有效时间按完成时间提高 | 3,010 |
+| 有效 `available_time < event_time` | 0 |
+| 可用时间未知并明确标志 | 4,317 |
 
-当前 eMAR 转换器没有使用这些连接，输出中的 eMAR 事件也没有 pharmacy、prescription 或 `emar_detail` 的 supporting lineage。现有 supporting references 只有5,169条指向 `poe_timeline`，来自处方订单时间连接。
+每条事件均带 `time_policy_id`、`time_resolution_status`、`time_precision` 和 `time_resolution_reasons`。出院小结继续固定为 `post_hoc`。
 
-**影响：** 539条 eMAR 的药物实体为空，其中302条本可确定性恢复；其余歧义也没有进入独立 review 队列。药物事实的来源链不完整。
+## 独立验收结果
 
-### P0-4：全事件时间倒置没有完整解释
+验收脚本不调用转换器、归一化代码或外部模型，直接从源JSONL复算身份、时间和可拒绝原因。
 
-当前事件中共有267条 `available_time < event_time`：
+| 检查项 | 结果 |
+|---|---|
+| event_id非空且全局唯一 | 通过 |
+| 66,652条accepted事件逐条回查 | 通过 |
+| 43条rejected记录逐条回查并复算拒绝原因 | 通过 |
+| 患者、住院、source_row_id、raw_row_ref | 通过 |
+| supporting lineage身份与住院边界 | 通过 |
+| 21张事实源 `input = accepted + rejected` | 全部通过 |
+| 一对多事件数量 | 通过 |
+| event_kind与evidence phase | 通过 |
+| 四个时间值字段、时间状态、精度、原因和标志 | 通过 |
+| Parquet字段类型和schema元数据 | 通过 |
+| manifest版本、计数和文件哈希 | 通过 |
+| 去除解码字段和POE timeline后的100行上游原文等价 | 100 / 100 |
+| 阻断问题 | 0 |
 
-| 源表 | 行数 | 当前处理 |
-|---|---:|---|
-| `hosp.emar` | 266 | 有通用 `AVAILABLE_BEFORE_EVENT_TIME` 标志，但无源表特异原因 |
-| `note.discharge` | 1 | 没有该质量标志，也没有解释 |
+审计结论：`can_start_normalization = true`。
 
-当前验证器只对一组预设的结果类事件拒绝时间倒置，并非全事件检查。通用标志只能说明“发现倒置”，不能说明为何允许该事件通过以及下游如何使用它。
+完整机器可读证据见 `docs/reports/cleaned-events-acceptance-audit.json`。
 
-拟新增的 ICU 表还存在尚未进入现有审计的倒置：
+## 对旧正确事件的回归核查
 
-| 原始表 | `storetime` 早于事件时间 |
-|---|---:|
-| `inputevents` | 265 |
-| `outputevents` | 258 |
-| `ingredientevents` | 320 |
-| `datetimeevents` | 173 |
+以旧 normalization 中57,777条事件作为只读历史快照，与新 cleaned events按 `event_id` 全量比较：
 
-**影响：** 如果下游只使用 `available_time <= index_time`，倒置事件可能造成未来信息泄漏。决策快照必须同时要求 `event_time <= index_time` 和 `available_time <= index_time`，清洗层还必须记录源表特异的解释和允许策略。
+- 旧57,777个事件全部仍存在，缺失数为0；
+- `source_row_id`、患者、住院、`raw_row_ref`、`event_kind`、`event_time`、`recorded_time`、数值和单位均无非预期变化；
+- 新增8,875条事件：8,667条来自新增事实源，208条来自pharmacy确定性恢复；
+- 其余差异限定在本轮明确修改的字段：药物supporting lineage、药物连接结构、288条eMAR药名补全、267条有效可用时间修正、68条出院小结evidence phase修正及新增时间质量标志。
 
-## 重要但可随下一轮一并修复的问题
+因此，本轮没有通过删除或改写旧事实来换取新覆盖。
 
-### P1-1：缺少独立 cleaning review 队列
+## 下一步门禁
 
-当前目录只有 accepted 和 rejected。药物多候选、连接未解析、无法解释的时间倒置需要独立 review 状态；这些情况不应被迫塞入 accepted 或 rejected。
+旧 `normalization/normalization_manifest.json` 记录的 cleaned SHA-256 为 `edf5296f5f73f3d50c628d7277bff80790b992b5bc7a99171cafbdf6e1a33a5a`，与当前 `bda93a98...` 不匹配，且旧事件数为57,777。因此旧归一化结果已失效。
 
-### P1-2：缺少全源表覆盖清单和支持表对账
+下一项任务应重新执行确定性结构化归一化，并要求新的 normalization manifest：
 
-需要分别对账：
-
-- 事件源：`input source rows = accepted + review + rejected`；
-- 支持源：`input support rows = linked + unlinked`；
-- 上下文或排除源：每张表必须有明确原因。
-
-不能用事件行数代替源行数，也不能只遍历事件注册表来证明全部原始表已处理。
-
-### P1-3：现有 `term_inventory.parquet` 属于旧清洗快照
-
-该文件本身不证明已执行术语归一化，但它只对应当前 SHA-256 为 `f9b485bf227c95a2d36413309111a8fb0da66dee9fb4fbcf28c6b1412a43fe97` 的旧 `cleaned_events.parquet`。下一轮清洗重建后必须重新生成，不能沿用。
-
-## 下一轮改善的正确边界
-
-下一轮仍只处理 cleaned events，不运行结构化归一化或NER：
-
-1. 建立覆盖全部输入表的 source catalog，分离事件事实拥有者与 support/context/excluded 表。
-2. 先构建 pharmacy、prescription、POE、eMAR、`emar_detail` 的确定性连接层，再执行 pharmacy 和 eMAR 转换。
-3. 纳入诊断、ED诊断、HCPCS、ED medrecon、ED Pyxis、ICU input/output；保持各自原始语义和 `post_hoc` 属性。
-4. `ingredientevents` 先作为 inputevents 的组成/支持信息；`datetimeevents` 在值时间与记录时间语义冻结前不独立生成事实。
-5. 对所有事件执行统一时间门禁，并给每种允许倒置配置源表特异的 reason code 和下游可见性规则。
-6. 在临时输出目录重建100例，全部门禁通过后再原子替换当前 cleaning 目录。
-7. 重新运行独立审计；在此之前不启动下游处理。
-
-## 下一轮必须生成的清洗层产物
-
-- `cleaned_events.parquet`
-- `cleaning_review.parquet`
-- `cleaning_rejected.parquet`
-- `encounter_manifest.parquet`
-- `source_coverage_manifest.parquet`
-- `source_lineage.parquet`
-- `medication_linkage.parquet`
-- `source_reconciliation.json`
-- `run_manifest.json`
-- 由新 cleaned SHA-256 重新生成的 `term_inventory.parquet`
-
-## 下一轮完成门槛
-
-只有同时满足以下条件，才能宣布 cleaned events 阶段完成：
-
-1. 全部输入表均有且仅有一个明确角色和纳入/排除原因。
-2. 上述8,667个拟纳入源行全部进入 accepted、review 或 rejected 对账，不再从注册表中缺失。
-3. pharmacy 不再因药名为空而在原生键连接前直接拒绝；208条唯一可解析记录得到确定性处理。
-4. eMAR 的302条唯一可解析缺失药名得到带来源的派生补充，217条多候选和20条未解析记录被明确分类。
-5. 所有 supporting source references 可回查到同一患者和住院的原始行。
-6. 所有 `available_time < event_time` 均有源表特异的解释、质量标志和允许策略；无法解释的进入 review/rejected。
-7. `event_id` 全局唯一且在相同输入、规则和版本下可重复生成。
-8. accepted/review/rejected、linked/unlinked 及逐住院对账全部成立。
-9. manifest 的输入、输出、规则版本和 SHA-256 与实际文件一致。
-10. 新的独立审计报告明确给出通过结论后，才允许进入结构化归一化或文本NER。
-
-## 最终判定
-
-**需要继续下一轮改善。当前 cleaned events 的旧覆盖范围内部一致，但完整性、药物连接、拒绝分类和全事件时间契约均未达到阶段完成标准。**
+1. 输入 cleaned SHA-256 等于 `bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb`；
+2. 输入事件数等于66,652；
+3. 使用本轮重新生成的3,895行 `term_inventory.parquet`；
+4. 不把 `post_hoc` 事件用于前瞻决策快照；
+5. 归一化完成并审计后，才筛选ED主诉和影像报告进入首批NER。

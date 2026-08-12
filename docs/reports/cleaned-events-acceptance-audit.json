@@ -1,5 +1,5 @@
 {
-  "audit_schema": "cleaned_events_acceptance_audit/1.0.0",
+  "audit_schema": "cleaned_events_acceptance_audit/2.0.0",
   "inputs": {
     "raw_source_jsonl": "D:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-coronary-sample-100.jsonl",
     "source_jsonl": "D:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl",
@@ -9,9 +9,9 @@
     "source_reconciliation": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\cleaning\\source_reconciliation.json"
   },
   "parquet": {
-    "bytes": 4152121,
-    "rows": 57777,
-    "row_groups": 12,
+    "bytes": 5851276,
+    "rows": 66652,
+    "row_groups": 14,
     "row_group_rows": [
       5000,
       5000,
@@ -24,7 +24,9 @@
       5000,
       5000,
       5000,
-      2777
+      5000,
+      5000,
+      1652
     ],
     "compression": [
       "ZSTD"
@@ -32,7 +34,7 @@
     "format_version": "2.6",
     "created_by": "parquet-cpp-arrow version 25.0.1",
     "arrow_schema_metadata": {
-      "schema": "clinical_event/1.1.0"
+      "schema": "clinical_event/1.2.0"
     },
     "columns": [
       {
@@ -101,6 +103,11 @@
         "nullable": true
       },
       {
+        "name": "source_available_time",
+        "type": "string",
+        "nullable": true
+      },
+      {
         "name": "available_time",
         "type": "string",
         "nullable": true
@@ -118,6 +125,16 @@
       {
         "name": "time_precision",
         "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "time_policy_id",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "time_resolution_reasons",
+        "type": "list<element: string>",
         "nullable": true
       },
       {
@@ -321,6 +338,13 @@
       ],
       "equivalents_present": true
     },
+    "source_available_time": {
+      "exact_present": true,
+      "equivalent_columns": [
+        "source_available_time"
+      ],
+      "equivalents_present": true
+    },
     "available_time": {
       "exact_present": true,
       "equivalent_columns": [
@@ -332,6 +356,20 @@
       "exact_present": true,
       "equivalent_columns": [
         "recorded_time"
+      ],
+      "equivalents_present": true
+    },
+    "time_policy_id": {
+      "exact_present": true,
+      "equivalent_columns": [
+        "time_policy_id"
+      ],
+      "equivalents_present": true
+    },
+    "time_resolution_reasons": {
+      "exact_present": true,
+      "equivalent_columns": [
+        "time_resolution_reasons"
       ],
       "equivalents_present": true
     },
@@ -386,13 +424,28 @@
     }
   },
   "identity": {
-    "event_rows": 57777,
+    "event_rows": 66652,
     "event_id_unique": true,
     "event_id_nulls": 0,
-    "accepted_unique_source_rows": 56893,
-    "rejected_unique_source_rows": 251
+    "accepted_unique_source_rows": 65768,
+    "rejected_unique_source_rows": 43
   },
   "event_distribution": [
+    {
+      "source_table": "ed.diagnosis",
+      "event_kind": "condition_recorded_post_hoc",
+      "events": 80
+    },
+    {
+      "source_table": "ed.medrecon",
+      "event_kind": "medication_reconciled",
+      "events": 521
+    },
+    {
+      "source_table": "ed.pyxis",
+      "event_kind": "medication_dispensed",
+      "events": 143
+    },
     {
       "source_table": "ed.triage",
       "event_kind": "symptom_reported",
@@ -414,6 +467,11 @@
       "events": 820
     },
     {
+      "source_table": "hosp.diagnoses_icd",
+      "event_kind": "condition_recorded_post_hoc",
+      "events": 1727
+    },
+    {
       "source_table": "hosp.emar",
       "event_kind": "medication_administered",
       "events": 7677
@@ -429,6 +487,11 @@
       "events": 1613
     },
     {
+      "source_table": "hosp.hcpcsevents",
+      "event_kind": "procedure_recorded_post_hoc",
+      "events": 33
+    },
+    {
       "source_table": "hosp.labevents",
       "event_kind": "laboratory_resulted",
       "events": 21225
@@ -441,7 +504,7 @@
     {
       "source_table": "hosp.pharmacy",
       "event_kind": "medication_order_status_recorded",
-      "events": 4349
+      "events": 4557
     },
     {
       "source_table": "hosp.poe_timeline",
@@ -479,6 +542,16 @@
       "events": 389
     },
     {
+      "source_table": "icu.inputevents",
+      "event_kind": "input_administered",
+      "events": 4352
+    },
+    {
+      "source_table": "icu.outputevents",
+      "event_kind": "output_measured",
+      "events": 1811
+    },
+    {
       "source_table": "icu.procedureevents",
       "event_kind": "procedure_performed",
       "events": 348
@@ -496,6 +569,21 @@
   ],
   "evidence_phase_distribution": [
     {
+      "source_table": "ed.diagnosis",
+      "evidence_phase": "post_hoc",
+      "events": 80
+    },
+    {
+      "source_table": "ed.medrecon",
+      "evidence_phase": "source_event",
+      "events": 521
+    },
+    {
+      "source_table": "ed.pyxis",
+      "evidence_phase": "source_event",
+      "events": 143
+    },
+    {
       "source_table": "ed.triage",
       "evidence_phase": "source_event",
       "events": 259
@@ -506,9 +594,19 @@
       "events": 820
     },
     {
+      "source_table": "hosp.diagnoses_icd",
+      "evidence_phase": "post_hoc",
+      "events": 1727
+    },
+    {
       "source_table": "hosp.emar",
       "evidence_phase": "source_event",
       "events": 11343
+    },
+    {
+      "source_table": "hosp.hcpcsevents",
+      "evidence_phase": "post_hoc",
+      "events": 33
     },
     {
       "source_table": "hosp.labevents",
@@ -523,7 +621,7 @@
     {
       "source_table": "hosp.pharmacy",
       "evidence_phase": "source_event",
-      "events": 4349
+      "events": 4557
     },
     {
       "source_table": "hosp.poe_timeline",
@@ -551,6 +649,16 @@
       "events": 389
     },
     {
+      "source_table": "icu.inputevents",
+      "evidence_phase": "source_event",
+      "events": 4352
+    },
+    {
+      "source_table": "icu.outputevents",
+      "evidence_phase": "source_event",
+      "events": 1811
+    },
+    {
       "source_table": "icu.procedureevents",
       "evidence_phase": "source_event",
       "events": 348
@@ -567,6 +675,21 @@
     }
   ],
   "time_null_counts": {
+    "ed.diagnosis": {
+      "available_time_null": 80,
+      "event_time_null": 80,
+      "recorded_time_null": 80
+    },
+    "ed.medrecon": {
+      "available_time_null": 521,
+      "event_time_null": 0,
+      "recorded_time_null": 521
+    },
+    "ed.pyxis": {
+      "available_time_null": 143,
+      "event_time_null": 0,
+      "recorded_time_null": 143
+    },
     "ed.triage": {
       "available_time_null": 259,
       "event_time_null": 259,
@@ -577,10 +700,20 @@
       "event_time_null": 0,
       "recorded_time_null": 820
     },
+    "hosp.diagnoses_icd": {
+      "available_time_null": 1727,
+      "event_time_null": 1727,
+      "recorded_time_null": 1727
+    },
     "hosp.emar": {
       "available_time_null": 0,
       "event_time_null": 0,
       "recorded_time_null": 0
+    },
+    "hosp.hcpcsevents": {
+      "available_time_null": 33,
+      "event_time_null": 0,
+      "recorded_time_null": 33
     },
     "hosp.labevents": {
       "available_time_null": 104,
@@ -622,6 +755,16 @@
       "event_time_null": 0,
       "recorded_time_null": 389
     },
+    "icu.inputevents": {
+      "available_time_null": 0,
+      "event_time_null": 0,
+      "recorded_time_null": 0
+    },
+    "icu.outputevents": {
+      "available_time_null": 0,
+      "event_time_null": 0,
+      "recorded_time_null": 0
+    },
     "icu.procedureevents": {
       "available_time_null": 0,
       "event_time_null": 0,
@@ -639,18 +782,23 @@
     }
   },
   "quality_flag_counts": {
-    "AMBIGUOUS_MEDICATION_PAIRING": 76,
-    "AVAILABLE_BEFORE_EVENT_TIME": 266,
-    "AVAILABLE_TIME_DERIVED_FROM_COMPLETION": 105,
-    "AVAILABLE_TIME_UNKNOWN": 720,
+    "AMBIGUOUS_MEDICATION_PAIRING": 278,
+    "AVAILABLE_BEFORE_EVENT_TIME": 791,
+    "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME": 525,
+    "AVAILABLE_TIME_DERIVED_FROM_COMPLETION": 3010,
+    "AVAILABLE_TIME_UNKNOWN": 4317,
     "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT": 3248,
     "CHANGE_WITHOUT_OBSERVABLE_DELTA": 876,
+    "MEDICATION_LABEL_RESOLVED_FROM_LINKED_SOURCE": 496,
     "NONRECIPROCAL_PREDECESSOR_LINK": 10,
     "OFFICIAL_TRANSACTION_SEMANTICS_UNRESOLVED": 1,
     "ORDER_TIME_UNRESOLVED": 14,
+    "PHARMACY_POE_ID_CONFLICT": 1181,
     "PREDECESSOR_CATEGORY_MISMATCH": 2,
     "SUCCESSOR_CATEGORY_MISMATCH": 2,
     "TIME_UNAVAILABLE_IN_SOURCE": 69,
+    "UNRESOLVED_PHARMACY_ID": 1929,
+    "UNRESOLVED_POE_ID": 92,
     "UNRESOLVED_PREDECESSOR": 6
   },
   "source_reconciliation": [
@@ -705,9 +853,9 @@
     {
       "source_table": "hosp.pharmacy",
       "input_rows": 4600,
-      "accepted_source_rows": 4349,
-      "rejected_source_rows": 251,
-      "events": 4349,
+      "accepted_source_rows": 4557,
+      "rejected_source_rows": 43,
+      "events": 4557,
       "balanced": true
     },
     {
@@ -765,22 +913,93 @@
       "rejected_source_rows": 0,
       "events": 68,
       "balanced": true
+    },
+    {
+      "source_table": "hosp.diagnoses_icd",
+      "input_rows": 1727,
+      "accepted_source_rows": 1727,
+      "rejected_source_rows": 0,
+      "events": 1727,
+      "balanced": true
+    },
+    {
+      "source_table": "ed.diagnosis",
+      "input_rows": 80,
+      "accepted_source_rows": 80,
+      "rejected_source_rows": 0,
+      "events": 80,
+      "balanced": true
+    },
+    {
+      "source_table": "hosp.hcpcsevents",
+      "input_rows": 33,
+      "accepted_source_rows": 33,
+      "rejected_source_rows": 0,
+      "events": 33,
+      "balanced": true
+    },
+    {
+      "source_table": "ed.medrecon",
+      "input_rows": 521,
+      "accepted_source_rows": 521,
+      "rejected_source_rows": 0,
+      "events": 521,
+      "balanced": true
+    },
+    {
+      "source_table": "ed.pyxis",
+      "input_rows": 143,
+      "accepted_source_rows": 143,
+      "rejected_source_rows": 0,
+      "events": 143,
+      "balanced": true
+    },
+    {
+      "source_table": "icu.inputevents",
+      "input_rows": 4352,
+      "accepted_source_rows": 4352,
+      "rejected_source_rows": 0,
+      "events": 4352,
+      "balanced": true
+    },
+    {
+      "source_table": "icu.outputevents",
+      "input_rows": 1811,
+      "accepted_source_rows": 1811,
+      "rejected_source_rows": 0,
+      "events": 1811,
+      "balanced": true
     }
   ],
   "source_reconciliation_differences": [],
   "hashes": {
     "raw_source": "5788e02103066c06dd7daeeaa0596d105bd4d771f357bfcdd4fb11c1fa92a33b",
     "input": "e9e7d4612dcefa0810ae9f7330f12a40750ce1d75ad98c357c1d30243b94b3b0",
-    "cleaned_events.parquet": "f9b485bf227c95a2d36413309111a8fb0da66dee9fb4fbcf28c6b1412a43fe97",
-    "cleaning_rejected.parquet": "e987b1d2584cde213a3913802a492ad3a517cd6e4093d03e5cd7fe864fd9188d"
+    "cleaned_events.parquet": "bda93a98cf50f8de8961d7c6883e2e401f0c38618c83c08d7074fef5072997bb",
+    "cleaning_rejected.parquet": "a571c5b8dec6d3fbf64910923b03e4007335ca4f493e42a3856a686584c8c8fe"
   },
   "hash_matches_manifest": {
     "input": true,
     "cleaned_events.parquet": true,
     "cleaning_rejected.parquet": true
   },
-  "full_event_lineage_checks": 57777,
-  "full_rejected_lineage_checks": 251,
+  "contract_matches_manifest": {
+    "output_schema": true,
+    "cleaning_logic_version": true,
+    "source_catalog_version": true,
+    "source_catalog_sha256": true,
+    "source_catalog_sources": true,
+    "source_catalog_event_sources": true,
+    "arrow_schema_metadata": true,
+    "event_arrow_schema": true,
+    "rejected_arrow_schema": true,
+    "manifest_admissions": true,
+    "manifest_source_rows": true,
+    "manifest_events": true,
+    "manifest_rejected": true
+  },
+  "full_event_lineage_checks": 66652,
+  "full_rejected_lineage_checks": 43,
   "upstream_raw_equivalence": {
     "lines": 100,
     "identity_matches": 100,
@@ -792,200 +1011,312 @@
     "samples_per_table": 3,
     "events": [
       {
-        "event_id": "evt:ba4a4910ddf85771259b546a",
-        "source_table": "ed.triage",
-        "event_kind": "vital_measured",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L7/mimic_iv_ed.triage[0]",
-        "source_row_id": "src:65b46236717f82064a27c29c"
+        "event_id": "evt:4ca13d439ad506389109f786",
+        "source_table": "ed.diagnosis",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L5/mimic_iv_ed.diagnosis[1]",
+        "source_row_id": "src:8b36bdae9a98ec5a2f303c33"
       },
       {
-        "event_id": "evt:ddda0cd7b0c2e0a34fdd7e60",
-        "source_table": "ed.triage",
-        "event_kind": "vital_measured",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L8/mimic_iv_ed.triage[0]",
-        "source_row_id": "src:eb6670f67a7b02cd637f9336"
+        "event_id": "evt:2f4277a6f5f286e94ccf4b56",
+        "source_table": "ed.diagnosis",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L5/mimic_iv_ed.diagnosis[3]",
+        "source_row_id": "src:31deee7c2c430ac1610ae6b1"
       },
       {
-        "event_id": "evt:2f2c39d21a5be3a88d9a52b2",
+        "event_id": "evt:fbb0b06a95889a4028b261c8",
+        "source_table": "ed.diagnosis",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L39/mimic_iv_ed.diagnosis[0]",
+        "source_row_id": "src:692db151bee3e0880c912a09"
+      },
+      {
+        "event_id": "evt:22e559129c2ce2f679897bee",
+        "source_table": "ed.medrecon",
+        "event_kind": "medication_reconciled",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L79/mimic_iv_ed.medrecon[33]",
+        "source_row_id": "src:f8da90b3f8444a9b220bd994"
+      },
+      {
+        "event_id": "evt:147de41d4a779ae0fd8ff08c",
+        "source_table": "ed.medrecon",
+        "event_kind": "medication_reconciled",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L45/mimic_iv_ed.medrecon[10]",
+        "source_row_id": "src:d75d4d632fad266371fc7cef"
+      },
+      {
+        "event_id": "evt:705db423bbd11aa2e196a996",
+        "source_table": "ed.medrecon",
+        "event_kind": "medication_reconciled",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L34/mimic_iv_ed.medrecon[15]",
+        "source_row_id": "src:01fc4211f4db2e768cc2fd0b"
+      },
+      {
+        "event_id": "evt:98f073d184ed0f2ce4e95b33",
+        "source_table": "ed.pyxis",
+        "event_kind": "medication_dispensed",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L5/mimic_iv_ed.pyxis[7]",
+        "source_row_id": "src:66132d936e41b196cc81135e"
+      },
+      {
+        "event_id": "evt:094668bc049d9a839ed87ce8",
+        "source_table": "ed.pyxis",
+        "event_kind": "medication_dispensed",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L86/mimic_iv_ed.pyxis[0]",
+        "source_row_id": "src:302d227171ca0193f450b320"
+      },
+      {
+        "event_id": "evt:dc4fa146d180383921112861",
+        "source_table": "ed.pyxis",
+        "event_kind": "medication_dispensed",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L22/mimic_iv_ed.pyxis[7]",
+        "source_row_id": "src:e58c782407219bf858619107"
+      },
+      {
+        "event_id": "evt:c76720c79b54ac9eac46d93e",
+        "source_table": "ed.triage",
+        "event_kind": "vital_measured",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L86/mimic_iv_ed.triage[0]",
+        "source_row_id": "src:4cbdd2925b760fb0cb6ee9be"
+      },
+      {
+        "event_id": "evt:26c727729e713bed5c2d099a",
+        "source_table": "ed.triage",
+        "event_kind": "vital_measured",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L64/mimic_iv_ed.triage[0]",
+        "source_row_id": "src:7217770f118716768d99f837"
+      },
+      {
+        "event_id": "evt:b76e5c51da835e0eb7d3073c",
         "source_table": "ed.triage",
         "event_kind": "symptom_reported",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L48/mimic_iv_ed.triage[0]",
-        "source_row_id": "src:046fd150e57af1cf404f75bc"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L24/mimic_iv_ed.triage[0]",
+        "source_row_id": "src:4e3ab0c3bc3452303c303c33"
       },
       {
-        "event_id": "evt:4deec01a4eefc3a122b1ce6b",
+        "event_id": "evt:a06a68623aa8d52fd65f3076",
         "source_table": "ed.vitalsign",
         "event_kind": "vital_measured",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L89/mimic_iv_ed.vitalsign[3]",
-        "source_row_id": "src:d6e39b4edeffbd051654e722"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L10/mimic_iv_ed.vitalsign[2]",
+        "source_row_id": "src:3bc0f2ba2752fcc22bfbe643"
       },
       {
-        "event_id": "evt:9f4d4445f0c4a86917532aa4",
+        "event_id": "evt:3b1581e8ef1e82146f3bf477",
         "source_table": "ed.vitalsign",
         "event_kind": "vital_measured",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L66/mimic_iv_ed.vitalsign[0]",
-        "source_row_id": "src:2437fa6e34a620e968fa7007"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L60/mimic_iv_ed.vitalsign[2]",
+        "source_row_id": "src:1ef9af2af60c5790131e1240"
       },
       {
-        "event_id": "evt:67885fc369cff5efa51043d2",
+        "event_id": "evt:8f63cbf2e9e1a77a02e07e07",
         "source_table": "ed.vitalsign",
         "event_kind": "vital_measured",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L64/mimic_iv_ed.vitalsign[0]",
-        "source_row_id": "src:86fadd0cc86b9833f03cd087"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L11/mimic_iv_ed.vitalsign[4]",
+        "source_row_id": "src:6228373939d75ca8d296d0d8"
       },
       {
-        "event_id": "evt:91b730742a4b2da2b1d18040",
+        "event_id": "evt:e340bfc532848dd8dbf2f9dd",
+        "source_table": "hosp.diagnoses_icd",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L6/mimic_iv_hosp.diagnoses_icd[1]",
+        "source_row_id": "src:1c9ddc99fd76b97510cf46ba"
+      },
+      {
+        "event_id": "evt:fa314e1447cbc757e9fe156e",
+        "source_table": "hosp.diagnoses_icd",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L34/mimic_iv_hosp.diagnoses_icd[7]",
+        "source_row_id": "src:77838acd4d17cd87190ed38d"
+      },
+      {
+        "event_id": "evt:d542824528a8c53741c8220a",
+        "source_table": "hosp.diagnoses_icd",
+        "event_kind": "condition_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L31/mimic_iv_hosp.diagnoses_icd[7]",
+        "source_row_id": "src:40b2abfa499f8fcfcbf39622"
+      },
+      {
+        "event_id": "evt:13579a47a9e9fc63090f2b65",
         "source_table": "hosp.emar",
         "event_kind": "medication_administered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L54/mimic_iv_hosp.emar[95]",
-        "source_row_id": "src:62c7e7ef3d4d87ab466e0797"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L21/mimic_iv_hosp.emar[24]",
+        "source_row_id": "src:31d7b05cc5ecd6fc267e575a"
       },
       {
-        "event_id": "evt:dd11d6b4d7ab4a5986d5625c",
+        "event_id": "evt:f4fb63711dee2e25ccbf16a6",
         "source_table": "hosp.emar",
         "event_kind": "medication_administered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L84/mimic_iv_hosp.emar[148]",
-        "source_row_id": "src:42b2308fff83a397b9d99cde"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L61/mimic_iv_hosp.emar[132]",
+        "source_row_id": "src:532a3b4dbbc391222cde0ff2"
       },
       {
-        "event_id": "evt:b720e77d68a968180ecb50a0",
+        "event_id": "evt:56a81708aab5ca8af4ffdcd0",
         "source_table": "hosp.emar",
-        "event_kind": "medication_administered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L36/mimic_iv_hosp.emar[97]",
-        "source_row_id": "src:446ad3c8a8f520bffbbce34b"
+        "event_kind": "medication_administration_documented",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L76/mimic_iv_hosp.emar[25]",
+        "source_row_id": "src:bb874f18141c67fdcce6f6a9"
       },
       {
-        "event_id": "evt:b313446c5c486b5e9d54a009",
+        "event_id": "evt:1a2778d491ff2c8e5625a069",
+        "source_table": "hosp.hcpcsevents",
+        "event_kind": "procedure_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L21/mimic_iv_hosp.hcpcsevents[0]",
+        "source_row_id": "src:2a134c5194ea2b159a1f4c8e"
+      },
+      {
+        "event_id": "evt:d044be16b674bb9ba5ff6f8d",
+        "source_table": "hosp.hcpcsevents",
+        "event_kind": "procedure_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L82/mimic_iv_hosp.hcpcsevents[0]",
+        "source_row_id": "src:873ff048ddf8893cffeb46f7"
+      },
+      {
+        "event_id": "evt:24298ba8d4bb1d4fc829ca55",
+        "source_table": "hosp.hcpcsevents",
+        "event_kind": "procedure_recorded_post_hoc",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L13/mimic_iv_hosp.hcpcsevents[1]",
+        "source_row_id": "src:86ddced090c6e82db078fdeb"
+      },
+      {
+        "event_id": "evt:2f36ceb528fce41ac959850a",
         "source_table": "hosp.labevents",
         "event_kind": "laboratory_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L34/mimic_iv_hosp.labevents[152]",
-        "source_row_id": "src:e8c2dce0ba0d2c14b27be542"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L70/mimic_iv_hosp.labevents[151]",
+        "source_row_id": "src:e756f1e2552a6057ce769df9"
       },
       {
-        "event_id": "evt:be05f2666e634451d715deed",
+        "event_id": "evt:f206480112a659fd1cf019e1",
         "source_table": "hosp.labevents",
         "event_kind": "laboratory_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L12/mimic_iv_hosp.labevents[355]",
-        "source_row_id": "src:91960849af5369e5416a97ee"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_hosp.labevents[434]",
+        "source_row_id": "src:f89f2b171f96440e87dac8ec"
       },
       {
-        "event_id": "evt:5b86f0cb5925bd6213605def",
+        "event_id": "evt:5bb9abdb5297fa87da6f446a",
         "source_table": "hosp.labevents",
         "event_kind": "laboratory_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L71/mimic_iv_hosp.labevents[66]",
-        "source_row_id": "src:c42e0d470c3edbdc3959bf4f"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L33/mimic_iv_hosp.labevents[151]",
+        "source_row_id": "src:e4e6a53c98fa4da0bba13189"
       },
       {
-        "event_id": "evt:59dd9c9d972e90fd42515b9c",
+        "event_id": "evt:d2fa537b78ca53ad54447923",
         "source_table": "hosp.microbiologyevents",
         "event_kind": "microbiology_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L25/mimic_iv_hosp.microbiologyevents[6]",
-        "source_row_id": "src:113e6f7cfbe8adee45cb5cd9"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L48/mimic_iv_hosp.microbiologyevents[0]",
+        "source_row_id": "src:8ab7acab8eae325a38a18819"
       },
       {
-        "event_id": "evt:c9e0203058622414896c2cb0",
+        "event_id": "evt:7e8a5f10300f1fe0e935f26e",
         "source_table": "hosp.microbiologyevents",
         "event_kind": "microbiology_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_hosp.microbiologyevents[11]",
-        "source_row_id": "src:988bc01aa1baf138dbd677b0"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L96/mimic_iv_hosp.microbiologyevents[8]",
+        "source_row_id": "src:0cbdb0998afd0a8732f5518c"
       },
       {
-        "event_id": "evt:5fbee4ab5fb86926573a85c2",
+        "event_id": "evt:9ec746a3b34474fa3dbd30a8",
         "source_table": "hosp.microbiologyevents",
         "event_kind": "microbiology_resulted",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_hosp.microbiologyevents[3]",
-        "source_row_id": "src:5fd3b98cd10815e7205e3a5c"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L61/mimic_iv_hosp.microbiologyevents[17]",
+        "source_row_id": "src:5c880a97344fb5189cce04e7"
       },
       {
-        "event_id": "evt:fa221795d43aa011a6f417a7",
+        "event_id": "evt:327eea0eedbf5e708582aae0",
         "source_table": "hosp.pharmacy",
         "event_kind": "medication_order_status_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L90/mimic_iv_hosp.pharmacy[2]",
-        "source_row_id": "src:a642b6e6b1c3a2e0662c2669"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L76/mimic_iv_hosp.pharmacy[15]",
+        "source_row_id": "src:53f2a5ff0772ac97cdb3353c"
       },
       {
-        "event_id": "evt:73a8b2867a962d201580d255",
+        "event_id": "evt:47090d403c15b6ad7bc5ab39",
         "source_table": "hosp.pharmacy",
         "event_kind": "medication_order_status_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L67/mimic_iv_hosp.pharmacy[54]",
-        "source_row_id": "src:b9c80f7b4f09df7ed6485708"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L28/mimic_iv_hosp.pharmacy[7]",
+        "source_row_id": "src:2ce39d66c4535b0efa972623"
       },
       {
-        "event_id": "evt:5f9d740576797f4925967a14",
+        "event_id": "evt:f496fc072fc415db82b51573",
         "source_table": "hosp.pharmacy",
         "event_kind": "medication_order_status_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L33/mimic_iv_hosp.pharmacy[44]",
-        "source_row_id": "src:277a52289de4e263cf688ff9"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L63/mimic_iv_hosp.pharmacy[23]",
+        "source_row_id": "src:a8e272f2ca5714b7797dd78e"
       },
       {
-        "event_id": "evt:5a3ef17fc4f14bb891a8dc81",
-        "source_table": "hosp.poe_timeline",
-        "event_kind": "laboratory_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L20/mimic_iv_hosp.poe_timeline[54]",
-        "source_row_id": "src:2c5891b5cd8c8ee8847fd166"
-      },
-      {
-        "event_id": "evt:d91d3ac75ecbdb0c13fddc35",
+        "event_id": "evt:bac6427bb1469a75bb281868",
         "source_table": "hosp.poe_timeline",
         "event_kind": "clinical_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L79/mimic_iv_hosp.poe_timeline[71]",
-        "source_row_id": "src:84e5f5a3da12c5c8d25bbb12"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L38/mimic_iv_hosp.poe_timeline[38]",
+        "source_row_id": "src:4f0d8779151e134601455b48"
       },
       {
-        "event_id": "evt:fa0269e49ca3674467428541",
+        "event_id": "evt:3583eed5068c4e30e687dfc2",
         "source_table": "hosp.poe_timeline",
         "event_kind": "clinical_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L25/mimic_iv_hosp.poe_timeline[212]",
-        "source_row_id": "src:460fc9ae9238b724dfeb0a3d"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L18/mimic_iv_hosp.poe_timeline[806]",
+        "source_row_id": "src:79cda35d544aab08bfc6568a"
       },
       {
-        "event_id": "evt:440805f830cbcce3be7fbf6a",
+        "event_id": "evt:34812ddf5beb7aeb85bc1fc2",
+        "source_table": "hosp.poe_timeline",
+        "event_kind": "clinical_ordered",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L34/mimic_iv_hosp.poe_timeline[67]",
+        "source_row_id": "src:cd95c7b8db12dd764c6fc40c"
+      },
+      {
+        "event_id": "evt:d6bb250847439a69d95a558d",
         "source_table": "hosp.prescriptions",
         "event_kind": "medication_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L13/mimic_iv_hosp.prescriptions[10]",
-        "source_row_id": "src:b874df31b88c359055d77b64"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L19/mimic_iv_hosp.prescriptions[128]",
+        "source_row_id": "src:a4ed1a5a59abd9d8713def53"
       },
       {
-        "event_id": "evt:34a3e589bd32dde5685fb4bb",
+        "event_id": "evt:a1341a6652ee1c7708da9d2b",
         "source_table": "hosp.prescriptions",
         "event_kind": "medication_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L46/mimic_iv_hosp.prescriptions[31]",
-        "source_row_id": "src:9a358f9a13bfb82d8caa87da"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L87/mimic_iv_hosp.prescriptions[59]",
+        "source_row_id": "src:c4c9c0da59c37bf91b90728a"
       },
       {
-        "event_id": "evt:bf06a98bd10b59b403f2f932",
+        "event_id": "evt:60dff01aa3f31fd1e663d26e",
         "source_table": "hosp.prescriptions",
         "event_kind": "medication_ordered",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L40/mimic_iv_hosp.prescriptions[4]",
-        "source_row_id": "src:f2bc00726c2e43bb1c49cdf8"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L5/mimic_iv_hosp.prescriptions[11]",
+        "source_row_id": "src:dd9798d90779965cd1d6ed33"
       },
       {
-        "event_id": "evt:ccae3691de4e05c9dc63865e",
+        "event_id": "evt:48a06d973953e11c8df5ba36",
         "source_table": "hosp.procedures_icd",
         "event_kind": "procedure_recorded_post_hoc",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L84/mimic_iv_hosp.procedures_icd[0]",
-        "source_row_id": "src:8e16583811be3334c0652d53"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L84/mimic_iv_hosp.procedures_icd[6]",
+        "source_row_id": "src:923a5ddf25aed479543ea22f"
       },
       {
-        "event_id": "evt:153667cc7632e5dff7f12e5f",
+        "event_id": "evt:c8ee44df98c0259d3b79c639",
         "source_table": "hosp.procedures_icd",
         "event_kind": "procedure_recorded_post_hoc",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L19/mimic_iv_hosp.procedures_icd[3]",
-        "source_row_id": "src:93bf8eddd351138e35c25038"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L80/mimic_iv_hosp.procedures_icd[1]",
+        "source_row_id": "src:9d76838833ad27c52f23bd9a"
       },
       {
-        "event_id": "evt:09a6752a8eb77ba0bc1176c8",
+        "event_id": "evt:f7b3df34b5ecad9256ef5606",
         "source_table": "hosp.procedures_icd",
         "event_kind": "procedure_recorded_post_hoc",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_hosp.procedures_icd[1]",
-        "source_row_id": "src:fc81460b044e65e6b06fbb70"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L69/mimic_iv_hosp.procedures_icd[2]",
+        "source_row_id": "src:1d289b5a56bfdab3005c4fc6"
       },
       {
-        "event_id": "evt:eff587633a180c0318155d90",
+        "event_id": "evt:45beab008cf089a7a3383e37",
         "source_table": "hosp.services",
         "event_kind": "service_changed",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L57/mimic_iv_hosp.services[0]",
-        "source_row_id": "src:4757fdf13f902cd0ecf4d1be"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_hosp.services[0]",
+        "source_row_id": "src:dd25934b34471fd11bdf5e85"
+      },
+      {
+        "event_id": "evt:43bc634fc8ef238f3688d804",
+        "source_table": "hosp.services",
+        "event_kind": "service_changed",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L8/mimic_iv_hosp.services[0]",
+        "source_row_id": "src:aad35d59222ee17355fbcaba"
       },
       {
         "event_id": "evt:1903fad49c7a59954fab338d",
@@ -995,95 +1326,130 @@
         "source_row_id": "src:38f12cdac301bfaedb2540a8"
       },
       {
-        "event_id": "evt:9adf92aeaf43919dde6d4106",
-        "source_table": "hosp.services",
-        "event_kind": "service_changed",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L67/mimic_iv_hosp.services[0]",
-        "source_row_id": "src:787671e55f3cb75c4a5232fb"
-      },
-      {
-        "event_id": "evt:489857136915911dbec876aa",
+        "event_id": "evt:96285bcac781ba756d94d1db",
         "source_table": "hosp.transfers",
         "event_kind": "patient_transferred",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L24/mimic_iv_hosp.transfers[1]",
-        "source_row_id": "src:a4bc4be7022080c39c039bd4"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L25/mimic_iv_hosp.transfers[0]",
+        "source_row_id": "src:ab584b6434bdb2a7db5579aa"
       },
       {
-        "event_id": "evt:84f17ddf2b885e676b1462fb",
+        "event_id": "evt:0b44724856f708eec94cccea",
         "source_table": "hosp.transfers",
         "event_kind": "patient_transferred",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L61/mimic_iv_hosp.transfers[1]",
-        "source_row_id": "src:022cd56f5fa356b1919ff831"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L48/mimic_iv_hosp.transfers[2]",
+        "source_row_id": "src:5eca59de26df9e75690bf312"
       },
       {
-        "event_id": "evt:1f79ba32ba48050dbe517237",
+        "event_id": "evt:e75e29ad65c76db490caeac5",
         "source_table": "hosp.transfers",
         "event_kind": "patient_transferred",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L80/mimic_iv_hosp.transfers[2]",
-        "source_row_id": "src:27474e3720d80553d521b901"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L60/mimic_iv_hosp.transfers[3]",
+        "source_row_id": "src:5d14c703da3750cb05b3a21d"
       },
       {
-        "event_id": "evt:62f64a43ca9c0b2c42cf8187",
+        "event_id": "evt:f6dc15c3a43a32606f52d3e7",
+        "source_table": "icu.inputevents",
+        "event_kind": "input_administered",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_icu.inputevents[188]",
+        "source_row_id": "src:cf7c6db34c8cfd8d66f47974"
+      },
+      {
+        "event_id": "evt:d7c04386c9480838ef4a4111",
+        "source_table": "icu.inputevents",
+        "event_kind": "input_administered",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L18/mimic_iv_icu.inputevents[571]",
+        "source_row_id": "src:19e34f1a2c341a1c619d5759"
+      },
+      {
+        "event_id": "evt:9980004a350e90eb0f1bcaec",
+        "source_table": "icu.inputevents",
+        "event_kind": "input_administered",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L62/mimic_iv_icu.inputevents[117]",
+        "source_row_id": "src:6cbe1e3d122130d15ea38d92"
+      },
+      {
+        "event_id": "evt:5855c280632bf991fefb284e",
+        "source_table": "icu.outputevents",
+        "event_kind": "output_measured",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L48/mimic_iv_icu.outputevents[14]",
+        "source_row_id": "src:973f04e56f7a51343a41ca2a"
+      },
+      {
+        "event_id": "evt:0c6a5ec5d6cc5486d86e4a7d",
+        "source_table": "icu.outputevents",
+        "event_kind": "output_measured",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L81/mimic_iv_icu.outputevents[54]",
+        "source_row_id": "src:782bb8dc90ec0cfa4c7cbf48"
+      },
+      {
+        "event_id": "evt:b6dbde684f0bd8cb69f06b33",
+        "source_table": "icu.outputevents",
+        "event_kind": "output_measured",
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L25/mimic_iv_icu.outputevents[162]",
+        "source_row_id": "src:d74f6cf7575a3ec370eee31a"
+      },
+      {
+        "event_id": "evt:4e6e8e7df90e49d9dd6d0790",
         "source_table": "icu.procedureevents",
         "event_kind": "procedure_performed",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L84/mimic_iv_icu.procedureevents[15]",
-        "source_row_id": "src:e9162fc91ff477ef3d8a7c20"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L59/mimic_iv_icu.procedureevents[6]",
+        "source_row_id": "src:c6c4f147efc8310372203dca"
       },
       {
-        "event_id": "evt:cb30d2beac5241481e0d8b24",
+        "event_id": "evt:3f9132233f389b31a9367273",
         "source_table": "icu.procedureevents",
         "event_kind": "procedure_performed",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L18/mimic_iv_icu.procedureevents[27]",
-        "source_row_id": "src:bc2cb3fe47c9aadf599a5096"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L19/mimic_iv_icu.procedureevents[24]",
+        "source_row_id": "src:e67bdce00c77e99ff3c563fa"
       },
       {
-        "event_id": "evt:5c903f5129ac2c42726ae69c",
+        "event_id": "evt:5855db5f74ae3bc66f261a56",
         "source_table": "icu.procedureevents",
         "event_kind": "procedure_performed",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L81/mimic_iv_icu.procedureevents[5]",
-        "source_row_id": "src:2e08501adc743190bcabc36a"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L34/mimic_iv_icu.procedureevents[5]",
+        "source_row_id": "src:e36aa246e0c84d1b740af9a8"
       },
       {
-        "event_id": "evt:39a1d32ce42d69e4fd2999a8",
+        "event_id": "evt:15a9d38104822ebfdee60803",
         "source_table": "note.discharge",
         "event_kind": "document_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L41/mimic_iv_note.discharge[0]",
-        "source_row_id": "src:650545f54c5eccb37d892103"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L68/mimic_iv_note.discharge[0]",
+        "source_row_id": "src:7204ca3a58091a7ecc9be4e5"
       },
       {
-        "event_id": "evt:8fdcc46d0b79862398b1f2bf",
+        "event_id": "evt:4091e34e8b3e111b58b5bf21",
         "source_table": "note.discharge",
         "event_kind": "document_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L67/mimic_iv_note.discharge[0]",
-        "source_row_id": "src:53d7b8bb54a37bbe45a50652"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L72/mimic_iv_note.discharge[0]",
+        "source_row_id": "src:f8fc2da941a371a6aaa64345"
       },
       {
-        "event_id": "evt:ced6df68416caf89e978fa58",
+        "event_id": "evt:35bc5927d7edcf1a38826d26",
         "source_table": "note.discharge",
         "event_kind": "document_recorded",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L86/mimic_iv_note.discharge[0]",
-        "source_row_id": "src:991fb24c0de116eb488ac536"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L82/mimic_iv_note.discharge[0]",
+        "source_row_id": "src:f70f01b946c60577145f391c"
       },
       {
-        "event_id": "evt:cdb415c62aa3b0df60911eea",
+        "event_id": "evt:05c2a25e96628d788ecc0b26",
         "source_table": "note.radiology",
         "event_kind": "imaging_reported",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L70/mimic_iv_note.radiology[2]",
-        "source_row_id": "src:7baf9c526757b9f384b104be"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L18/mimic_iv_note.radiology[18]",
+        "source_row_id": "src:d341bc141d991a953dea3914"
       },
       {
-        "event_id": "evt:d282e704c3db108a82059b0f",
+        "event_id": "evt:c807dae51a070dd215b99441",
         "source_table": "note.radiology",
         "event_kind": "imaging_reported",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L99/mimic_iv_note.radiology[5]",
-        "source_row_id": "src:7d03956ce9bd6d058fe4019f"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L33/mimic_iv_note.radiology[1]",
+        "source_row_id": "src:90f59f73422a752b89a722d9"
       },
       {
-        "event_id": "evt:8b595a72090f67debdac6da5",
+        "event_id": "evt:c91b8ed35e3692638d29ffd9",
         "source_table": "note.radiology",
         "event_kind": "imaging_reported",
-        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L19/mimic_iv_note.radiology[14]",
-        "source_row_id": "src:368e9d19e1c14c7e57bd93e7"
+        "raw_row_ref": "mimic-admission-raw-coronary-sample-100-poe-timeline-decoded.jsonl#L95/mimic_iv_note.radiology[1]",
+        "source_row_id": "src:a900d96d2613a4cd2c824494"
       }
     ]
   },

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import Counter, defaultdict
 import argparse
+from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
@@ -15,18 +16,30 @@ import random
 import re
 from typing import Any
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
-from data_pipeline.event_pipeline.ids import build_source_row_id
-from data_pipeline.event_pipeline.schemas import QUALITY_FLAG_CODES
-from data_pipeline.event_pipeline.source_registry import SOURCE_REGISTRY
+from data_pipeline.event_pipeline.ids import build_source_row_id, canonical_json
+from data_pipeline.event_pipeline.pipeline import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA
+from data_pipeline.event_pipeline.schemas import (
+    EVENT_ARROW_SCHEMA,
+    QUALITY_FLAG_CODES,
+    REJECTED_ARROW_SCHEMA,
+)
+from data_pipeline.event_pipeline.source_registry import (
+    EVENT_SOURCE_REGISTRY,
+    SOURCE_BY_PATH,
+    SOURCE_CATALOG,
+    SOURCE_CATALOG_SHA256,
+    SOURCE_CATALOG_VERSION,
+)
 
 
 RAW_REF_RE = re.compile(
     r"(?P<filename>[^#]+)#L(?P<line>\d+)/"
     r"(?P<module>[^.]+)\.(?P<table>[^[]+)\[(?P<index>\d+)\]"
 )
-SOURCE_SPECS = {spec.source_table: spec for spec in SOURCE_REGISTRY}
+SOURCE_SPECS = {spec.source_table: spec for spec in EVENT_SOURCE_REGISTRY}
 EXPECTED_KINDS = {
     "ed.triage": {"symptom_reported", "vital_measured", "triage_acuity_recorded"},
     "ed.vitalsign": {"vital_measured"},
@@ -43,6 +56,13 @@ EXPECTED_KINDS = {
     "hosp.services": {"service_changed"},
     "hosp.transfers": {"patient_transferred"},
     "hosp.procedures_icd": {"procedure_recorded_post_hoc"},
+    "hosp.diagnoses_icd": {"condition_recorded_post_hoc"},
+    "hosp.hcpcsevents": {"procedure_recorded_post_hoc"},
+    "ed.diagnosis": {"condition_recorded_post_hoc"},
+    "ed.medrecon": {"medication_reconciled"},
+    "ed.pyxis": {"medication_dispensed"},
+    "icu.inputevents": {"input_administered"},
+    "icu.outputevents": {"output_measured"},
     "icu.procedureevents": {"procedure_performed"},
     "note.radiology": {"imaging_reported"},
     "note.discharge": {"document_recorded"},
@@ -57,8 +77,11 @@ REQUESTED_FIELDS = {
     "raw_row_ref": ["raw_row_ref"],
     "event_kind": ["event_kind"],
     "event_time": ["event_time"],
+    "source_available_time": ["source_available_time"],
     "available_time": ["available_time"],
     "recorded_time": ["recorded_time"],
+    "time_policy_id": ["time_policy_id"],
+    "time_resolution_reasons": ["time_resolution_reasons"],
     "evidence_phase": ["evidence_phase"],
     "raw_concept_code": ["source_concept_id"],
     "raw_concept_term": ["source_label"],
@@ -119,6 +142,36 @@ def _read_jsonl(path: Path) -> dict[int, dict[str, Any]]:
     return records
 
 
+def _source_identity_index(
+    records: dict[int, dict[str, Any]],
+    input_name: str,
+) -> tuple[dict[str, str], dict[str, dict[str, Any]]]:
+    source_id_by_ref: dict[str, str] = {}
+    raw_by_ref: dict[str, dict[str, Any]] = {}
+    for line_number, admission in records.items():
+        for spec in SOURCE_CATALOG:
+            occurrences: Counter[str] = Counter()
+            rows = admission[spec.module][spec.table]
+            for index, row in enumerate(rows):
+                ordinal = 0
+                if spec.identity_strategy == "canonical_row_hash_with_occurrence":
+                    identity = canonical_json(row)
+                    ordinal = occurrences[identity]
+                    occurrences[identity] += 1
+                source_id = build_source_row_id(
+                    spec,
+                    row,
+                    duplicate_occurrence_ordinal=ordinal,
+                )
+                raw_ref = (
+                    f"{input_name}#L{line_number}/"
+                    f"{spec.module}.{spec.table}[{index}]"
+                )
+                source_id_by_ref[raw_ref] = source_id
+                raw_by_ref[raw_ref] = row
+    return source_id_by_ref, raw_by_ref
+
+
 def _without_enrichment(value: Any) -> Any:
     if isinstance(value, dict):
         return {
@@ -158,57 +211,153 @@ def _raw_row(
     return admission, rows[index], parts
 
 
+def _earlier(left: str | None, right: str | None) -> bool:
+    return bool(
+        left
+        and right
+        and datetime.fromisoformat(left) < datetime.fromisoformat(right)
+    )
+
+
+def _resolved_time_contract(
+    *,
+    event_time: Any = None,
+    source_available_time: Any = None,
+    recorded_time: Any = None,
+    completion_time: Any = None,
+) -> dict[str, Any]:
+    event = _iso(event_time)
+    source_available = _iso(source_available_time)
+    available = source_available
+    recorded = _iso(recorded_time)
+    completion = _iso(completion_time)
+    reasons: list[str] = []
+    flags: list[str] = []
+    if _earlier(source_available, event):
+        reasons.append("source_available_precedes_event_time")
+        flags.append("AVAILABLE_BEFORE_EVENT_TIME")
+    if completion and (available is None or _earlier(available, completion)):
+        available = completion
+        reasons.append("completion_time_lower_bound")
+        flags.append("AVAILABLE_TIME_DERIVED_FROM_COMPLETION")
+    if _earlier(available, event):
+        available = event
+        reasons.append("event_time_lower_bound")
+        flags.append("AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME")
+    if available is None:
+        flags.append("AVAILABLE_TIME_UNKNOWN")
+    if event is None and available is None and recorded is None:
+        status = "unresolved"
+    elif event is not None and available is not None:
+        status = "resolved"
+    else:
+        status = "partially_resolved"
+    precision = "unknown"
+    for value in (event, available, recorded):
+        if value is not None:
+            if len(value) == 10:
+                precision = "date"
+            elif "." in value:
+                precision = "subsecond"
+            else:
+                precision = "second"
+            break
+    return {
+        "event_time": event,
+        "source_available_time": source_available,
+        "available_time": available,
+        "recorded_time": recorded,
+        "time_resolution_status": status,
+        "time_precision": precision,
+        "time_resolution_reasons": reasons,
+        "time_quality_flags": flags,
+    }
+
+
 def _expected_times(
     source_table: str,
     row: dict[str, Any],
     admission: dict[str, Any],
-) -> tuple[str | None, str | None, str | None]:
+) -> dict[str, Any]:
     if source_table == "ed.triage":
-        return None, None, None
-    if source_table == "ed.vitalsign":
-        return _iso(row.get("charttime")), None, None
+        return _resolved_time_contract()
+    if source_table in {"ed.vitalsign", "ed.medrecon", "ed.pyxis"}:
+        return _resolved_time_contract(event_time=row.get("charttime"))
     if source_table == "hosp.labevents":
-        return _iso(row.get("charttime")), _iso(row.get("storetime")), _iso(row.get("storetime"))
+        return _resolved_time_contract(
+            event_time=row.get("charttime"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime"),
+        )
     if source_table == "hosp.microbiologyevents":
-        return (
-            _iso(row.get("charttime") or row.get("chartdate")),
-            _iso(row.get("storetime")),
-            _iso(row.get("storetime") or row.get("storedate")),
+        return _resolved_time_contract(
+            event_time=row.get("charttime") or row.get("chartdate"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime") or row.get("storedate"),
         )
     if source_table == "hosp.poe_timeline":
-        value = _iso(row.get("event_time"))
-        return value, value, None
+        value = row.get("event_time")
+        return _resolved_time_contract(
+            event_time=value,
+            source_available_time=value,
+        )
     if source_table == "hosp.prescriptions":
         poe_id = _clean(row.get("poe_id"))
-        raw_poe = next(
-            (
-                item
-                for item in admission["mimic_iv_hosp"].get("poe", [])
-                if _clean(item.get("poe_id")) == poe_id
-            ),
-            None,
+        poe_seq = _clean(row.get("poe_seq"))
+        timeline = [
+            item
+            for item in admission["mimic_iv_hosp"].get("poe_timeline", [])
+            if _clean(item.get("poe_id")) == poe_id
+            and _clean(item.get("poe_seq")) == poe_seq
+        ]
+        ordertime = timeline[0].get("event_time") if len(timeline) == 1 else None
+        return _resolved_time_contract(
+            event_time=ordertime,
+            source_available_time=ordertime,
         )
-        ordertime = _iso(raw_poe.get("ordertime")) if isinstance(raw_poe, dict) else None
-        return ordertime, ordertime, None
     if source_table == "hosp.pharmacy":
-        return _iso(row.get("entertime")), _iso(row.get("entertime")), _iso(row.get("verifiedtime"))
+        return _resolved_time_contract(
+            event_time=row.get("entertime"),
+            source_available_time=row.get("entertime"),
+            recorded_time=row.get("verifiedtime"),
+        )
     if source_table == "hosp.emar":
-        return _iso(row.get("charttime")), _iso(row.get("storetime")), _iso(row.get("storetime"))
+        return _resolved_time_contract(
+            event_time=row.get("charttime"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime"),
+        )
     if source_table == "hosp.services":
-        value = _iso(row.get("transfertime"))
-        return value, value, None
+        value = row.get("transfertime")
+        return _resolved_time_contract(
+            event_time=value,
+            source_available_time=value,
+        )
     if source_table == "hosp.transfers":
-        return _iso(row.get("intime")), None, None
-    if source_table == "hosp.procedures_icd":
-        return _iso(row.get("chartdate")), None, None
-    if source_table == "icu.procedureevents":
-        available = _iso(row.get("storetime"))
-        endtime = _iso(row.get("endtime"))
-        if endtime and (available is None or available < endtime):
-            available = endtime
-        return _iso(row.get("starttime")), available, _iso(row.get("storetime"))
+        return _resolved_time_contract(event_time=row.get("intime"))
+    if source_table in {"hosp.procedures_icd", "hosp.hcpcsevents"}:
+        return _resolved_time_contract(event_time=row.get("chartdate"))
+    if source_table in {"hosp.diagnoses_icd", "ed.diagnosis"}:
+        return _resolved_time_contract()
+    if source_table in {"icu.inputevents", "icu.procedureevents"}:
+        return _resolved_time_contract(
+            event_time=row.get("starttime"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime"),
+            completion_time=row.get("endtime"),
+        )
+    if source_table == "icu.outputevents":
+        return _resolved_time_contract(
+            event_time=row.get("charttime"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime"),
+        )
     if source_table in {"note.radiology", "note.discharge"}:
-        return _iso(row.get("charttime")), _iso(row.get("storetime")), _iso(row.get("storetime"))
+        return _resolved_time_contract(
+            event_time=row.get("charttime"),
+            source_available_time=row.get("storetime"),
+            recorded_time=row.get("storetime"),
+        )
     raise KeyError(source_table)
 
 
@@ -224,12 +373,138 @@ def _expected_event_count(source_table: str, row: dict[str, Any]) -> int:
     return count
 
 
+def _distinct(values: list[str | None]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        if value and value.casefold() not in seen:
+            seen.add(value.casefold())
+            result.append(value)
+    return result
+
+
+def _prescriptions_by_pharmacy_id(
+    admission: dict[str, Any], pharmacy_id: str | None
+) -> list[dict[str, Any]]:
+    if pharmacy_id is None:
+        return []
+    return [
+        row
+        for row in admission["mimic_iv_hosp"]["prescriptions"]
+        if _clean(row.get("pharmacy_id")) == pharmacy_id
+    ]
+
+
+def _expected_pharmacy_label(
+    row: dict[str, Any], admission: dict[str, Any]
+) -> str | None:
+    raw_label = _clean(row.get("medication"))
+    if raw_label:
+        return raw_label
+    candidates = _distinct(
+        [
+            _clean(item.get("drug"))
+            for item in _prescriptions_by_pharmacy_id(
+                admission, _clean(row.get("pharmacy_id"))
+            )
+        ]
+    )
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def _expected_emar_label(
+    row: dict[str, Any], admission: dict[str, Any]
+) -> str | None:
+    raw_label = _clean(row.get("medication"))
+    if raw_label:
+        return raw_label
+    pharmacy_id = _clean(row.get("pharmacy_id"))
+    pharmacy_labels = [
+        _clean(item.get("medication"))
+        for item in admission["mimic_iv_hosp"]["pharmacy"]
+        if pharmacy_id and _clean(item.get("pharmacy_id")) == pharmacy_id
+    ]
+    prescription_labels = [
+        _clean(item.get("drug"))
+        for item in _prescriptions_by_pharmacy_id(admission, pharmacy_id)
+    ]
+    candidates = _distinct([*pharmacy_labels, *prescription_labels])
+    return candidates[0] if len(candidates) == 1 else None
+
+
+def _expected_rejection_reason(
+    source_table: str,
+    row: dict[str, Any],
+    admission: dict[str, Any],
+) -> str | None:
+    if source_table in {"ed.triage", "ed.vitalsign"}:
+        if _expected_event_count(source_table, row) == 0:
+            return "NO_EVENT_GENERATED"
+    if source_table == "hosp.labevents":
+        if not _clean(row.get("itemid")) or not _decoded_label(row):
+            return "LAB_CONCEPT_MISSING"
+    elif source_table == "hosp.microbiologyevents":
+        if not (_clean(row.get("test_name")) or _clean(row.get("spec_type_desc"))):
+            return "MICROBIOLOGY_CONCEPT_MISSING"
+    elif source_table == "hosp.prescriptions":
+        if not _clean(row.get("drug")):
+            return "PRESCRIPTION_DRUG_MISSING"
+    elif source_table == "hosp.pharmacy" and not _clean(row.get("medication")):
+        candidates = _distinct(
+            [
+                _clean(item.get("drug"))
+                for item in _prescriptions_by_pharmacy_id(
+                    admission, _clean(row.get("pharmacy_id"))
+                )
+            ]
+        )
+        if len(candidates) > 1:
+            return "PHARMACY_MEDICATION_AMBIGUOUS"
+        if not candidates:
+            return "PHARMACY_MEDICATION_UNRESOLVED"
+    elif source_table in {
+        "hosp.diagnoses_icd",
+        "ed.diagnosis",
+        "hosp.procedures_icd",
+    }:
+        if not _clean(row.get("icd_code")):
+            return "CODE_MISSING"
+    elif source_table == "hosp.hcpcsevents" and not _clean(row.get("hcpcs_cd")):
+        return "CODE_MISSING"
+    elif source_table in {
+        "icu.inputevents",
+        "icu.outputevents",
+        "icu.procedureevents",
+    }:
+        if not _clean(row.get("itemid")) or not _decoded_label(row):
+            return "ICU_CONCEPT_MISSING"
+    return None
+
+
 def _add_issue(
     counts: Counter[str], examples: dict[str, list[str]], issue: str, example: str
 ) -> None:
     counts[issue] += 1
     if len(examples[issue]) < 5:
         examples[issue].append(example)
+
+
+def _arrow_type_contract(data_type: pa.DataType) -> Any:
+    if pa.types.is_list(data_type) or pa.types.is_large_list(data_type):
+        return (str(data_type.id), _arrow_type_contract(data_type.value_type))
+    return str(data_type)
+
+
+def _arrow_schema_matches(actual: pa.Schema, expected: pa.Schema) -> bool:
+    if len(actual) != len(expected) or actual.metadata != expected.metadata:
+        return False
+    return all(
+        actual_field.name == expected_field.name
+        and actual_field.nullable == expected_field.nullable
+        and _arrow_type_contract(actual_field.type)
+        == _arrow_type_contract(expected_field.type)
+        for actual_field, expected_field in zip(actual, expected)
+    )
 
 
 def audit(
@@ -251,12 +526,60 @@ def audit(
     rejected = rejected_table.to_pylist()
     records = _read_jsonl(source_path)
     raw_records = _read_jsonl(raw_source_path)
+    source_id_by_ref, _ = _source_identity_index(records, source_path.name)
     reconciliation = json.loads(reconciliation_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     issue_counts: Counter[str] = Counter()
     issue_examples: dict[str, list[str]] = defaultdict(list)
-    event_ids = [row["event_id"] for row in events]
+    columns = set(cleaned_table.column_names)
+    required_exact_fields = {
+        "event_id",
+        "subject_id",
+        "hadm_id",
+        "source_module",
+        "source_table",
+        "source_row_id",
+        "raw_row_ref",
+        "event_kind",
+        "event_time",
+        "source_available_time",
+        "available_time",
+        "recorded_time",
+        "time_policy_id",
+        "time_resolution_reasons",
+        "evidence_phase",
+        "quality_flags",
+        "cleaning_status",
+        "supporting_raw_row_refs",
+    }
+    for field in sorted(required_exact_fields - columns):
+        _add_issue(
+            issue_counts,
+            issue_examples,
+            "required_event_field_missing",
+            field,
+        )
+    missing_event_schema_fields = set(EVENT_ARROW_SCHEMA.names) - columns
+    event_structure_valid = not missing_event_schema_fields
+    for field in sorted(missing_event_schema_fields - required_exact_fields):
+        _add_issue(
+            issue_counts,
+            issue_examples,
+            "event_schema_field_missing",
+            field,
+        )
+    rejected_columns = set(rejected_table.column_names)
+    missing_rejected_schema_fields = set(REJECTED_ARROW_SCHEMA.names) - rejected_columns
+    rejected_structure_valid = not missing_rejected_schema_fields
+    for field in sorted(missing_rejected_schema_fields):
+        _add_issue(
+            issue_counts,
+            issue_examples,
+            "rejected_schema_field_missing",
+            field,
+        )
+    event_ids = [row.get("event_id") for row in events]
     accepted_ids: dict[str, set[str]] = defaultdict(set)
     rejected_ids: dict[str, set[str]] = defaultdict(set)
     source_event_counts: Counter[tuple[str, str]] = Counter()
@@ -267,6 +590,8 @@ def audit(
     table_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
 
     for event in events:
+        if not event_structure_valid:
+            continue
         event_id = event["event_id"]
         source_table = event["source_table"]
         table_rows[source_table].append(event)
@@ -276,6 +601,16 @@ def audit(
         source_event_counts[(source_table, event["source_row_id"])] += 1
         for field in ("event_time", "available_time", "recorded_time"):
             table_time_counts[source_table][f"{field}_null"] += int(event[field] is None)
+        if event.get("schema_version") != OUTPUT_SCHEMA["version"]:
+            _add_issue(issue_counts, issue_examples, "event_schema_version_mismatch", event_id)
+        spec = SOURCE_SPECS.get(source_table)
+        if spec is None:
+            _add_issue(issue_counts, issue_examples, "event_source_not_registered", event_id)
+            continue
+        if event.get("time_policy_id") != spec.time_policy:
+            _add_issue(issue_counts, issue_examples, "time_policy_mismatch", event_id)
+        if event.get("evidence_phase") != spec.evidence_phase:
+            _add_issue(issue_counts, issue_examples, "evidence_phase_mismatch", event_id)
         flags = event["quality_flags"]
         for flag in flags:
             quality_flag_counts[flag] += 1
@@ -309,7 +644,6 @@ def audit(
         except ValueError as error:
             _add_issue(issue_counts, issue_examples, str(error), event_id)
             continue
-        spec = SOURCE_SPECS[source_table]
         if parts["module"] != spec.module or parts["table"] != spec.table:
             _add_issue(issue_counts, issue_examples, "raw_ref_source_mismatch", event_id)
         if event["jsonl_line_number"] != int(parts["line"]):
@@ -323,7 +657,7 @@ def audit(
         for key in ("subject_id", "hadm_id"):
             if raw.get(key) not in (None, "") and str(raw[key]) != event[key]:
                 _add_issue(issue_counts, issue_examples, f"raw_{key}_mismatch", event_id)
-        if build_source_row_id(spec, raw) != event["source_row_id"]:
+        if source_id_by_ref.get(event["raw_row_ref"]) != event["source_row_id"]:
             _add_issue(issue_counts, issue_examples, "source_row_id_mismatch", event_id)
         support_ids = event.get("supporting_source_row_ids") or []
         support_refs = event.get("supporting_raw_row_refs") or []
@@ -348,16 +682,13 @@ def audit(
                     event_id,
                 )
                 continue
-            support_spec = next(
-                (
-                    candidate
-                    for candidate in SOURCE_REGISTRY
-                    if candidate.module == support_parts["module"]
-                    and candidate.table == support_parts["table"]
-                ),
-                None,
+            support_spec = SOURCE_BY_PATH.get(
+                (support_parts["module"], support_parts["table"])
             )
-            if support_spec is None or build_source_row_id(support_spec, support_raw) != support_id:
+            if (
+                support_spec is None
+                or source_id_by_ref.get(support_ref) != support_id
+            ):
                 _add_issue(
                     issue_counts,
                     issue_examples,
@@ -376,13 +707,41 @@ def audit(
                 )
             support_rows.append((support_admission, support_raw, support_parts))
         expected_times = _expected_times(source_table, raw, admission)
-        actual_times = tuple(event[field] for field in ("event_time", "available_time", "recorded_time"))
-        if actual_times != expected_times:
+        actual_times = {
+            field: event[field]
+            for field in (
+                "event_time",
+                "source_available_time",
+                "available_time",
+                "recorded_time",
+                "time_resolution_status",
+                "time_precision",
+                "time_resolution_reasons",
+            )
+        }
+        expected_values = {
+            field: expected_times[field]
+            for field in actual_times
+        }
+        if actual_times != expected_values:
             _add_issue(issue_counts, issue_examples, "time_semantics_mismatch", event_id)
-        if source_table == "hosp.procedures_icd" and event["evidence_phase"] != "post_hoc":
-            _add_issue(issue_counts, issue_examples, "procedure_phase_mismatch", event_id)
-        if source_table == "note.discharge" and event["evidence_phase"] != "post_hoc":
-            _add_issue(issue_counts, issue_examples, "discharge_not_post_hoc", event_id)
+        time_flag_codes = {
+            "AVAILABLE_BEFORE_EVENT_TIME",
+            "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+            "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME",
+            "AVAILABLE_TIME_UNKNOWN",
+        }
+        actual_time_flags = {flag for flag in flags if flag in time_flag_codes}
+        expected_time_flags = set(expected_times["time_quality_flags"])
+        if actual_time_flags != expected_time_flags:
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "time_quality_flags_mismatch",
+                event_id,
+            )
+        if _earlier(event.get("available_time"), event.get("event_time")):
+            _add_issue(issue_counts, issue_examples, "effective_time_inversion", event_id)
         if source_table == "hosp.prescriptions" and event["event_time"] is not None:
             matching_support = [
                 support_raw
@@ -390,6 +749,7 @@ def audit(
                 if support_parts["module"] == "mimic_iv_hosp"
                 and support_parts["table"] == "poe_timeline"
                 and _clean(support_raw.get("poe_id")) == _clean(raw.get("poe_id"))
+                and _clean(support_raw.get("poe_seq")) == _clean(raw.get("poe_seq"))
                 and _iso(support_raw.get("event_time")) == event["event_time"]
             ]
             if len(matching_support) != 1:
@@ -416,9 +776,9 @@ def audit(
                 _add_issue(issue_counts, issue_examples, "laboratory_value_mismatch", event_id)
         elif source_table == "hosp.prescriptions" and event["source_label"] != _clean(raw.get("drug")):
             _add_issue(issue_counts, issue_examples, "prescription_label_mismatch", event_id)
-        elif source_table == "hosp.pharmacy" and event["source_label"] != _clean(raw.get("medication")):
+        elif source_table == "hosp.pharmacy" and event["source_label"] != _expected_pharmacy_label(raw, admission):
             _add_issue(issue_counts, issue_examples, "pharmacy_label_mismatch", event_id)
-        elif source_table == "hosp.emar" and event["source_label"] != _clean(raw.get("medication")):
+        elif source_table == "hosp.emar" and event["source_label"] != _expected_emar_label(raw, admission):
             _add_issue(issue_counts, issue_examples, "emar_label_mismatch", event_id)
         elif source_table == "hosp.services" and event["source_label"] != _clean(raw.get("curr_service")):
             _add_issue(issue_counts, issue_examples, "service_label_mismatch", event_id)
@@ -434,6 +794,8 @@ def audit(
     issue_counts["null_event_id"] = sum(value is None for value in event_ids)
 
     for row in rejected:
+        if not rejected_structure_valid:
+            continue
         source_table = row["source_table"]
         rejected_ids[source_table].add(row["source_row_id"])
         if row.get("cleaning_status") != "rejected":
@@ -448,25 +810,29 @@ def audit(
         except ValueError as error:
             _add_issue(issue_counts, issue_examples, f"rejected_{error}", row["source_row_id"])
             continue
-        spec = SOURCE_SPECS[source_table]
-        if build_source_row_id(spec, raw) != row["source_row_id"]:
+        spec = SOURCE_SPECS.get(source_table)
+        if spec is None:
+            _add_issue(issue_counts, issue_examples, "rejected_source_not_registered", row["source_row_id"])
+            continue
+        if source_id_by_ref.get(row["raw_row_ref"]) != row["source_row_id"]:
             _add_issue(issue_counts, issue_examples, "rejected_source_row_id_mismatch", row["source_row_id"])
         if row["subject_id"] != str(admission["subject_id"]) or row["hadm_id"] != str(admission["hadm_id"]):
             _add_issue(issue_counts, issue_examples, "rejected_identity_mismatch", row["source_row_id"])
-        if not (
-            source_table == "hosp.pharmacy"
-            and row["reason_code"] == "PHARMACY_MEDICATION_MISSING"
-            and _clean(raw.get("medication")) is None
-        ):
+        expected_reason = _expected_rejection_reason(source_table, raw, admission)
+        if row["reason_code"] != expected_reason:
             _add_issue(issue_counts, issue_examples, "rejected_reason_not_reproduced", row["source_row_id"])
 
     raw_ids: dict[str, set[str]] = defaultdict(set)
     expected_source_counts: Counter[str] = Counter()
-    for admission in records.values():
-        for spec in SOURCE_REGISTRY:
+    for line_number, admission in records.items():
+        for spec in EVENT_SOURCE_REGISTRY:
             rows = admission[spec.module].get(spec.table, [])
-            for raw in rows:
-                source_id = build_source_row_id(spec, raw)
+            for array_index, raw in enumerate(rows):
+                raw_ref = (
+                    f"{source_path.name}#L{line_number}/"
+                    f"{spec.module}.{spec.table}[{array_index}]"
+                )
+                source_id = source_id_by_ref[raw_ref]
                 raw_ids[spec.source_table].add(source_id)
                 expected_source_counts[spec.source_table] += 1
                 classified = int(source_id in accepted_ids[spec.source_table]) + int(source_id in rejected_ids[spec.source_table])
@@ -480,7 +846,7 @@ def audit(
 
     reconciliation_differences: list[dict[str, Any]] = []
     reconciliation_by_table = {row["source_table"]: row for row in reconciliation["tables"]}
-    for spec in SOURCE_REGISTRY:
+    for spec in EVENT_SOURCE_REGISTRY:
         source_table = spec.source_table
         observed = {
             "input_rows": expected_source_counts[source_table],
@@ -488,9 +854,31 @@ def audit(
             "rejected_source_rows": len(rejected_ids[source_table]),
             "events": sum(count for (table, _), count in table_kind_counts.items() if table == source_table),
         }
-        declared = {key: reconciliation_by_table[source_table][key] for key in observed}
+        declared_row = reconciliation_by_table.get(source_table)
+        if declared_row is None:
+            reconciliation_differences.append(
+                {
+                    "source_table": source_table,
+                    "observed": observed,
+                    "declared": None,
+                }
+            )
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "source_reconciliation_missing_table",
+                source_table,
+            )
+            continue
+        declared = {key: declared_row.get(key) for key in observed}
         if observed != declared:
             reconciliation_differences.append({"source_table": source_table, "observed": observed, "declared": declared})
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "source_reconciliation_mismatch",
+                source_table,
+            )
 
     rng = random.Random(sample_seed)
     samples: list[dict[str, Any]] = []
@@ -507,7 +895,6 @@ def audit(
                 }
             )
 
-    columns = set(cleaned_table.column_names)
     field_contract = {
         requested: {
             "exact_present": requested in columns,
@@ -529,7 +916,7 @@ def audit(
         for (table, kind), count in sorted(table_kind_counts.items())
     ]
     source_reconciliation = []
-    for spec in SOURCE_REGISTRY:
+    for spec in EVENT_SOURCE_REGISTRY:
         table = spec.source_table
         source_reconciliation.append(
             {
@@ -553,12 +940,41 @@ def audit(
         "cleaned_events.parquet": hashes["cleaned_events.parquet"] == manifest["output_sha256"]["cleaned_events.parquet"],
         "cleaning_rejected.parquet": hashes["cleaning_rejected.parquet"] == manifest["output_sha256"]["cleaning_rejected.parquet"],
     }
-
-    material_issues = {
-        key: value
-        for key, value in issue_counts.items()
-        if value and key != "null_event_id"
+    for key, matched in hash_matches_manifest.items():
+        if not matched:
+            _add_issue(issue_counts, issue_examples, "manifest_hash_mismatch", key)
+    contract_matches_manifest = {
+        "output_schema": manifest.get("output_schema") == OUTPUT_SCHEMA,
+        "cleaning_logic_version": manifest.get("cleaning_logic_version")
+        == CLEANING_LOGIC_VERSION,
+        "source_catalog_version": manifest.get("source_catalog", {}).get("version")
+        == SOURCE_CATALOG_VERSION,
+        "source_catalog_sha256": manifest.get("source_catalog", {}).get("sha256")
+        == SOURCE_CATALOG_SHA256,
+        "source_catalog_sources": manifest.get("source_catalog", {}).get("sources")
+        == len(SOURCE_CATALOG),
+        "source_catalog_event_sources": manifest.get("source_catalog", {}).get("event_sources")
+        == len(EVENT_SOURCE_REGISTRY),
+        "arrow_schema_metadata": (cleaned_table.schema.metadata or {}).get(b"schema")
+        == b"clinical_event/1.2.0",
+        "event_arrow_schema": _arrow_schema_matches(
+            cleaned_table.schema, EVENT_ARROW_SCHEMA
+        ),
+        "rejected_arrow_schema": _arrow_schema_matches(
+            rejected_table.schema, REJECTED_ARROW_SCHEMA
+        ),
+        "manifest_admissions": manifest.get("counts", {}).get("admissions")
+        == len(records),
+        "manifest_source_rows": manifest.get("counts", {}).get("source_rows")
+        == sum(expected_source_counts.values()),
+        "manifest_events": manifest.get("counts", {}).get("events") == len(events),
+        "manifest_rejected": manifest.get("counts", {}).get("rejected")
+        == len(rejected),
     }
+    for key, matched in contract_matches_manifest.items():
+        if not matched:
+            _add_issue(issue_counts, issue_examples, "manifest_contract_mismatch", key)
+
     raw_identity_matches = 0
     raw_content_matches = 0
     raw_difference_lines: list[int] = []
@@ -579,9 +995,13 @@ def audit(
             raw_difference_lines.append(line_number)
     if raw_content_matches != len(all_line_numbers):
         issue_counts["raw_content_changed_by_enrichment"] = len(all_line_numbers) - raw_content_matches
-        material_issues["raw_content_changed_by_enrichment"] = len(all_line_numbers) - raw_content_matches
+    material_issues = {
+        key: value
+        for key, value in issue_counts.items()
+        if value and key != "null_event_id"
+    }
     return {
-        "audit_schema": "cleaned_events_acceptance_audit/1.0.0",
+        "audit_schema": "cleaned_events_acceptance_audit/2.0.0",
         "inputs": {
             "raw_source_jsonl": str(raw_source_path),
             "source_jsonl": str(source_path),
@@ -635,6 +1055,7 @@ def audit(
         "source_reconciliation_differences": reconciliation_differences,
         "hashes": hashes,
         "hash_matches_manifest": hash_matches_manifest,
+        "contract_matches_manifest": contract_matches_manifest,
         "full_event_lineage_checks": len(events),
         "full_rejected_lineage_checks": len(rejected),
         "upstream_raw_equivalence": {
@@ -651,8 +1072,9 @@ def audit(
         "acceptance": {
             "can_start_normalization": not material_issues
             and all(hash_matches_manifest.values())
+            and all(contract_matches_manifest.values())
             and not reconciliation_differences
-            and field_contract["cleaning_status"]["exact_present"],
+            and required_exact_fields.issubset(columns),
             "blocking_issue_codes": sorted(material_issues),
         },
     }
@@ -681,7 +1103,7 @@ def main() -> int:
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(result["acceptance"], ensure_ascii=False))
-    return 0
+    return 0 if result["acceptance"]["can_start_normalization"] else 1
 
 
 if __name__ == "__main__":

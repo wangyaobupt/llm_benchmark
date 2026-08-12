@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 from data_pipeline.event_pipeline import (
@@ -13,12 +14,17 @@ from data_pipeline.event_pipeline import (
     run_cleaning,
     run_normalization,
 )
-from data_pipeline.event_pipeline.schemas import EVENT_JSON_SCHEMA_PATH, QUALITY_FLAG_CODES
+from data_pipeline.event_pipeline.schemas import (
+    EVENT_ARROW_SCHEMA,
+    EVENT_JSON_SCHEMA_PATH,
+    QUALITY_FLAG_CODES,
+)
 from data_pipeline.event_pipeline.source_registry import (
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
 )
 from data_pipeline.event_pipeline.validation import EventPipelineError, EventValidator
+from eda.analysis.audit_cleaned_events_acceptance import audit
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -363,6 +369,85 @@ class EventPipelineTest(unittest.TestCase):
             self.assertEqual(
                 normalized_prescription["supporting_raw_row_refs"],
                 prescription["supporting_raw_row_refs"],
+            )
+
+    def test_independent_acceptance_audit_passes_valid_output_and_blocks_corruption(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self._write_source(root, self._record())
+            cleaning = root / "cleaning"
+            run_cleaning(source, cleaning, batch_size=3)
+
+            valid = audit(
+                cleaning / "cleaned_events.parquet",
+                cleaning / "cleaning_rejected.parquet",
+                source,
+                source,
+                cleaning / "source_reconciliation.json",
+                cleaning / "run_manifest.json",
+                samples_per_table=1,
+            )
+            self.assertTrue(valid["acceptance"]["can_start_normalization"])
+
+            rows = pq.read_table(cleaning / "cleaned_events.parquet").to_pylist()
+            laboratory = next(
+                row for row in rows if row["event_kind"] == "laboratory_resulted"
+            )
+            laboratory["source_available_time"] = "2150-01-01T08:00:00"
+            laboratory["available_time"] = "2150-01-01T08:00:00"
+            laboratory["time_resolution_reasons"] = [
+                "source_available_precedes_event_time"
+            ]
+            laboratory["quality_flags"] = ["AVAILABLE_BEFORE_EVENT_TIME"]
+            corrupted_path = root / "corrupted_events.parquet"
+            pq.write_table(
+                pa.Table.from_pylist(rows, schema=EVENT_ARROW_SCHEMA),
+                corrupted_path,
+                compression="zstd",
+            )
+
+            corrupted = audit(
+                corrupted_path,
+                cleaning / "cleaning_rejected.parquet",
+                source,
+                source,
+                cleaning / "source_reconciliation.json",
+                cleaning / "run_manifest.json",
+                samples_per_table=1,
+            )
+            self.assertFalse(corrupted["acceptance"]["can_start_normalization"])
+            self.assertIn(
+                "effective_time_inversion",
+                corrupted["acceptance"]["blocking_issue_codes"],
+            )
+            self.assertIn(
+                "manifest_hash_mismatch",
+                corrupted["acceptance"]["blocking_issue_codes"],
+            )
+
+            missing_field_path = root / "missing_available_time.parquet"
+            pq.write_table(
+                pq.read_table(cleaning / "cleaned_events.parquet").drop(
+                    ["available_time"]
+                ),
+                missing_field_path,
+                compression="zstd",
+            )
+            missing_field = audit(
+                missing_field_path,
+                cleaning / "cleaning_rejected.parquet",
+                source,
+                source,
+                cleaning / "source_reconciliation.json",
+                cleaning / "run_manifest.json",
+                samples_per_table=1,
+            )
+            self.assertFalse(
+                missing_field["acceptance"]["can_start_normalization"]
+            )
+            self.assertIn(
+                "required_event_field_missing",
+                missing_field["acceptance"]["blocking_issue_codes"],
             )
 
     def test_reconciliation_is_per_source_row_and_known_data_error_is_rejected(self) -> None:
