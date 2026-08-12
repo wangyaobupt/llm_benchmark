@@ -164,3 +164,25 @@ Cleaning audit 全量复算来源、身份、时间和逐表对账；normalizati
 ```
 
 窗口只监听 `127.0.0.1`。人工决定以追加式日志写入 `review/normalization_review_annotations.jsonl`，不会修改 Parquet、CSV、cleaning 或 normalization 产物。需要连接非自动发现位置的源 JSONL 时，使用 `--source-jsonl PATH`。
+
+## 合并多批归一化审阅
+
+至少两批审阅包生成后，可以按冻结键跨批去重，并建立固定 100 条试审：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline review-master `
+  data\test_1000_0812\event_pipeline_output `
+  data\test_1000_0812_2\event_pipeline_output `
+  --output-dir data\derived\normalization_review_master
+```
+
+冻结键为 `entity_type + source_concept_id + normalized_source_label + source_unit + mapping_version`。概念、状态、单位或规则不一致会直接失败；同一术语的各批事件数和原始证据分别保留。试审按七类依次、互斥、按总事件影响降序选择，共 100 条。
+
+启动主审阅窗口：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.event_pipeline review-ui `
+  data\derived\normalization_review_master
+```
+
+主审阅决定只追加到 `normalization_review_annotations.jsonl`。`needs_external_evidence` 仍算待处理；任何确定性纠正应回到规则层修改并重跑，而不是直接编辑归一化 Parquet。

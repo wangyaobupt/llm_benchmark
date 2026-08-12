@@ -20,9 +20,9 @@ import webbrowser
 import duckdb
 
 
-APP_VERSION = "normalization-review-ui/1.0.0"
+APP_VERSION = "normalization-review-ui/1.1.0"
 ANNOTATION_FILENAME = "normalization_review_annotations.jsonl"
-ALLOWED_DECISIONS = {"accepted", "rejected", "corrected", "needs_evidence"}
+LEGACY_DECISIONS = ["accepted", "rejected", "corrected", "needs_evidence"]
 RAW_REF_RE = re.compile(
     r"^(?P<filename>[^#\\/]+)#L(?P<line>\d+)/"
     r"(?P<module>[A-Za-z0-9_]+)\.(?P<table>[A-Za-z0-9_]+)"
@@ -111,11 +111,17 @@ class ReviewStore:
         self.review_directory = Path(review_directory).resolve()
         if not self.review_directory.is_dir():
             raise NotADirectoryError(self.review_directory)
-        self.summary_path = self.review_directory / "normalization_review_summary.json"
-        self.decisions_path = (
-            self.review_directory / "normalization_review_decisions.parquet"
+        self.summary_path = self._first_existing(
+            "normalization_review_summary.json", "review_summary.json"
         )
-        self.samples_path = self.review_directory / "normalization_review_samples.parquet"
+        self.decisions_path = self._first_existing(
+            "normalization_review_decisions.parquet",
+            "consolidated_review_decisions.parquet",
+        )
+        self.samples_path = self._first_existing(
+            "normalization_review_samples.parquet",
+            "cross_batch_evidence_samples.parquet",
+        )
         for path in (self.summary_path, self.decisions_path, self.samples_path):
             if not path.is_file():
                 raise FileNotFoundError(path)
@@ -128,18 +134,47 @@ class ReviewStore:
             + _quoted_path(self.decisions_path)
             + "')"
         )
+        self.decision_columns = {
+            row[0]
+            for row in self._connection.execute("DESCRIBE review_decisions").fetchall()
+        }
         self._connection.execute(
             "CREATE VIEW review_samples AS SELECT * FROM read_parquet('"
             + _quoted_path(self.samples_path)
             + "')"
         )
+        self.sample_columns = {
+            row[0]
+            for row in self._connection.execute("DESCRIBE review_samples").fetchall()
+        }
         self._latest_annotations: dict[str, dict[str, Any]] = {}
         self._annotation_history: dict[str, list[dict[str, Any]]] = {}
         self._load_annotations()
-        resolved_source = (
-            Path(source_jsonl).resolve() if source_jsonl else self._find_source_jsonl()
-        )
-        self.source_reader = SourceJsonlReader(resolved_source) if resolved_source else None
+        self.source_readers: dict[str, SourceJsonlReader] = {}
+        batches = self.summary_data.get("inputs", {}).get("batches", [])
+        if isinstance(batches, list) and batches:
+            if source_jsonl:
+                raise ValueError("多批审阅不能使用单个 --source-jsonl 覆盖源文件")
+            for batch in batches:
+                batch_id = batch.get("batch_id")
+                source_path = batch.get("source_jsonl")
+                if isinstance(batch_id, str) and isinstance(source_path, str):
+                    self.source_readers[batch_id] = SourceJsonlReader(Path(source_path))
+        else:
+            resolved_source = (
+                Path(source_jsonl).resolve()
+                if source_jsonl
+                else self._find_source_jsonl()
+            )
+            if resolved_source:
+                self.source_readers["default"] = SourceJsonlReader(resolved_source)
+
+    def _first_existing(self, *names: str) -> Path:
+        for name in names:
+            path = self.review_directory / name
+            if path.is_file():
+                return path
+        return self.review_directory / names[0]
 
     def close(self) -> None:
         self._connection.close()
@@ -193,25 +228,37 @@ class ReviewStore:
             counts = Counter(
                 value["decision"] for value in self._latest_annotations.values()
             )
+            summary_counts = self.summary_data.get("counts", {})
             selected = int(
-                self.summary_data.get("counts", {}).get("required_review_rows", 0)
-            ) + int(
-                self.summary_data.get("counts", {}).get("sampled_review_rows", 0)
+                summary_counts.get(
+                    "pilot_review_rows",
+                    int(summary_counts.get("required_review_rows", 0))
+                    + int(summary_counts.get("sampled_review_rows", 0)),
+                )
+            )
+            completed_decisions = set(
+                self.summary_data.get("decision_taxonomy", {}).get(
+                    "completed", ["accepted", "rejected", "corrected"]
+                )
             )
             completed = sum(
                 count
                 for decision, count in counts.items()
-                if decision in {"accepted", "rejected", "corrected"}
+                if decision in completed_decisions
             )
             return {
                 **self.summary_data,
                 "review_ui": {
                     "version": APP_VERSION,
                     "source_jsonl": (
-                        str(self.source_reader.source_path)
-                        if self.source_reader
+                        str(next(iter(self.source_readers.values())).source_path)
+                        if len(self.source_readers) == 1
                         else None
                     ),
+                    "source_batches": {
+                        batch: str(reader.source_path)
+                        for batch, reader in sorted(self.source_readers.items())
+                    },
                     "annotation_file": ANNOTATION_FILENAME,
                     "annotation_count": sum(counts.values()),
                     "latest_decision_counts": dict(sorted(counts.items())),
@@ -232,13 +279,20 @@ class ReviewStore:
         entity_type: str = "",
         review_reason: str = "",
         mapping_rule: str = "",
+        pilot_category: str = "",
         current_status: str = "",
         sort: str = "priority",
     ) -> dict[str, Any]:
         if page < 1 or page_size not in {20, 50, 100, 200}:
             raise ValueError("page/page_size 不合法")
+        pilot_first = (
+            "CASE WHEN d.review_scope = 'pilot' THEN 0 ELSE 1 END, "
+            "d.pilot_category_rank NULLS LAST, "
+            if "pilot_category_rank" in self.decision_columns
+            else ""
+        )
         sort_sql = {
-            "priority": "d.priority_rank, d.event_count DESC, d.review_id",
+            "priority": pilot_first + "d.priority_rank, d.event_count DESC, d.review_id",
             "impact": "d.event_count DESC, d.priority_rank, d.review_id",
             "label": "d.entity_type, d.normalized_source_label, d.review_id",
             "status": "current_status, d.priority_rank, d.event_count DESC",
@@ -254,8 +308,9 @@ class ReviewStore:
             ("review_scope", review_scope),
             ("entity_type", entity_type),
             ("mapping_rule", mapping_rule),
+            ("pilot_category", pilot_category),
         ):
-            if value:
+            if value and column in self.decision_columns:
                 clauses.append(f"d.{column} = ?")
                 parameters.append(value)
         if review_reason:
@@ -267,20 +322,26 @@ class ReviewStore:
             )
             parameters.append(current_status)
         if search:
+            searchable = [
+                column
+                for column in (
+                    "source_concept_id",
+                    "source_label_example",
+                    "concept_id",
+                    "preferred_name",
+                    "mapping_rule",
+                    "first_event_id",
+                    "pilot_category",
+                )
+                if column in self.decision_columns
+            ]
             clauses.append(
                 "(" + " OR ".join(
                     f"lower(COALESCE(CAST(d.{column} AS VARCHAR), '')) LIKE ?"
-                    for column in (
-                        "source_concept_id",
-                        "source_label_example",
-                        "concept_id",
-                        "preferred_name",
-                        "mapping_rule",
-                        "first_event_id",
-                    )
+                    for column in searchable
                 ) + ")"
             )
-            parameters.extend([f"%{search.casefold()}%"] * 6)
+            parameters.extend([f"%{search.casefold()}%"] * len(searchable))
         where = " WHERE " + " AND ".join(clauses) if clauses else ""
         annotations = list(self._latest_annotations.values())
         with self._lock:
@@ -338,7 +399,16 @@ class ReviewStore:
     def distinct_values(self) -> dict[str, list[Any]]:
         output: dict[str, list[Any]] = {}
         with self._lock:
-            for column in ("entity_type", "mapping_rule", "review_scope"):
+            for column in (
+                "entity_type",
+                "mapping_rule",
+                "review_scope",
+                "pilot_category",
+                "priority_rank",
+            ):
+                if column not in self.decision_columns:
+                    output[column] = []
+                    continue
                 output[column] = [
                     row[0]
                     for row in self._connection.execute(
@@ -353,14 +423,10 @@ class ReviewStore:
                     "FROM review_decisions ORDER BY reason"
                 ).fetchall()
             ]
-        output["current_status"] = [
-            "pending",
-            "accepted",
-            "rejected",
-            "corrected",
-            "needs_evidence",
-            "not_selected",
-        ]
+        allowed = self.summary_data.get("decision_taxonomy", {}).get(
+            "allowed", LEGACY_DECISIONS
+        )
+        output["current_status"] = ["pending", *allowed, "not_selected"]
         return output
 
     def detail(self, review_id: str) -> dict[str, Any]:
@@ -375,9 +441,14 @@ class ReviewStore:
             decision = {
                 name: _json_value(value) for name, value in zip(names, row, strict=True)
             }
+            sample_order = (
+                "batch_id, event_id"
+                if "batch_id" in self.sample_columns
+                else "event_id"
+            )
             sample_cursor = self._connection.execute(
                 "SELECT * FROM review_samples WHERE mapping_review_id = ? "
-                "ORDER BY event_id LIMIT 50",
+                f"ORDER BY {sample_order} LIMIT 50",
                 [review_id],
             )
             sample_names = [item[0] for item in sample_cursor.description]
@@ -396,12 +467,22 @@ class ReviewStore:
             "annotation_history": history,
         }
 
-    def source_row(self, raw_row_ref: str) -> dict[str, Any]:
-        if self.source_reader is None:
+    def source_row(
+        self, raw_row_ref: str, batch_id: str | None = None
+    ) -> dict[str, Any]:
+        if not self.source_readers:
             raise FileNotFoundError(
                 "未自动找到源 JSONL；请使用 --source-jsonl 明确指定"
             )
-        return self.source_reader.resolve(raw_row_ref)
+        if batch_id:
+            reader = self.source_readers.get(batch_id)
+            if reader is None:
+                raise KeyError(f"未知批次 {batch_id}")
+        elif len(self.source_readers) == 1:
+            reader = next(iter(self.source_readers.values()))
+        else:
+            raise ValueError("多批审阅回查必须提供 batch_id")
+        return {"batch_id": batch_id or "default", **reader.resolve(raw_row_ref)}
 
     def save_annotation(self, payload: dict[str, Any]) -> dict[str, Any]:
         review_id = str(payload.get("review_id") or "").strip()
@@ -414,28 +495,59 @@ class ReviewStore:
         corrected_preferred_name = str(
             payload.get("corrected_preferred_name") or ""
         ).strip() or None
-        if decision not in ALLOWED_DECISIONS:
+        corrected_normalized_unit = str(
+            payload.get("corrected_normalized_unit") or ""
+        ).strip() or None
+        taxonomy = self.summary_data.get("decision_taxonomy", {})
+        allowed_decisions = set(taxonomy.get("allowed", LEGACY_DECISIONS))
+        comment_required = set(
+            taxonomy.get(
+                "comment_required", ["rejected", "corrected", "needs_evidence"]
+            )
+        )
+        correction_required = set(
+            taxonomy.get("correction_fields_required", ["corrected"])
+        )
+        correction_concept_or_unit = set(
+            taxonomy.get("correction_concept_or_unit_required", [])
+        )
+        if decision not in allowed_decisions:
             raise ValueError("decision 不合法")
         if not reviewer:
             raise ValueError("reviewer 不能为空")
-        if decision in {"rejected", "corrected", "needs_evidence"} and not comment:
+        if decision in comment_required and not comment:
             raise ValueError("该决定必须填写 review_comment")
-        if decision == "corrected" and (
+        if decision in correction_required and (
             not corrected_concept_id or not corrected_preferred_name
         ):
-            raise ValueError("corrected 必须填写纠正后的概念ID和名称")
+            raise ValueError("该纠正决定必须填写纠正后的概念ID和名称")
+        if decision in correction_concept_or_unit and not (
+            (corrected_concept_id and corrected_preferred_name)
+            or corrected_normalized_unit
+        ):
+            raise ValueError("确定性纠正必须填写概念ID和名称，或填写标准单位")
         with self._lock:
-            exists = self._connection.execute(
-                "SELECT count(*) FROM review_decisions WHERE review_id = ?",
+            current = self._connection.execute(
+                "SELECT normalization_status, unit_normalization_status "
+                "FROM review_decisions WHERE review_id = ?",
                 [review_id],
-            ).fetchone()[0]
-            if not exists:
+            ).fetchone()
+            if current is None:
                 raise KeyError("review_id 不存在")
+            normalization_status, unit_status = current
+            if decision == "accepted_mapped" and (
+                normalization_status != "mapped" or unit_status == "unresolved"
+            ):
+                raise ValueError("当前术语或单位未解决，不能标记 accepted_mapped")
+            if decision == "accepted_unresolved" and not (
+                normalization_status == "unresolved" or unit_status == "unresolved"
+            ):
+                raise ValueError("当前术语和单位均已映射，不能标记 accepted_unresolved")
             timestamp = datetime.now(timezone.utc).isoformat()
             annotation = {
                 "schema": {
                     "name": "normalization_review_annotation",
-                    "version": "1.0.0",
+                    "version": "1.1.0",
                 },
                 "annotation_id": "annotation-"
                 + hashlib.sha256(
@@ -446,6 +558,7 @@ class ReviewStore:
                 "decision": decision,
                 "corrected_concept_id": corrected_concept_id,
                 "corrected_preferred_name": corrected_preferred_name,
+                "corrected_normalized_unit": corrected_normalized_unit,
                 "reviewer": reviewer,
                 "review_comment": comment or None,
                 "timestamp_utc": timestamp,
@@ -469,24 +582,24 @@ HTML = r'''<!doctype html>
 <header class="top"><h1>归一化人工审阅</h1><p id="runline">加载审阅元数据…</p></header><section class="cards" id="cards"></section>
 <main class="layout"><section class="panel"><div class="filters">
 <input id="search" placeholder="搜索术语、代码、概念或event_id">
-<select id="priority"><option value="">全部优先级</option><option value="0">P0 文本规则</option><option value="1">P1 必审</option><option value="2">P2 高频抽审</option></select>
+<select id="priority"><option value="">全部优先级</option></select>
 <select id="status"><option value="">全部状态</option></select>
-<select id="reason"><option value="">全部原因</option></select><select id="entity"><option value="">全部实体</option></select><select id="sort"><option value="priority">按优先级</option><option value="impact">按影响事件数</option><option value="label">按术语</option><option value="status">按状态</option></select>
+<select id="scope"><option value="">全部审阅范围</option></select><select id="pilot"><option value="">全部试审类别</option></select><select id="reason"><option value="">全部原因</option></select><select id="entity"><option value="">全部实体</option></select><select id="sort"><option value="priority">按优先级</option><option value="impact">按影响事件数</option><option value="label">按术语</option><option value="status">按状态</option></select>
 </div><div class="list" id="list"></div><div class="pager"><button id="prev">上一页</button><span id="pageinfo"></span><button id="next">下一页</button></div></section>
 <section class="panel"><div class="detail" id="detail"><div class="empty">从左侧选择一个审阅项目</div></div></section></main>
 <script>
 const state={page:1,pageSize:50,total:0,active:null,summary:null};const $=id=>document.getElementById(id);const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function api(url,opt){const r=await fetch(url,opt);const j=await r.json();if(!r.ok)throw new Error(j.error||r.statusText);return j}
 function card(label,value){return `<div class="card"><b>${esc(value)}</b><span>${esc(label)}</span></div>`}
-async function loadSummary(){const s=await api('/api/summary');state.summary=s;const u=s.review_ui,c=s.counts,n=s.normalization_status_counts;$('runline').textContent=`review run ${s.review_run_id} · 自动门禁 ${s.acceptance.automated_review_passed?'通过':'失败'} · ${u.source_jsonl?'已连接原始JSONL':'未连接原始JSONL'}`;$('cards').innerHTML=card('归一化事件',c.normalized_events.toLocaleString())+card('Mapped',n.mapped.toLocaleString())+card('Unresolved',n.unresolved.toLocaleString())+card('选中待审',u.selected_for_human_review.toLocaleString())+card('已完成',u.completed_human_decisions.toLocaleString())+card('剩余',u.remaining_human_decisions.toLocaleString())}
-async function loadFilters(){const f=await api('/api/filters');for(const [id,key] of [['status','current_status'],['reason','review_reason'],['entity','entity_type']])for(const v of f[key])$(id).insertAdjacentHTML('beforeend',`<option value="${esc(v)}">${esc(v)}</option>`)}
-function params(){const p=new URLSearchParams({page:state.page,page_size:state.pageSize,search:$('search').value,priority_rank:$('priority').value,current_status:$('status').value,review_reason:$('reason').value,entity_type:$('entity').value,sort:$('sort').value});return p}
+async function loadSummary(){const s=await api('/api/summary');state.summary=s;const u=s.review_ui,c=s.counts,n=s.normalization_status_counts||{};const gate=s.acceptance.automated_review_passed??s.acceptance.ready_for_human_review;const connected=Object.keys(u.source_batches||{}).length;$('runline').textContent=`review run ${s.review_run_id} · 自动门禁 ${gate?'通过':'失败'} · 已连接 ${connected} 批原始JSONL`;$('cards').innerHTML=card('归一化事件',Number(c.normalized_events||0).toLocaleString())+card('唯一术语',Number(c.unique_mapping_rows??c.mapping_rows??0).toLocaleString())+card('Unresolved事件',Number(n.unresolved||0).toLocaleString())+card('选中待审',u.selected_for_human_review.toLocaleString())+card('已完成',u.completed_human_decisions.toLocaleString())+card('剩余',u.remaining_human_decisions.toLocaleString())}
+async function loadFilters(){const f=await api('/api/filters');for(const [id,key] of [['status','current_status'],['scope','review_scope'],['pilot','pilot_category'],['reason','review_reason'],['entity','entity_type'],['priority','priority_rank']])for(const v of f[key]||[])$(id).insertAdjacentHTML('beforeend',`<option value="${esc(v)}">${id==='priority'?'P':''}${esc(v)}</option>`);if((f.review_scope||[]).includes('pilot'))$('scope').value='pilot'}
+function params(){const p=new URLSearchParams({page:state.page,page_size:state.pageSize,search:$('search').value,priority_rank:$('priority').value,current_status:$('status').value,review_scope:$('scope').value,pilot_category:$('pilot').value,review_reason:$('reason').value,entity_type:$('entity').value,sort:$('sort').value});return p}
 async function loadList(){const d=await api('/api/decisions?'+params());state.total=d.total;$('list').innerHTML=d.rows.map(r=>`<div class="row ${state.active===r.review_id?'active':''}" data-id="${esc(r.review_id)}"><div class="row-head"><span class="label">${esc(r.source_label_example||r.normalized_source_label||'<missing>')}</span><b>${Number(r.event_count).toLocaleString()}</b></div><div class="meta">${esc(r.entity_type)} · ${esc(r.source_concept_id||'无源代码')} → ${esc(r.concept_id||'unresolved')}</div><div class="badges"><span class="badge p${r.priority_rank}">P${r.priority_rank}</span><span class="badge ${r.normalization_status}">${esc(r.normalization_status)}</span><span class="badge">${esc(r.current_status)}</span>${(r.review_reasons||[]).map(x=>`<span class="badge">${esc(x)}</span>`).join('')}</div></div>`).join('')||'<div class="empty">没有符合条件的项目</div>';$('pageinfo').textContent=`第 ${d.page} 页 · 共 ${d.total.toLocaleString()} 项`;$('prev').disabled=state.page<=1;$('next').disabled=state.page*state.pageSize>=d.total;document.querySelectorAll('.row').forEach(x=>x.onclick=()=>loadDetail(x.dataset.id))}
-function fields(d){const items=[['原始术语',d.source_label_example],['源概念代码',d.source_concept_id],['当前概念',d.concept_id],['标准名称',d.preferred_name],['实体类型',d.entity_type],['映射规则',d.mapping_rule],['状态',d.normalization_status],['原始单位',d.source_unit],['标准单位',d.normalized_unit],['单位状态',d.unit_normalization_status],['影响事件数',Number(d.event_count).toLocaleString()],['首个事件',d.first_event_id]];return items.map(([k,v])=>`<div class="field"><span>${k}</span><code>${esc(v??'—')}</code></div>`).join('')}
-async function loadDetail(id){state.active=id;await loadList();const x=await api('/api/decision?review_id='+encodeURIComponent(id)),d=x.decision,a=x.latest_annotation||{};let samples=x.samples.map(s=>`<div class="sample"><b>${esc(s.event_kind)} · ${esc(s.source_table)}</b><div>${esc(s.source_label)} → ${esc(s.concept_id||'unresolved')}</div><div class="meta">${esc(s.subject_id)} / ${esc(s.hadm_id)} · ${esc(s.raw_row_ref)}</div><button class="primary rawbtn" data-ref="${esc(s.raw_row_ref)}">回查原始行</button></div>`).join('')||'<p class="meta">本条没有事件样本。</p>';$('detail').innerHTML=`<h2>${esc(d.source_label_example||d.normalized_source_label)}</h2><div class="badges">${(d.review_reasons||[]).map(v=>`<span class="badge">${esc(v)}</span>`).join('')}</div><div class="grid">${fields(d)}</div><h3 style="margin-top:18px">事件样本</h3>${samples}<div id="rawbox"></div><div class="form"><h3>记录人工决定</h3><div id="notice"></div><div class="form-grid"><select id="decision"><option value="">选择决定</option><option value="accepted">accepted</option><option value="rejected">rejected</option><option value="corrected">corrected</option><option value="needs_evidence">needs_evidence</option></select><input id="reviewer" placeholder="审阅者" value="${esc(a.reviewer||'')}"><input id="correctedId" placeholder="纠正后的concept_id" value="${esc(a.corrected_concept_id||'')}"><input id="correctedName" placeholder="纠正后的preferred_name" value="${esc(a.corrected_preferred_name||'')}"><textarea id="comment" placeholder="审阅依据或备注">${esc(a.review_comment||'')}</textarea></div><button class="primary" id="save" style="margin-top:10px">保存决定</button><div class="meta" style="margin-top:8px">只追加写入 annotations.jsonl，不修改Parquet。历史记录：${x.annotation_history.length} 条。</div></div>`;if(a.decision)$('decision').value=a.decision;document.querySelectorAll('.rawbtn').forEach(b=>b.onclick=()=>loadRaw(b.dataset.ref));$('save').onclick=()=>saveDecision(id)}
-async function loadRaw(ref){const box=$('rawbox');try{const x=await api('/api/source?raw_row_ref='+encodeURIComponent(ref));box.innerHTML=`<h3>原始源行</h3><pre class="raw">${esc(JSON.stringify(x,null,2))}</pre>`}catch(e){box.innerHTML=`<div class="notice error">${esc(e.message)}</div>`}}
-async function saveDecision(id){const payload={review_id:id,decision:$('decision').value,reviewer:$('reviewer').value,corrected_concept_id:$('correctedId').value,corrected_preferred_name:$('correctedName').value,review_comment:$('comment').value};try{await api('/api/annotations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});$('notice').innerHTML='<div class="notice ok">已保存到追加式审阅日志</div>';await loadSummary();await loadDetail(id)}catch(e){$('notice').innerHTML=`<div class="notice error">${esc(e.message)}</div>`}}
-let timer;for(const id of ['priority','status','reason','entity','sort'])$(id).onchange=()=>{state.page=1;loadList()};$('search').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{state.page=1;loadList()},250)};$('prev').onclick=()=>{state.page--;loadList()};$('next').onclick=()=>{state.page++;loadList()};(async()=>{try{await loadSummary();await loadFilters();await loadList()}catch(e){document.body.innerHTML=`<pre class="raw">${esc(e.stack||e.message)}</pre>`}})();
+function fields(d){const items=[['原始术语',d.source_label_example],['源概念代码',d.source_concept_id],['当前概念',d.concept_id],['标准名称',d.preferred_name],['实体类型',d.entity_type],['映射规则',d.mapping_rule],['状态',d.normalization_status],['原始单位',d.source_unit],['标准单位',d.normalized_unit],['单位状态',d.unit_normalization_status],['影响事件数',Number(d.event_count).toLocaleString()],['覆盖批次',d.batch_ids?.join(', ')],['分批事件数',d.batch_event_counts_json],['试审类别',d.pilot_category],['首个事件',d.first_event_id]];return items.map(([k,v])=>`<div class="field"><span>${k}</span><code>${esc(v??'—')}</code></div>`).join('')}
+async function loadDetail(id){state.active=id;await loadList();const x=await api('/api/decision?review_id='+encodeURIComponent(id)),d=x.decision,a=x.latest_annotation||{};let samples=x.samples.map(s=>`<div class="sample"><b>${esc(s.batch_id||'单批')} · ${esc(s.event_kind)} · ${esc(s.source_table)}</b><div>${esc(s.source_label)} → ${esc(s.concept_id||'unresolved')}</div><div class="meta">${esc(s.subject_id)} / ${esc(s.hadm_id)} · ${esc(s.raw_row_ref)}</div><button class="primary rawbtn" data-ref="${esc(s.raw_row_ref)}" data-batch="${esc(s.batch_id||'')}">回查原始行</button></div>`).join('')||'<p class="meta">本条没有事件样本。</p>';const decisions=(state.summary.decision_taxonomy?.allowed||['accepted','rejected','corrected','needs_evidence']).map(v=>`<option value="${esc(v)}">${esc(v)}</option>`).join('');$('detail').innerHTML=`<h2>${esc(d.source_label_example||d.normalized_source_label)}</h2><div class="badges">${(d.review_reasons||[]).map(v=>`<span class="badge">${esc(v)}</span>`).join('')}</div><div class="grid">${fields(d)}</div><h3 style="margin-top:18px">事件样本</h3>${samples}<div id="rawbox"></div><div class="form"><h3>记录人工决定</h3><div id="notice"></div><div class="form-grid"><select id="decision"><option value="">选择决定</option>${decisions}</select><input id="reviewer" placeholder="审阅者" value="${esc(a.reviewer||'')}"><input id="correctedId" placeholder="纠正后的concept_id" value="${esc(a.corrected_concept_id||'')}"><input id="correctedName" placeholder="纠正后的preferred_name" value="${esc(a.corrected_preferred_name||'')}"><input id="correctedUnit" placeholder="纠正后的normalized_unit" value="${esc(a.corrected_normalized_unit||'')}"><textarea id="comment" placeholder="审阅依据或备注">${esc(a.review_comment||'')}</textarea></div><button class="primary" id="save" style="margin-top:10px">保存决定</button><div class="meta" style="margin-top:8px">只追加写入 normalization_review_annotations.jsonl，不修改Parquet。历史记录：${x.annotation_history.length} 条。</div></div>`;if(a.decision)$('decision').value=a.decision;document.querySelectorAll('.rawbtn').forEach(b=>b.onclick=()=>loadRaw(b.dataset.ref,b.dataset.batch));$('save').onclick=()=>saveDecision(id)}
+async function loadRaw(ref,batch){const box=$('rawbox');try{const p=new URLSearchParams({raw_row_ref:ref,batch_id:batch||''});const x=await api('/api/source?'+p);box.innerHTML=`<h3>原始源行</h3><pre class="raw">${esc(JSON.stringify(x,null,2))}</pre>`}catch(e){box.innerHTML=`<div class="notice error">${esc(e.message)}</div>`}}
+async function saveDecision(id){const payload={review_id:id,decision:$('decision').value,reviewer:$('reviewer').value,corrected_concept_id:$('correctedId').value,corrected_preferred_name:$('correctedName').value,corrected_normalized_unit:$('correctedUnit').value,review_comment:$('comment').value};try{await api('/api/annotations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});$('notice').innerHTML='<div class="notice ok">已保存到追加式审阅日志</div>';await loadSummary();await loadDetail(id)}catch(e){$('notice').innerHTML=`<div class="notice error">${esc(e.message)}</div>`}}
+let timer;for(const id of ['priority','status','scope','pilot','reason','entity','sort'])$(id).onchange=()=>{state.page=1;loadList()};$('search').oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{state.page=1;loadList()},250)};$('prev').onclick=()=>{state.page--;loadList()};$('next').onclick=()=>{state.page++;loadList()};(async()=>{try{await loadSummary();await loadFilters();await loadList()}catch(e){document.body.innerHTML=`<pre class="raw">${esc(e.stack||e.message)}</pre>`}})();
 </script></body></html>'''
 
 
@@ -532,6 +645,7 @@ def _make_handler(store: ReviewStore) -> type[BaseHTTPRequestHandler]:
                             entity_type=one("entity_type"),
                             review_reason=one("review_reason"),
                             mapping_rule=one("mapping_rule"),
+                            pilot_category=one("pilot_category"),
                             current_status=one("current_status"),
                             sort=one("sort", "priority"),
                         )
@@ -539,7 +653,11 @@ def _make_handler(store: ReviewStore) -> type[BaseHTTPRequestHandler]:
                 elif parsed.path == "/api/decision":
                     self._json(store.detail(one("review_id")))
                 elif parsed.path == "/api/source":
-                    self._json(store.source_row(one("raw_row_ref")))
+                    self._json(
+                        store.source_row(
+                            one("raw_row_ref"), one("batch_id") or None
+                        )
+                    )
                 else:
                     self._json({"error": "not found"}, HTTPStatus.NOT_FOUND)
             except (ValueError, KeyError, FileNotFoundError, IndexError) as exc:
@@ -593,6 +711,7 @@ def main(argv: list[str] | None = None) -> int:
                     "decisions": summary.get("counts", {}).get("mapping_rows"),
                     "samples": summary.get("counts", {}).get("event_samples"),
                     "source_jsonl": summary["review_ui"]["source_jsonl"],
+                    "source_batches": summary["review_ui"]["source_batches"],
                     "annotations": summary["review_ui"]["annotation_count"],
                 },
                 ensure_ascii=False,

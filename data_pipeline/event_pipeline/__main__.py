@@ -9,6 +9,7 @@ from pathlib import Path
 from .event_cleaning.pipeline import run_cleaning
 from .event_normalization.pipeline import run_normalization
 from .event_quality import regression
+from .event_quality.consolidate_review import consolidate_review_packages
 from .event_quality.review_normalization import generate_review_package
 from .event_viewer import app as viewer
 from .event_viewer import review_app as review_ui
@@ -69,6 +70,13 @@ def _parser() -> argparse.ArgumentParser:
     review_view.add_argument("--port", type=int, default=8766)
     review_view.add_argument("--no-browser", action="store_true")
     review_view.add_argument("--check", action="store_true")
+
+    review_master = subparsers.add_parser(
+        "review-master",
+        help="Consolidate multiple review packages and create a 100-term pilot",
+    )
+    review_master.add_argument("event_directories", nargs="+", type=Path)
+    review_master.add_argument("--output-dir", type=Path, required=True)
 
     regression_parser = subparsers.add_parser(
         "regression", help="Capture or verify privacy-safe cleaning baselines"
@@ -131,6 +139,7 @@ def main() -> None:
         review_directory = (
             args.event_directory
             if args.event_directory.name == "review"
+            or (args.event_directory / "review_summary.json").is_file()
             else args.event_directory / "review"
         )
         ui_args = [str(review_directory), "--port", str(args.port)]
@@ -141,6 +150,13 @@ def main() -> None:
         if args.check:
             ui_args.append("--check")
         raise SystemExit(review_ui.main(ui_args))
+    if args.command == "review-master":
+        result = consolidate_review_packages(
+            args.event_directories,
+            args.output_dir,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
     raise SystemExit(regression.main(args.regression_args))
 
 
