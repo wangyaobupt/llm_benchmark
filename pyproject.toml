@@ -9,9 +9,15 @@ dependencies = [
     "numpy",
     "matplotlib",
     "openai",
+    "pyarrow>=25.0.1",
+    "jsonschema>=4.26.0",
 ]
 
 [tool.uv]
 package = false
 python-preference = "only-system"
 python-downloads = "never"
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
