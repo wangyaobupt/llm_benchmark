@@ -347,6 +347,8 @@ term inventory
 
 **Schema与标注协议状态：已冻结首版。** `section-annotation/1.0.0`、`entity-mention/1.0.0` 和 `text-relation/1.0.0` 已形成机器合同；真实pilot的828个文本单元完成聚合范围演练，来源/span错误0、`post_hoc` 0、模型调用0。下一门禁是患者隔离的50份calibration和150份blinded evaluation分配、人工双标、裁决与一致性验收；在该门禁通过前不运行模型。
 
+**人工包状态：已生成并通过双跑验收。** 50份calibration来自24名患者，150份evaluation来自另外75名患者，患者交叉0；calibration精确包含25条ED主诉和25份放射报告，覆盖全部9个radiology pilot strata。A/B各有171个相同文本单元但任务顺序不同；657个evaluation文本单元保持`blocked_pending_calibration`。当前人工决定与裁决记录均为0，下一步是实际双标和第三人裁决，不是模型抽取。
+
 ## 10. J0：Patient journey 事件流
 
 ### 10.1 journey 不是刚性直线

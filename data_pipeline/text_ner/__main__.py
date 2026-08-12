@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 
 from .audit import audit_manifest
+from .annotation_package import prepare_annotation_package
+from .annotation_package_audit import audit_annotation_package
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
 from .scope_rehearsal import rehearse_scope
 
@@ -37,6 +39,23 @@ def _parser() -> argparse.ArgumentParser:
     rehearse.add_argument("--expected-pilot-documents", type=int, default=200)
     rehearse.add_argument("--output-json", type=Path)
     rehearse.add_argument("--output-markdown", type=Path)
+    package = subparsers.add_parser(
+        "prepare-annotation-package",
+        help="Create patient-isolated local human annotation packages",
+    )
+    package.add_argument("input_jsonl", type=Path)
+    package.add_argument("manifest", type=Path)
+    package.add_argument("--output-dir", type=Path, required=True)
+    package.add_argument("--calibration-documents", type=int, default=50)
+
+    package_audit = subparsers.add_parser(
+        "audit-annotation-package",
+        help="Audit allocation, blinding, task hashes, and decision contracts",
+    )
+    package_audit.add_argument("package_directory", type=Path)
+    package_audit.add_argument("--replay-directory", type=Path)
+    package_audit.add_argument("--output-json", type=Path)
+    package_audit.add_argument("--output-markdown", type=Path)
     return parser
 
 
@@ -57,11 +76,25 @@ def main() -> None:
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )
-    else:
+    elif args.command == "rehearse-scope":
         result = rehearse_scope(
             args.input_jsonl,
             args.manifest,
             expected_pilot_documents=args.expected_pilot_documents,
+            output_json=args.output_json,
+            output_markdown=args.output_markdown,
+        )
+    elif args.command == "prepare-annotation-package":
+        result = prepare_annotation_package(
+            args.input_jsonl,
+            args.manifest,
+            args.output_dir,
+            calibration_documents=args.calibration_documents,
+        )
+    else:
+        result = audit_annotation_package(
+            args.package_directory,
+            replay_directory=args.replay_directory,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )

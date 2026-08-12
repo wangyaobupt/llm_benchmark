@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 import pyarrow.parquet as pq
+from jsonschema import Draft202012Validator, FormatChecker
 
 from data_pipeline.text_ner.annotation_contracts import (
     ANNOTATION_QUALITY_FLAGS,
@@ -18,6 +19,11 @@ from data_pipeline.text_ner.annotation_validation import (
     AnnotationValidationError,
     ANNOTATION_SCHEMA_PATH,
     SectionAnnotationValidator,
+)
+from data_pipeline.text_ner.annotation_package import prepare_annotation_package
+from data_pipeline.text_ner.annotation_package_audit import (
+    DECISION_SCHEMA_PATH,
+    audit_annotation_package,
 )
 from data_pipeline.text_ner.audit import audit_manifest
 from data_pipeline.text_ner.manifest import prepare_manifest
@@ -190,6 +196,75 @@ class TextNerManifestTest(unittest.TestCase):
             self.assertTrue(report["passed"])
             self.assertFalse(report["checks"]["raw_text_written"])
             self.assertEqual(report["checks"]["model_calls"], 0)
+
+    def test_annotation_package_is_patient_isolated_blinded_and_reproducible(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            admissions = []
+            for subject in range(1, 5):
+                admission = self._admission()
+                admission["subject_id"] = str(subject)
+                admission["hadm_id"] = str(subject * 10)
+                admission["mimic_iv_ed"]["triage"][0]["subject_id"] = str(subject)
+                admission["mimic_iv_ed"]["triage"][0]["stay_id"] = str(subject * 100)
+                radiology = admission["mimic_iv_note"]["radiology"][0]
+                radiology["subject_id"] = str(subject)
+                radiology["hadm_id"] = str(subject * 10)
+                radiology["note_id"] = f"R{subject}"
+                discharge = admission["mimic_iv_note"]["discharge"][0]
+                discharge["subject_id"] = str(subject)
+                discharge["hadm_id"] = str(subject * 10)
+                discharge["note_id"] = f"D{subject}"
+                admissions.append(admission)
+            source = root / "sample.jsonl"
+            source.write_text(
+                "".join(json.dumps(item) + "\n" for item in admissions),
+                encoding="utf-8",
+            )
+            manifest = root / "manifest"
+            prepare_manifest(source, manifest, pilot_size=8)
+            first = root / "first"
+            second = root / "second"
+            prepare_annotation_package(
+                source,
+                manifest / "text_ner_input_manifest.parquet",
+                first,
+                calibration_documents=4,
+            )
+            prepare_annotation_package(
+                source,
+                manifest / "text_ner_input_manifest.parquet",
+                second,
+                calibration_documents=4,
+            )
+            report = audit_annotation_package(first, replay_directory=second)
+            self.assertTrue(report["passed"])
+            self.assertEqual(report["counts"]["calibration_documents"], 4)
+            self.assertEqual(report["counts"]["evaluation_documents"], 4)
+
+    def test_adjudication_requires_two_input_decisions(self) -> None:
+        schema = json.loads(DECISION_SCHEMA_PATH.read_text(encoding="utf-8"))
+        validator = Draft202012Validator(schema, format_checker=FormatChecker())
+        record = {
+            "schema_version": "annotation-review-decision/1.0.0",
+            "decision_id": "decision-1",
+            "annotation_unit_id": "unit-1",
+            "manifest_row_id": "row-1",
+            "annotator_role": "adjudicator",
+            "annotator_id": "judge-1",
+            "protocol_version": "text-ner-annotation-protocol/1.0.0",
+            "submitted_at": "2026-08-13T12:00:00+08:00",
+            "decision": "reject",
+            "annotation_payload_path": None,
+            "annotation_payload_sha256": None,
+            "reason_codes": ["PROTOCOL_AMBIGUITY"],
+            "comments": None,
+            "input_decision_ids": ["decision-a"],
+            "supersedes_decision_id": None,
+        }
+        self.assertTrue(list(validator.iter_errors(record)))
+        record["input_decision_ids"].append("decision-b")
+        self.assertFalse(list(validator.iter_errors(record)))
 
 
 if __name__ == "__main__":

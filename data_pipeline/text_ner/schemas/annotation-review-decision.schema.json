@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "annotation-review-decision.schema.json",
+  "title": "Append-only human annotation decision or adjudication record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "decision_id",
+    "annotation_unit_id",
+    "manifest_row_id",
+    "annotator_role",
+    "annotator_id",
+    "protocol_version",
+    "submitted_at",
+    "decision",
+    "annotation_payload_path",
+    "annotation_payload_sha256",
+    "reason_codes",
+    "comments",
+    "input_decision_ids",
+    "supersedes_decision_id"
+  ],
+  "properties": {
+    "schema_version": {"const": "annotation-review-decision/1.0.0"},
+    "decision_id": {"type": "string", "minLength": 1},
+    "annotation_unit_id": {"type": "string", "minLength": 1},
+    "manifest_row_id": {"type": "string", "minLength": 1},
+    "annotator_role": {"enum": ["annotator_a", "annotator_b", "adjudicator"]},
+    "annotator_id": {"type": "string", "minLength": 1},
+    "protocol_version": {"const": "text-ner-annotation-protocol/1.0.0"},
+    "submitted_at": {"type": "string", "format": "date-time"},
+    "decision": {"enum": ["accept", "correct", "reject", "uncertain"]},
+    "annotation_payload_path": {"type": ["string", "null"]},
+    "annotation_payload_sha256": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      ]
+    },
+    "reason_codes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "NO_CLINICAL_ENTITY",
+          "SPAN_ERROR",
+          "ENTITY_TYPE_ERROR",
+          "ATTRIBUTE_ERROR",
+          "RELATION_ERROR",
+          "INCOMPLETE_ANNOTATION",
+          "SOURCE_TEXT_MISMATCH",
+          "PROTOCOL_AMBIGUITY",
+          "OTHER"
+        ]
+      }
+    },
+    "comments": {"type": ["string", "null"]},
+    "input_decision_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "supersedes_decision_id": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"annotator_role": {"const": "adjudicator"}},
+        "required": ["annotator_role"]
+      },
+      "then": {
+        "properties": {"input_decision_ids": {"minItems": 2}}
+      },
+      "else": {
+        "properties": {"input_decision_ids": {"maxItems": 0}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"decision": {"enum": ["accept", "correct"]}},
+        "required": ["decision"]
+      },
+      "then": {
+        "properties": {
+          "annotation_payload_path": {"type": "string", "minLength": 1},
+          "annotation_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    }
+  ]
+}

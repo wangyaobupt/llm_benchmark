@@ -8,6 +8,9 @@ import pyarrow as pa
 SECTION_ANNOTATION_SCHEMA_VERSION = "section-annotation/1.0.0"
 ENTITY_MENTION_SCHEMA_VERSION = "entity-mention/1.0.0"
 TEXT_RELATION_SCHEMA_VERSION = "text-relation/1.0.0"
+ANNOTATION_ALLOCATION_SCHEMA_VERSION = "annotation-allocation/1.0.0"
+ANNOTATION_DECISION_SCHEMA_VERSION = "annotation-review-decision/1.0.0"
+ANNOTATION_PROTOCOL_VERSION = "text-ner-annotation-protocol/1.0.0"
 
 ENTITY_TYPES = (
     "symptom_or_sign",
@@ -71,6 +74,28 @@ ANNOTATION_QUALITY_FLAGS = (
     "RELATION_AMBIGUOUS",
     "ABBREVIATION_UNRESOLVED",
     "COREFERENCE_UNRESOLVED",
+)
+
+ANNOTATION_ALLOCATION_ARROW_SCHEMA = pa.schema(
+    [
+        ("schema_version", pa.string()),
+        ("allocation_id", pa.string()),
+        ("document_id", pa.string()),
+        ("subject_id", pa.string()),
+        ("hadm_id", pa.string()),
+        ("split_group_id", pa.string()),
+        ("source_table", pa.string()),
+        ("note_type", pa.string()),
+        ("pilot_stratum", pa.string()),
+        ("text_unit_count", pa.int64()),
+        ("partition", pa.string()),
+        ("partition_status", pa.string()),
+        ("allocation_reason", pa.string()),
+        ("allocation_rank", pa.int64()),
+        ("input_manifest_sha256", pa.string()),
+        ("annotation_protocol_version", pa.string()),
+    ],
+    metadata={b"schema": ANNOTATION_ALLOCATION_SCHEMA_VERSION.encode("ascii")},
 )
 
 ENTITY_MENTION_ARROW_SCHEMA = pa.schema(

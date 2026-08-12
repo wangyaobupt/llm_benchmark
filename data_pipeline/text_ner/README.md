@@ -48,3 +48,33 @@
 ```
 
 该命令读取真实 section 来统计否定、不确定、比较、建议、测量、侧别、器械和时间表达覆盖，但不会在报告中保存原文，也不会生成实体或调用模型。
+
+生成患者隔离的人工双标包：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare-annotation-package `
+  data\mimic-admission-raw-coronary-all-three-modules-random-100.jsonl `
+  data\derived\text_ner_sample_100\text_ner_input_manifest.parquet `
+  --output-dir data\derived\text_ner_annotation_pilot `
+  --calibration-documents 50
+```
+
+生成结果：
+
+- `allocation/annotation_allocation.parquet`：200份文档的患者级分配。
+- `calibration/annotator_a/tasks.jsonl`、`annotator_b/tasks.jsonl`：相同任务集合、不同确定性顺序。
+- `evaluation/tasks.locked.jsonl`：状态为 `blocked_pending_calibration`，不得在calibration门禁通过前使用。
+- `annotations/annotator_a|annotator_b|adjudicated/`：标注响应文件目录。
+- `decisions/annotator_a.jsonl`、`annotator_b.jsonl`、`adjudication.jsonl`：追加式决定日志，初始为空。
+
+任务文件包含受限MIMIC原文，只能保留在被Git忽略的`data/derived/`。A/B提交时分别把每个任务中的空白`annotation`填写后另存到自己的`annotations/`目录，再按`annotation-review-decision.schema.json`向自己的决定日志追加记录。裁决者只能在A/B均提交后工作，并在裁决日志中引用双方`decision_id`；不得覆盖原始决定。
+
+独立验收：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner audit-annotation-package `
+  data\derived\text_ner_annotation_pilot `
+  --replay-directory data\derived\text_ner_annotation_pilot_replay `
+  --output-json docs\reports\text-ner-annotation-package-acceptance.json `
+  --output-markdown docs\reports\text-ner-annotation-package-acceptance.md
+```
