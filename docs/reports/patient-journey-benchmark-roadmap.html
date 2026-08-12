@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patient-Journey Benchmark 技术路线图</title>
+<style>
+:root{--ink:#17324d;--muted:#617386;--paper:#f5f7fa;--panel:#fff;--line:#d8e0e8;--done:#0072b2;--donebg:#dff3eb;--current:#d55e00;--currentbg:#fff0c2;--pending:#66788a;--pendingbg:#eef2f7;--hk:#b64b8d;--hkbg:#f0e2f6;--shadow:0 10px 30px rgba(30,55,80,.08);--scale:1}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 "Segoe UI","Microsoft YaHei",Arial,sans-serif}.layout{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}.side{position:sticky;top:0;height:100vh;overflow:auto;padding:24px 18px;background:#132b42;color:#eaf1f7}.side h1{font-size:18px;line-height:1.35;margin:0 0 8px}.side .sub{font-size:12px;color:#a9bbca;margin-bottom:20px}.side a{display:block;color:#dce8f1;text-decoration:none;padding:7px 10px;border-left:3px solid transparent;border-radius:4px;font-size:13px}.side a:hover,.side a.active{background:#20415f;border-left-color:#f0b64a}.side .controls{border-top:1px solid #35516a;margin-top:18px;padding-top:16px}.side button{width:100%;margin:4px 0;padding:8px;border:1px solid #557088;border-radius:6px;background:#1d3b56;color:#fff;cursor:pointer}.side button:hover{background:#294c69}.main{min-width:0;padding:30px 38px 80px}.hero{padding:30px;border-radius:18px;background:linear-gradient(135deg,#183a59,#245f80);color:#fff;box-shadow:var(--shadow)}.hero h2{font-size:32px;margin:0 0 8px}.hero p{max-width:1000px;margin:8px 0;color:#d9e7f1}.date{font-size:13px;color:#a9d2e7}.legend{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.tag{display:inline-flex;align-items:center;gap:7px;border:2px solid;padding:5px 10px;border-radius:999px;font-weight:700;font-size:12px;background:#fff}.tag:before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}.done{color:var(--done)}.current{color:var(--current)}.pending{color:var(--pending)}.hk{color:var(--hk)}section{scroll-margin-top:18px;margin:34px 0}.section-title{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}.section-title .num{flex:0 0 auto;display:grid;place-items:center;width:36px;height:36px;border-radius:10px;background:#173d5d;color:#fff;font-weight:800}.section-title h2{margin:0;font-size:24px}.section-title p{margin:3px 0;color:var(--muted)}.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow);margin:12px 0}.grid{display:grid;gap:14px}.grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}.grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}.grid.five{grid-template-columns:repeat(5,minmax(190px,1fr));overflow-x:auto}.metric{padding:15px;border-left:5px solid var(--done);background:#f7fbfd;border-radius:8px}.metric strong{display:block;font-size:23px}.metric span{color:var(--muted);font-size:12px}.flow-wrap{overflow:auto;padding:12px 2px}.flow{display:flex;align-items:stretch;gap:30px;min-width:max-content;transform:scale(var(--scale));transform-origin:left top;margin-bottom:calc((var(--scale) - 1)*180px)}.phase{position:relative;width:190px;min-height:132px;padding:14px;border:3px solid;border-radius:12px;background:#fff}.phase:not(:last-child):after{content:"→";position:absolute;right:-24px;top:43%;font-size:22px;color:#728398}.phase h3{margin:0 0 6px;font-size:15px}.phase p{margin:0;font-size:12px;color:#526679}.phase.done{background:var(--donebg);border-color:var(--done)}.phase.current{background:var(--currentbg);border-color:var(--current);box-shadow:0 0 0 4px rgba(213,94,0,.12)}.phase.pending{background:var(--pendingbg);border-color:var(--pending);border-style:dashed}.phase.hk{background:var(--hkbg);border-color:var(--hk);border-style:dotted}.status-label{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;margin-bottom:7px}.detail-card{border:1px solid var(--line);border-top:5px solid var(--pending);border-radius:12px;background:#fff;padding:17px}.detail-card[data-status=done]{border-top-color:var(--done)}.detail-card[data-status=current]{border-top-color:var(--current)}.detail-card[data-status=hk]{border-top-color:var(--hk)}.detail-card h3{font-size:17px;margin:0 0 8px}.detail-card h4{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#718294;margin:13px 0 4px}.detail-card ul{padding-left:19px;margin:5px 0}.detail-card li{margin:3px 0}.node-card{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden;min-width:230px}.node-card header{padding:14px;background:#173d5d;color:#fff}.node-card h3{margin:0;font-size:16px}.node-card .body{padding:14px}.kv{margin:0}.kv dt{font-weight:800;color:#214c6e;margin-top:9px}.kv dd{margin:2px 0 8px;color:#485c6d}.warning{border-left:5px solid var(--current);background:#fff7e3;padding:13px 16px;border-radius:8px}.success{border-left:5px solid var(--done);background:#edf8f4;padding:13px 16px;border-radius:8px}.road-lanes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}.lane{padding:16px;border:2px solid;border-radius:12px}.lane h3{margin-top:0}.lane.behavior{border-color:#56b4e9;background:#edf7fc}.lane.pattern{border-color:#e69f00;background:#fff7df}.lane.normative{border-color:#009e73;background:#e8f7f1}table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid var(--line);padding:10px;text-align:left;vertical-align:top}th{background:#eef3f7;color:#294a63;position:sticky;top:0}.table-wrap{overflow:auto;max-height:650px;border:1px solid var(--line);border-radius:10px}.checklist{columns:2;gap:30px}.checklist div{break-inside:avoid;margin:7px 0}.checklist div:before{content:"✓";color:var(--done);font-weight:900;margin-right:8px}.hidden{display:none!important}.footer{margin-top:45px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:1000px){.layout{grid-template-columns:1fr}.side{position:relative;height:auto}.main{padding:20px}.grid.two,.grid.three,.road-lanes{grid-template-columns:1fr}.checklist{columns:1}.hero h2{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="side">
+  <h1>Patient-Journey Benchmark</h1>
+  <div class="sub">详细技术路线 · MIMIC 方法学 → 香港 RWD 外部验证</div>
+  <nav id="nav">
+    <a href="#overview">01 总览与当前状态</a><a href="#data">02 数据层全链路</a><a href="#journey">03 Patient journey</a><a href="#snapshot">04 决策快照</a><a href="#nodes">05 五类决策节点</a><a href="#gold">06 Gold 三轨</a><a href="#mcq">07 MCQ 与审核</a><a href="#evaluation">08 LLM 评测</a><a href="#hongkong">09 香港验证</a><a href="#milestones">10 里程碑与执行队列</a>
+  </nav>
+  <div class="controls">
+    <div style="font-size:12px;color:#a9bbca;margin-bottom:6px">阶段筛选</div>
+    <button data-filter="all">显示全部</button><button data-filter="done">仅已完成</button><button data-filter="current">仅当前任务</button><button data-filter="pending">仅待实施</button><button data-filter="hk">仅香港验证</button>
+    <div style="font-size:12px;color:#a9bbca;margin:14px 0 6px">总览缩放</div>
+    <button id="zoomOut">缩小</button><button id="zoomIn">放大</button>
+  </div>
+</aside>
+<main class="main">
+<header class="hero">
+  <div class="date">状态快照：2026-08-12</div>
+  <h2>面向患者单次就诊全流程的临床决策评测集</h2>
+  <p>评估模型在检查、诊断、治疗、去向与离院计划节点，仅依据“当时已经发生且已经可用”的证据做出决策的能力。MIMIC 用于方法学探索和冻结；香港真实世界资料用于本地适配和外部验证。</p>
+</header>
+
+<section id="overview">
+  <div class="section-title"><div class="num">01</div><div><h2>总览与当前状态</h2><p>状态不只靠颜色，同时用文字和边框样式编码。</p></div></div>
+  <div class="legend"><span class="tag done">已完成</span><span class="tag current">当前进行中</span><span class="tag pending">待实施</span><span class="tag hk">香港验证</span></div>
+  <div class="flow-wrap"><div class="flow" id="masterFlow"></div></div>
+  <div class="grid three">
+    <div class="metric"><strong>108,833</strong><span>冠状动脉疾病谱住院</span></div><div class="metric"><strong>66,652</strong><span>100例 accepted cleaned events</span></div><div class="metric"><strong>0</strong><span>cleaned events 独立审计阻断项</span></div>
+  </div>
+  <div class="success"><strong>最新基线：</strong>100例确定性标准化已正式发布并通过双批量哈希复现与独立验收；66,652条事件、3,895条映射记录和1,001条review queue均已进入正式产物。</div>
+  <div class="warning"><strong>当前两个汇合门禁：</strong>D5只先生成ED chief complaint与放射报告的文本证据输入清单；R0冻结研究构念及首个检查决策协议。两者通过后才进入patient journey最小闭环，本阶段不调用外部模型。</div>
+</section>
+
+<section id="data">
+  <div class="section-title"><div class="num">02</div><div><h2>数据层全链路</h2><p>每一阶段均显示输入、处理、输出和门禁。</p></div></div>
+  <div class="grid two" id="phaseDetails"></div>
+  <div class="panel"><h3>清洗层时间合同</h3><div class="grid two">
+    <div><b>原始时间</b><ul><li><code>event_time</code>：事件发生/开始</li><li><code>source_available_time</code>：源系统原始存储/记录</li><li><code>recorded_time</code>：录入或核验</li></ul></div>
+    <div><b>泄漏安全时间</b><ul><li><code>available_time</code> 不早于 event time</li><li>区间事件不早于 completion/end time</li><li>源端倒置保留原值、原因和质量标志</li><li>仍有有效倒置则原子失败</li></ul></div>
+  </div></div>
+</section>
+
+<section id="journey">
+  <div class="section-title"><div class="num">03</div><div><h2>Patient journey 事件流</h2><p>临床过程包含循环、并行和条件分支，不是刚性直线。</p></div></div>
+  <div class="panel">
+    <div class="flow-wrap"><div class="flow">
+      <div class="phase pending"><b>到院/分诊</b><p>主诉、生命体征、既往可用信息</p></div><div class="phase pending"><b>初始评估</b><p>问题表征、危急程度</p></div><div class="phase pending"><b>检查选择</b><p>医嘱与comparison class</p></div><div class="phase pending"><b>结果逐步可用</b><p>不是采集即刻可见</p></div><div class="phase pending"><b>诊断形成/修正</b><p>允许随新证据迭代</p></div><div class="phase pending"><b>治疗与再评估</b><p>订单、处方、执行分层</p></div><div class="phase pending"><b>去向或离院</b><p>服务、位置、结局分开</p></div>
+    </div></div>
+    <div class="success"><strong>数据模型：</strong>Journey → Event → State → Decision node → Evidence edge。每个 node 都能反向追溯到 normalized event、cleaned event 和 raw source row。</div>
+  </div>
+  <div class="grid two">
+    <div class="detail-card" data-status="pending"><h3>Journey 必要字段</h3><ul><li>journey_id、subject_id、encounter refs</li><li>start/end、split、边界原因</li><li>负责服务与物理位置分开</li><li>active problems、ongoing treatment、unknowns</li></ul></div>
+    <div class="detail-card" data-status="pending"><h3>Journey 验收</h3><ul><li>事件属于唯一 journey 或 unresolved</li><li>同时间并列事件不强排因果</li><li>不改写 event/available time</li><li>空数组不等于无临床情况</li></ul></div>
+  </div>
+</section>
+
+<section id="snapshot">
+  <div class="section-title"><div class="num">04</div><div><h2>决策节点与时间安全快照</h2><p>冻结“当时已知信息”，而不是把整份病历交给模型。</p></div></div>
+  <div class="panel">
+    <div class="flow-wrap"><div class="flow">
+      <div class="phase pending"><b>识别目标动作</b><p>明确事件本体和 target window</p></div><div class="phase pending"><b>冻结 index_time</b><p>动作发生前</p></div><div class="phase pending"><b>双时间过滤</b><p>event ≤ index 且 available ≤ index</p></div><div class="phase pending"><b>阶段过滤</b><p>排除 post_hoc / administrative_end</p></div><div class="phase pending"><b>字段白名单</b><p>只保留任务所需证据</p></div><div class="phase pending"><b>泄漏审计</b><p>时间、语义、身份/划分</p></div><div class="phase pending"><b>冻结 manifest</b><p>证据、不可见原因、哈希</p></div>
+    </div></div>
+  </div>
+  <div class="grid three">
+    <div class="detail-card" data-status="pending"><h3>时间泄漏</h3><p>采集时间不等于医生可见时间；结果签署、存储和完成时间共同约束。</p></div>
+    <div class="detail-card" data-status="pending"><h3>语义泄漏</h3><p>过滤“最终诊断”“已计划PCI”“转入某科后”等直接或隐含答案线索。</p></div>
+    <div class="detail-card" data-status="pending"><h3>身份/划分泄漏</h3><p>患者互斥、模板和近重复分组；规则、阈值、提示调试只使用development患者。</p></div>
+  </div>
+</section>
+
+<section id="nodes">
+  <div class="section-title"><div class="num">05</div><div><h2>五类临床决策节点</h2><p>每一类独立定义 index time、可见证据、gold 与停止条件。</p></div></div>
+  <div class="grid five" id="decisionNodes"></div>
+</section>
+
+<section id="gold">
+  <div class="section-title"><div class="num">06</div><div><h2>Gold 三轨分离</h2><p>同一病例可产生不同构念的任务，但不可混题、混名或混分。</p></div></div>
+  <div class="road-lanes">
+    <div class="lane behavior"><h3>A 个体 next-event</h3><p>单个 encounter 在 target window 内真实发生的有效动作。</p><b>措辞：</b>最可能被记录、开立或实施。</div>
+    <div class="lane pattern"><h3>B 群体 pattern/rule</h3><p>development RWD 中冻结候选集合上的稳定 argmax，并在 validation 验证。</p><b>措辞：</b>历史 RWD 中最常选择。</div>
+    <div class="lane normative"><h3>C 规范 clinical-best</h3><p>指南、当地路径与两名专家独立裁定，必要时第三人仲裁。</p><b>措辞：</b>当前最佳或优先决策。</div>
+  </div>
+  <div class="panel"><h3>每个 gold 的最小证据</h3><div class="checklist"><div>construct_type 与唯一任务ID</div><div>snapshot 或 rule manifest</div><div>冻结候选集合与唯一答案</div><div>事件refs或指南版本/页码</div><div>支持度与不确定性</div><div>专家独立答案和分歧原因</div><div>candidate/validated/failed/inconclusive状态</div><div>release版本和哈希</div></div></div>
+</section>
+
+<section id="mcq">
+  <div class="section-title"><div class="num">07</div><div><h2>MCQ 生成与临床审核</h2><p>先冻结唯一 gold，再写题干和干扰项；失败关闭。</p></div></div>
+  <div class="flow-wrap"><div class="flow">
+    <div class="phase pending"><b>冻结snapshot/rule</b><p>构念与证据完整</p></div><div class="phase pending"><b>锁定唯一gold</b><p>不能由生成模型改写</p></div><div class="phase pending"><b>最小充分题干</b><p>不复制患者原文</p></div><div class="phase pending"><b>召回干扰候选</b><p>同本体、同粒度</p></div><div class="phase pending"><b>选3个功能干扰项</b><p>不同错误机制</p></div><div class="phase pending"><b>自动门禁</b><p>泄漏、唯一性、位置偏差</p></div><div class="phase pending"><b>双专家审核</b><p>接受/重审/拒绝</p></div><div class="phase pending"><b>发布manifest</b><p>版本化与可追溯</p></div>
+  </div></div>
+  <div class="warning">Pilot：每个维度先形成150–200个证据候选和约100道候选题，报告完整漏斗。发现任何未解释未来泄漏、无唯一答案比例&gt;10%、专家一致性不足或无效干扰项过多时停止扩容并修复根因。</div>
+</section>
+
+<section id="evaluation">
+  <div class="section-title"><div class="num">08</div><div><h2>LLM 与临床参照评测</h2><p>既看单节点正确率，也看整条旅程是否自洽。</p></div></div>
+  <div class="grid three">
+    <div class="detail-card" data-status="pending"><h3>单题与节点</h3><ul><li>accuracy、拒答、解析失败</li><li>校准与置信度</li><li>严重临床错误等级</li><li>患者聚类bootstrap 95% CI</li></ul></div>
+    <div class="detail-card" data-status="pending"><h3>Journey一致性</h3><ul><li>诊断—治疗</li><li>严重程度—去向</li><li>治疗反应—离院计划</li><li>无证据反转与错误传播</li></ul></div>
+    <div class="detail-card" data-status="pending"><h3>稳健性与参照</h3><ul><li>题干改写和非决定信息移除</li><li>24种答案排列抽样</li><li>专科/普通/低年资医生</li><li>疾病、场景、年龄、性别亚组</li></ul></div>
+  </div>
+</section>
+
+<section id="hongkong">
+  <div class="section-title"><div class="num">09</div><div><h2>香港 RWD 适配与外部验证</h2><p>不是替换数据源，而是重新完成治理、映射、时间语义和 gold 本地化。</p></div></div>
+  <div class="flow-wrap"><div class="flow" id="hkFlow"></div></div>
+  <div class="grid two">
+    <div class="detail-card" data-status="hk"><h3>必须本地重建</h3><ul><li>字段crosswalk与数据资产合同</li><li>编码、药物、检验单位和科室本体</li><li>下单/采集/验证/发布/医生可见时间</li><li>患者队列和split</li><li>行为gold频率与阈值</li><li>香港指南、路径和专家规范gold</li></ul></div>
+    <div class="detail-card" data-status="hk"><h3>外部验证输出</h3><ul><li>患者结构、疾病谱和缺失模式差异</li><li>五节点覆盖率和可构建率</li><li>模型两地节点级和journey级性能</li><li>行为/规范gold一致与分歧</li><li>domain shift归因</li><li>可迁移与不可迁移结论</li></ul></div>
+  </div>
+</section>
+
+<section id="milestones">
+  <div class="section-title"><div class="num">10</div><div><h2>里程碑与当前执行队列</h2><p>每一项都有机械验收和停止条件。</p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>里程碑</th><th>状态</th><th>交付物</th><th>通过条件</th><th>停止条件</th></tr></thead><tbody id="milestoneRows"></tbody></table></div>
+  <div class="panel"><h3>现在 → 紧接着 → 最小闭环</h3><ol>
+    <li><b>数据支路：</b>枚举ED chief complaint和放射报告 → 稳定文档/章节/span定位 → 输入manifest → 纳排原因与哈希验收；不调用模型。</li>
+    <li><b>评测主线：</b>冻结检查题pattern/rule-concordance的X生成器、候选目录、FDR family、稳定性门禁和manifest。</li>
+    <li><b>汇合闭环：</b>normalized events + 文本证据 → journey → 一个检查节点 → 时间安全payload → 单一构念gold → MCQ → 自动/临床审核 → 小规模试答。</li>
+    <li><b>扩展原则：</b>首个闭环通过后再逐项扩展诊断、治疗、离院和去向，不同时铺开五条未验证实现线。</li>
+  </ol></div>
+</section>
+
+<div class="footer">自包含离线路线图 · Okabe–Ito 色盲友好状态色 · 文字与边框提供冗余编码 · 详细方法学源文件：docs/design/patient-journey-benchmark-technical-roadmap.md</div>
+</main>
+</div>
+<script>
+const phases=[
+['R0','构念与首任务协议','定义、schema与机械验收','current'],['D0','数据版本与合同','MIMIC源表、主外键、排除边界','done'],['D1','单次住院raw归档','108,833次住院，218分片','done'],['D2','字典与POE','可逆解码、原生键timeline','done'],['D3','临床事件清洗','33表合同；100例66,652事件','done'],['D4','确定性标准化','100例双批量复现并独立验收','done'],['D5','首批文本证据输入','ED主诉+放射文档/章节/span清单','current'],['J0','Patient journey','事件流、状态、循环和分支','pending'],['S0','决策快照','双时间+phase+泄漏门禁','pending'],['G0','Gold三轨','个体/群体/规范分离','pending'],['Q0','五类MCQ','自动门禁+临床审核','pending'],['E0','LLM评测','节点+journey+人类参照','pending'],['H0','香港外部验证','本地重建与domain shift','hk']];
+const detail=[
+{s:'done',t:'D0 数据输入与源表合同',i:['MIMIC HOSP / ICU / ED / Note','版本、表头、类型、主外键锁定','32张住院表 + 7张公共字典','chartevents与OMR明确排除'],o:'源表合同、字段字典、schema门禁',g:'未知表/字段或关系冲突原子失败'},
+{s:'done',t:'D1 Raw admission archive',i:['流式读取原始表','按subject_id + hadm_id聚合','保留原表名、原字段、原行','原子分片、续跑、manifest、SHA'],o:'一行一个admission JSONL',g:'schema、父子键、患者分区、哈希对账'},
+{s:'done',t:'D2 字典解码与POE',i:['ICD复合键、lab/ICU/HCPCS字典','poe_id + poe_seq生命周期','pharmacy_id药物原生连接','订单意图与实际执行分层'],o:'decoded sidecar、POE timeline',g:'可逆恢复、冲突与unresolved显式'},
+{s:'done',t:'D3 临床事件清洗',i:['21事实源 + 6 support + 6 context','稳定source_row_id/event_id','一行拆分原子事件','统一时间下界与来源对账'],o:'cleaned/rejected/inventory/reconciliation/manifest',g:'100例独立审计阻断项为0'},
+{s:'done',t:'D4 确定性标准化',i:['66,652 normalized events','3,895 mappings；1,001 review queue','mapped 36,755；unresolved 29,897','batch 5,000与777三份Parquet哈希一致'],o:'正式normalized/mappings/review/manifest + 独立验收',g:'can_publish=true、can_start_text_ner=true、阻断项0'},
+{s:'current',t:'D5 首批文本证据输入',i:['只枚举ED chief complaint与放射报告','稳定note/section/span与文本哈希','出院小结/post_hoc明确排除','结构化unresolved不送入NER'],o:'text_ner_input_manifest及纳排统计',g:'重复运行一致、患者隔离、时间字段完整；本阶段不调用模型'}];
+const nodes=[
+{t:'1 检查检验选择',idx:'目标检查医嘱前；规则题使用冻结X',vis:'症状、体征、既往可用结果、已开检查状态',ban:'目标结果、后续诊断/治疗、出院文书',gold:'个体实际检查；群体argmax；指南+专家规范',gate:'comparison class、FDR/支持度/稳定性、唯一答案'},
+{t:'2 临床诊断',idx:'诊断形成/修正前，必要结果已可用',vis:'症状、体征、已返回检验/影像、病史',ban:'出院ICD、DRG、最终诊断文本、后续结局',gold:'时间化诊断行为；指南证据包+专家规范',gate:'信息足够、粒度一致、无后验反填'},
+{t:'3 治疗与处置',idx:'药物/操作/管理动作前',vis:'诊断证据、严重度、器官功能、过敏、既往治疗',ban:'治疗后反应、后续给药、结局反推',gold:'明确POE/处方/eMAR/input/procedure目标层',gate:'禁忌证和患者偏好缺失则拒题'},
+{t:'4 去向与专科',idx:'会诊/收治/转运/去向决定前',vis:'病情、资源需求、当前服务/位置、治疗反应',ban:'后续床位、完成转科、行政结局',gold:'consult/service/transfer/disposition分开',gate:'不以物理位置替代专科；需当地服务目录'},
+{t:'5 离院计划与随访',idx:'稳定且满足离院条件、指导文本尚不可见',vis:'最终诊断、关键治疗、反应、社会/功能因素',ban:'出院指导原文、事后再入院结局',gold:'实际指导行为；指南+当地路径+专家规范',gate:'单题单目标；模板化或稳定性不明则拒题'}];
+const hk=['治理与授权','本地数据盘点','字段crosswalk','本地编码/单位/药物/科室本体','时间语义重审','本地journey与split','本地行为gold','香港规范gold','重建benchmark','外部验证与domain shift'];
+const milestones=[
+['M0 构念冻结','当前设计门禁','任务/构念/snapshot/gold注册表','定义唯一且可执行','任务目标或gold仍歧义'],['M1 Raw底座','已完成','raw JSONL、manifest、EDA、字段合同','schema/主键/分片/患者隔离通过','未知字段或分区冲突'],['M2 Cleaned event','100例完成','cleaned/rejected/inventory/audit','66,652事件独立审计通过','身份/时间/哈希不一致'],['M3 Normalized event','100例完成','normalized/mappings/review/manifest/audit','双批量哈希一致且独立审计通过','静默映射、事件丢失、不可复现'],['M4 Journey + snapshot','待实施','journey/node/snapshot/leakage report','证据时间安全且可追溯','任一未解释泄漏'],['M5 首任务pilot','待实施','约100候选题、审核与测量报告','gold唯一、专家一致、干扰有效','无唯一答案>10%或任何泄漏'],['M6 五节点benchmark','待实施','五维release + journey links','每维独立可靠、跨节点可追踪','某维构念/数据不足'],['M7 LLM评测','待实施','模型/医生/稳健性报告','预注册协议完整执行','中途改协议未升版本'],['M8 香港验证','香港验证','crosswalk、本地gold、外部验证','本地重建与shift分析完整','权限/时间语义/路径未解决']];
+const masterFlow=document.getElementById('masterFlow');
+const phaseDetails=document.getElementById('phaseDetails');
+const decisionNodes=document.getElementById('decisionNodes');
+const hkFlow=document.getElementById('hkFlow');
+const milestoneRows=document.getElementById('milestoneRows');
+const zoomIn=document.getElementById('zoomIn');
+const zoomOut=document.getElementById('zoomOut');
+function phase(x){return `<div class="phase ${x[3]}" data-status="${x[3]}"><span class="status-label">${x[3]==='done'?'已完成':x[3]==='current'?'当前':x[3]==='hk'?'香港验证':'待实施'}</span><h3>${x[0]} ${x[1]}</h3><p>${x[2]}</p></div>`}
+masterFlow.innerHTML=phases.map(phase).join('');
+phaseDetails.innerHTML=detail.map(x=>`<article class="detail-card" data-status="${x.s}"><h3>${x.t}</h3><h4>输入与处理</h4><ul>${x.i.map(y=>`<li>${y}</li>`).join('')}</ul><h4>输出</h4><p>${x.o}</p><h4>完成门禁</h4><p>${x.g}</p></article>`).join('');
+decisionNodes.innerHTML=nodes.map(x=>`<article class="node-card" data-status="pending"><header><h3>${x.t}</h3></header><div class="body"><dl class="kv"><dt>Index time</dt><dd>${x.idx}</dd><dt>可见证据</dt><dd>${x.vis}</dd><dt>禁止证据</dt><dd>${x.ban}</dd><dt>Gold</dt><dd>${x.gold}</dd><dt>核心门禁</dt><dd>${x.gate}</dd></dl></div></article>`).join('');
+hkFlow.innerHTML=hk.map((x,i)=>phase([`H${i}`,x,'必须在香港本地重新核对','hk'])).join('');
+milestoneRows.innerHTML=milestones.map(x=>`<tr><td><b>${x[0]}</b></td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td>${x[4]}</td></tr>`).join('');
+let scale=1;function setScale(v){scale=Math.max(.7,Math.min(1.35,v));document.documentElement.style.setProperty('--scale',scale)}zoomIn.onclick=()=>setScale(scale+.1);zoomOut.onclick=()=>setScale(scale-.1);
+document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{const f=b.dataset.filter;document.querySelectorAll('[data-status]').forEach(el=>el.classList.toggle('hidden',f!=='all'&&el.dataset.status!==f))});
+const links=[...document.querySelectorAll('#nav a')],sections=[...document.querySelectorAll('main section')];addEventListener('scroll',()=>{let current=sections[0]?.id;for(const s of sections)if(s.getBoundingClientRect().top<140)current=s.id;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+current))},{passive:true});
+</script>
+</body>
+</html>
