@@ -14,7 +14,7 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from .ids import build_source_row_id
+from .ids import SourceIdentityError, build_source_row_id, canonical_json
 from .models import AdmissionContext, SourceRow, SourceSpec
 from .schemas import (
     ENCOUNTER_ARROW_SCHEMA,
@@ -22,7 +22,12 @@ from .schemas import (
     REJECTED_ARROW_SCHEMA,
     TERM_INVENTORY_ARROW_SCHEMA,
 )
-from .source_registry import SOURCE_REGISTRY
+from .source_registry import (
+    EVENT_SOURCE_REGISTRY,
+    SOURCE_CATALOG,
+    SOURCE_CATALOG_SHA256,
+    SOURCE_CATALOG_VERSION,
+)
 from .terminology import normalized_text
 from .transformers import KnownTransformationError, TRANSFORMERS
 from .validation import (
@@ -92,7 +97,7 @@ def _source_rows_for_admission(
     subject_id = str(admission["subject_id"])
     hadm_id = str(admission["hadm_id"])
     result: dict[tuple[str, str], list[SourceRow]] = {}
-    for spec in SOURCE_REGISTRY:
+    for spec in SOURCE_CATALOG:
         rows = admission[spec.module].get(spec.table, [])
         if not isinstance(rows, list):
             raise EventPipelineError(
@@ -101,13 +106,29 @@ def _source_rows_for_admission(
             )
         source_rows: list[SourceRow] = []
         seen_ids: set[str] = set()
+        row_occurrences: Counter[str] = Counter()
         for array_index, row in enumerate(rows):
             if not isinstance(row, dict):
                 raise EventPipelineError(
                     "SOURCE_ROW_NOT_OBJECT",
                     f"line {line_number}: {spec.module}.{spec.table}[{array_index}]",
                 )
-            source_row_id = build_source_row_id(spec, row)
+            occurrence_ordinal = 0
+            if spec.identity_strategy == "canonical_row_hash_with_occurrence":
+                row_identity = canonical_json(row)
+                occurrence_ordinal = row_occurrences[row_identity]
+                row_occurrences[row_identity] += 1
+            try:
+                source_row_id = build_source_row_id(
+                    spec,
+                    row,
+                    duplicate_occurrence_ordinal=occurrence_ordinal,
+                )
+            except SourceIdentityError as error:
+                raise EventPipelineError(
+                    error.reason_code,
+                    f"line {line_number}: {error}",
+                ) from error
             if source_row_id in seen_ids:
                 raise EventPipelineError(
                     "DUPLICATE_SOURCE_ROW_ID",
@@ -205,7 +226,8 @@ def run_cleaning(
     )
     validator = EventValidator()
     source_metrics = {
-        spec.source_table: _empty_source_metrics(spec) for spec in SOURCE_REGISTRY
+        spec.source_table: _empty_source_metrics(spec)
+        for spec in EVENT_SOURCE_REGISTRY
     }
     event_kind_counts: Counter[str] = Counter()
     evidence_phase_counts: Counter[str] = Counter()
@@ -246,7 +268,7 @@ def run_cleaning(
                 admission_event_count = admission_rejected_count = 0
                 admission_source_rows = 0
 
-                for spec in SOURCE_REGISTRY:
+                for spec in EVENT_SOURCE_REGISTRY:
                     rows = source_rows[(spec.module, spec.table)]
                     metrics = source_metrics[spec.source_table]
                     metrics["input_rows"] += len(rows)
@@ -373,7 +395,9 @@ def run_cleaning(
             "source_rows": source_rows_total,
             "classified_source_rows": classified_source_rows,
             "poe_timeline_rows_crosschecked": poe_crosschecked_total,
-            "tables": [source_metrics[spec.source_table] for spec in SOURCE_REGISTRY],
+            "tables": [
+                source_metrics[spec.source_table] for spec in EVENT_SOURCE_REGISTRY
+            ],
         }
         _json_dump(temporary / "source_reconciliation.json", reconciliation)
         output_files = (
@@ -387,8 +411,17 @@ def run_cleaning(
         manifest = {
             "schema": {"name": "event_pipeline_run_manifest", "version": "1.0.0"},
             "output_schema": OUTPUT_SCHEMA,
+            "source_catalog": {
+                "version": SOURCE_CATALOG_VERSION,
+                "sha256": SOURCE_CATALOG_SHA256,
+                "sources": len(SOURCE_CATALOG),
+                "event_sources": len(EVENT_SOURCE_REGISTRY),
+            },
             "run_id": hashlib.sha256(
-                f"{input_hash}|cleaning/1.1.0|{limit}".encode("utf-8")
+                (
+                    f"{input_hash}|cleaning/1.1.0|"
+                    f"{SOURCE_CATALOG_SHA256}|{limit}"
+                ).encode("utf-8")
             ).hexdigest()[:24],
             "input": {
                 "filename": input_path.name,

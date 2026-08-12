@@ -10,6 +10,10 @@ import pyarrow.parquet as pq
 
 from data_pipeline.event_pipeline import run_cleaning, run_normalization
 from data_pipeline.event_pipeline.schemas import EVENT_JSON_SCHEMA_PATH, QUALITY_FLAG_CODES
+from data_pipeline.event_pipeline.source_registry import (
+    SOURCE_CATALOG_SHA256,
+    SOURCE_CATALOG_VERSION,
+)
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -76,6 +80,8 @@ class EventPipelineTest(unittest.TestCase):
             "subject_id": "1",
             "hadm_id": "10",
             "mimic_iv_hosp": {
+                "patients": [],
+                "admissions": [],
                 "labevents": [
                     {
                         "labevent_id": "100",
@@ -95,6 +101,7 @@ class EventPipelineTest(unittest.TestCase):
                 ],
                 "microbiologyevents": [],
                 "poe": poe,
+                "poe_detail": [],
                 "poe_timeline": timeline,
                 "prescriptions": [
                     {
@@ -137,6 +144,10 @@ class EventPipelineTest(unittest.TestCase):
                         "storetime": "2150-01-01 10:01:00",
                     }
                 ],
+                "emar_detail": [],
+                "diagnoses_icd": [],
+                "hcpcsevents": [],
+                "drgcodes": [],
                 "services": [
                     {
                         "subject_id": "1",
@@ -170,6 +181,11 @@ class EventPipelineTest(unittest.TestCase):
                 ],
             },
             "mimic_iv_icu": {
+                "icustays": [],
+                "datetimeevents": [],
+                "ingredientevents": [],
+                "inputevents": [],
+                "outputevents": [],
                 "procedureevents": [
                     {
                         "subject_id": "1",
@@ -187,6 +203,7 @@ class EventPipelineTest(unittest.TestCase):
                 ]
             },
             "mimic_iv_ed": {
+                "edstays": [],
                 "triage": [
                     {
                         "subject_id": "1",
@@ -203,6 +220,9 @@ class EventPipelineTest(unittest.TestCase):
                     }
                 ],
                 "vitalsign": [],
+                "diagnosis": [],
+                "medrecon": [],
+                "pyxis": [],
             },
             "mimic_iv_note": {
                 "radiology": [
@@ -217,6 +237,7 @@ class EventPipelineTest(unittest.TestCase):
                         "text": "Not copied to derived event.",
                     }
                 ],
+                "radiology_detail": [],
                 "discharge": [
                     {
                         "note_id": "d1",
@@ -229,6 +250,7 @@ class EventPipelineTest(unittest.TestCase):
                         "text": "Not copied to derived event.",
                     }
                 ],
+                "discharge_detail": [],
             },
         }
 
@@ -253,6 +275,14 @@ class EventPipelineTest(unittest.TestCase):
 
             self.assertEqual(source.read_bytes(), source_before)
             self.assertEqual(cleaning["counts"]["admissions"], 1)
+            self.assertEqual(cleaning["source_catalog"]["sources"], 33)
+            self.assertEqual(cleaning["source_catalog"]["event_sources"], 21)
+            self.assertEqual(
+                cleaning["source_catalog"]["version"], SOURCE_CATALOG_VERSION
+            )
+            self.assertEqual(
+                cleaning["source_catalog"]["sha256"], SOURCE_CATALOG_SHA256
+            )
             self.assertEqual(normalization["counts"]["events"], cleaning["counts"]["events"])
             for filename in (
                 "cleaned_events.parquet",

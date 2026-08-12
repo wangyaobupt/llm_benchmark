@@ -10,6 +10,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 from .schemas import EVENT_JSON_SCHEMA_PATH
+from .source_registry import REGISTERED_SOURCE_PATHS, REQUIRED_SOURCE_PATHS
 
 
 ACCEPTED_INPUT_SCHEMAS = {
@@ -110,10 +111,36 @@ def validate_admission_shell(admission: Any, line_number: int) -> None:
             raise EventPipelineError(
                 "ADMISSION_ID_MISSING", f"line {line_number}: {field}"
             )
-    for module in ("mimic_iv_hosp", "mimic_iv_icu", "mimic_iv_ed", "mimic_iv_note"):
+    modules = ("mimic_iv_hosp", "mimic_iv_icu", "mimic_iv_ed", "mimic_iv_note")
+    for module in modules:
         if not isinstance(admission.get(module), dict):
             raise EventPipelineError(
                 "SOURCE_MODULE_INVALID", f"line {line_number}: {module}"
+            )
+    observed_paths = {
+        (module, table)
+        for module in modules
+        for table in admission[module]
+    }
+    unexpected = sorted(observed_paths - REGISTERED_SOURCE_PATHS)
+    if unexpected:
+        module, table = unexpected[0]
+        raise EventPipelineError(
+            "UNREGISTERED_SOURCE_TABLE",
+            f"line {line_number}: {module}.{table}",
+        )
+    missing = sorted(REQUIRED_SOURCE_PATHS - observed_paths)
+    if missing:
+        module, table = missing[0]
+        raise EventPipelineError(
+            "REQUIRED_SOURCE_TABLE_MISSING",
+            f"line {line_number}: {module}.{table}",
+        )
+    for module, table in sorted(observed_paths):
+        if not isinstance(admission[module][table], list):
+            raise EventPipelineError(
+                "SOURCE_TABLE_NOT_ARRAY",
+                f"line {line_number}: {module}.{table}",
             )
 
 
@@ -122,6 +149,11 @@ def crosscheck_poe_timeline(admission: dict[str, Any], line_number: int) -> int:
     orders = hosp.get("poe", [])
     timeline = hosp.get("poe_timeline", [])
     if not timeline:
+        if orders:
+            raise EventPipelineError(
+                "POE_TIMELINE_COUNT_MISMATCH",
+                f"line {line_number}: poe={len(orders)}, poe_timeline=0",
+            )
         return 0
     if len(orders) != len(timeline):
         raise EventPipelineError(

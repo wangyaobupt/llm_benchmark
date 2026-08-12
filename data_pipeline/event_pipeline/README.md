@@ -6,14 +6,25 @@
 
 ### 第一阶段：结构化事件化
 
-固定处理以下来源：
+事件流水线采用封闭式 `SOURCE_CATALOG`。当前合同登记33张输入表，任何未登记表都会以 `UNREGISTERED_SOURCE_TABLE` 原子终止运行，缺少必需表则以 `REQUIRED_SOURCE_TABLE_MISSING` 终止。
 
-- `ed.triage`、`ed.vitalsign`
+21张事实拥有者会生成事件：
+
+- `ed.triage`、`ed.vitalsign`、`ed.diagnosis`、`ed.medrecon`、`ed.pyxis`
 - `hosp.labevents`、`hosp.microbiologyevents`
 - `hosp.poe_timeline`、`hosp.prescriptions`、`hosp.pharmacy`、`hosp.emar`
-- `hosp.services`、`hosp.transfers`、`hosp.procedures_icd`
-- `icu.procedureevents`
+- `hosp.services`、`hosp.transfers`、`hosp.diagnoses_icd`、`hosp.procedures_icd`、`hosp.hcpcsevents`
+- `icu.inputevents`、`icu.outputevents`、`icu.procedureevents`
 - `note.radiology`、`note.discharge` 的文档元数据
+
+6张支持表只建立来源身份和连接，不独立重复生成事实：
+
+- `hosp.poe`、`hosp.poe_detail` 支持 `hosp.poe_timeline`；
+- `hosp.emar_detail` 支持 `hosp.emar`；
+- `icu.ingredientevents` 支持 `icu.inputevents`；
+- `note.radiology_detail`、`note.discharge_detail` 支持各自文档。
+
+6张上下文表不生成事件：`hosp.patients`、`hosp.admissions`、`hosp.drgcodes`、`icu.icustays`、`icu.datetimeevents`、`ed.edstays`。`icu.chartevents` 与 `hosp.omr` 已在归档上游排除并保留明确理由，不属于当前33张输入表。
 
 输出：
 
@@ -25,6 +36,8 @@
 - `run_manifest.json`：输入及输出 SHA-256、事件计数和确定性 run ID。
 
 `hosp.poe_timeline` 是本阶段唯一的 POE 事件输入。程序同时读取原始 `hosp.poe` 做 `poe_id`、动作和时间交叉验证，但不会从 raw POE 再生成第二批事实。
+
+源表角色、事实拥有者、身份策略、时间策略、纳入理由和合同 SHA-256 定义在 `source_registry.py`。`EVENT_SOURCE_REGISTRY` 只由 `SOURCE_CATALOG` 中的 `role=event` 项自动派生，不能单独维护第二份表单。
 
 ### 第二阶段：确定性归一化
 
@@ -88,11 +101,13 @@
 uv run --no-cache python -m data_pipeline.event_pipeline.regression verify
 ```
 
-重新运行清洗并与基线比较：
+在未改变清洗合同的日常开发中，可重新运行清洗并与基线比较：
 
 ```powershell
 uv run --no-cache python -m data_pipeline.event_pipeline.regression verify --rerun
 ```
+
+当前仓库正在扩展旧14张事件源到21张事实拥有者，已发布Parquet仍对应旧合同。因此在新的cleaned events完成并人工验收前，`--rerun` 会按设计报告合同差异；此时不得执行 `capture` 覆盖旧基线。快速 `verify` 仍用于确认三批既有产物自身没有漂移。
 
 可用 `--batch sample_100`、`--batch random_1000_a` 或 `--batch random_1000_b` 单独复跑。只有在人工确认行为变化符合新的清洗合同后，才允许显式更新基线：
 
@@ -127,7 +142,7 @@ uv run --no-cache python -m data_pipeline.event_pipeline.regression capture
 
 ## 事件和来源身份
 
-- `source_row_id` 优先由原生主键或复合键生成；无稳定键时使用规范化整行哈希。
+- `source_row_id` 使用合同中显式声明的原生键或复合键；键缺失时硬失败，不再静默回退。没有可靠键的表显式使用 `canonical_row_hash_with_occurrence`，完全重复行以重复序号区分。
 - `event_id` 由 `source_row_id + event component` 生成，不依赖 JSONL 行号或数组位置。
 - `raw_row_ref` 保留文件名、JSONL 行号、模块、表名和数组下标，供来源门禁回读。
 - 跨表派生字段同时保留 `supporting_source_row_ids` 与 `supporting_raw_row_refs`；处方下单时间引用已经与 raw POE 交叉核验的 `poe_timeline` 源行。

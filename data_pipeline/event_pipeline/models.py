@@ -6,17 +6,42 @@ from dataclasses import dataclass
 from typing import Any, Callable, Literal
 
 
-SourceRole = Literal["event", "enrichment", "context", "derived"]
+SourceRole = Literal["event", "support", "context", "excluded"]
+SourceOrigin = Literal["raw", "derived"]
+IdentityStrategy = Literal[
+    "native_key",
+    "composite_key",
+    "canonical_row_hash_with_occurrence",
+]
 Transformer = Callable[["SourceRow", "AdmissionContext"], list[dict[str, Any]]]
+
+
+@dataclass(frozen=True)
+class TimePolicy:
+    policy_id: str
+    event_time_rule: str
+    available_time_rule: str
+    recorded_time_rule: str
+    missing_time_rule: str
+    rationale: str
 
 
 @dataclass(frozen=True)
 class SourceSpec:
     module: str
     table: str
+    origin: SourceOrigin
     role: SourceRole
+    fact_owner: str | None
+    supports: tuple[str, ...]
+    identity_strategy: IdentityStrategy
     native_key_fields: tuple[str, ...]
-    transformer_name: str | None = None
+    time_policy: str
+    evidence_phase: str | None
+    transformer_name: str | None
+    inclusion_reason: str | None
+    exclusion_reason: str | None
+    required: bool = True
 
     @property
     def source_table(self) -> str:
