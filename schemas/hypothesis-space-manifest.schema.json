@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hypothesis-space-manifest.schema.json",
+  "title": "Mechanically enumerated investigation-selection hypothesis space",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "protocol_lock_sha256", "counts", "hypotheses"],
+  "properties": {
+    "schema_version": {"const": "hypothesis-space-manifest/1.0.0"},
+    "protocol_lock_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enumerated", "pre_filter_excluded", "testable", "fdr_rejected", "post_fdr_rejected", "final_rules"],
+      "properties": {
+        "enumerated": {"type": "integer", "minimum": 0},
+        "pre_filter_excluded": {"type": "integer", "minimum": 0},
+        "testable": {"type": "integer", "minimum": 0},
+        "fdr_rejected": {"type": "integer", "minimum": 0},
+        "post_fdr_rejected": {"type": "integer", "minimum": 0},
+        "final_rules": {"type": "integer", "minimum": 0}
+      }
+    },
+    "hypotheses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["condition_id", "candidate_id", "comparison_class_id", "family_id", "eligibility_status", "reason_codes"],
+        "properties": {
+          "condition_id": {"type": "string", "minLength": 1},
+          "candidate_id": {"type": "string", "minLength": 1},
+          "comparison_class_id": {"type": "string", "minLength": 1},
+          "family_id": {"type": "string", "minLength": 1},
+          "eligibility_status": {"enum": ["eligible", "excluded", "testable", "fdr_rejected", "post_fdr_rejected", "final_rule"]},
+          "reason_codes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+        }
+      }
+    }
+  }
+}

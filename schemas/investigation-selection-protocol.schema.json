@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "investigation-selection-protocol.schema.json",
+  "title": "Investigation-selection benchmark protocol",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "protocol_id",
+    "protocol_version",
+    "protocol_status",
+    "scientific_protocol",
+    "runtime_configuration",
+    "audit_metadata",
+    "unresolved_decisions"
+  ],
+  "properties": {
+    "schema_version": {"const": "investigation-selection-protocol/1.0.0"},
+    "protocol_id": {"const": "mimic-investigation-selection-pattern-rule-concordance"},
+    "protocol_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "protocol_status": {"enum": ["draft", "frozen", "retired"]},
+    "scientific_protocol": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "benchmark_track",
+        "construct_registry",
+        "patient_journey_scope",
+        "subject_split",
+        "task_definition",
+        "hypothesis_space",
+        "statistical_policy",
+        "validation_policy",
+        "final_test_information_isolation"
+      ],
+      "properties": {
+        "benchmark_track": {"const": "pattern_rule_concordance"},
+        "construct_registry": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["construct_type", "gold_field", "claim_boundary"],
+            "properties": {
+              "construct_type": {"enum": ["individual_next_event", "pattern_rule_concordance", "clinical_best_decision"]},
+              "gold_field": {"type": "string", "minLength": 1},
+              "claim_boundary": {"type": "string", "minLength": 1}
+            }
+          }
+        },
+        "subject_split": {
+          "type": "object",
+          "required": ["group_field", "ratios", "engineering_audit_policy"],
+          "properties": {
+            "group_field": {"const": "subject_id"},
+            "ratios": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["development", "validation", "final_test"],
+              "properties": {
+                "development": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+                "validation": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+                "final_test": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1}
+              }
+            },
+            "engineering_audit_policy": {"const": "separate_non_formal_partition"}
+          }
+        }
+      }
+    },
+    "runtime_configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["threads", "cache_directory"],
+      "properties": {
+        "threads": {"type": "integer", "minimum": 1},
+        "cache_directory": {"type": ["string", "null"]}
+      }
+    },
+    "audit_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_git_commit", "dependency_lock_sha256", "input_manifest_sha256"],
+      "properties": {
+        "source_git_commit": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+        "dependency_lock_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "input_manifest_sha256": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "unresolved_decisions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  }
+}

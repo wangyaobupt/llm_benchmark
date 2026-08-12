@@ -1,0 +1,105 @@
+schema_version: investigation-selection-protocol/1.0.0
+protocol_id: mimic-investigation-selection-pattern-rule-concordance
+protocol_version: 0.1.0
+protocol_status: draft
+scientific_protocol:
+  benchmark_track: pattern_rule_concordance
+  construct_registry:
+    - construct_type: individual_next_event
+      gold_field: observed_target_event_ids
+      claim_boundary: Observed next action for one encounter; not a population rule or clinical recommendation.
+    - construct_type: pattern_rule_concordance
+      gold_field: rule_answer_candidate_id
+      claim_boundary: Most likely same-class investigation selected in frozen development RWD.
+    - construct_type: clinical_best_decision
+      gold_field: normative_answer_candidate_id
+      claim_boundary: Guideline and expert-adjudicated best decision; not inferred from observed MIMIC behavior.
+  patient_journey_scope:
+    linked_pre_admission_ed: null
+    standalone_ed: null
+    multi_admission_boundary: one_hadm_per_journey_subject_linked
+    engineering_audit_policy: separate_non_formal_partition
+  subject_split:
+    group_field: subject_id
+    ratios:
+      development: null
+      validation: null
+      final_test: null
+    engineering_audit_policy: separate_non_formal_partition
+    legacy_partition_policy: legacy_holdout_candidate_not_formal_final_test
+  task_definition:
+    task_id: investigation_selection
+    index_time_policy: before_target_order_creation
+    observation_window:
+      start_minutes_before_index: null
+      end_minutes_before_index: 0
+    target_window:
+      start_minutes_after_index: 0
+      end_minutes_after_index: null
+    answer_semantics: most_likely_selected_in_development_rwd
+    tie_policy: null
+    missing_policy: null
+    zero_denominator_policy: null
+    refusal_policy: null
+  hypothesis_space:
+    condition_generator_ref: null
+    candidate_catalog_ref: null
+    comparison_class_catalog_ref: null
+    fdr_family_definition: condition_by_comparison_class
+    pre_fdr_allowed_filters:
+      - structural_eligibility
+      - temporal_eligibility
+      - independent_orderability
+      - comparison_class_membership
+      - preregistered_marginal_support
+    pre_fdr_forbidden_filters:
+      - joint_support
+      - conditional_probability
+      - lift
+      - psr
+      - p_value
+      - probability_gap
+      - score_ratio
+  statistical_policy:
+    fdr_method: benjamini_hochberg
+    fdr_q: null
+    minimum_condition_support: null
+    minimum_candidate_support: null
+    minimum_joint_support_post_fdr: null
+    wilson_lower_bound_minimum: null
+    probability_gap_minimum: null
+    score_ratio_minimum: null
+    psr_role: ranking_and_ablation_only
+  validation_policy:
+    statuses: [validated, failed, inconclusive]
+    bootstrap_unit: subject_id
+    bootstrap_replicates: null
+    stability_minimum: null
+    missing_reason_code: VALIDATION_MISSING_CANDIDATE
+    zero_denominator_reason_code: VALIDATION_ZERO_DENOMINATOR
+    tie_reason_code: VALIDATION_TIE
+    direction_reversed_reason_code: VALIDATION_DIRECTION_REVERSED
+    inconclusive_reason_code: VALIDATION_INCONCLUSIVE
+  final_test_information_isolation:
+    forbidden_inputs:
+      - raw_final_test_rows
+      - final_test_derived_statistics
+      - final_test_failure_logs
+      - final_test_candidate_missingness
+    violation_reason_code: FINAL_TEST_INFORMATION_FORBIDDEN
+runtime_configuration:
+  threads: 4
+  cache_directory: null
+audit_metadata:
+  source_git_commit: null
+  dependency_lock_sha256: null
+  input_manifest_sha256: {}
+unresolved_decisions:
+  - journey_linked_ed_and_standalone_ed_scope
+  - formal_subject_split_ratios
+  - observation_and_target_windows
+  - candidate_and_condition_catalog_versions
+  - tie_missing_zero_denominator_and_refusal_policies
+  - development_statistical_thresholds
+  - validation_bootstrap_and_stability_thresholds
+  - source_commit_dependency_and_input_hashes

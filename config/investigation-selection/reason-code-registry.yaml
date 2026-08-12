@@ -1,0 +1,72 @@
+schema_version: reason-code-registry/1.0.0
+registry_id: investigation-selection-shared-gates
+codes:
+  - code: PROTOCOL_UNRESOLVED_DECISION
+    stage: protocol
+    description: A scientific decision required for freezing remains unresolved.
+  - code: SPLIT_ENGINEERING_AUDIT
+    stage: split
+    description: Subject is reserved for engineering audit and excluded from formal partitions.
+  - code: SPLIT_SUBJECT_CROSS_PARTITION
+    stage: split
+    description: A subject appears in more than one formal partition.
+  - code: SPLIT_DUPLICATE_ASSIGNMENT
+    stage: split
+    description: The same subject has multiple assignment rows.
+  - code: SPLIT_INPUT_DRIFT
+    stage: split
+    description: The input subject universe differs from the frozen source hash.
+  - code: SNAPSHOT_NOT_YET_OCCURRED
+    stage: snapshot
+    description: Event time is later than the decision index time.
+  - code: SNAPSHOT_NOT_YET_AVAILABLE
+    stage: snapshot
+    description: Evidence was not available by the decision index time.
+  - code: SNAPSHOT_TIME_UNKNOWN
+    stage: snapshot
+    description: Required event or availability time is unknown.
+  - code: SNAPSHOT_POST_HOC
+    stage: snapshot
+    description: Evidence is retrospective post-hoc information.
+  - code: SNAPSHOT_ADMINISTRATIVE_END
+    stage: snapshot
+    description: Evidence is an administrative end-of-encounter fact.
+  - code: SNAPSHOT_FIELD_NOT_ALLOWED
+    stage: snapshot
+    description: Evidence field is outside the task whitelist.
+  - code: SNAPSHOT_SPLIT_FORBIDDEN
+    stage: snapshot
+    description: Subject partition is not permitted for this operation.
+  - code: SNAPSHOT_SEMANTIC_LEAKAGE
+    stage: snapshot
+    description: Evidence reveals or is equivalent to the hidden target.
+  - code: SNAPSHOT_IDENTITY_LEAKAGE
+    stage: snapshot
+    description: Evidence exposes a forbidden patient or internal identifier.
+  - code: HYPOTHESIS_STRUCTURAL_INELIGIBLE
+    stage: hypothesis
+    description: Pair fails a preregistered structural or comparison-class rule.
+  - code: HYPOTHESIS_TEMPORAL_INELIGIBLE
+    stage: hypothesis
+    description: Pair cannot satisfy the frozen temporal ordering policy.
+  - code: HYPOTHESIS_MARGINAL_SUPPORT_INSUFFICIENT
+    stage: hypothesis
+    description: Condition or candidate fails a preregistered marginal support rule.
+  - code: VALIDATION_MISSING_CANDIDATE
+    stage: validation
+    description: A frozen candidate is absent from the validation comparison set.
+  - code: VALIDATION_ZERO_DENOMINATOR
+    stage: validation
+    description: Validation statistic has a zero denominator under the frozen policy.
+  - code: VALIDATION_TIE
+    stage: validation
+    description: Validation produces a tie under the frozen ranking policy.
+  - code: VALIDATION_DIRECTION_REVERSED
+    stage: validation
+    description: The development association reverses direction in validation.
+  - code: VALIDATION_INCONCLUSIVE
+    stage: validation
+    description: Available evidence cannot support validated or failed status.
+  - code: FINAL_TEST_INFORMATION_FORBIDDEN
+    stage: release
+    description: Final-test raw data, derived statistics, or diagnostics were accessed before release.
