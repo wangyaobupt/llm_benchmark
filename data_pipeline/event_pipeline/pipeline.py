@@ -33,7 +33,7 @@ from .validation import (
 )
 
 
-OUTPUT_SCHEMA = {"name": "mimic_cleaned_events", "version": "1.0.0"}
+OUTPUT_SCHEMA = {"name": "mimic_cleaned_events", "version": "1.1.0"}
 PARQUET_ROW_GROUP_SIZE = 5000
 
 
@@ -139,11 +139,11 @@ def _build_context(
     admission: dict[str, Any], source_rows: dict[tuple[str, str], list[SourceRow]]
 ) -> AdmissionContext:
     indexes = {
-        "raw_poe_by_id": {
-            _clean(row.get("poe_id")): row
-            for row in admission["mimic_iv_hosp"].get("poe", [])
-            if _clean(row.get("poe_id"))
-        }
+        "poe_timeline_source_by_id": {
+            _clean(source.row.get("poe_id")): source
+            for source in source_rows.get(("mimic_iv_hosp", "poe_timeline"), [])
+            if _clean(source.row.get("poe_id"))
+        },
     }
     return AdmissionContext(admission=admission, source_rows=source_rows, indexes=indexes)
 
@@ -301,7 +301,8 @@ def run_cleaning(
                         except KnownTransformationError as error:
                             rejected_writer.write(
                                 {
-                                    "schema_version": "1.0.0",
+                                    "schema_version": "1.1.0",
+                                    "cleaning_status": "rejected",
                                     "subject_id": source_row.subject_id,
                                     "hadm_id": source_row.hadm_id,
                                     "source_row_id": source_row.source_row_id,
@@ -374,7 +375,7 @@ def run_cleaning(
             "schema": {"name": "event_pipeline_run_manifest", "version": "1.0.0"},
             "output_schema": OUTPUT_SCHEMA,
             "run_id": hashlib.sha256(
-                f"{input_hash}|cleaning/1.0.0|{limit}".encode("utf-8")
+                f"{input_hash}|cleaning/1.1.0|{limit}".encode("utf-8")
             ).hexdigest()[:24],
             "input": {
                 "filename": input_path.name,

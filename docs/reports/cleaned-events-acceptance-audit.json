@@ -9,7 +9,7 @@
     "source_reconciliation": "D:\\Projects\\llm_benchmark\\data\\derived\\event_pipeline_sample_100\\cleaning\\source_reconciliation.json"
   },
   "parquet": {
-    "bytes": 4065718,
+    "bytes": 4152121,
     "rows": 57777,
     "row_groups": 12,
     "row_group_rows": [
@@ -32,11 +32,16 @@
     "format_version": "2.6",
     "created_by": "parquet-cpp-arrow version 25.0.1",
     "arrow_schema_metadata": {
-      "schema": "clinical_event/1.0.0"
+      "schema": "clinical_event/1.1.0"
     },
     "columns": [
       {
         "name": "schema_version",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "cleaning_status",
         "type": "string",
         "nullable": true
       },
@@ -244,6 +249,11 @@
         "name": "supporting_source_row_ids",
         "type": "list<element: string>",
         "nullable": true
+      },
+      {
+        "name": "supporting_raw_row_refs",
+        "type": "list<element: string>",
+        "nullable": true
       }
     ]
   },
@@ -363,9 +373,16 @@
       "equivalents_present": true
     },
     "cleaning_status": {
-      "exact_present": false,
+      "exact_present": true,
       "equivalent_columns": [],
       "equivalents_present": false
+    },
+    "supporting_raw_row_refs": {
+      "exact_present": true,
+      "equivalent_columns": [
+        "supporting_raw_row_refs"
+      ],
+      "equivalents_present": true
     }
   },
   "identity": {
@@ -540,7 +557,7 @@
     },
     {
       "source_table": "note.discharge",
-      "evidence_phase": "administrative_end",
+      "evidence_phase": "post_hoc",
       "events": 68
     },
     {
@@ -622,20 +639,19 @@
     }
   },
   "quality_flag_counts": {
+    "AMBIGUOUS_MEDICATION_PAIRING": 76,
     "AVAILABLE_BEFORE_EVENT_TIME": 266,
     "AVAILABLE_TIME_DERIVED_FROM_COMPLETION": 105,
     "AVAILABLE_TIME_UNKNOWN": 720,
     "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT": 3248,
+    "CHANGE_WITHOUT_OBSERVABLE_DELTA": 876,
+    "NONRECIPROCAL_PREDECESSOR_LINK": 10,
+    "OFFICIAL_TRANSACTION_SEMANTICS_UNRESOLVED": 1,
     "ORDER_TIME_UNRESOLVED": 14,
+    "PREDECESSOR_CATEGORY_MISMATCH": 2,
+    "SUCCESSOR_CATEGORY_MISMATCH": 2,
     "TIME_UNAVAILABLE_IN_SOURCE": 69,
-    "ambiguous_medication_pairing": 76,
-    "category_only_no_specific_order_content": 3248,
-    "change_without_observable_delta": 876,
-    "nonreciprocal_predecessor_link": 10,
-    "official_transaction_semantics_unresolved": 1,
-    "predecessor_category_mismatch": 2,
-    "successor_category_mismatch": 2,
-    "unresolved_predecessor": 6
+    "UNRESOLVED_PREDECESSOR": 6
   },
   "source_reconciliation": [
     {
@@ -755,8 +771,8 @@
   "hashes": {
     "raw_source": "5788e02103066c06dd7daeeaa0596d105bd4d771f357bfcdd4fb11c1fa92a33b",
     "input": "e9e7d4612dcefa0810ae9f7330f12a40750ce1d75ad98c357c1d30243b94b3b0",
-    "cleaned_events.parquet": "edf5296f5f73f3d50c628d7277bff80790b992b5bc7a99171cafbdf6e1a33a5a",
-    "cleaning_rejected.parquet": "b2215ec89a069e6204a2ed06267ba4981ec929c17256bffbde4a0295b91867aa"
+    "cleaned_events.parquet": "f9b485bf227c95a2d36413309111a8fb0da66dee9fb4fbcf28c6b1412a43fe97",
+    "cleaning_rejected.parquet": "e987b1d2584cde213a3913802a492ad3a517cd6e4093d03e5cd7fe864fd9188d"
   },
   "hash_matches_manifest": {
     "input": true,
@@ -1072,46 +1088,11 @@
     ]
   },
   "issues": {
-    "counts": {
-      "cleaning_status_missing": 1,
-      "discharge_not_post_hoc": 68,
-      "prescription_order_time_missing_supporting_lineage": 5169,
-      "quality_flag_case_collision": 3248
-    },
-    "examples": {
-      "cleaning_status_missing": [
-        "cleaned_events.parquet"
-      ],
-      "discharge_not_post_hoc": [
-        "evt:df8a6a68f7926de5992b5f27",
-        "evt:39d9c83a932e9d02943d65dc",
-        "evt:e97ffd33d55528a3b10fd210",
-        "evt:55ccd0f1033f90a2ea57ed20",
-        "evt:ec21dbf558dbc088f5c153ac"
-      ],
-      "prescription_order_time_missing_supporting_lineage": [
-        "evt:c90e55944250b61746c26fbc",
-        "evt:8880789a7ca543b1e736fda1",
-        "evt:c9ac4a64b7073af2069b8e87",
-        "evt:9b391c253dce47cf26cb07ab",
-        "evt:0a1510978570cd3b462901e7"
-      ],
-      "quality_flag_case_collision": [
-        "evt:a930e9a44f6fd8ca4e26a42c",
-        "evt:79985aa5a8064725b4e49b16",
-        "evt:5f14115d3ae3d684c33d601d",
-        "evt:6afae0704482584fbb0eb4e6",
-        "evt:1d33f0332afcf210b669337e"
-      ]
-    }
+    "counts": {},
+    "examples": {}
   },
   "acceptance": {
-    "can_start_normalization": false,
-    "blocking_issue_codes": [
-      "cleaning_status_missing",
-      "discharge_not_post_hoc",
-      "prescription_order_time_missing_supporting_lineage",
-      "quality_flag_case_collision"
-    ]
+    "can_start_normalization": true,
+    "blocking_issue_codes": []
   }
 }

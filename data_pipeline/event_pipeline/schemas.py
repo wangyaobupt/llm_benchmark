@@ -10,9 +10,38 @@ import pyarrow as pa
 SCHEMA_DIRECTORY = Path(__file__).resolve().parent / "schemas"
 EVENT_JSON_SCHEMA_PATH = SCHEMA_DIRECTORY / "clinical-event.schema.json"
 
+QUALITY_FLAG_CODES: tuple[str, ...] = (
+    "AMBIGUOUS_MEDICATION_PAIRING",
+    "AVAILABLE_BEFORE_EVENT_TIME",
+    "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+    "AVAILABLE_TIME_UNKNOWN",
+    "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT",
+    "CHANGE_WITHOUT_OBSERVABLE_DELTA",
+    "MISSING_TRANSACTION_TYPE",
+    "NONRECIPROCAL_PREDECESSOR_LINK",
+    "NONRECIPROCAL_SUCCESSOR_LINK",
+    "OFFICIAL_TRANSACTION_SEMANTICS_UNRESOLVED",
+    "ORDER_TIME_UNRESOLVED",
+    "PHARMACY_POE_ID_CONFLICT",
+    "POE_ACTION_UNINTERPRETED",
+    "POE_ID_FORMAT_MISMATCH",
+    "PREDECESSOR_CATEGORY_MISMATCH",
+    "PREDECESSOR_TIME_AFTER_CURRENT_EVENT",
+    "RELATION_CYCLE",
+    "SUCCESSOR_CATEGORY_MISMATCH",
+    "SUCCESSOR_TIME_BEFORE_CURRENT_EVENT",
+    "TIME_UNAVAILABLE_IN_SOURCE",
+    "UNKNOWN_TRANSACTION_TYPE",
+    "UNMAPPED_DETAIL_FIELD",
+    "UNRESOLVED_PHARMACY_ID",
+    "UNRESOLVED_PREDECESSOR",
+    "UNRESOLVED_SUCCESSOR",
+)
+
 EVENT_ARROW_SCHEMA = pa.schema(
     [
         ("schema_version", pa.string()),
+        ("cleaning_status", pa.string()),
         ("event_id", pa.string()),
         ("entity_id", pa.string()),
         ("source_row_id", pa.string()),
@@ -54,8 +83,9 @@ EVENT_ARROW_SCHEMA = pa.schema(
         ("source_action", pa.string()),
         ("quality_flags", pa.list_(pa.string())),
         ("supporting_source_row_ids", pa.list_(pa.string())),
+        ("supporting_raw_row_refs", pa.list_(pa.string())),
     ],
-    metadata={b"schema": b"clinical_event/1.0.0"},
+    metadata={b"schema": b"clinical_event/1.1.0"},
 )
 
 ENCOUNTER_ARROW_SCHEMA = pa.schema(
@@ -75,6 +105,7 @@ ENCOUNTER_ARROW_SCHEMA = pa.schema(
 REJECTED_ARROW_SCHEMA = pa.schema(
     [
         ("schema_version", pa.string()),
+        ("cleaning_status", pa.string()),
         ("subject_id", pa.string()),
         ("hadm_id", pa.string()),
         ("source_row_id", pa.string()),
@@ -83,7 +114,7 @@ REJECTED_ARROW_SCHEMA = pa.schema(
         ("reason_code", pa.string()),
         ("message", pa.string()),
     ],
-    metadata={b"schema": b"rejected_event/1.0.0"},
+    metadata={b"schema": b"rejected_event/1.1.0"},
 )
 
 REVIEW_ARROW_SCHEMA = pa.schema(

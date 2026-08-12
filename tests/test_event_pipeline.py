@@ -9,6 +9,7 @@ import unittest
 import pyarrow.parquet as pq
 
 from data_pipeline.event_pipeline import run_cleaning, run_normalization
+from data_pipeline.event_pipeline.schemas import EVENT_JSON_SCHEMA_PATH, QUALITY_FLAG_CODES
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -269,6 +270,7 @@ class EventPipelineTest(unittest.TestCase):
             cleaned = pq.read_table(root / "cleaning" / "cleaned_events.parquet").to_pylist()
             normalized = pq.read_table(root / "normalization" / "normalized_events.parquet").to_pylist()
             self.assertTrue(all(row["raw_row_ref"].startswith("source.jsonl#L1/") for row in cleaned))
+            self.assertTrue(all(row["cleaning_status"] == "accepted" for row in cleaned))
             self.assertTrue(all(row["normalization_status"] is None for row in cleaned))
             chest_pain = next(row for row in normalized if row["event_kind"] == "symptom_reported")
             self.assertEqual(chest_pain["concept_id"], "symptom:chest_pain")
@@ -284,6 +286,30 @@ class EventPipelineTest(unittest.TestCase):
             )
             self.assertIsNone(category_only["concept_id"])
             self.assertEqual(category_only["normalization_status"], "unresolved")
+            self.assertEqual(
+                category_only["quality_flags"],
+                ["CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT"],
+            )
+            prescription = next(
+                row for row in cleaned if row["event_kind"] == "medication_ordered"
+            )
+            self.assertEqual(len(prescription["supporting_source_row_ids"]), 1)
+            self.assertEqual(
+                prescription["supporting_raw_row_refs"],
+                ["source.jsonl#L1/mimic_iv_hosp.poe_timeline[0]"],
+            )
+            discharge = next(
+                row for row in cleaned if row["source_table"] == "note.discharge"
+            )
+            self.assertEqual(discharge["evidence_phase"], "post_hoc")
+            normalized_prescription = next(
+                row for row in normalized if row["event_id"] == prescription["event_id"]
+            )
+            self.assertEqual(normalized_prescription["cleaning_status"], "accepted")
+            self.assertEqual(
+                normalized_prescription["supporting_raw_row_refs"],
+                prescription["supporting_raw_row_refs"],
+            )
 
     def test_reconciliation_is_per_source_row_and_known_data_error_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -295,6 +321,7 @@ class EventPipelineTest(unittest.TestCase):
             rejected = pq.read_table(root / "cleaning" / "cleaning_rejected.parquet").to_pylist()
             self.assertEqual(manifest["counts"]["rejected"], 1)
             self.assertEqual(rejected[0]["reason_code"], "LAB_CONCEPT_MISSING")
+            self.assertEqual(rejected[0]["cleaning_status"], "rejected")
             reconciliation = json.loads(
                 (root / "cleaning" / "source_reconciliation.json").read_text(encoding="utf-8")
             )
@@ -314,6 +341,28 @@ class EventPipelineTest(unittest.TestCase):
             second = pq.read_table(root / "second" / "cleaned_events.parquet").column("event_id").to_pylist()
             self.assertEqual(first, second)
             self.assertEqual(len(first), len(set(first)))
+
+    def test_unknown_quality_flag_stops_cleaning_without_partial_output(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record = self._record()
+            record["mimic_iv_hosp"]["poe_timeline"][0]["quality_flags"] = [  # type: ignore[index]
+                "new_unknown_flag"
+            ]
+            source = self._write_source(root, record)
+            output = root / "cleaning"
+
+            with self.assertRaisesRegex(ValueError, "unknown quality flag"):
+                run_cleaning(source, output)
+
+            self.assertFalse(output.exists())
+
+    def test_quality_flag_enum_matches_json_schema(self) -> None:
+        schema = json.loads(EVENT_JSON_SCHEMA_PATH.read_text(encoding="utf-8"))
+        schema_codes = tuple(
+            schema["properties"]["quality_flags"]["items"]["enum"]
+        )
+        self.assertEqual(schema_codes, QUALITY_FLAG_CODES)
 
 
 if __name__ == "__main__":

@@ -49,6 +49,12 @@ class EventValidator:
             raise EventPipelineError(
                 "SUPPORTING_SOURCE_ROW_NOT_FOUND", sorted(missing_support)[0]
             )
+        if len(event["supporting_source_row_ids"]) != len(
+            event["supporting_raw_row_refs"]
+        ):
+            raise EventPipelineError(
+                "SUPPORTING_LINEAGE_LENGTH_MISMATCH", event["event_id"]
+            )
         if event["normalization_status"] == "mapped" and not event["concept_id"]:
             raise EventPipelineError(
                 "MAPPED_CONCEPT_ID_MISSING", event["event_id"]

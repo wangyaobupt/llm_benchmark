@@ -17,8 +17,8 @@
 
 输出：
 
-- `cleaned_events.parquet`：通过结构和语义门禁的原始概念事件；归一化字段保持空值。
-- `cleaning_rejected.parquet`：已知数据问题及稳定 reason code。
+- `cleaned_events.parquet`：通过结构和语义门禁的原始概念事件；`cleaning_status=accepted`，归一化字段保持空值。
+- `cleaning_rejected.parquet`：已知数据问题及稳定 reason code；`cleaning_status=rejected`。
 - `term_inventory.parquet`：按实体类型、原始编码、原始术语和单位汇总的术语清单。
 - `encounter_manifest.parquet`：每次住院的源行、事件和拒绝数。
 - `source_reconciliation.json`：逐表验证 `input_rows = accepted_source_rows + rejected_source_rows`。
@@ -90,13 +90,16 @@
 - 处方：只通过原生 `poe_id` 获取下单时间；连接失败时不拿 `starttime`冒充下单时间。
 - eMAR：`event_time=charttime`，`available_time=recorded_time=storetime`；允许提前记录的未给药/计划事件并加质量标志。
 - ICU procedure：`event_time=starttime`，`recorded_time=storetime`，`available_time=max(endtime, storetime)`，防止“已执行”在完成前暴露。
-- `procedures_icd` 和出院小结分别标记 `post_hoc`、`administrative_end`。
+- `procedures_icd` 和出院小结均标记 `post_hoc`；行政出院时间、死亡和出院去向才属于 `administrative_end`。
 
 ## 事件和来源身份
 
 - `source_row_id` 优先由原生主键或复合键生成；无稳定键时使用规范化整行哈希。
 - `event_id` 由 `source_row_id + event component` 生成，不依赖 JSONL 行号或数组位置。
 - `raw_row_ref` 保留文件名、JSONL 行号、模块、表名和数组下标，供来源门禁回读。
+- 跨表派生字段同时保留 `supporting_source_row_ids` 与 `supporting_raw_row_refs`；处方下单时间引用已经与 raw POE 交叉核验的 `poe_timeline` 源行。
 - 一条复合源行可以生成多条原子事件，例如 triage 一行可生成主诉、心率和血压事件；逐表对账按源行而不是事件数计算。
+
+质量标志在事件边界规范为冻结的大写下划线编码；schema 拒绝非规范格式和重复值。
 
 类别级 POE 保持 `concept_id=null`、`content_specificity=category_only`、`normalization_status=unresolved`，不能成为具体检查答案。

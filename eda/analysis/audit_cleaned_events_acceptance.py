@@ -18,6 +18,7 @@ from typing import Any
 import pyarrow.parquet as pq
 
 from data_pipeline.event_pipeline.ids import build_source_row_id
+from data_pipeline.event_pipeline.schemas import QUALITY_FLAG_CODES
 from data_pipeline.event_pipeline.source_registry import SOURCE_REGISTRY
 
 
@@ -64,6 +65,7 @@ REQUESTED_FIELDS = {
     "parsed_value": ["value_numeric", "value_text", "value_structured_json"],
     "quality_flags": ["quality_flags"],
     "cleaning_status": [],
+    "supporting_raw_row_refs": ["supporting_raw_row_refs"],
 }
 
 
@@ -277,6 +279,20 @@ def audit(
         flags = event["quality_flags"]
         for flag in flags:
             quality_flag_counts[flag] += 1
+            if re.fullmatch(r"[A-Z][A-Z0-9_]*", flag) is None:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "quality_flag_not_canonical",
+                    event_id,
+                )
+            if flag not in QUALITY_FLAG_CODES:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "quality_flag_not_in_frozen_enum",
+                    event_id,
+                )
         if len({flag.casefold() for flag in flags}) != len(flags):
             _add_issue(
                 issue_counts,
@@ -286,6 +302,8 @@ def audit(
             )
         if event["event_kind"] not in EXPECTED_KINDS.get(source_table, set()):
             _add_issue(issue_counts, issue_examples, "unexpected_event_kind", event_id)
+        if event.get("cleaning_status") != "accepted":
+            _add_issue(issue_counts, issue_examples, "cleaning_status_not_accepted", event_id)
         try:
             admission, raw, parts = _raw_row(event["raw_row_ref"], records, source_path.name)
         except ValueError as error:
@@ -307,6 +325,56 @@ def audit(
                 _add_issue(issue_counts, issue_examples, f"raw_{key}_mismatch", event_id)
         if build_source_row_id(spec, raw) != event["source_row_id"]:
             _add_issue(issue_counts, issue_examples, "source_row_id_mismatch", event_id)
+        support_ids = event.get("supporting_source_row_ids") or []
+        support_refs = event.get("supporting_raw_row_refs") or []
+        if len(support_ids) != len(support_refs):
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "supporting_lineage_length_mismatch",
+                event_id,
+            )
+        support_rows: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any]]] = []
+        for support_id, support_ref in zip(support_ids, support_refs):
+            try:
+                support_admission, support_raw, support_parts = _raw_row(
+                    support_ref, records, source_path.name
+                )
+            except ValueError as error:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    f"supporting_{error}",
+                    event_id,
+                )
+                continue
+            support_spec = next(
+                (
+                    candidate
+                    for candidate in SOURCE_REGISTRY
+                    if candidate.module == support_parts["module"]
+                    and candidate.table == support_parts["table"]
+                ),
+                None,
+            )
+            if support_spec is None or build_source_row_id(support_spec, support_raw) != support_id:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "supporting_source_row_id_mismatch",
+                    event_id,
+                )
+            if (
+                str(support_admission.get("subject_id")) != event["subject_id"]
+                or str(support_admission.get("hadm_id")) != event["hadm_id"]
+            ):
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "supporting_admission_identity_mismatch",
+                    event_id,
+                )
+            support_rows.append((support_admission, support_raw, support_parts))
         expected_times = _expected_times(source_table, raw, admission)
         actual_times = tuple(event[field] for field in ("event_time", "available_time", "recorded_time"))
         if actual_times != expected_times:
@@ -315,13 +383,22 @@ def audit(
             _add_issue(issue_counts, issue_examples, "procedure_phase_mismatch", event_id)
         if source_table == "note.discharge" and event["evidence_phase"] != "post_hoc":
             _add_issue(issue_counts, issue_examples, "discharge_not_post_hoc", event_id)
-        if source_table == "hosp.prescriptions" and event["event_time"] is not None and not event["supporting_source_row_ids"]:
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "prescription_order_time_missing_supporting_lineage",
-                event_id,
-            )
+        if source_table == "hosp.prescriptions" and event["event_time"] is not None:
+            matching_support = [
+                support_raw
+                for _, support_raw, support_parts in support_rows
+                if support_parts["module"] == "mimic_iv_hosp"
+                and support_parts["table"] == "poe_timeline"
+                and _clean(support_raw.get("poe_id")) == _clean(raw.get("poe_id"))
+                and _iso(support_raw.get("event_time")) == event["event_time"]
+            ]
+            if len(matching_support) != 1:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "prescription_order_time_missing_supporting_lineage",
+                    event_id,
+                )
         if source_table == "hosp.labevents":
             expected_label = _decoded_label(raw)
             expected_numeric = _number(raw.get("valuenum"))
@@ -359,6 +436,13 @@ def audit(
     for row in rejected:
         source_table = row["source_table"]
         rejected_ids[source_table].add(row["source_row_id"])
+        if row.get("cleaning_status") != "rejected":
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "rejected_cleaning_status_invalid",
+                row["source_row_id"],
+            )
         try:
             admission, raw, _ = _raw_row(row["raw_row_ref"], records, source_path.name)
         except ValueError as error:

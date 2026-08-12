@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://llm-benchmark.local/schemas/clinical-event/1.0.0",
+  "$id": "https://llm-benchmark.local/schemas/clinical-event/1.1.0",
   "title": "ClinicalEvent with embedded primary ClinicalEntity",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version", "event_id", "entity_id", "source_row_id",
+    "schema_version", "cleaning_status", "event_id", "entity_id", "source_row_id",
     "subject_id", "hadm_id", "encounter_id", "event_kind",
     "lifecycle_action", "status", "assertion", "event_time",
     "available_time", "recorded_time", "time_resolution_status",
@@ -17,10 +17,11 @@
     "unit_normalization_status",
     "source_module", "source_table", "source_array_index",
     "jsonl_line_number", "raw_row_ref", "source_action", "quality_flags",
-    "supporting_source_row_ids"
+    "supporting_source_row_ids", "supporting_raw_row_refs"
   ],
   "properties": {
-    "schema_version": {"const": "1.0.0"},
+    "schema_version": {"const": "1.1.0"},
+    "cleaning_status": {"const": "accepted"},
     "event_id": {"type": "string", "pattern": "^evt:[0-9a-f]{24}$"},
     "entity_id": {"type": ["string", "null"], "pattern": "^ent:[0-9a-f]{24}$"},
     "source_row_id": {"type": "string", "pattern": "^src:[0-9a-f]{24}$"},
@@ -74,8 +75,41 @@
     "jsonl_line_number": {"type": "integer", "minimum": 1},
     "raw_row_ref": {"type": "string", "minLength": 1},
     "source_action": {"type": ["string", "null"]},
-    "quality_flags": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-    "supporting_source_row_ids": {"type": "array", "items": {"type": "string", "pattern": "^src:[0-9a-f]{24}$"}, "uniqueItems": true}
+    "quality_flags": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "AMBIGUOUS_MEDICATION_PAIRING",
+          "AVAILABLE_BEFORE_EVENT_TIME",
+          "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+          "AVAILABLE_TIME_UNKNOWN",
+          "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT",
+          "CHANGE_WITHOUT_OBSERVABLE_DELTA",
+          "MISSING_TRANSACTION_TYPE",
+          "NONRECIPROCAL_PREDECESSOR_LINK",
+          "NONRECIPROCAL_SUCCESSOR_LINK",
+          "OFFICIAL_TRANSACTION_SEMANTICS_UNRESOLVED",
+          "ORDER_TIME_UNRESOLVED",
+          "PHARMACY_POE_ID_CONFLICT",
+          "POE_ACTION_UNINTERPRETED",
+          "POE_ID_FORMAT_MISMATCH",
+          "PREDECESSOR_CATEGORY_MISMATCH",
+          "PREDECESSOR_TIME_AFTER_CURRENT_EVENT",
+          "RELATION_CYCLE",
+          "SUCCESSOR_CATEGORY_MISMATCH",
+          "SUCCESSOR_TIME_BEFORE_CURRENT_EVENT",
+          "TIME_UNAVAILABLE_IN_SOURCE",
+          "UNKNOWN_TRANSACTION_TYPE",
+          "UNMAPPED_DETAIL_FIELD",
+          "UNRESOLVED_PHARMACY_ID",
+          "UNRESOLVED_PREDECESSOR",
+          "UNRESOLVED_SUCCESSOR"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "supporting_source_row_ids": {"type": "array", "items": {"type": "string", "pattern": "^src:[0-9a-f]{24}$"}, "uniqueItems": true},
+    "supporting_raw_row_refs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
   },
   "$defs": {
     "timeOrNull": {

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from .ids import build_entity_id, build_event_id, canonical_json
 from .models import AdmissionContext, SourceRow
+from .schemas import QUALITY_FLAG_CODES
 from .terminology import VITAL_CONCEPTS
 from .time_resolver import resolved_times
 
@@ -14,6 +16,21 @@ class KnownTransformationError(ValueError):
     def __init__(self, reason_code: str, message: str):
         super().__init__(message)
         self.reason_code = reason_code
+
+
+def _canonical_quality_flags(values: list[str] | None) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values or []:
+        code = re.sub(r"[^A-Z0-9]+", "_", str(value).strip().upper()).strip("_")
+        if not code:
+            raise ValueError("quality flag cannot be empty")
+        if code not in QUALITY_FLAG_CODES:
+            raise ValueError(f"unknown quality flag: {code}")
+        if code not in seen:
+            seen.add(code)
+            result.append(code)
+    return result
 
 
 def _clean(value: Any) -> str | None:
@@ -76,8 +93,10 @@ def _event(
     supporting_rows: list[SourceRow] | None = None,
 ) -> dict[str, Any]:
     event_id = build_event_id(source.source_row_id, component)
+    support = supporting_rows or []
     event = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
+        "cleaning_status": "accepted",
         "event_id": event_id,
         "entity_id": build_entity_id(event_id) if entity_type else None,
         "source_row_id": source.source_row_id,
@@ -115,10 +134,11 @@ def _event(
         "jsonl_line_number": source.jsonl_line_number,
         "raw_row_ref": source.raw_row_ref,
         "source_action": source_action,
-        "quality_flags": list(dict.fromkeys(quality_flags or [])),
+        "quality_flags": _canonical_quality_flags(quality_flags),
         "supporting_source_row_ids": [
-            row.source_row_id for row in (supporting_rows or [])
+            row.source_row_id for row in support
         ],
+        "supporting_raw_row_refs": [row.raw_row_ref for row in support],
     }
     return event
 
@@ -399,8 +419,12 @@ def transform_prescription(source: SourceRow, context: AdmissionContext) -> list
             "PRESCRIPTION_DRUG_MISSING", "prescription drug is empty"
         )
     poe_id = _clean(row.get("poe_id"))
-    raw_poe = context.indexes["raw_poe_by_id"].get(poe_id)
-    order_time = raw_poe.get("ordertime") if isinstance(raw_poe, dict) else None
+    poe_timeline_source = context.indexes["poe_timeline_source_by_id"].get(poe_id)
+    order_time = (
+        poe_timeline_source.row.get("event_time")
+        if isinstance(poe_timeline_source, SourceRow)
+        else None
+    )
     ndc = _clean(row.get("ndc"))
     gsn = _clean(row.get("gsn"))
     source_concept_id = f"ndc:{ndc}" if ndc else (f"gsn:{gsn}" if gsn else None)
@@ -427,6 +451,7 @@ def transform_prescription(source: SourceRow, context: AdmissionContext) -> list
                 "route": row.get("route"),
             },
             quality_flags=flags,
+            supporting_rows=[poe_timeline_source] if poe_timeline_source else [],
         )
     ]
 
@@ -911,7 +936,7 @@ def transform_discharge_note(source: SourceRow, context: AdmissionContext) -> li
                 available_time=row.get("storetime"),
                 recorded_time=row.get("storetime"),
             ),
-            evidence_phase="administrative_end",
+            evidence_phase="post_hoc",
             entity_type="clinical_document",
             source_label="Discharge summary",
             concept_id="document:discharge_summary",
