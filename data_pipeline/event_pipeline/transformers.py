@@ -94,8 +94,10 @@ def _event(
 ) -> dict[str, Any]:
     event_id = build_event_id(source.source_row_id, component)
     support = supporting_rows or []
+    resolved = dict(times or resolved_times())
+    time_quality_flags = list(resolved.pop("time_quality_flags", []))
     event = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "cleaning_status": "accepted",
         "event_id": event_id,
         "entity_id": build_entity_id(event_id) if entity_type else None,
@@ -107,7 +109,8 @@ def _event(
         "lifecycle_action": lifecycle_action,
         "status": status,
         "assertion": assertion,
-        **(times or resolved_times()),
+        **resolved,
+        "time_policy_id": source.spec.time_policy,
         "evidence_phase": evidence_phase,
         "source_concept_id": concept_id,
         "concept_id": None,
@@ -134,7 +137,9 @@ def _event(
         "jsonl_line_number": source.jsonl_line_number,
         "raw_row_ref": source.raw_row_ref,
         "source_action": source_action,
-        "quality_flags": _canonical_quality_flags(quality_flags),
+        "quality_flags": _canonical_quality_flags(
+            [*(quality_flags or []), *time_quality_flags]
+        ),
         "supporting_source_row_ids": [
             row.source_row_id for row in support
         ],
@@ -793,10 +798,6 @@ def transform_emar(source: SourceRow, context: AdmissionContext) -> list[dict[st
             medication_resolution = "ambiguous_linked_sources"
             flags.append("AMBIGUOUS_MEDICATION_PAIRING")
 
-    charttime = _clean(row.get("charttime"))
-    storetime = _clean(row.get("storetime"))
-    if charttime and storetime and storetime < charttime:
-        flags.append("AVAILABLE_BEFORE_EVENT_TIME")
     return [
         _event(
             source,
@@ -991,12 +992,11 @@ def _icu_item_event(
             "ICU_CONCEPT_MISSING", f"{source.spec.source_table} itemid decoding missing"
         )
     numeric = _number(row.get(value_field))
-    available_time = row.get("storetime")
-    flags: list[str] = []
-    if kind == "procedure_performed" and row.get("endtime") not in (None, ""):
-        if available_time in (None, "") or str(available_time) < str(row.get("endtime")):
-            available_time = row.get("endtime")
-            flags.append("AVAILABLE_TIME_DERIVED_FROM_COMPLETION")
+    completion_time = (
+        row.get("endtime")
+        if kind in {"input_administered", "procedure_performed"}
+        else None
+    )
     unit = _clean(row.get("valueuom")) or _clean(row.get("amountuom"))
     if unit == "None":
         unit = None
@@ -1007,8 +1007,9 @@ def _icu_item_event(
             kind,
             times=resolved_times(
                 event_time=row.get(event_field),
-                available_time=available_time,
+                available_time=row.get("storetime"),
                 recorded_time=row.get("storetime"),
+                completion_time=completion_time,
             ),
             status=_clean(row.get("statusdescription")),
             entity_type="icu_item",
@@ -1023,7 +1024,6 @@ def _icu_item_event(
                 "rate": _clean(row.get("rate")),
                 "rate_unit": _clean(row.get("rateuom")),
             },
-            quality_flags=flags,
         )
     ]
 

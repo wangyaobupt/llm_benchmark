@@ -9,7 +9,7 @@ import json
 from .models import IdentityStrategy, SourceOrigin, SourceSpec, TimePolicy
 
 
-SOURCE_CATALOG_VERSION = "1.0.0"
+SOURCE_CATALOG_VERSION = "1.1.0"
 
 TIME_POLICIES: dict[str, TimePolicy] = {
     policy.policy_id: policy
@@ -31,12 +31,12 @@ TIME_POLICIES: dict[str, TimePolicy] = {
             "The source exposes occurrence time but no reliable availability time.",
         ),
         TimePolicy(
-            "chart_store_v1",
+            "chart_store_v2",
             "charttime_or_chartdate",
-            "storetime",
+            "source_available=storetime; available=max(event_time,source_available)",
             "storetime_or_storedate",
-            "keep_missing_store_time_null_and_flag",
-            "Result occurrence and database availability remain distinct.",
+            "keep_missing_store_time_null_and_flag; explain_and_clamp_inversion",
+            "Raw storage time remains traceable while effective availability cannot precede occurrence.",
         ),
         TimePolicy(
             "poe_timeline_v1",
@@ -63,12 +63,12 @@ TIME_POLICIES: dict[str, TimePolicy] = {
             "Pharmacy rows describe workflow entry and verification.",
         ),
         TimePolicy(
-            "emar_chart_store_v1",
+            "emar_chart_store_v2",
             "charttime",
+            "source_available=storetime; available=max(event_time,source_available)",
             "storetime",
-            "storetime",
-            "keep_missing_source_time_null_and_flag",
-            "eMAR charting and storage times remain unmodified.",
+            "keep_missing_source_time_null_and_flag; explain_and_clamp_inversion",
+            "eMAR storage time is preserved separately from leakage-safe effective availability.",
         ),
         TimePolicy(
             "service_transfer_v1",
@@ -103,35 +103,35 @@ TIME_POLICIES: dict[str, TimePolicy] = {
             "Coded procedures retain their chart date but remain retrospective.",
         ),
         TimePolicy(
-            "icu_interval_completion_v1",
+            "icu_interval_completion_v2",
             "starttime",
-            "max(endtime,storetime)",
+            "source_available=storetime; available=max(event_time,endtime,source_available)",
             "storetime",
-            "route_unexplained_inversion_to_review",
+            "use_source_completion_bound; explain_every_adjustment",
             "Completed interval facts must not be exposed before completion.",
         ),
         TimePolicy(
-            "icu_output_chart_store_v1",
+            "icu_output_chart_store_v2",
             "charttime",
+            "source_available=storetime; available=max(event_time,source_available)",
             "storetime",
-            "storetime",
-            "route_unexplained_inversion_to_review",
+            "keep_missing_store_time_null_and_flag; explain_and_clamp_inversion",
             "Output occurrence and chart storage remain separate.",
         ),
         TimePolicy(
-            "radiology_chart_store_v1",
+            "radiology_chart_store_v2",
             "charttime",
+            "source_available=storetime; available=max(event_time,source_available)",
             "storetime",
-            "storetime",
-            "reject_unexplained_availability_inversion",
+            "keep_missing_store_time_null_and_flag; explain_and_clamp_inversion",
             "Imaging reports become available at storage time.",
         ),
         TimePolicy(
-            "discharge_post_hoc_v1",
+            "discharge_post_hoc_v2",
             "charttime",
+            "source_available=storetime; available=max(event_time,source_available)",
             "storetime",
-            "storetime",
-            "mark_post_hoc_and_explain_inversion",
+            "mark_post_hoc; explain_and_clamp_inversion",
             "Discharge documents are retrospective regardless of storage time.",
         ),
         TimePolicy(
@@ -268,18 +268,18 @@ SOURCE_CATALOG: tuple[SourceSpec, ...] = (
     # remain stable when later cleaning stages intentionally add new facts.
     _event("mimic_iv_ed", "triage", "subject_id stay_id", "transform_ed_triage", "triage_no_time_v1", "source_event", "ED triage owns chief complaint, acuity, and triage vital facts."),
     _event("mimic_iv_ed", "vitalsign", "subject_id stay_id charttime", "transform_ed_vitals", "chart_only_v1", "source_event", "ED vitalsign owns timestamped ED vital measurements."),
-    _event("mimic_iv_hosp", "labevents", "labevent_id", "transform_labevent", "chart_store_v1", "source_event", "Laboratory rows own resulted laboratory facts."),
-    _event("mimic_iv_hosp", "microbiologyevents", "microevent_id", "transform_microbiology", "chart_store_v1", "source_event", "Microbiology rows own resulted microbiology facts."),
+    _event("mimic_iv_hosp", "labevents", "labevent_id", "transform_labevent", "chart_store_v2", "source_event", "Laboratory rows own resulted laboratory facts."),
+    _event("mimic_iv_hosp", "microbiologyevents", "microevent_id", "transform_microbiology", "chart_store_v2", "source_event", "Microbiology rows own resulted microbiology facts."),
     _event("mimic_iv_hosp", "poe_timeline", "subject_id poe_id poe_seq", "transform_poe_timeline", "poe_timeline_v1", "source_event", "Validated POE timeline rows own clinical order lifecycle facts.", origin="derived", supports=("hosp.prescriptions",)),
     _event("mimic_iv_hosp", "prescriptions", "", "transform_prescription", "prescription_poe_link_v1", "source_event", "Prescription rows own medication order facts.", supports=("hosp.emar", "hosp.pharmacy")),
     _event("mimic_iv_hosp", "pharmacy", "pharmacy_id", "transform_pharmacy", "pharmacy_workflow_v1", "source_event", "Pharmacy rows own pharmacy workflow status facts.", supports=("hosp.emar",)),
-    _event("mimic_iv_hosp", "emar", "subject_id emar_id emar_seq", "transform_emar", "emar_chart_store_v1", "source_event", "eMAR rows own medication administration documentation facts."),
+    _event("mimic_iv_hosp", "emar", "subject_id emar_id emar_seq", "transform_emar", "emar_chart_store_v2", "source_event", "eMAR rows own medication administration documentation facts."),
     _event("mimic_iv_hosp", "services", "subject_id hadm_id transfertime curr_service", "transform_service", "service_transfer_v1", "source_event", "Service rows own clinical service changes."),
     _event("mimic_iv_hosp", "transfers", "transfer_id", "transform_transfer", "transfer_intime_v1", "source_event", "Transfer rows own patient location transition facts."),
     _event("mimic_iv_hosp", "procedures_icd", "subject_id hadm_id seq_num", "transform_procedure_icd", "post_hoc_chartdate_v1", "post_hoc", "ICD procedure rows own retrospective coded procedure facts."),
-    _event("mimic_iv_icu", "procedureevents", "subject_id stay_id orderid itemid starttime", "transform_icu_procedure", "icu_interval_completion_v1", "source_event", "ICU procedure rows own performed procedure intervals."),
-    _event("mimic_iv_note", "radiology", "subject_id note_id", "transform_radiology_note", "radiology_chart_store_v1", "source_event", "Radiology notes own imaging report document facts."),
-    _event("mimic_iv_note", "discharge", "subject_id note_id", "transform_discharge_note", "discharge_post_hoc_v1", "post_hoc", "Discharge notes own retrospective discharge document facts."),
+    _event("mimic_iv_icu", "procedureevents", "subject_id stay_id orderid itemid starttime", "transform_icu_procedure", "icu_interval_completion_v2", "source_event", "ICU procedure rows own performed procedure intervals."),
+    _event("mimic_iv_note", "radiology", "subject_id note_id", "transform_radiology_note", "radiology_chart_store_v2", "source_event", "Radiology notes own imaging report document facts."),
+    _event("mimic_iv_note", "discharge", "subject_id note_id", "transform_discharge_note", "discharge_post_hoc_v2", "post_hoc", "Discharge notes own retrospective discharge document facts."),
     # Newly declared fact owners. Existing transformers are activated by the
     # registry, but this contract stage does not rebuild published Parquet.
     _event("mimic_iv_hosp", "diagnoses_icd", "subject_id hadm_id seq_num", "transform_diagnosis", "post_hoc_no_time_v1", "post_hoc", "Hospital diagnosis rows own retrospective coded condition facts."),
@@ -287,8 +287,8 @@ SOURCE_CATALOG: tuple[SourceSpec, ...] = (
     _event("mimic_iv_hosp", "hcpcsevents", "subject_id hadm_id chartdate hcpcs_cd seq_num", "transform_hcpcs", "post_hoc_chartdate_v1", "post_hoc", "HCPCS rows own retrospective coded service/procedure facts."),
     _event("mimic_iv_ed", "medrecon", "", "transform_ed_medrecon", "chart_only_v1", "source_event", "ED medication reconciliation owns medication history/reconciliation facts."),
     _event("mimic_iv_ed", "pyxis", "subject_id stay_id charttime med_rn gsn_rn", "transform_ed_pyxis", "chart_only_v1", "source_event", "ED Pyxis rows own medication dispense/access facts, not administration."),
-    _event("mimic_iv_icu", "inputevents", "subject_id stay_id orderid itemid starttime", "transform_icu_input", "icu_interval_completion_v1", "source_event", "ICU input rows own administered input/infusion intervals."),
-    _event("mimic_iv_icu", "outputevents", "", "transform_icu_output", "icu_output_chart_store_v1", "source_event", "ICU output rows own measured output facts."),
+    _event("mimic_iv_icu", "inputevents", "subject_id stay_id orderid itemid starttime", "transform_icu_input", "icu_interval_completion_v2", "source_event", "ICU input rows own administered input/infusion intervals."),
+    _event("mimic_iv_icu", "outputevents", "", "transform_icu_output", "icu_output_chart_store_v2", "source_event", "ICU output rows own measured output facts."),
     # Support rows are loaded and traceable but never transformed independently.
     _support("mimic_iv_hosp", "poe", "subject_id poe_id poe_seq", "hosp.poe_timeline", "support_poe_v1", "Raw POE rows cross-check derived order action and time without duplicating facts."),
     _support("mimic_iv_hosp", "poe_detail", "subject_id poe_id poe_seq field_name", "hosp.poe_timeline", "support_parent_inherit_v1", "POE detail rows enrich their owning order facts."),

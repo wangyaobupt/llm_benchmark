@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://llm-benchmark.local/schemas/clinical-event/1.1.0",
+  "$id": "https://llm-benchmark.local/schemas/clinical-event/1.2.0",
   "title": "ClinicalEvent with embedded primary ClinicalEntity",
   "type": "object",
   "additionalProperties": false,
@@ -8,8 +8,9 @@
     "schema_version", "cleaning_status", "event_id", "entity_id", "source_row_id",
     "subject_id", "hadm_id", "encounter_id", "event_kind",
     "lifecycle_action", "status", "assertion", "event_time",
-    "available_time", "recorded_time", "time_resolution_status",
-    "time_precision", "evidence_phase", "source_concept_id", "concept_id", "preferred_name",
+    "source_available_time", "available_time", "recorded_time", "time_resolution_status",
+    "time_precision", "time_policy_id", "time_resolution_reasons",
+    "evidence_phase", "source_concept_id", "concept_id", "preferred_name",
     "source_label", "entity_type", "normalization_status",
     "terminology_mapping_version", "content_specificity", "value_numeric",
     "value_text", "value_structured_json", "unit", "abnormal_flag",
@@ -20,7 +21,7 @@
     "supporting_source_row_ids", "supporting_raw_row_refs"
   ],
   "properties": {
-    "schema_version": {"const": "1.1.0"},
+    "schema_version": {"const": "1.2.0"},
     "cleaning_status": {"const": "accepted"},
     "event_id": {"type": "string", "pattern": "^evt:[0-9a-f]{24}$"},
     "entity_id": {"type": ["string", "null"], "pattern": "^ent:[0-9a-f]{24}$"},
@@ -47,10 +48,23 @@
     "status": {"type": ["string", "null"]},
     "assertion": {"enum": ["present", "absent", "possible", "unknown", "not_applicable"]},
     "event_time": {"$ref": "#/$defs/timeOrNull"},
+    "source_available_time": {"$ref": "#/$defs/timeOrNull"},
     "available_time": {"$ref": "#/$defs/timeOrNull"},
     "recorded_time": {"$ref": "#/$defs/timeOrNull"},
     "time_resolution_status": {"enum": ["resolved", "partially_resolved", "unresolved"]},
     "time_precision": {"enum": ["subsecond", "second", "date", "unknown"]},
+    "time_policy_id": {"type": "string", "minLength": 1},
+    "time_resolution_reasons": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "source_available_precedes_event_time",
+          "completion_time_lower_bound",
+          "event_time_lower_bound"
+        ]
+      },
+      "uniqueItems": true
+    },
     "evidence_phase": {"enum": ["source_event", "post_hoc", "administrative_end"]},
     "source_concept_id": {"type": ["string", "null"]},
     "concept_id": {"type": ["string", "null"]},
@@ -82,6 +96,7 @@
           "AMBIGUOUS_MEDICATION_PAIRING",
           "AVAILABLE_BEFORE_EVENT_TIME",
           "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+          "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME",
           "AVAILABLE_TIME_UNKNOWN",
           "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT",
           "CHANGE_WITHOUT_OBSERVABLE_DELTA",

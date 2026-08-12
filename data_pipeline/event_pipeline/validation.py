@@ -10,12 +10,19 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 from .schemas import EVENT_JSON_SCHEMA_PATH
-from .source_registry import REGISTERED_SOURCE_PATHS, REQUIRED_SOURCE_PATHS
+from .source_registry import (
+    REGISTERED_SOURCE_PATHS,
+    REQUIRED_SOURCE_PATHS,
+    SOURCE_BY_PATH,
+)
 
 
 ACCEPTED_INPUT_SCHEMAS = {
     ("mimic_admission_raw", "1.0.0"),
     ("mimic_admission_clinical_readable", "1.0.0"),
+}
+SOURCE_SPEC_BY_TABLE = {
+    spec.source_table: spec for spec in SOURCE_BY_PATH.values()
 }
 
 
@@ -68,23 +75,59 @@ class EventValidator:
             raise EventPipelineError(
                 "LABORATORY_CONCEPT_MISSING", event["event_id"]
             )
+        source_spec = SOURCE_SPEC_BY_TABLE.get(event["source_table"])
+        if source_spec is None or event["time_policy_id"] != source_spec.time_policy:
+            raise EventPipelineError("TIME_POLICY_MISMATCH", event["event_id"])
+
         event_time = _parsed_time(event["event_time"])
+        source_available_time = _parsed_time(event["source_available_time"])
         available_time = _parsed_time(event["available_time"])
-        result_kinds = {
-            "laboratory_resulted",
-            "microbiology_resulted",
-            "imaging_reported",
-            "output_measured",
-            "procedure_performed",
-        }
-        if (
-            event["event_kind"] in result_kinds
-            and event_time
-            and available_time
-            and available_time < event_time
+        flags = set(event["quality_flags"])
+        reasons = set(event["time_resolution_reasons"])
+        if event_time and available_time and available_time < event_time:
+            raise EventPipelineError(
+                "EFFECTIVE_AVAILABLE_BEFORE_EVENT_TIME", event["event_id"]
+            )
+        source_inversion = bool(
+            event_time
+            and source_available_time
+            and source_available_time < event_time
+        )
+        inversion_reason = "source_available_precedes_event_time"
+        inversion_flag = "AVAILABLE_BEFORE_EVENT_TIME"
+        if source_inversion and (
+            inversion_reason not in reasons or inversion_flag not in flags
         ):
             raise EventPipelineError(
-                "AVAILABLE_BEFORE_EVENT_TIME", event["event_id"]
+                "TIME_INVERSION_EXPLANATION_MISSING", event["event_id"]
+            )
+        if not source_inversion and (
+            inversion_reason in reasons or inversion_flag in flags
+        ):
+            raise EventPipelineError(
+                "TIME_INVERSION_MARKER_UNEXPECTED", event["event_id"]
+            )
+
+        event_floor_reason = "event_time_lower_bound"
+        event_floor_flag = "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME"
+        if (event_floor_reason in reasons) != (event_floor_flag in flags):
+            raise EventPipelineError(
+                "EVENT_TIME_LOWER_BOUND_MARKER_MISMATCH", event["event_id"]
+            )
+        if event_floor_reason in reasons and available_time != event_time:
+            raise EventPipelineError(
+                "EVENT_TIME_LOWER_BOUND_VALUE_MISMATCH", event["event_id"]
+            )
+
+        completion_reason = "completion_time_lower_bound"
+        completion_flag = "AVAILABLE_TIME_DERIVED_FROM_COMPLETION"
+        if (completion_reason in reasons) != (completion_flag in flags):
+            raise EventPipelineError(
+                "COMPLETION_TIME_MARKER_MISMATCH", event["event_id"]
+            )
+        if (available_time is None) != ("AVAILABLE_TIME_UNKNOWN" in flags):
+            raise EventPipelineError(
+                "AVAILABLE_TIME_UNKNOWN_MARKER_MISMATCH", event["event_id"]
             )
 
 

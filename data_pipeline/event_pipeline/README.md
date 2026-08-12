@@ -132,13 +132,12 @@ uv run --no-cache python -m data_pipeline.event_pipeline.regression capture
 
 - ED triage 没有原生时间：三个时间均保留 `null`，`time_resolution_status=unresolved`。
 - ED vitals 只有 `charttime`：只填写 `event_time`，不猜 `available_time`。
-- 检验：`event_time=charttime`，`available_time=recorded_time=storetime`；缺失 `storetime` 时明确标志。
+- 检验、影像、eMAR和ICU输出：`event_time`保留原发生时间，`source_available_time`保留原`storetime`，`recorded_time`仍保留`storetime`。
 - POE：`event_time=available_time=event_time`，保留 lifecycle action。
-- 处方：只通过原生 `poe_id` 获取下单时间；连接失败时不拿 `starttime`冒充下单时间。
-- eMAR：`event_time=charttime`，`available_time=recorded_time=storetime`；允许提前记录的未给药/计划事件并加质量标志。
-- ICU procedure：`event_time=starttime`，`recorded_time=storetime`，`available_time=max(endtime, storetime)`，防止“已执行”在完成前暴露。
+- 处方：只通过原生 `poe_id + poe_seq` 获取下单时间；连接失败时不拿 `starttime`冒充下单时间。
+- ICU input/procedure：`event_time=starttime`，`source_available_time=recorded_time=storetime`，有效`available_time=max(starttime,endtime,storetime)`，防止“已执行”在完成前暴露。
 - `procedures_icd` 和出院小结均标记 `post_hoc`；行政出院时间、死亡和出院去向才属于 `administrative_end`。
-- 对结果类事件，如果源数据出现 `available_time < event_time`，不改写或清空原始时间；整条源行进入 `cleaning_rejected.parquet`，reason code 固定为 `AVAILABLE_BEFORE_EVENT_TIME`。其他 schema、来源追踪和身份约束错误仍会原子终止运行。
+- 所有事件统一执行时间下界检查，不再按event kind开白名单。若`source_available_time < event_time`，原时间保留在`source_available_time/recorded_time`，有效`available_time`保守提升到`event_time`，同时写入`time_resolution_reasons`及`AVAILABLE_BEFORE_EVENT_TIME`、`AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME`。任何仍然存在的有效时间倒置、缺少解释或标志不一致都会原子终止运行。
 
 ## 事件和来源身份
 

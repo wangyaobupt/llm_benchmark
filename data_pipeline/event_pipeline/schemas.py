@@ -14,6 +14,7 @@ QUALITY_FLAG_CODES: tuple[str, ...] = (
     "AMBIGUOUS_MEDICATION_PAIRING",
     "AVAILABLE_BEFORE_EVENT_TIME",
     "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+    "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME",
     "AVAILABLE_TIME_UNKNOWN",
     "CATEGORY_ONLY_NO_SPECIFIC_ORDER_CONTENT",
     "CHANGE_WITHOUT_OBSERVABLE_DELTA",
@@ -55,10 +56,13 @@ EVENT_ARROW_SCHEMA = pa.schema(
         ("status", pa.string()),
         ("assertion", pa.string()),
         ("event_time", pa.string()),
+        ("source_available_time", pa.string()),
         ("available_time", pa.string()),
         ("recorded_time", pa.string()),
         ("time_resolution_status", pa.string()),
         ("time_precision", pa.string()),
+        ("time_policy_id", pa.string()),
+        ("time_resolution_reasons", pa.list_(pa.string())),
         ("evidence_phase", pa.string()),
         ("source_concept_id", pa.string()),
         ("concept_id", pa.string()),
@@ -87,7 +91,7 @@ EVENT_ARROW_SCHEMA = pa.schema(
         ("supporting_source_row_ids", pa.list_(pa.string())),
         ("supporting_raw_row_refs", pa.list_(pa.string())),
     ],
-    metadata={b"schema": b"clinical_event/1.1.0"},
+    metadata={b"schema": b"clinical_event/1.2.0"},
 )
 
 ENCOUNTER_ARROW_SCHEMA = pa.schema(

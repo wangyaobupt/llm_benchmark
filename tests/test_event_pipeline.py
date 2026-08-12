@@ -18,6 +18,7 @@ from data_pipeline.event_pipeline.source_registry import (
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
 )
+from data_pipeline.event_pipeline.validation import EventPipelineError, EventValidator
 
 
 class EventPipelineTest(unittest.TestCase):
@@ -310,6 +311,7 @@ class EventPipelineTest(unittest.TestCase):
             normalized = pq.read_table(root / "normalization" / "normalized_events.parquet").to_pylist()
             self.assertTrue(all(row["raw_row_ref"].startswith("source.jsonl#L1/") for row in cleaned))
             self.assertTrue(all(row["cleaning_status"] == "accepted" for row in cleaned))
+            self.assertTrue(all(row["schema_version"] == "1.2.0" for row in cleaned))
             self.assertTrue(all(row["normalization_status"] is None for row in cleaned))
             chest_pain = next(row for row in normalized if row["event_kind"] == "symptom_reported")
             self.assertEqual(chest_pain["concept_id"], "symptom:chest_pain")
@@ -383,7 +385,7 @@ class EventPipelineTest(unittest.TestCase):
                     table["accepted_source_rows"] + table["rejected_source_rows"],
                 )
 
-    def test_available_before_event_time_rejects_source_rows_without_stopping_run(self) -> None:
+    def test_source_time_inversions_are_preserved_clamped_and_explained(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             record = self._record()
@@ -393,6 +395,40 @@ class EventPipelineTest(unittest.TestCase):
             record["mimic_iv_note"]["radiology"][0]["storetime"] = (  # type: ignore[index]
                 "2150-01-01 11:55:00"
             )
+            record["mimic_iv_hosp"]["emar"][0]["storetime"] = (  # type: ignore[index]
+                "2150-01-01 09:55:00"
+            )
+            record["mimic_iv_note"]["discharge"][0]["storetime"] = (  # type: ignore[index]
+                "2150-01-03 11:55:00"
+            )
+            record["mimic_iv_icu"]["outputevents"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "hadm_id": "10",
+                    "stay_id": "20",
+                    "itemid": "226559",
+                    "itemid_decoded": {"label": "Urine Output"},
+                    "charttime": "2150-01-01 10:00:00",
+                    "storetime": "2150-01-01 09:50:00",
+                    "value": "250",
+                    "valueuom": "mL",
+                }
+            ]
+            record["mimic_iv_icu"]["inputevents"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "hadm_id": "10",
+                    "stay_id": "20",
+                    "orderid": "input-1",
+                    "itemid": "225158",
+                    "itemid_decoded": {"label": "NaCl 0.9%"},
+                    "starttime": "2150-01-01 09:00:00",
+                    "endtime": "2150-01-01 10:00:00",
+                    "storetime": "2150-01-01 09:30:00",
+                    "amount": "100",
+                    "amountuom": "mL",
+                }
+            ]
             source = self._write_source(root, record)
 
             manifest = run_cleaning(source, root / "cleaning")
@@ -403,20 +439,46 @@ class EventPipelineTest(unittest.TestCase):
                 root / "cleaning" / "cleaning_rejected.parquet"
             ).to_pylist()
 
-            self.assertEqual(manifest["counts"]["rejected"], 2)
-            self.assertEqual(
-                {row["source_table"] for row in rejected},
-                {"hosp.labevents", "note.radiology"},
-            )
-            self.assertEqual(
-                {row["reason_code"] for row in rejected},
-                {"AVAILABLE_BEFORE_EVENT_TIME"},
-            )
-            rejected_source_ids = {row["source_row_id"] for row in rejected}
-            self.assertTrue(
-                rejected_source_ids.isdisjoint(
-                    {row["source_row_id"] for row in cleaned}
+            self.assertEqual(manifest["counts"]["rejected"], 0)
+            self.assertEqual(rejected, [])
+            expected_source_available = {
+                "hosp.labevents": "2150-01-01T08:00:00",
+                "hosp.emar": "2150-01-01T09:55:00",
+                "icu.outputevents": "2150-01-01T09:50:00",
+                "note.radiology": "2150-01-01T11:55:00",
+                "note.discharge": "2150-01-03T11:55:00",
+            }
+            for source_table, source_available in expected_source_available.items():
+                event = next(
+                    row for row in cleaned if row["source_table"] == source_table
                 )
+                self.assertEqual(event["source_available_time"], source_available)
+                self.assertEqual(event["available_time"], event["event_time"])
+                self.assertEqual(
+                    event["time_resolution_reasons"],
+                    [
+                        "source_available_precedes_event_time",
+                        "event_time_lower_bound",
+                    ],
+                )
+                self.assertIn("AVAILABLE_BEFORE_EVENT_TIME", event["quality_flags"])
+                self.assertIn(
+                    "AVAILABLE_TIME_CLAMPED_TO_EVENT_TIME",
+                    event["quality_flags"],
+                )
+
+            icu_input = next(
+                row for row in cleaned if row["source_table"] == "icu.inputevents"
+            )
+            self.assertEqual(icu_input["source_available_time"], "2150-01-01T09:30:00")
+            self.assertEqual(icu_input["available_time"], "2150-01-01T10:00:00")
+            self.assertEqual(
+                icu_input["time_resolution_reasons"],
+                ["completion_time_lower_bound"],
+            )
+            self.assertIn(
+                "AVAILABLE_TIME_DERIVED_FROM_COMPLETION",
+                icu_input["quality_flags"],
             )
             reconciliation = json.loads(
                 (root / "cleaning" / "source_reconciliation.json").read_text(
@@ -585,6 +647,47 @@ class EventPipelineTest(unittest.TestCase):
             second = pq.read_table(root / "second" / "cleaned_events.parquet").column("event_id").to_pylist()
             self.assertEqual(first, second)
             self.assertEqual(len(first), len(set(first)))
+
+    def test_validator_requires_explanation_and_rejects_effective_inversion(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = self._write_source(root, self._record())
+            run_cleaning(source, root / "cleaning")
+            event = pq.read_table(
+                root / "cleaning" / "cleaned_events.parquet"
+            ).to_pylist()[0]
+            known_source_ids = {
+                event["source_row_id"],
+                *event["supporting_source_row_ids"],
+            }
+            validator = EventValidator()
+
+            missing_explanation = dict(event)
+            missing_explanation["event_time"] = "2150-01-01T10:00:00"
+            missing_explanation["source_available_time"] = "2149-01-01T00:00:00"
+            missing_explanation["available_time"] = "2150-01-01T10:00:00"
+            missing_explanation["quality_flags"] = []
+            with self.assertRaises(EventPipelineError) as raised:
+                validator.validate(missing_explanation, known_source_ids)
+            self.assertEqual(
+                raised.exception.reason_code,
+                "TIME_INVERSION_EXPLANATION_MISSING",
+            )
+
+            effective_inversion = dict(event)
+            effective_inversion["event_time"] = "2150-01-01T10:00:00"
+            effective_inversion["source_available_time"] = "2150-01-01T09:00:00"
+            effective_inversion["available_time"] = "2150-01-01T09:00:00"
+            effective_inversion["time_resolution_reasons"] = [
+                "source_available_precedes_event_time"
+            ]
+            effective_inversion["quality_flags"] = ["AVAILABLE_BEFORE_EVENT_TIME"]
+            with self.assertRaises(EventPipelineError) as raised:
+                validator.validate(effective_inversion, known_source_ids)
+            self.assertEqual(
+                raised.exception.reason_code,
+                "EFFECTIVE_AVAILABLE_BEFORE_EVENT_TIME",
+            )
 
     def test_unknown_quality_flag_stops_cleaning_without_partial_output(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

@@ -56,7 +56,7 @@ class EventSourceCatalogTest(unittest.TestCase):
         )
         self.assertEqual(len(REGISTERED_SOURCE_PATHS), 33)
         self.assertEqual(len(SOURCE_CATALOG_SHA256), 64)
-        self.assertEqual(SOURCE_CATALOG_VERSION, "1.0.0")
+        self.assertEqual(SOURCE_CATALOG_VERSION, "1.1.0")
         self.assertEqual(
             {
                 spec.source_table
