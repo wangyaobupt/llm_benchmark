@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deepseek-api-policy.schema.json",
+  "title": "DeepSeek API runtime, pricing, and restricted-data policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "provider",
+    "base_url",
+    "models",
+    "model_revisions",
+    "request",
+    "environment",
+    "pricing",
+    "data_policy"
+  ],
+  "properties": {
+    "schema_version": {"const": "text-ner-deepseek-api-policy/1.0.0"},
+    "provider": {"const": "deepseek"},
+    "base_url": {"const": "https://api.deepseek.com"},
+    "models": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["deepseek-v4-flash", "deepseek-v4-pro"]}
+    },
+    "model_revisions": {
+      "const": {
+        "deepseek-v4-flash": "DeepSeek-V4-Flash",
+        "deepseek-v4-pro": "DeepSeek-V4-Pro"
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["response_format", "thinking", "temperature"],
+      "properties": {
+        "response_format": {"const": "json_object"},
+        "thinking": {"const": "disabled"},
+        "temperature": {"const": 0}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_key", "base_url", "model", "model_revision"],
+      "properties": {
+        "api_key": {"const": "TEXT_NER_DEEPSEEK_API_KEY"},
+        "base_url": {"const": "TEXT_NER_DEEPSEEK_BASE_URL"},
+        "model": {"const": "TEXT_NER_DEEPSEEK_MODEL"},
+        "model_revision": {"const": "TEXT_NER_DEEPSEEK_MODEL_REVISION"}
+      }
+    },
+    "pricing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["currency", "unit_tokens", "verified_on", "source_url", "models"],
+      "properties": {
+        "currency": {"const": "CNY"},
+        "unit_tokens": {"const": 1000000},
+        "verified_on": {"type": "string", "format": "date"},
+        "source_url": {"type": "string", "format": "uri"},
+        "models": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["deepseek-v4-flash", "deepseek-v4-pro"],
+          "properties": {
+            "deepseek-v4-flash": {"$ref": "#/$defs/rate"},
+            "deepseek-v4-pro": {"$ref": "#/$defs/rate"}
+          }
+        }
+      }
+    },
+    "data_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "restricted_mimic_api_transfer",
+        "reason_code",
+        "environment_override_allowed",
+        "allowed_data_classifications",
+        "physionet_source_url",
+        "provider_privacy_source_url",
+        "verified_on"
+      ],
+      "properties": {
+        "restricted_mimic_api_transfer": {"const": "blocked"},
+        "reason_code": {"const": "DEEPSEEK_ZERO_RETENTION_NOT_VERIFIED"},
+        "environment_override_allowed": {"const": false},
+        "allowed_data_classifications": {
+          "const": ["synthetic", "public_nonclinical"]
+        },
+        "physionet_source_url": {"type": "string", "format": "uri"},
+        "provider_privacy_source_url": {"type": "string", "format": "uri"},
+        "verified_on": {"type": "string", "format": "date"}
+      }
+    }
+  },
+  "$defs": {
+    "rate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_cache_hit", "input_cache_miss", "output"],
+      "properties": {
+        "input_cache_hit": {"type": "number", "minimum": 0},
+        "input_cache_miss": {"type": "number", "minimum": 0},
+        "output": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

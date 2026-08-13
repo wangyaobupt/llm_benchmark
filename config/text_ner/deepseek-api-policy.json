@@ -1,0 +1,54 @@
+{
+  "schema_version": "text-ner-deepseek-api-policy/1.0.0",
+  "provider": "deepseek",
+  "base_url": "https://api.deepseek.com",
+  "models": [
+    "deepseek-v4-flash",
+    "deepseek-v4-pro"
+  ],
+  "model_revisions": {
+    "deepseek-v4-flash": "DeepSeek-V4-Flash",
+    "deepseek-v4-pro": "DeepSeek-V4-Pro"
+  },
+  "request": {
+    "response_format": "json_object",
+    "thinking": "disabled",
+    "temperature": 0
+  },
+  "environment": {
+    "api_key": "TEXT_NER_DEEPSEEK_API_KEY",
+    "base_url": "TEXT_NER_DEEPSEEK_BASE_URL",
+    "model": "TEXT_NER_DEEPSEEK_MODEL",
+    "model_revision": "TEXT_NER_DEEPSEEK_MODEL_REVISION"
+  },
+  "pricing": {
+    "currency": "CNY",
+    "unit_tokens": 1000000,
+    "verified_on": "2026-08-13",
+    "source_url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+    "models": {
+      "deepseek-v4-flash": {
+        "input_cache_hit": 0.02,
+        "input_cache_miss": 1.0,
+        "output": 2.0
+      },
+      "deepseek-v4-pro": {
+        "input_cache_hit": 0.025,
+        "input_cache_miss": 3.0,
+        "output": 6.0
+      }
+    }
+  },
+  "data_policy": {
+    "restricted_mimic_api_transfer": "blocked",
+    "reason_code": "DEEPSEEK_ZERO_RETENTION_NOT_VERIFIED",
+    "environment_override_allowed": false,
+    "allowed_data_classifications": [
+      "synthetic",
+      "public_nonclinical"
+    ],
+    "physionet_source_url": "https://physionet.org/news/post/llm-responsible-use/",
+    "provider_privacy_source_url": "https://cdn.deepseek.com/policies/en-US/deepseek-privacy-policy.html",
+    "verified_on": "2026-08-13"
+  }
+}

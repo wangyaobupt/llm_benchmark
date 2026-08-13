@@ -9,6 +9,7 @@ from pathlib import Path
 from .audit import audit_manifest
 from .annotation_package import prepare_annotation_package
 from .annotation_package_audit import audit_annotation_package
+from .deepseek_cost import estimate_deepseek_cost
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
 from .method_run import prepare_method_run
 from .method_run_audit import audit_method_run
@@ -80,6 +81,14 @@ def _parser() -> argparse.ArgumentParser:
     method_audit.add_argument("--replay-directory", type=Path)
     method_audit.add_argument("--output-json", type=Path)
     method_audit.add_argument("--output-markdown", type=Path)
+    deepseek_cost = subparsers.add_parser(
+        "estimate-deepseek-cost",
+        help="Estimate DeepSeek API cost without calls and report the MIMIC policy gate",
+    )
+    deepseek_cost.add_argument("method_run_directory", type=Path)
+    deepseek_cost.add_argument("policy", type=Path)
+    deepseek_cost.add_argument("--output-json", type=Path)
+    deepseek_cost.add_argument("--output-markdown", type=Path)
     return parser
 
 
@@ -129,12 +138,19 @@ def main() -> None:
             args.output_dir,
             execute=args.execute,
         )
-    else:
+    elif args.command == "audit-method-run":
         result = audit_method_run(
             args.annotation_package,
             args.method_config,
             args.run_directory,
             replay_directory=args.replay_directory,
+            output_json=args.output_json,
+            output_markdown=args.output_markdown,
+        )
+    else:
+        result = estimate_deepseek_cost(
+            args.method_run_directory,
+            args.policy,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )

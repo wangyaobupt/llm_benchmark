@@ -1,0 +1,120 @@
+{
+  "compliance": {
+    "cost_estimate_authorizes_execution": false,
+    "environment_override_allowed": false,
+    "reason_code": "DEEPSEEK_ZERO_RETENTION_NOT_VERIFIED",
+    "restricted_mimic_api_transfer": "blocked"
+  },
+  "evaluation_access_count": 0,
+  "input": {
+    "partition": "calibration",
+    "policy_sha256": "1563b9445b5d2425d415085fcc6f915162d785d8a6fb6b58dd938c1949f8038d",
+    "request_file_sha256": "bc82090975933709e5782488825095783635ef781d62997a2a71ac8ad38cafc9",
+    "run_id": "nrun:6d05925e001dc35c8ed1c967",
+    "run_manifest_sha256": "3e94e2cf676a64f3ad9d7ece130b464008f66a138d4746ec097bc008d78b3d7e",
+    "section_text_characters": 34293,
+    "source_counts": {
+      "ed.triage": 25,
+      "note.radiology": 146
+    },
+    "text_units": 171
+  },
+  "model_calls": 0,
+  "pricing": {
+    "currency": "CNY",
+    "models": {
+      "deepseek-v4-flash": {
+        "input_cache_hit": 0.02,
+        "input_cache_miss": 1.0,
+        "output": 2.0
+      },
+      "deepseek-v4-pro": {
+        "input_cache_hit": 0.025,
+        "input_cache_miss": 3.0,
+        "output": 6.0
+      }
+    },
+    "source_url": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing",
+    "unit_tokens": 1000000,
+    "verified_on": "2026-08-13"
+  },
+  "scenarios": {
+    "lean": {
+      "assumptions": {
+        "mention_output_tokens_per_unit": 128,
+        "relation_output_tokens_per_unit": 64
+      },
+      "cost_by_model": {
+        "deepseek-v4-flash": {
+          "all_input_cache_miss_cny": 0.180957,
+          "repeated_prompt_cache_optimistic_cny": 0.109735
+        },
+        "deepseek-v4-pro": {
+          "all_input_cache_miss_cny": 0.542871,
+          "repeated_prompt_cache_optimistic_cny": 0.326663
+        }
+      },
+      "estimated_tokens": {
+        "common_prompt_input": 72675,
+        "input": 115293,
+        "output": 32832,
+        "total": 148125,
+        "variable_input": 42618
+      }
+    },
+    "planning": {
+      "assumptions": {
+        "mention_output_tokens_per_unit": 512,
+        "relation_output_tokens_per_unit": 256
+      },
+      "cost_by_model": {
+        "deepseek-v4-flash": {
+          "all_input_cache_miss_cny": 0.443613,
+          "repeated_prompt_cache_optimistic_cny": 0.372391
+        },
+        "deepseek-v4-pro": {
+          "all_input_cache_miss_cny": 1.330839,
+          "repeated_prompt_cache_optimistic_cny": 1.114631
+        }
+      },
+      "estimated_tokens": {
+        "common_prompt_input": 72675,
+        "input": 180957,
+        "output": 131328,
+        "total": 312285,
+        "variable_input": 108282
+      }
+    },
+    "stress": {
+      "assumptions": {
+        "mention_output_tokens_per_unit": 1536,
+        "relation_output_tokens_per_unit": 768
+      },
+      "cost_by_model": {
+        "deepseek-v4-flash": {
+          "all_input_cache_miss_cny": 1.144029,
+          "repeated_prompt_cache_optimistic_cny": 1.072808
+        },
+        "deepseek-v4-pro": {
+          "all_input_cache_miss_cny": 3.432087,
+          "repeated_prompt_cache_optimistic_cny": 3.215879
+        }
+      },
+      "estimated_tokens": {
+        "common_prompt_input": 72675,
+        "input": 356061,
+        "output": 393984,
+        "total": 750045,
+        "variable_input": 283386
+      }
+    }
+  },
+  "schema_version": "text-ner-deepseek-cost-estimate/1.0.0",
+  "status": "zero_call_estimate_only",
+  "token_estimation": {
+    "actual_billing_usage_required_after_execution": true,
+    "english_character_to_token_ratio": 0.3,
+    "method_id": "deepseek-official-character-ratio/2026-08-13",
+    "source_url": "https://api-docs.deepseek.com/quick_start/token_usage/"
+  }
+}

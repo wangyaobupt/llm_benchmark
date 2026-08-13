@@ -126,3 +126,21 @@
 运行目录中的`mention_requests.jsonl`包含受限临床原文，只能位于被Git忽略的`data/derived/`。relation请求初始状态为`blocked_pending_validated_mentions`，候选文件为空，指标文件必须为`not_evaluable`。即使传入`--execute`，当前版本也会在写文件前以`MODEL_EXECUTION_NOT_AUTHORIZED`失败；后续必须单独确定模型、合规边界和执行授权。
 
 `rule_baseline.py`提供只识别测量值和显式时间词的保守非模型基线，用于验证方法与评价代码，不能替代完整临床NER。正式方法设计与结果解释边界见`docs/design/text-ner-methodology.md`。
+
+## DeepSeek API成本与合规门禁
+
+DeepSeek API可以通过环境变量配置，但环境变量只负责凭据注入，不能改变受限数据政策。当前PhysioNet要求第三方LLM服务具备可验证的零数据保留、不训练和无人审；DeepSeek公开隐私政策没有提供满足该要求的零保留承诺。因此`restricted_mimic`被代码硬阻断，不能通过环境变量解除。
+
+环境变量名称记录在仓库根目录`.env.example`；真实key只放进进程环境，不写入`.env.example`、运行清单、日志或Git。适配器目前只允许`synthetic`和`public_nonclinical`测试。
+
+对171个calibration单元执行零调用费用估算：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner estimate-deepseek-cost `
+  data\derived\text_ner_method_exploratory `
+  config\text_ner\deepseek-api-policy.json `
+  --output-json docs\reports\text-ner-deepseek-cost-compliance.json `
+  --output-markdown docs\reports\text-ner-deepseek-cost-compliance.md
+```
+
+估算使用DeepSeek官方英文字符约0.3 token的近似值，并给出多种输出长度和缓存情景；它不是账单，也不授权API执行。真实账单只能在合规执行后根据响应`usage`计算。

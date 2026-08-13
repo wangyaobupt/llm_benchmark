@@ -69,3 +69,9 @@ gold可用后报告：
 5. 由用户显式授权一次真实模型执行。
 
 即使真实模型开始运行，calibration完成前的输出仍只能用于方法探索，不能称为经过验证的实验结果。
+
+## 7. DeepSeek外部API边界
+
+DeepSeek的成本优势不改变受限数据边界。PhysioNet要求第三方API具备可验证的零数据保留、不训练和无人审；无法完整验证时不得使用。DeepSeek现行公开隐私政策说明会收集用户输入，并可能为服务、研发和安全目的保留数据，未提供本项目可核验的零保留承诺。
+
+因此当前实现包含DeepSeek JSON API请求合同、环境变量读取、响应哈希和usage记录能力，但只允许`synthetic`与`public_nonclinical`数据。`restricted_mimic`在读取API key和构造网络客户端之前即失败，且没有环境变量覆盖入口。若未来获得满足PhysioNet要求的企业零保留协议，必须保存协议证据、升级`deepseek-api-policy`版本、重新验收后才能改变此门禁。
