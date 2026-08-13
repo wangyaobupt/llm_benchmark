@@ -6,7 +6,7 @@
 - `ids.py`：稳定 `source_row_id`、`event_id` 和 `entity_id`；
 - `time_resolver.py`：源端时间与泄漏安全有效时间；
 - `validation.py`：输入合同、事件 schema、来源和时间门禁；
-- `pipeline.py`：流式写出 cleaning 产物、逐表对账和 manifest；
+- `pipeline.py`：流式写出 cleaning 产物，对33张表按角色和raw/derived来源逐表对账，并核算supporting lineage与encounter manifest；
 - `transformers/`：按临床域拆分的事件转换规则和唯一 registry。
 
 该阶段不写入标准概念，不调用归一化或 LLM。

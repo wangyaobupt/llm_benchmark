@@ -105,7 +105,7 @@ ENCOUNTER_ARROW_SCHEMA = pa.schema(
         ("event_count", pa.int64()),
         ("rejected_count", pa.int64()),
     ],
-    metadata={b"schema": b"encounter_manifest/1.0.0"},
+    metadata={b"schema": b"encounter_manifest/1.1.0"},
 )
 
 REJECTED_ARROW_SCHEMA = pa.schema(

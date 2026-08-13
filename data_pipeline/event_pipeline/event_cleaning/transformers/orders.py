@@ -16,8 +16,12 @@ POE_ACTIONS = {
 
 def transform_poe_timeline(source: SourceRow, context: AdmissionContext) -> list[dict[str, Any]]:
     """Eventize the existing deterministic POE view without re-eventizing raw POE."""
-    del context
     row = source.row
+    poe_id = _clean(row.get("poe_id"))
+    poe_seq = _clean(row.get("poe_seq"))
+    pair = (poe_id, poe_seq) if poe_id and poe_seq else None
+    raw_poe = list(context.indexes["poe_by_pair"].get(pair, []))
+    details = list(context.indexes["poe_details_by_pair"].get(pair, []))
     category = row.get("clinical_category") or {}
     order_type = _clean(category.get("raw")) if isinstance(category, dict) else None
     subtype = _clean(category.get("subtype_raw")) if isinstance(category, dict) else None
@@ -66,6 +70,7 @@ def transform_poe_timeline(source: SourceRow, context: AdmissionContext) -> list
             },
             source_action=action,
             quality_flags=flags,
+            supporting_rows=[*raw_poe, *details],
         )
     ]
 

@@ -69,7 +69,7 @@ LLM 评测、统计分析与报告
 | 原始归档 EDA | 已完成 | 已完成全量流式分析，覆盖32张表、原始时间字段、疾病谱、模块覆盖和五类题型数据源准备度 | 后续数据层变化需继续以正式 metrics 和 manifest 对账 |
 | 字典解码与 POE 解析 | 已完成 | 已实现可携带的字典解码与 POE timeline；保留源字段、原生键和可逆追溯关系 | 新输入版本出现时重新执行合同验证 |
 | 临床事件清洗代码 | 已完成当前合同 | 已建立33张输入表的封闭式来源合同：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 在扩大样本前继续保持合同、回归基线和来源对账一致 |
-| 100例 cleaned events | 已通过独立验收 | 65,811个输入事实源行产生66,652条 accepted 事件和43条 rejected 记录；全部事件、拒绝原因、支持来源、时间语义、manifest 和文件哈希通过独立复算，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
+| 100例 cleaned events | 已通过全目录独立验收 | 113,616条目录输入已按100,843条raw与12,773条derived、65,811条event与43,415条support及4,390条context完整对账；六类support均以原生键关联，未关联为0；产生66,652条accepted事件和43条rejected记录，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
 | 100例确定性标准化 | 已通过独立验收 | 66,652条 normalized events、3,895条 mappings 和1,001条 review queue 已正式发布；batch size 5,000与777复跑的run ID、三份Parquet哈希、计数和状态分布一致；阻断项为0 | 该结论只证明当前100例流水线可复现，不代表全队列已经完成；unresolved 继续进入字典、原生编码或人工审核流程 |
 | 文本事实支路 | 人工双标包已生成 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；模型调用0次 | 由两名标注者独立完成calibration，第三人裁决并计算一致性；通过预设门禁后才能解锁evaluation或设计本地模型运行协议 |
 | Patient journey | 尚未实现 | 已明确 journey 需要支持循环、并行、诊断修正、治疗调整和条件性去向 | 冻结 journey/event/state/node/evidence-edge 合同并完成少量患者的可追溯重建 |

@@ -22,6 +22,7 @@ import pyarrow.parquet as pq
 from ..event_cleaning.ids import build_source_row_id, canonical_json
 from ..event_cleaning.pipeline import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA
 from ..event_contracts.schemas import (
+    ENCOUNTER_ARROW_SCHEMA,
     EVENT_ARROW_SCHEMA,
     QUALITY_FLAG_CODES,
     REJECTED_ARROW_SCHEMA,
@@ -538,10 +539,14 @@ def audit(
 ) -> dict[str, Any]:
     cleaned_file = pq.ParquetFile(cleaned_path)
     rejected_file = pq.ParquetFile(rejected_path)
+    encounter_path = manifest_path.parent / "encounter_manifest.parquet"
+    encounter_file = pq.ParquetFile(encounter_path)
     cleaned_table = cleaned_file.read()
     rejected_table = rejected_file.read()
+    encounter_table = encounter_file.read()
     events = cleaned_table.to_pylist()
     rejected = rejected_table.to_pylist()
+    encounters = encounter_table.to_pylist()
     records = _read_jsonl(source_path)
     raw_records = _read_jsonl(raw_source_path)
     source_id_by_ref, _ = _source_identity_index(records, source_path.name)
@@ -606,6 +611,7 @@ def audit(
     table_phase_counts: Counter[tuple[str, str]] = Counter()
     quality_flag_counts: Counter[str] = Counter()
     table_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    linked_support_ids: dict[str, set[str]] = defaultdict(set)
 
     for event in events:
         if not event_structure_valid:
@@ -713,6 +719,15 @@ def audit(
                     "supporting_source_row_id_mismatch",
                     event_id,
                 )
+            elif support_spec.role == "support":
+                linked_support_ids[support_spec.source_table].add(support_id)
+                if support_spec.fact_owner != source_table:
+                    _add_issue(
+                        issue_counts,
+                        issue_examples,
+                        "supporting_fact_owner_mismatch",
+                        event_id,
+                    )
             if (
                 str(support_admission.get("subject_id")) != event["subject_id"]
                 or str(support_admission.get("hadm_id")) != event["hadm_id"]
@@ -843,7 +858,7 @@ def audit(
     raw_ids: dict[str, set[str]] = defaultdict(set)
     expected_source_counts: Counter[str] = Counter()
     for line_number, admission in records.items():
-        for spec in EVENT_SOURCE_REGISTRY:
+        for spec in SOURCE_CATALOG:
             rows = admission[spec.module].get(spec.table, [])
             for array_index, raw in enumerate(rows):
                 raw_ref = (
@@ -853,10 +868,18 @@ def audit(
                 source_id = source_id_by_ref[raw_ref]
                 raw_ids[spec.source_table].add(source_id)
                 expected_source_counts[spec.source_table] += 1
-                classified = int(source_id in accepted_ids[spec.source_table]) + int(source_id in rejected_ids[spec.source_table])
-                if classified != 1:
-                    _add_issue(issue_counts, issue_examples, "source_row_classification_mismatch", f"{spec.source_table}:{source_id}")
-                if source_id in accepted_ids[spec.source_table]:
+                if spec.role == "event":
+                    classified = int(source_id in accepted_ids[spec.source_table]) + int(source_id in rejected_ids[spec.source_table])
+                    if classified != 1:
+                        _add_issue(issue_counts, issue_examples, "source_row_classification_mismatch", f"{spec.source_table}:{source_id}")
+                elif spec.role == "support" and source_id not in linked_support_ids[spec.source_table]:
+                    _add_issue(
+                        issue_counts,
+                        issue_examples,
+                        "supporting_source_row_unlinked",
+                        f"{spec.source_table}:{source_id}",
+                    )
+                if spec.role == "event" and source_id in accepted_ids[spec.source_table]:
                     expected_events = _expected_event_count(spec.source_table, raw)
                     actual_events = source_event_counts[(spec.source_table, source_id)]
                     if actual_events != expected_events:
@@ -864,12 +887,25 @@ def audit(
 
     reconciliation_differences: list[dict[str, Any]] = []
     reconciliation_by_table = {row["source_table"]: row for row in reconciliation["tables"]}
-    for spec in EVENT_SOURCE_REGISTRY:
+    for spec in SOURCE_CATALOG:
         source_table = spec.source_table
+        linked = len(raw_ids[source_table] & linked_support_ids[source_table])
         observed = {
+            "source_module": spec.module,
+            "source_table": source_table,
+            "role": spec.role,
+            "origin": spec.origin,
+            "fact_owner": spec.fact_owner,
             "input_rows": expected_source_counts[source_table],
+            "classified_source_rows": expected_source_counts[source_table],
             "accepted_source_rows": len(accepted_ids[source_table]),
             "rejected_source_rows": len(rejected_ids[source_table]),
+            "linked_source_rows": linked if spec.role == "support" else 0,
+            "unlinked_source_rows": (
+                expected_source_counts[source_table] - linked
+                if spec.role == "support"
+                else 0
+            ),
             "events": sum(count for (table, _), count in table_kind_counts.items() if table == source_table),
         }
         declared_row = reconciliation_by_table.get(source_table)
@@ -897,6 +933,122 @@ def audit(
                 "source_reconciliation_mismatch",
                 source_table,
             )
+
+    expected_by_origin = Counter(
+        {
+            origin: sum(
+                expected_source_counts[spec.source_table]
+                for spec in SOURCE_CATALOG
+                if spec.origin == origin
+            )
+            for origin in ("raw", "derived")
+        }
+    )
+    expected_by_role = Counter(
+        {
+            role: sum(
+                expected_source_counts[spec.source_table]
+                for spec in SOURCE_CATALOG
+                if spec.role == role
+            )
+            for role in ("event", "support", "context")
+        }
+    )
+    linked_support_total = sum(
+        len(raw_ids[spec.source_table] & linked_support_ids[spec.source_table])
+        for spec in SOURCE_CATALOG
+        if spec.role == "support"
+    )
+    reconciliation_summary = {
+        "source_rows": sum(expected_source_counts.values()),
+        "raw_source_rows": expected_by_origin["raw"],
+        "derived_source_rows": expected_by_origin["derived"],
+        "event_source_rows": expected_by_role["event"],
+        "support_source_rows": expected_by_role["support"],
+        "context_source_rows": expected_by_role["context"],
+        "classified_source_rows": sum(expected_source_counts.values()),
+        "linked_support_source_rows": linked_support_total,
+        "unlinked_support_source_rows": (
+            expected_by_role["support"] - linked_support_total
+        ),
+    }
+    declared_summary = {
+        key: reconciliation.get(key) for key in reconciliation_summary
+    }
+    if reconciliation_summary != declared_summary:
+        reconciliation_differences.append(
+            {
+                "source_table": "__summary__",
+                "observed": reconciliation_summary,
+                "declared": declared_summary,
+            }
+        )
+        _add_issue(
+            issue_counts,
+            issue_examples,
+            "source_reconciliation_summary_mismatch",
+            "__summary__",
+        )
+
+    encounter_by_line: dict[int, dict[str, Any]] = {}
+    for row in encounters:
+        line_number = int(row["jsonl_line_number"])
+        if line_number in encounter_by_line:
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "duplicate_encounter_manifest_line",
+                str(line_number),
+            )
+        encounter_by_line[line_number] = row
+    for line_number, admission in records.items():
+        expected_raw = sum(
+            len(admission[spec.module][spec.table])
+            for spec in SOURCE_CATALOG
+            if spec.origin == "raw"
+        )
+        expected_derived = sum(
+            len(admission[spec.module][spec.table])
+            for spec in SOURCE_CATALOG
+            if spec.origin == "derived"
+        )
+        row = encounter_by_line.get(line_number)
+        if row is None:
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "encounter_manifest_row_missing",
+                str(line_number),
+            )
+            continue
+        observed = {
+            "schema_version": row.get("schema_version"),
+            "subject_id": row.get("subject_id"),
+            "hadm_id": row.get("hadm_id"),
+            "source_row_count": row.get("source_row_count"),
+            "derived_row_count": row.get("derived_row_count"),
+        }
+        expected = {
+            "schema_version": "1.1.0",
+            "subject_id": str(admission["subject_id"]),
+            "hadm_id": str(admission["hadm_id"]),
+            "source_row_count": expected_raw,
+            "derived_row_count": expected_derived,
+        }
+        if observed != expected:
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "encounter_manifest_count_mismatch",
+                str(line_number),
+            )
+    for extra_line in sorted(set(encounter_by_line) - set(records)):
+        _add_issue(
+            issue_counts,
+            issue_examples,
+            "encounter_manifest_row_unexpected",
+            str(extra_line),
+        )
 
     rng = random.Random(sample_seed)
     samples: list[dict[str, Any]] = []
@@ -934,16 +1086,34 @@ def audit(
         for (table, kind), count in sorted(table_kind_counts.items())
     ]
     source_reconciliation = []
-    for spec in EVENT_SOURCE_REGISTRY:
+    for spec in SOURCE_CATALOG:
         table = spec.source_table
+        linked = len(raw_ids[table] & linked_support_ids[table])
         source_reconciliation.append(
             {
+                "source_module": spec.module,
                 "source_table": table,
+                "role": spec.role,
+                "origin": spec.origin,
+                "fact_owner": spec.fact_owner,
                 "input_rows": expected_source_counts[table],
+                "classified_source_rows": expected_source_counts[table],
                 "accepted_source_rows": len(accepted_ids[table]),
                 "rejected_source_rows": len(rejected_ids[table]),
+                "linked_source_rows": linked if spec.role == "support" else 0,
+                "unlinked_source_rows": (
+                    expected_source_counts[table] - linked
+                    if spec.role == "support"
+                    else 0
+                ),
                 "events": sum(value for (name, _), value in table_kind_counts.items() if name == table),
-                "balanced": expected_source_counts[table] == len(accepted_ids[table]) + len(rejected_ids[table]),
+                "balanced": (
+                    expected_source_counts[table]
+                    == len(accepted_ids[table]) + len(rejected_ids[table])
+                    if spec.role == "event"
+                    else expected_source_counts[table]
+                    == (linked + expected_source_counts[table] - linked)
+                ),
             }
         )
 
@@ -951,12 +1121,16 @@ def audit(
         "raw_source": _sha256(raw_source_path),
         "input": _sha256(source_path),
         "cleaned_events.parquet": _sha256(cleaned_path),
+        "encounter_manifest.parquet": _sha256(encounter_path),
         "cleaning_rejected.parquet": _sha256(rejected_path),
+        "source_reconciliation.json": _sha256(reconciliation_path),
     }
     hash_matches_manifest = {
         "input": hashes["input"] == manifest["input"]["sha256"],
         "cleaned_events.parquet": hashes["cleaned_events.parquet"] == manifest["output_sha256"]["cleaned_events.parquet"],
+        "encounter_manifest.parquet": hashes["encounter_manifest.parquet"] == manifest["output_sha256"]["encounter_manifest.parquet"],
         "cleaning_rejected.parquet": hashes["cleaning_rejected.parquet"] == manifest["output_sha256"]["cleaning_rejected.parquet"],
+        "source_reconciliation.json": hashes["source_reconciliation.json"] == manifest["output_sha256"]["source_reconciliation.json"],
     }
     for key, matched in hash_matches_manifest.items():
         if not matched:
@@ -981,10 +1155,23 @@ def audit(
         "rejected_arrow_schema": _arrow_schema_matches(
             rejected_table.schema, REJECTED_ARROW_SCHEMA
         ),
+        "encounter_arrow_schema": _arrow_schema_matches(
+            encounter_table.schema, ENCOUNTER_ARROW_SCHEMA
+        ),
         "manifest_admissions": manifest.get("counts", {}).get("admissions")
         == len(records),
         "manifest_source_rows": manifest.get("counts", {}).get("source_rows")
         == sum(expected_source_counts.values()),
+        "manifest_raw_source_rows": manifest.get("counts", {}).get("raw_source_rows")
+        == expected_by_origin["raw"],
+        "manifest_derived_source_rows": manifest.get("counts", {}).get("derived_source_rows")
+        == expected_by_origin["derived"],
+        "manifest_event_source_rows": manifest.get("counts", {}).get("event_source_rows")
+        == expected_by_role["event"],
+        "manifest_support_source_rows": manifest.get("counts", {}).get("support_source_rows")
+        == expected_by_role["support"],
+        "manifest_context_source_rows": manifest.get("counts", {}).get("context_source_rows")
+        == expected_by_role["context"],
         "manifest_events": manifest.get("counts", {}).get("events") == len(events),
         "manifest_rejected": manifest.get("counts", {}).get("rejected")
         == len(rejected),

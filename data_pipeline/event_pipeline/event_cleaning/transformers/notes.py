@@ -10,8 +10,8 @@ from .common import _clean, _event
 
 def transform_radiology_note(source: SourceRow, context: AdmissionContext) -> list[dict[str, Any]]:
     row = source.row
-    del context
     note_id = _clean(row.get("note_id"))
+    details = list(context.indexes["radiology_details_by_note_id"].get(note_id, []))
     label = _clean(row.get("note_type")) or "Radiology report"
     return [
         _event(
@@ -25,13 +25,18 @@ def transform_radiology_note(source: SourceRow, context: AdmissionContext) -> li
             ),
             entity_type="imaging_report",
             source_label=label,
-            value_structured={"note_id": note_id, "note_seq": row.get("note_seq")},
+            value_structured={
+                "note_id": note_id,
+                "note_seq": row.get("note_seq"),
+                "details": [detail.row for detail in details],
+            },
+            supporting_rows=details,
         )
     ]
 def transform_discharge_note(source: SourceRow, context: AdmissionContext) -> list[dict[str, Any]]:
     row = source.row
-    del context
     note_id = _clean(row.get("note_id"))
+    details = list(context.indexes["discharge_details_by_note_id"].get(note_id, []))
     return [
         _event(
             source,
@@ -47,6 +52,11 @@ def transform_discharge_note(source: SourceRow, context: AdmissionContext) -> li
             source_label="Discharge summary",
             concept_id="document:discharge_summary",
             preferred_name="Discharge summary",
-            value_structured={"note_id": note_id, "note_seq": row.get("note_seq")},
+            value_structured={
+                "note_id": note_id,
+                "note_seq": row.get("note_seq"),
+                "details": [detail.row for detail in details],
+            },
+            supporting_rows=details,
         )
     ]

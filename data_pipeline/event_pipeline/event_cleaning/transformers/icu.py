@@ -15,6 +15,8 @@ def _icu_item_event(
     kind: str,
     event_field: str,
     value_field: str,
+    supporting_rows: list[SourceRow] | None = None,
+    structured_additions: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     row = source.row
     itemid = _clean(row.get("itemid"))
@@ -32,6 +34,12 @@ def _icu_item_event(
     unit = _clean(row.get("valueuom")) or _clean(row.get("amountuom"))
     if unit == "None":
         unit = None
+    structured = {
+        "endtime": _clean(row.get("endtime")),
+        "rate": _clean(row.get("rate")),
+        "rate_unit": _clean(row.get("rateuom")),
+    }
+    structured.update(structured_additions or {})
     return [
         _event(
             source,
@@ -51,11 +59,8 @@ def _icu_item_event(
             value_numeric=numeric,
             value_text=None if numeric is not None else _clean(row.get(value_field)),
             unit=unit,
-            value_structured={
-                "endtime": _clean(row.get("endtime")),
-                "rate": _clean(row.get("rate")),
-                "rate_unit": _clean(row.get("rateuom")),
-            },
+            value_structured=structured,
+            supporting_rows=supporting_rows,
         )
     ]
 
@@ -71,8 +76,24 @@ def transform_icu_ingredient(source: SourceRow, context: AdmissionContext) -> li
 
 
 def transform_icu_input(source: SourceRow, context: AdmissionContext) -> list[dict[str, Any]]:
-    del context
-    return _icu_item_event(source, component="input", kind="input_administered", event_field="starttime", value_field="amount")
+    row = source.row
+    linkorderid = _clean(row.get("linkorderid")) or _clean(row.get("orderid"))
+    key = (
+        _clean(row.get("subject_id")),
+        _clean(row.get("stay_id")),
+        linkorderid,
+        _clean(row.get("starttime")),
+    )
+    ingredients = list(context.indexes["icu_ingredients_by_linkorder"].get(key, []))
+    return _icu_item_event(
+        source,
+        component="input",
+        kind="input_administered",
+        event_field="starttime",
+        value_field="amount",
+        supporting_rows=ingredients,
+        structured_additions={"linked_ingredient_count": len(ingredients)},
+    )
 
 
 def transform_icu_output(source: SourceRow, context: AdmissionContext) -> list[dict[str, Any]]:

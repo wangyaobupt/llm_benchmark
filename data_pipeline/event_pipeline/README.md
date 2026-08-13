@@ -87,7 +87,7 @@ event_pipeline_NEW_BATCH/
 
 ### Cleaning
 
-封闭式 `SOURCE_CATALOG` 登记输入全部 33 张表：21 张事实拥有者生成事件，6 张 support 表只提供原生键证据，6 张 context 表不重复生成事实。未登记表、缺少必需表、身份冲突、不可解释的时间关系都会使运行失败。
+封闭式 `SOURCE_CATALOG` 登记输入全部 33 张表：21 张事实拥有者生成事件，6 张 support 表只提供原生键证据，6 张 context 表不重复生成事实。`source_reconciliation.json` 对每张表记录角色、raw/derived 来源及分类结果；support 行还必须通过原生键关联到其事实拥有者。任一目录行未分类、support 未关联、derived 计数漂移、未登记表、缺少必需表、身份冲突或不可解释的时间关系都会阻断 normalization。
 
 临床 transformer 按 ED、检验、医嘱、药物、诊断操作、ICU 和 Note 拆分，唯一 registry 负责将合同中的 transformer 名称映射到实现。
 
@@ -97,7 +97,7 @@ event_pipeline_NEW_BATCH/
 
 ### Quality
 
-Cleaning audit 全量复算来源、身份、时间和逐表对账；normalization audit 验证除 8 个归一化字段外所有事件事实不变。复现比较独立计算两次运行所有数据文件的 SHA-256。
+Cleaning audit 全量复算 33 张表的角色、raw/derived 计数、supporting lineage、encounter manifest、身份、时间和逐表对账；normalization audit 验证除 8 个归一化字段外所有事件事实不变。复现比较独立计算两次运行所有数据文件的 SHA-256。
 
 ## 只运行单个阶段
 

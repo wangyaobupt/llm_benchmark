@@ -39,7 +39,7 @@ from .validation import (
 
 
 OUTPUT_SCHEMA = {"name": "mimic_cleaned_events", "version": "1.2.0"}
-CLEANING_LOGIC_VERSION = "1.3.0"
+CLEANING_LOGIC_VERSION = "1.4.0"
 PARQUET_ROW_GROUP_SIZE = 5000
 
 
@@ -175,6 +175,9 @@ def _build_context(
         return dict(result)
 
     indexes = {
+        "poe_by_pair": index_many(
+            "mimic_iv_hosp", "poe", ("poe_id", "poe_seq")
+        ),
         "poe_timeline_by_id": index_many(
             "mimic_iv_hosp", "poe_timeline", ("poe_id",)
         ),
@@ -190,11 +193,25 @@ def _build_context(
         "poe_details_by_id": index_many(
             "mimic_iv_hosp", "poe_detail", ("poe_id",)
         ),
+        "poe_details_by_pair": index_many(
+            "mimic_iv_hosp", "poe_detail", ("poe_id", "poe_seq")
+        ),
         "pharmacy_by_id": index_many(
             "mimic_iv_hosp", "pharmacy", ("pharmacy_id",)
         ),
         "emar_details_by_parent": index_many(
             "mimic_iv_hosp", "emar_detail", ("subject_id", "emar_id", "emar_seq")
+        ),
+        "icu_ingredients_by_linkorder": index_many(
+            "mimic_iv_icu",
+            "ingredientevents",
+            ("subject_id", "stay_id", "linkorderid", "starttime"),
+        ),
+        "radiology_details_by_note_id": index_many(
+            "mimic_iv_note", "radiology_detail", ("note_id",)
+        ),
+        "discharge_details_by_note_id": index_many(
+            "mimic_iv_note", "discharge_detail", ("note_id",)
         ),
     }
     return AdmissionContext(admission=admission, source_rows=source_rows, indexes=indexes)
@@ -205,10 +222,15 @@ def _empty_source_metrics(spec: SourceSpec) -> dict[str, Any]:
         "source_module": spec.module,
         "source_table": spec.source_table,
         "role": spec.role,
+        "origin": spec.origin,
+        "fact_owner": spec.fact_owner,
         "input_rows": 0,
+        "classified_source_rows": 0,
         "accepted_source_rows": 0,
         "events": 0,
         "rejected_source_rows": 0,
+        "linked_source_rows": 0,
+        "unlinked_source_rows": 0,
     }
 
 
@@ -257,13 +279,15 @@ def run_cleaning(
     validator = EventValidator()
     source_metrics = {
         spec.source_table: _empty_source_metrics(spec)
-        for spec in EVENT_SOURCE_REGISTRY
+        for spec in SOURCE_CATALOG
     }
     event_kind_counts: Counter[str] = Counter()
     evidence_phase_counts: Counter[str] = Counter()
     term_inventory: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     global_event_ids: set[str] = set()
     admissions = events_total = rejected_total = source_rows_total = 0
+    source_rows_by_origin: Counter[str] = Counter()
+    source_rows_by_role: Counter[str] = Counter()
     poe_crosschecked_total = 0
     input_hash = _sha256(input_path)
 
@@ -295,15 +319,32 @@ def run_cleaning(
                     for table_rows in source_rows.values()
                     for row in table_rows
                 }
+                support_table_by_id = {
+                    row.source_row_id: spec.source_table
+                    for spec in SOURCE_CATALOG
+                    if spec.role == "support"
+                    for row in source_rows[(spec.module, spec.table)]
+                }
+                referenced_support_ids: set[str] = set()
                 admission_event_count = admission_rejected_count = 0
-                admission_source_rows = 0
+                admission_raw_source_rows = 0
+                admission_derived_source_rows = 0
+
+                for spec in SOURCE_CATALOG:
+                    rows = source_rows[(spec.module, spec.table)]
+                    count = len(rows)
+                    source_metrics[spec.source_table]["input_rows"] += count
+                    source_rows_total += count
+                    source_rows_by_origin[spec.origin] += count
+                    source_rows_by_role[spec.role] += count
+                    if spec.origin == "raw":
+                        admission_raw_source_rows += count
+                    else:
+                        admission_derived_source_rows += count
 
                 for spec in EVENT_SOURCE_REGISTRY:
                     rows = source_rows[(spec.module, spec.table)]
                     metrics = source_metrics[spec.source_table]
-                    metrics["input_rows"] += len(rows)
-                    admission_source_rows += len(rows)
-                    source_rows_total += len(rows)
                     transformer = TRANSFORMERS.get(spec.transformer_name or "")
                     if transformer is None:
                         raise EventPipelineError(
@@ -328,6 +369,11 @@ def run_cleaning(
                                     )
                                 generated_event_ids.add(event["event_id"])
                             for event in generated:
+                                referenced_support_ids.update(
+                                    support_id
+                                    for support_id in event["supporting_source_row_ids"]
+                                    if support_id in support_table_by_id
+                                )
                                 global_event_ids.add(event["event_id"])
                                 event_writer.write(event)
                                 admission_event_count += 1
@@ -357,6 +403,7 @@ def run_cleaning(
                                     )
                                     inventory["event_count"] += 1
                             metrics["accepted_source_rows"] += 1
+                            metrics["classified_source_rows"] += 1
                         except (KnownTransformationError, EventPipelineError) as error:
                             if isinstance(error, EventPipelineError):
                                 raise
@@ -376,15 +423,29 @@ def run_cleaning(
                             admission_rejected_count += 1
                             rejected_total += 1
                             metrics["rejected_source_rows"] += 1
+                            metrics["classified_source_rows"] += 1
+
+                for spec in SOURCE_CATALOG:
+                    if spec.role == "event":
+                        continue
+                    rows = source_rows[(spec.module, spec.table)]
+                    metrics = source_metrics[spec.source_table]
+                    metrics["classified_source_rows"] += len(rows)
+                    if spec.role == "support":
+                        linked = sum(
+                            row.source_row_id in referenced_support_ids for row in rows
+                        )
+                        metrics["linked_source_rows"] += linked
+                        metrics["unlinked_source_rows"] += len(rows) - linked
 
                 encounter_writer.write(
                     {
-                        "schema_version": "1.0.0",
+                        "schema_version": "1.1.0",
                         "subject_id": str(admission["subject_id"]),
                         "hadm_id": str(admission["hadm_id"]),
                         "jsonl_line_number": line_number,
-                        "source_row_count": admission_source_rows,
-                        "derived_row_count": 0,
+                        "source_row_count": admission_raw_source_rows,
+                        "derived_row_count": admission_derived_source_rows,
                         "event_count": admission_event_count,
                         "rejected_count": admission_rejected_count,
                     }
@@ -407,9 +468,7 @@ def run_cleaning(
         inventory_writer.close()
 
         classified_source_rows = sum(
-            metrics["accepted_source_rows"]
-            + metrics["rejected_source_rows"]
-            for metrics in source_metrics.values()
+            metrics["classified_source_rows"] for metrics in source_metrics.values()
         )
         if classified_source_rows != source_rows_total:
             raise EventPipelineError(
@@ -417,12 +476,27 @@ def run_cleaning(
                 f"source_rows={source_rows_total}, classified={classified_source_rows}",
             )
         reconciliation = {
-            "schema": {"name": "source_reconciliation", "version": "1.0.0"},
+            "schema": {"name": "source_reconciliation", "version": "2.0.0"},
             "source_rows": source_rows_total,
+            "raw_source_rows": source_rows_by_origin["raw"],
+            "derived_source_rows": source_rows_by_origin["derived"],
+            "event_source_rows": source_rows_by_role["event"],
+            "support_source_rows": source_rows_by_role["support"],
+            "context_source_rows": source_rows_by_role["context"],
             "classified_source_rows": classified_source_rows,
+            "linked_support_source_rows": sum(
+                metrics["linked_source_rows"]
+                for metrics in source_metrics.values()
+                if metrics["role"] == "support"
+            ),
+            "unlinked_support_source_rows": sum(
+                metrics["unlinked_source_rows"]
+                for metrics in source_metrics.values()
+                if metrics["role"] == "support"
+            ),
             "poe_timeline_rows_crosschecked": poe_crosschecked_total,
             "tables": [
-                source_metrics[spec.source_table] for spec in EVENT_SOURCE_REGISTRY
+                source_metrics[spec.source_table] for spec in SOURCE_CATALOG
             ],
         }
         _json_dump(temporary / "source_reconciliation.json", reconciliation)
@@ -435,7 +509,7 @@ def run_cleaning(
         )
         output_hashes = {name: _sha256(temporary / name) for name in output_files}
         manifest = {
-            "schema": {"name": "event_pipeline_run_manifest", "version": "1.0.0"},
+            "schema": {"name": "event_pipeline_run_manifest", "version": "1.1.0"},
             "output_schema": OUTPUT_SCHEMA,
             "cleaning_logic_version": CLEANING_LOGIC_VERSION,
             "source_catalog": {
@@ -459,6 +533,11 @@ def run_cleaning(
             "counts": {
                 "admissions": admissions,
                 "source_rows": source_rows_total,
+                "raw_source_rows": source_rows_by_origin["raw"],
+                "derived_source_rows": source_rows_by_origin["derived"],
+                "event_source_rows": source_rows_by_role["event"],
+                "support_source_rows": source_rows_by_role["support"],
+                "context_source_rows": source_rows_by_role["context"],
                 "events": events_total,
                 "rejected": rejected_total,
                 "term_inventory_rows": len(term_inventory),

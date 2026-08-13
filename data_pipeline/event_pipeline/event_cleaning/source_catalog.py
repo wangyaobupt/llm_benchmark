@@ -9,7 +9,7 @@ import json
 from .models import IdentityStrategy, SourceOrigin, SourceSpec, TimePolicy
 
 
-SOURCE_CATALOG_VERSION = "1.1.0"
+SOURCE_CATALOG_VERSION = "1.2.0"
 
 TIME_POLICIES: dict[str, TimePolicy] = {
     policy.policy_id: policy

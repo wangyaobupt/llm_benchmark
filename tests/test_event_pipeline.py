@@ -22,6 +22,7 @@ from data_pipeline.event_pipeline.event_contracts.schemas import (
     QUALITY_FLAG_CODES,
 )
 from data_pipeline.event_pipeline.event_cleaning.source_catalog import (
+    SOURCE_CATALOG,
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
 )
@@ -667,10 +668,207 @@ class EventPipelineTest(unittest.TestCase):
                 (root / "cleaning" / "source_reconciliation.json").read_text(encoding="utf-8")
             )
             for table in reconciliation["tables"]:
-                self.assertEqual(
-                    table["input_rows"],
-                    table["accepted_source_rows"] + table["rejected_source_rows"],
+                self.assertEqual(table["input_rows"], table["classified_source_rows"])
+
+    def test_all_catalog_roles_reconcile_with_complete_support_lineage(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            record = self._record()
+            record["mimic_iv_hosp"]["patients"] = [  # type: ignore[index]
+                {"subject_id": "1"}
+            ]
+            record["mimic_iv_hosp"]["admissions"] = [  # type: ignore[index]
+                {"subject_id": "1", "hadm_id": "10"}
+            ]
+            record["mimic_iv_hosp"]["drgcodes"] = [  # type: ignore[index]
+                {"subject_id": "1", "hadm_id": "10", "drg_code": "001"}
+            ]
+            record["mimic_iv_hosp"]["poe_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "poe_id": "1-1",
+                    "poe_seq": "1",
+                    "field_name": "test",
+                    "field_value": "Chest radiograph",
+                }
+            ]
+            record["mimic_iv_hosp"]["emar_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "emar_id": "e1",
+                    "emar_seq": "1",
+                    "parent_field_ordinal": "1.1",
+                    "dose_given": "81",
+                    "dose_given_unit": "mg",
+                }
+            ]
+            record["mimic_iv_icu"]["icustays"] = [  # type: ignore[index]
+                {"subject_id": "1", "hadm_id": "10", "stay_id": "20"}
+            ]
+            record["mimic_iv_icu"]["datetimeevents"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "hadm_id": "10",
+                    "stay_id": "20",
+                    "itemid": "225000",
+                    "charttime": "2150-01-01 09:00:00",
+                    "value": "2150-01-01 10:00:00",
+                }
+            ]
+            record["mimic_iv_icu"]["inputevents"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "hadm_id": "10",
+                    "stay_id": "20",
+                    "orderid": "input-1",
+                    "linkorderid": "linked-input-1",
+                    "itemid": "225158",
+                    "itemid_decoded": {"label": "NaCl 0.9%"},
+                    "starttime": "2150-01-01 09:00:00",
+                    "endtime": "2150-01-01 10:00:00",
+                    "storetime": "2150-01-01 10:01:00",
+                    "amount": "100",
+                    "amountuom": "mL",
+                }
+            ]
+            record["mimic_iv_icu"]["ingredientevents"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "hadm_id": "10",
+                    "stay_id": "20",
+                    "orderid": "ingredient-1",
+                    "linkorderid": "linked-input-1",
+                    "itemid": "220490",
+                    "starttime": "2150-01-01 09:00:00",
+                    "endtime": "2150-01-01 10:00:00",
+                    "storetime": "2150-01-01 10:01:00",
+                    "amount": "100",
+                    "amountuom": "mL",
+                }
+            ]
+            record["mimic_iv_ed"]["edstays"] = [  # type: ignore[index]
+                {"subject_id": "1", "hadm_id": "10", "stay_id": "30"}
+            ]
+            record["mimic_iv_note"]["radiology_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "note_id": "r1",
+                    "field_name": "exam_code",
+                    "field_value": "C11",
+                    "field_ordinal": "1",
+                }
+            ]
+            record["mimic_iv_note"]["discharge_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "note_id": "d1",
+                    "field_name": "author",
+                    "field_value": "___",
+                    "field_ordinal": "1",
+                }
+            ]
+            source = self._write_source(root, record)
+
+            manifest = run_cleaning(source, root / "cleaning")
+            reconciliation = json.loads(
+                (root / "cleaning" / "source_reconciliation.json").read_text(
+                    encoding="utf-8"
                 )
+            )
+            tables = {row["source_table"]: row for row in reconciliation["tables"]}
+            self.assertEqual(len(tables), len(SOURCE_CATALOG))
+            self.assertEqual(
+                reconciliation["source_rows"],
+                reconciliation["classified_source_rows"],
+            )
+            self.assertEqual(reconciliation["unlinked_support_source_rows"], 0)
+            for spec in SOURCE_CATALOG:
+                row = tables[spec.source_table]
+                self.assertEqual(row["role"], spec.role)
+                self.assertEqual(row["origin"], spec.origin)
+                self.assertEqual(row["input_rows"], row["classified_source_rows"])
+                if spec.role == "event":
+                    self.assertEqual(
+                        row["input_rows"],
+                        row["accepted_source_rows"] + row["rejected_source_rows"],
+                    )
+                elif spec.role == "support":
+                    self.assertEqual(row["input_rows"], row["linked_source_rows"])
+                    self.assertEqual(row["unlinked_source_rows"], 0)
+
+            expected_raw_rows = sum(
+                len(record[spec.module][spec.table])  # type: ignore[index]
+                for spec in SOURCE_CATALOG
+                if spec.origin == "raw"
+            )
+            expected_derived_rows = sum(
+                len(record[spec.module][spec.table])  # type: ignore[index]
+                for spec in SOURCE_CATALOG
+                if spec.origin == "derived"
+            )
+            self.assertEqual(reconciliation["raw_source_rows"], expected_raw_rows)
+            self.assertEqual(
+                reconciliation["derived_source_rows"], expected_derived_rows
+            )
+            self.assertEqual(manifest["counts"]["raw_source_rows"], expected_raw_rows)
+            self.assertEqual(
+                manifest["counts"]["derived_source_rows"], expected_derived_rows
+            )
+            encounter = pq.read_table(
+                root / "cleaning" / "encounter_manifest.parquet"
+            ).to_pylist()[0]
+            self.assertEqual(encounter["source_row_count"], expected_raw_rows)
+            self.assertEqual(encounter["derived_row_count"], expected_derived_rows)
+
+    def test_unlinked_support_row_blocks_normalization_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            enriched = self._record()
+            enriched["mimic_iv_hosp"]["poe_detail"] = [  # type: ignore[index]
+                {
+                    "subject_id": "1",
+                    "poe_id": "missing-order",
+                    "poe_seq": "999",
+                    "field_name": "test",
+                    "field_value": "orphan",
+                }
+            ]
+            source = self._write_source(root, enriched)
+            raw = deepcopy(enriched)
+            raw["mimic_iv_hosp"].pop("poe_timeline")  # type: ignore[index]
+            for module in (
+                "mimic_iv_hosp",
+                "mimic_iv_icu",
+                "mimic_iv_ed",
+                "mimic_iv_note",
+            ):
+                for rows in raw[module].values():  # type: ignore[index]
+                    if not isinstance(rows, list):
+                        continue
+                    for row in rows:
+                        if isinstance(row, dict):
+                            for key in list(row):
+                                if key.endswith("_decoded"):
+                                    del row[key]
+            raw_path = root / "raw.jsonl"
+            raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            cleaning = root / "cleaning"
+            run_cleaning(source, cleaning)
+
+            result = audit_cleaned(
+                cleaning / "cleaned_events.parquet",
+                cleaning / "cleaning_rejected.parquet",
+                source,
+                raw_path,
+                cleaning / "source_reconciliation.json",
+                cleaning / "run_manifest.json",
+            )
+
+            self.assertFalse(result["acceptance"]["can_start_normalization"])
+            self.assertIn(
+                "supporting_source_row_unlinked",
+                result["acceptance"]["blocking_issue_codes"],
+            )
 
     def test_source_time_inversions_are_preserved_clamped_and_explained(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -777,10 +975,7 @@ class EventPipelineTest(unittest.TestCase):
                 reconciliation["classified_source_rows"],
             )
             for table in reconciliation["tables"]:
-                self.assertEqual(
-                    table["input_rows"],
-                    table["accepted_source_rows"] + table["rejected_source_rows"],
-                )
+                self.assertEqual(table["input_rows"], table["classified_source_rows"])
 
     def test_pharmacy_missing_medication_is_resolved_by_native_pharmacy_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
