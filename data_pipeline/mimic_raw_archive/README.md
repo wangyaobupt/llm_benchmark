@@ -25,7 +25,7 @@ MIMIC 原始表 → mimic_raw_archive → Admission 原始 JSONL
 
 顶层固定包含 `subject_id`、`hadm_id`、`mimic_iv_hosp`、`mimic_iv_icu`、`mimic_iv_ed` 和 `mimic_iv_note`。当前归档包含 32 张住院内可可靠连接的源表；`chartevents` 因体积和连续监测属性明确排除，`omr` 因没有可验证的住院原生连接键明确排除。
 
-输出采用分片和 manifest，可中断后继续；最终合并为一个 JSONL。
+输出采用分片和 manifest，可中断后继续；最终合并为一个 JSONL。manifest 对每个源 CSV.GZ 绑定内容 SHA-256，而不是只依赖路径、大小和修改时间。恢复前还会复算 staging 与 reference Parquet 的逐文件路径、字节数、行数、Schema、SHA-256 和目录树哈希；缺少完整性证据或任一字段漂移都会停止，不能把遗留目录直接标记为完成。
 
 ## 基本用法
 
@@ -91,7 +91,7 @@ MIMIC 原始表 → mimic_raw_archive → Admission 原始 JSONL
 - `config.py`：路径、并发、分片及 DuckDB 资源配置。
 - `selection.py`：样本和选择清单处理。
 - `cohort.py`：冠心病谱系 admission 清单。
-- `manifest.py`：分片状态、哈希和续跑依据。
+- `manifest.py`：源文件内容身份、分片状态、哈希和续跑依据。
 - `monitor.py`：本地只读运行监控。
 - `module_subset.py`：从既有 JSONL 筛选满足模块条件的记录。
 - `field_dictionary.py`：从锁定表头生成字段说明材料。

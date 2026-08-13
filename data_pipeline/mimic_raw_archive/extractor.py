@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import duckdb
+import pyarrow.parquet as pq
 
 from data_pipeline.mimic_source_catalog import SOURCE_BY_KEY
 
@@ -179,6 +180,53 @@ def _connect(config: RawArchiveConfig, temp_name: str) -> duckdb.DuckDBPyConnect
     return con
 
 
+def _parquet_file_report(path: Path, *, relative_to: Path) -> dict[str, Any]:
+    try:
+        parquet = pq.ParquetFile(path)
+        schema = [
+            {
+                "name": field.name,
+                "type": str(field.type),
+                "nullable": field.nullable,
+            }
+            for field in parquet.schema_arrow
+        ]
+    except Exception as error:
+        raise ValueError(f"parquet integrity failure: {path}: {error}") from error
+    return {
+        "path": path.relative_to(relative_to).as_posix(),
+        "bytes": path.stat().st_size,
+        "rows": parquet.metadata.num_rows,
+        "sha256": file_sha256(path),
+        "schema": schema,
+    }
+
+
+def _parquet_directory_report(directory: Path) -> dict[str, Any]:
+    files = sorted(directory.rglob("*.parquet"))
+    reports = [
+        _parquet_file_report(path, relative_to=directory) for path in files
+    ]
+    return {
+        "files": reports,
+        "file_count": len(reports),
+        "rows": sum(int(report["rows"]) for report in reports),
+        "tree_sha256": canonical_hash(reports),
+    }
+
+
+def _verify_integrity(
+    actual: dict[str, Any],
+    expected: Any,
+    *,
+    label: str,
+) -> None:
+    if not isinstance(expected, dict):
+        raise ValueError(f"{label} integrity metadata missing; rebuild required")
+    if actual != expected:
+        raise ValueError(f"{label} integrity failure")
+
+
 def _populate_selection(
     con: duckdb.DuckDBPyConnection, selection: list[dict[str, Any]]
 ) -> None:
@@ -205,10 +253,30 @@ def _create_staging(
         if manifest["staging"].get(source.key, {}).get("status") == "complete":
             if not final_dir.exists():
                 raise FileNotFoundError(f"manifest references missing staging: {final_dir}")
+            actual = _parquet_directory_report(final_dir)
+            _verify_integrity(
+                actual,
+                manifest["staging"][source.key].get("integrity"),
+                label=f"staging {source.key}",
+            )
             continue
         if final_dir.exists():
+            completion_marker = final_dir / "_ARCHIVE_COPY_COMPLETE.json"
+            if not completion_marker.is_file():
+                raise ValueError(
+                    f"staging integrity metadata missing for recovered directory: {source.key}"
+                )
+            copy_report = json.loads(completion_marker.read_text(encoding="utf-8"))
+            actual = _parquet_directory_report(final_dir)
+            _verify_integrity(
+                actual,
+                copy_report.get("integrity"),
+                label=f"staging {source.key}",
+            )
             manifest["staging"][source.key] = {
                 "status": "complete",
+                "rows": actual["rows"],
+                "integrity": actual,
                 "recovered_after_rename": True,
             }
             write_manifest(manifest_path, manifest)
@@ -218,10 +286,17 @@ def _create_staging(
         completion_marker = partial_dir / "_ARCHIVE_COPY_COMPLETE.json"
         if completion_marker.is_file():
             copy_report = json.loads(completion_marker.read_text(encoding="utf-8"))
+            actual = _parquet_directory_report(partial_dir)
+            _verify_integrity(
+                actual,
+                copy_report.get("integrity"),
+                label=f"staging {source.key}",
+            )
             partial_dir.replace(final_dir)
             manifest["staging"][source.key] = {
                 "status": "complete",
                 "rows": int(copy_report["rows"]),
+                "integrity": actual,
                 "recovered_from_completion_marker": True,
             }
             write_manifest(manifest_path, manifest)
@@ -241,14 +316,23 @@ def _create_staging(
         if result is None:
             raise RuntimeError(f"COPY returned no row count for {source.key}")
         copy_rows = int(result[0])
+        integrity = _parquet_directory_report(partial_dir)
+        if integrity["rows"] != copy_rows:
+            raise ValueError(
+                f"staging integrity failure: {source.key}: "
+                f"copy rows {copy_rows} != parquet rows {integrity['rows']}"
+            )
         completion_marker.write_text(
-            json.dumps({"source": source.key, "rows": copy_rows}),
+            json.dumps(
+                {"source": source.key, "rows": copy_rows, "integrity": integrity}
+            ),
             encoding="utf-8",
         )
         partial_dir.replace(final_dir)
         manifest["staging"][source.key] = {
             "status": "complete",
             "rows": copy_rows,
+            "integrity": integrity,
         }
         write_manifest(manifest_path, manifest)
 
@@ -313,6 +397,12 @@ def _stage_reference_tables(
             if manifest["reference_tables"].get(key, {}).get("status") == "complete":
                 if not destination.exists():
                     raise FileNotFoundError(destination)
+                actual = _parquet_file_report(destination, relative_to=root)
+                _verify_integrity(
+                    actual,
+                    manifest["reference_tables"][key].get("integrity"),
+                    label=f"reference table {key}",
+                )
                 continue
             source = config.data_root / SOURCE_BY_KEY[key].relative_path
             partial = destination.with_suffix(destination.suffix + ".partial")
@@ -323,9 +413,11 @@ def _stage_reference_tables(
                 f"TO {_sql_literal(partial)} (FORMAT PARQUET, COMPRESSION ZSTD)"
             )
             partial.replace(destination)
+            integrity = _parquet_file_report(destination, relative_to=root)
             manifest["reference_tables"][key] = {
                 "status": "complete",
                 "sha256": file_sha256(destination),
+                "integrity": integrity,
             }
             write_manifest(manifest_path, manifest)
     finally:

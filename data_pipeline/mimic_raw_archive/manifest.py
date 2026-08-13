@@ -45,5 +45,6 @@ def source_fingerprint(path: Path, header: tuple[str, ...]) -> dict[str, Any]:
         "path": path.as_posix(),
         "size": stat.st_size,
         "mtime_ns": stat.st_mtime_ns,
+        "sha256": file_sha256(path),
         "header": list(header),
     }

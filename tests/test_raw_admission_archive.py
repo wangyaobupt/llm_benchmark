@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -117,6 +118,12 @@ class RawArchiveEndToEndTest(unittest.TestCase):
                 development_percent=99,
             )
             first = run(config)
+            self.assertTrue(
+                all(
+                    len(fingerprint["sha256"]) == 64
+                    for fingerprint in first["identity"]["source_fingerprints"].values()
+                )
+            )
             part = output / "parts" / "part-00000.jsonl"
             first_part_hash = first["shards"]["0"]["sha256"]
             second = run(config)
@@ -140,6 +147,70 @@ class RawArchiveEndToEndTest(unittest.TestCase):
             self.assertTrue(h10["mimic_iv_icu"]["inputevents"])
             self.assertTrue(h10["mimic_iv_note"]["discharge"])
             validate_record(h10)
+
+    def test_source_byte_change_with_same_size_and_mtime_breaks_run_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "mimic"
+            output = Path(tmp) / "output"
+            merged = Path(tmp) / "raw.jsonl"
+            create_episode_fixture(root)
+            config = RawArchiveConfig(
+                data_root=root,
+                output_dir=output,
+                merged_path=merged,
+                sample_size=3,
+                shard_size=2,
+                workers=1,
+                duckdb_threads=1,
+                development_percent=99,
+            )
+            run(config)
+            admissions = root / next(
+                source.source.relative_path
+                for source in ARCHIVE_SOURCES
+                if source.key == "admissions"
+            )
+            before = admissions.stat()
+            payload = bytearray(admissions.read_bytes())
+            payload[4] ^= 1  # gzip header mtime byte; decompressed CSV is unchanged.
+            admissions.write_bytes(payload)
+            os.utime(
+                admissions,
+                ns=(before.st_atime_ns, before.st_mtime_ns),
+            )
+            self.assertEqual(admissions.stat().st_size, before.st_size)
+            self.assertEqual(admissions.stat().st_mtime_ns, before.st_mtime_ns)
+
+            with self.assertRaisesRegex(ValueError, "manifest identity mismatch"):
+                run(config)
+
+    def test_resume_rejects_tampered_staging_and_reference_parquet(self) -> None:
+        for target in ("staging", "reference"):
+            with self.subTest(target=target), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp) / "mimic"
+                output = Path(tmp) / "output"
+                merged = Path(tmp) / "raw.jsonl"
+                create_episode_fixture(root)
+                config = RawArchiveConfig(
+                    data_root=root,
+                    output_dir=output,
+                    merged_path=merged,
+                    sample_size=3,
+                    shard_size=2,
+                    workers=1,
+                    duckdb_threads=1,
+                    development_percent=99,
+                )
+                run(config)
+                if target == "staging":
+                    parquet = next((output / "staging").rglob("*.parquet"))
+                else:
+                    parquet = next((output / "reference_tables").glob("*.parquet"))
+                with parquet.open("ab") as handle:
+                    handle.write(b"tamper")
+
+                with self.assertRaisesRegex(ValueError, "integrity failure"):
+                    run(config)
 
     def test_accepts_external_selection_without_cohort_fields_in_raw_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
