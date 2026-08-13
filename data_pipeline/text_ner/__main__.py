@@ -10,6 +10,8 @@ from .audit import audit_manifest
 from .annotation_package import prepare_annotation_package
 from .annotation_package_audit import audit_annotation_package
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
+from .method_run import prepare_method_run
+from .method_run_audit import audit_method_run
 from .scope_rehearsal import rehearse_scope
 
 
@@ -56,6 +58,28 @@ def _parser() -> argparse.ArgumentParser:
     package_audit.add_argument("--replay-directory", type=Path)
     package_audit.add_argument("--output-json", type=Path)
     package_audit.add_argument("--output-markdown", type=Path)
+    method_run = subparsers.add_parser(
+        "prepare-method-run",
+        help="Prepare calibration-only two-stage NER requests without model calls",
+    )
+    method_run.add_argument("annotation_package", type=Path)
+    method_run.add_argument("method_config", type=Path)
+    method_run.add_argument("--output-dir", type=Path, required=True)
+    method_run.add_argument(
+        "--execute",
+        action="store_true",
+        help="Explicit model execution gate; intentionally unavailable in this version",
+    )
+    method_audit = subparsers.add_parser(
+        "audit-method-run",
+        help="Audit calibration isolation, request hashes, gold gate, and zero model calls",
+    )
+    method_audit.add_argument("annotation_package", type=Path)
+    method_audit.add_argument("method_config", type=Path)
+    method_audit.add_argument("run_directory", type=Path)
+    method_audit.add_argument("--replay-directory", type=Path)
+    method_audit.add_argument("--output-json", type=Path)
+    method_audit.add_argument("--output-markdown", type=Path)
     return parser
 
 
@@ -91,9 +115,25 @@ def main() -> None:
             args.output_dir,
             calibration_documents=args.calibration_documents,
         )
-    else:
+    elif args.command == "audit-annotation-package":
         result = audit_annotation_package(
             args.package_directory,
+            replay_directory=args.replay_directory,
+            output_json=args.output_json,
+            output_markdown=args.output_markdown,
+        )
+    elif args.command == "prepare-method-run":
+        result = prepare_method_run(
+            args.annotation_package,
+            args.method_config,
+            args.output_dir,
+            execute=args.execute,
+        )
+    else:
+        result = audit_method_run(
+            args.annotation_package,
+            args.method_config,
+            args.run_directory,
             replay_directory=args.replay_directory,
             output_json=args.output_json,
             output_markdown=args.output_markdown,

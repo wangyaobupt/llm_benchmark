@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ner-method-config.schema.json",
+  "title": "Exploratory text NER method configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "method_id",
+    "method_version",
+    "method_kind",
+    "annotation_protocol_version",
+    "candidate_status",
+    "allowed_partitions",
+    "evaluation_access",
+    "stages",
+    "model",
+    "execution"
+  ],
+  "properties": {
+    "schema_version": {"const": "text-ner-method-config/1.0.0"},
+    "method_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+    "method_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "method_kind": {"const": "two_stage_structured_candidate_generation"},
+    "annotation_protocol_version": {"const": "text-ner-annotation-protocol/1.0.0"},
+    "candidate_status": {"const": "exploratory_candidate"},
+    "allowed_partitions": {
+      "const": ["calibration"]
+    },
+    "evaluation_access": {"const": "forbidden"},
+    "stages": {
+      "type": "array",
+      "prefixItems": [
+        {"$ref": "#/$defs/mentionStage"},
+        {"$ref": "#/$defs/relationStage"}
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "name", "revision", "parameters", "seed"],
+      "properties": {
+        "provider": {"type": "null"},
+        "name": {"type": "null"},
+        "revision": {"type": "null"},
+        "parameters": {"const": {}},
+        "seed": {"type": "null"}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default_mode", "requires_explicit_execute", "external_api_allowed"],
+      "properties": {
+        "default_mode": {"const": "dry_run"},
+        "requires_explicit_execute": {"const": true},
+        "external_api_allowed": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "baseStage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stage_id", "prompt_path", "input", "output", "depends_on"],
+      "properties": {
+        "stage_id": {"type": "string"},
+        "prompt_path": {"type": "string", "minLength": 1},
+        "input": {"type": "string"},
+        "output": {"type": "string"},
+        "depends_on": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "mentionStage": {
+      "allOf": [
+        {"$ref": "#/$defs/baseStage"},
+        {
+          "properties": {
+            "stage_id": {"const": "mentions"},
+            "input": {"const": "section_text"},
+            "output": {"const": "validated_mentions"},
+            "depends_on": {"const": []}
+          }
+        }
+      ]
+    },
+    "relationStage": {
+      "allOf": [
+        {"$ref": "#/$defs/baseStage"},
+        {
+          "properties": {
+            "stage_id": {"const": "relations"},
+            "input": {"const": "section_text_and_validated_mentions"},
+            "output": {"const": "validated_explicit_relations"},
+            "depends_on": {"const": ["mentions"]}
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "checks": [
+    {
+      "expected": {},
+      "name": "manifest_output_hashes",
+      "observed": {},
+      "passed": true
+    },
+    {
+      "expected": {
+        "candidate_annotations": 0,
+        "mention_requests": 171,
+        "model_calls": 0,
+        "relation_requests_pending": 171,
+        "text_units": 171
+      },
+      "name": "summary_manifest_reconciliation",
+      "observed": {
+        "candidate_annotations": 0,
+        "mention_requests": 171,
+        "model_calls": 0,
+        "relation_requests_pending": 171,
+        "text_units": 171
+      },
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "calibration_only",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "request_unit_uniqueness",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "request_text_hashes",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": {
+        "dependency_errors": 0,
+        "relations": 171
+      },
+      "name": "two_stage_dependency",
+      "observed": {
+        "dependency_errors": 0,
+        "relations": 171
+      },
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "candidate_output_empty",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": {
+        "metrics": null,
+        "status": "not_evaluable"
+      },
+      "name": "human_gold_gate",
+      "observed": {
+        "metrics": null,
+        "status": "not_evaluable"
+      },
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "evaluation_locked",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": 0,
+      "name": "model_calls",
+      "observed": 0,
+      "passed": true
+    },
+    {
+      "expected": {},
+      "name": "repeat_run_hashes",
+      "observed": {},
+      "passed": true
+    }
+  ],
+  "counts": {
+    "calibration_text_units": 171,
+    "candidate_annotations": 0,
+    "evaluation_access_count": 0,
+    "mention_requests": 171,
+    "model_calls": 0,
+    "relation_requests_pending": 171
+  },
+  "passed": true,
+  "schema_version": "text-ner-method-run-acceptance/1.0.0"
+}

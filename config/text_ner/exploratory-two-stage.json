@@ -1,0 +1,42 @@
+{
+  "schema_version": "text-ner-method-config/1.0.0",
+  "method_id": "two-stage-explicit-clinical-ner",
+  "method_version": "1.0.0",
+  "method_kind": "two_stage_structured_candidate_generation",
+  "annotation_protocol_version": "text-ner-annotation-protocol/1.0.0",
+  "candidate_status": "exploratory_candidate",
+  "allowed_partitions": [
+    "calibration"
+  ],
+  "evaluation_access": "forbidden",
+  "stages": [
+    {
+      "stage_id": "mentions",
+      "prompt_path": "prompts/two-stage-mentions.md",
+      "input": "section_text",
+      "output": "validated_mentions",
+      "depends_on": []
+    },
+    {
+      "stage_id": "relations",
+      "prompt_path": "prompts/two-stage-relations.md",
+      "input": "section_text_and_validated_mentions",
+      "output": "validated_explicit_relations",
+      "depends_on": [
+        "mentions"
+      ]
+    }
+  ],
+  "model": {
+    "provider": null,
+    "name": null,
+    "revision": null,
+    "parameters": {},
+    "seed": null
+  },
+  "execution": {
+    "default_mode": "dry_run",
+    "requires_explicit_execute": true,
+    "external_api_allowed": false
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ner-method-run.schema.json",
+  "title": "Text NER exploratory method run manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "run_status",
+    "candidate_status",
+    "method",
+    "input",
+    "execution",
+    "reproducibility",
+    "outputs"
+  ],
+  "properties": {
+    "schema_version": {"const": "text-ner-method-run/1.0.0"},
+    "run_id": {"type": "string", "pattern": "^nrun:[0-9a-f]{24}$"},
+    "run_status": {"const": "prepared_no_model_calls"},
+    "candidate_status": {"const": "exploratory_candidate"},
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method_id", "method_version", "method_config_sha256", "annotation_protocol_version"],
+      "properties": {
+        "method_id": {"type": "string"},
+        "method_version": {"type": "string"},
+        "method_config_sha256": {"$ref": "#/$defs/sha256"},
+        "annotation_protocol_version": {"type": "string"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["annotation_package_manifest_sha256", "calibration_task_sha256", "partition", "text_units", "evaluation_access_count"],
+      "properties": {
+        "annotation_package_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "calibration_task_sha256": {"$ref": "#/$defs/sha256"},
+        "partition": {"const": "calibration"},
+        "text_units": {"type": "integer", "minimum": 1},
+        "evaluation_access_count": {"const": 0}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "model_calls", "provider", "model_name", "started_at_utc", "completed_at_utc"],
+      "properties": {
+        "mode": {"const": "dry_run"},
+        "model_calls": {"const": 0},
+        "provider": {"type": "null"},
+        "model_name": {"type": "null"},
+        "started_at_utc": {"type": "null"},
+        "completed_at_utc": {"type": "null"}
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation_sha256", "prompt_sha256", "request_order", "seed"],
+      "properties": {
+        "implementation_sha256": {"$ref": "#/$defs/sha256"},
+        "prompt_sha256": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/$defs/sha256"},
+          "minProperties": 2
+        },
+        "request_order": {"const": "annotation_unit_id"},
+        "seed": {"type": "null"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/sha256"},
+      "minProperties": 1
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

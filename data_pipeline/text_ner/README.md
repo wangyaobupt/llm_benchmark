@@ -97,3 +97,32 @@
   --output-json docs\reports\text-ner-annotation-package-acceptance.json `
   --output-markdown docs\reports\text-ner-annotation-package-acceptance.md
 ```
+
+## 探索性NER方法链路
+
+当前首个方法是“两阶段、可验证抽取”：第一阶段只产生mention及属性，Python通过Schema、字符span和来源哈希验证后，第二阶段才能引用有效mention产生文本显式关系。方法输出固定标记为`exploratory_candidate`，不能冒充人工gold。
+
+当前版本只准备 calibration 请求，不调用模型：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare-method-run `
+  data\derived\text_ner_annotation_pilot `
+  config\text_ner\exploratory-two-stage.json `
+  --output-dir data\derived\text_ner_method_exploratory
+```
+
+独立验收并验证双次运行哈希一致：
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner audit-method-run `
+  data\derived\text_ner_annotation_pilot `
+  config\text_ner\exploratory-two-stage.json `
+  data\derived\text_ner_method_exploratory `
+  --replay-directory data\derived\text_ner_method_exploratory_replay `
+  --output-json docs\reports\text-ner-method-run-acceptance.json `
+  --output-markdown docs\reports\text-ner-method-run-acceptance.md
+```
+
+运行目录中的`mention_requests.jsonl`包含受限临床原文，只能位于被Git忽略的`data/derived/`。relation请求初始状态为`blocked_pending_validated_mentions`，候选文件为空，指标文件必须为`not_evaluable`。即使传入`--execute`，当前版本也会在写文件前以`MODEL_EXECUTION_NOT_AUTHORIZED`失败；后续必须单独确定模型、合规边界和执行授权。
+
+`rule_baseline.py`提供只识别测量值和显式时间词的保守非模型基线，用于验证方法与评价代码，不能替代完整临床NER。正式方法设计与结果解释边界见`docs/design/text-ner-methodology.md`。
