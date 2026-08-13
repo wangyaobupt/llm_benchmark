@@ -61,7 +61,7 @@ LLM 评测、统计分析与报告
 
 ## 当前进展
 
-截至 2026-08-13，项目已经完成 MIMIC 数据层的 100 例端到端清洗与确定性标准化验收，正在进入“文本证据输入准备 + 首个决策任务协议冻结”阶段。
+截至 2026-08-13，项目已经完成 MIMIC 数据层的 100 例端到端清洗与确定性标准化验收，并完成患者级划分、住院边界、时间安全快照和文本双标工具的工程实现。当前状态是“工程基础设施基本就绪，但正式评测产物尚未形成”：检查检验选择协议仍是不可冻结的 draft，跨批归一化与文本 NER 的人工门禁尚未关闭，真实正式的 split、journey、snapshot、gold、MCQ 和模型评测结果均不存在。
 
 | 阶段 | 状态 | 已完成的证据 | 尚未完成 |
 |---|---|---|---|
@@ -71,19 +71,25 @@ LLM 评测、统计分析与报告
 | 临床事件清洗代码 | 已完成当前合同 | 已建立33张输入表的封闭式来源合同：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 在扩大样本前继续保持合同、回归基线和来源对账一致 |
 | 100例 cleaned events | 已通过全目录独立验收 | 113,616条目录输入已按100,843条raw与12,773条derived、65,811条event与43,415条support及4,390条context完整对账；六类support均以原生键关联，未关联为0；产生66,652条accepted事件和43条rejected记录，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
 | 100例确定性标准化 | 已通过独立验收 | 66,652条 normalized events、3,895条 mappings 和1,001条 review queue 已正式发布；batch size 5,000与777复跑的run ID、三份Parquet哈希、计数和状态分布一致；阻断项为0 | 该结论只证明当前100例流水线可复现，不代表全队列已经完成；unresolved 继续进入字典、原生编码或人工审核流程 |
-| 文本事实支路 | 人工双标包已生成 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；模型调用0次 | 由两名标注者独立完成calibration，第三人裁决并计算一致性；通过预设门禁后才能解锁evaluation或设计本地模型运行协议 |
-| Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界，不含 state/node/evidence-edge DAG | 冻结完整 journey/event/state/node/evidence-edge 合同，并完成少量 development 患者的可追溯重建与人工复核 |
-| 决策快照与 gold | 工程链已实现，科学门禁未冻结 | 已实现通用时间/phase/split/字段白名单快照门禁，以及按 boundary HMAC、protocol/split/source lineage 和 `event_id + source_event_sha256` 强制连接的单 journey adapter；仍无真实正式快照或 gold | 冻结首个检查检验选择任务的构念、时间窗、候选目录、统计规则、语义泄漏词表和拒题条件，再生成 development-only 正式链路产物 |
+| 跨批归一化人工质量门禁 | 工具与试审队列就绪，人工结果为空 | 两批输出已汇总为1,422,220条 normalized events 和16,860个唯一 mapping key；映射冲突为0，已固定抽取100条人工试审记录 | 人工审阅日志尚未形成；必须先判定映射错误、歧义和目录粒度，必要时修正规则并重跑受影响批次，之后才能冻结首任务候选目录 |
+| 文本事实支路 | 双标包与本地工具就绪，人工结果为空 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；已实现仅本机访问、角色隔离、追加式记录和裁决界面，模型调用0次 | A、B和裁决日志目前均为0；两名标注者需独立完成calibration，由第三人裁决并计算一致性，通过预设门禁后才能解锁evaluation |
+| 首个检查检验任务协议 | 机器可校验的 draft，尚不可冻结 | 协议、配置、schema、34个固定reason code及fail-closed验证器已实现；当前配置可通过结构校验，但`freeze_ready = false` | 明确患者划分比例、决策时间窗、候选/条件/比较目录版本、缺失与并列策略、统计阈值、bootstrap和稳定性阈值，并补齐输入与代码审计哈希后生成`protocol-lock.json` |
+| 患者级正式划分 | 合同与认证实现完成，尚无正式产物 | 已实现患者原子划分、HMAC公开引用、受保护绑定、工程审计集隔离、输入漂移检测和split角色门禁 | 协议中的划分比例尚未决定；当前通过的是合成测试，尚未在正式患者集合生成可发布split manifest |
+| Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界 | 当前通过的是合成测试，尚无真实正式boundary manifest；仍需实现state、decision node、evidence edge及journey→node→evidence→raw的完整追溯DAG |
+| 决策快照与 gold | 认证快照工程链已实现，科学门禁未冻结 | 已实现通用时间/phase/split/字段白名单快照门禁，以及按 boundary HMAC、protocol/split/source lineage 和 `event_id + source_event_sha256` 强制连接的单 journey adapter | 当前通过的是合成测试，尚无真实正式snapshot或gold；需在协议冻结后对少量development患者生成正式链路并完成未来信息泄漏审计 |
 | MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
 | LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |
 
-当前最近的执行顺序是：
+当前唯一的关键路径是：关闭首个检查检验选择任务的上游人工质量门禁和科学协议门禁，再生成第一批真实评测产物。下一步不应继续横向增加代码模块。
 
-1. 完成文本 NER calibration 的A/B独立标注、第三人裁决和一致性验收；
-2. 冻结检查检验选择任务的可执行协议；
-3. 将两条支路汇合为少量患者的 patient journey → 决策节点 → 时间安全快照 → 单一构念 gold → MCQ → 自动与临床审核闭环；
-4. 首个闭环通过后，再逐项扩展诊断、治疗、去向和离院计划，不同时铺开五条未经验证的实现线；
-5. MIMIC 方法学冻结后，在香港 RWD 中重新完成数据合同、时间语义、本体、行为 gold 和规范 gold 的本地化，并开展外部验证。
+优先执行顺序是：
+
+1. **最高优先级：完成跨批归一化的100条人工试审。** 这是冻结检查检验候选目录前的最后一个上游质量门禁；记录错误类型、歧义和目录粒度问题，必要时修正规则并重跑受影响批次；
+2. 使用人工试审结果确定候选目录版本，同时补齐患者划分比例、决策时间窗、统计与验证阈值等科学参数，验证`freeze_ready = true`后生成并固定`protocol-lock.json`；
+3. 在少量development患者上正式生成patient split → encounter boundary → decision snapshot，输出manifest、来源哈希和未来信息泄漏审计；在这一步之后再实现完整的state/node/evidence-edge DAG和单一构念gold；
+4. 文本NER calibration可与前两步并行执行，但不能因工具和任务包已经生成就视为人工gold完成；必须完成A/B独立标注、第三人裁决和一致性门禁后，才能解锁evaluation；
+5. 将首个检查检验任务闭环到MCQ生成、自动门禁和临床审核；首个闭环通过后，再逐项扩展诊断、治疗、去向和离院计划，不同时铺开五条未经验证的实现线；
+6. MIMIC方法学冻结后，在香港RWD中重新完成数据合同、时间语义、本体、行为gold和规范gold的本地化，并开展外部验证。
 
 详细路线：
 
