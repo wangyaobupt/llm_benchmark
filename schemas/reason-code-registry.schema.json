@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reason-code-registry.schema.json",
+  "title": "Investigation-selection reason-code registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "codes"],
+  "properties": {
+    "schema_version": {"const": "reason-code-registry/1.0.0"},
+    "registry_id": {"const": "investigation-selection-shared-gates"},
+    "codes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "stage", "description"],
+        "properties": {
+          "code": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "stage": {"enum": ["protocol", "split", "snapshot", "journey", "hypothesis", "validation", "release"]},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

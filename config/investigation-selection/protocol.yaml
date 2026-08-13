@@ -15,10 +15,11 @@ scientific_protocol:
       gold_field: normative_answer_candidate_id
       claim_boundary: Guideline and expert-adjudicated best decision; not inferred from observed MIMIC behavior.
   patient_journey_scope:
-    linked_pre_admission_ed: null
-    standalone_ed: null
+    linked_pre_admission_ed: include_native_hadm_handoff
+    standalone_ed: exclude_first_release
     multi_admission_boundary: one_hadm_per_journey_subject_linked
-    engineering_audit_policy: separate_non_formal_partition
+    icu_scope: nested_substay
+    engineering_audit_policy: build_but_formal_statistics_forbidden
   subject_split:
     group_field: subject_id
     ratios:
@@ -95,7 +96,6 @@ audit_metadata:
   dependency_lock_sha256: null
   input_manifest_sha256: {}
 unresolved_decisions:
-  - journey_linked_ed_and_standalone_ed_scope
   - formal_subject_split_ratios
   - observation_and_target_windows
   - candidate_and_condition_catalog_versions

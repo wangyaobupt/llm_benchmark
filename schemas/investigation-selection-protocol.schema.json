@@ -21,7 +21,7 @@
     "protocol_status": {"enum": ["draft", "frozen", "retired"]},
     "scientific_protocol": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
         "benchmark_track",
         "construct_registry",
@@ -39,6 +39,11 @@
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
+          "allOf": [
+            {"contains": {"properties": {"construct_type": {"const": "individual_next_event"}, "gold_field": {"const": "observed_target_event_ids"}}, "required": ["construct_type", "gold_field"]}, "minContains": 1, "maxContains": 1},
+            {"contains": {"properties": {"construct_type": {"const": "pattern_rule_concordance"}, "gold_field": {"const": "rule_answer_candidate_id"}}, "required": ["construct_type", "gold_field"]}, "minContains": 1, "maxContains": 1},
+            {"contains": {"properties": {"construct_type": {"const": "clinical_best_decision"}, "gold_field": {"const": "normative_answer_candidate_id"}}, "required": ["construct_type", "gold_field"]}, "minContains": 1, "maxContains": 1}
+          ],
           "items": {
             "type": "object",
             "additionalProperties": false,
@@ -50,9 +55,22 @@
             }
           }
         },
+        "patient_journey_scope": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["linked_pre_admission_ed", "standalone_ed", "multi_admission_boundary", "icu_scope", "engineering_audit_policy"],
+          "properties": {
+            "linked_pre_admission_ed": {"const": "include_native_hadm_handoff"},
+            "standalone_ed": {"const": "exclude_first_release"},
+            "multi_admission_boundary": {"const": "one_hadm_per_journey_subject_linked"},
+            "icu_scope": {"const": "nested_substay"},
+            "engineering_audit_policy": {"const": "build_but_formal_statistics_forbidden"}
+          }
+        },
         "subject_split": {
           "type": "object",
-          "required": ["group_field", "ratios", "engineering_audit_policy"],
+          "additionalProperties": false,
+          "required": ["group_field", "ratios", "engineering_audit_policy", "legacy_partition_policy"],
           "properties": {
             "group_field": {"const": "subject_id"},
             "ratios": {
@@ -65,7 +83,73 @@
                 "final_test": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1}
               }
             },
-            "engineering_audit_policy": {"const": "separate_non_formal_partition"}
+            "engineering_audit_policy": {"const": "separate_non_formal_partition"},
+            "legacy_partition_policy": {"const": "legacy_holdout_candidate_not_formal_final_test"}
+          }
+        },
+        "task_definition": {
+          "type": "object", "additionalProperties": false,
+          "required": ["task_id", "index_time_policy", "observation_window", "target_window", "answer_semantics", "tie_policy", "missing_policy", "zero_denominator_policy", "refusal_policy"],
+          "properties": {
+            "task_id": {"const": "investigation_selection"},
+            "index_time_policy": {"const": "before_target_order_creation"},
+            "observation_window": {"$ref": "#/$defs/observationWindow"},
+            "target_window": {"$ref": "#/$defs/targetWindow"},
+            "answer_semantics": {"const": "most_likely_selected_in_development_rwd"},
+            "tie_policy": {"enum": ["reject_item", null]},
+            "missing_policy": {"enum": ["inconclusive", null]},
+            "zero_denominator_policy": {"enum": ["inconclusive", null]},
+            "refusal_policy": {"enum": ["allowed_when_no_eligible_candidate", null]}
+          }
+        },
+        "hypothesis_space": {
+          "type": "object", "additionalProperties": false,
+          "required": ["condition_generator_ref", "candidate_catalog_ref", "comparison_class_catalog_ref", "fdr_family_definition", "pre_fdr_allowed_filters", "pre_fdr_forbidden_filters"],
+          "properties": {
+            "condition_generator_ref": {"type": ["string", "null"], "minLength": 1},
+            "candidate_catalog_ref": {"type": ["string", "null"], "minLength": 1},
+            "comparison_class_catalog_ref": {"type": ["string", "null"], "minLength": 1},
+            "fdr_family_definition": {"const": "condition_by_comparison_class"},
+            "pre_fdr_allowed_filters": {"const": ["structural_eligibility", "temporal_eligibility", "independent_orderability", "comparison_class_membership", "preregistered_marginal_support"]},
+            "pre_fdr_forbidden_filters": {"const": ["joint_support", "conditional_probability", "lift", "psr", "p_value", "probability_gap", "score_ratio"]}
+          }
+        },
+        "statistical_policy": {
+          "type": "object", "additionalProperties": false,
+          "required": ["fdr_method", "fdr_q", "minimum_condition_support", "minimum_candidate_support", "minimum_joint_support_post_fdr", "wilson_lower_bound_minimum", "probability_gap_minimum", "score_ratio_minimum", "psr_role"],
+          "properties": {
+            "fdr_method": {"const": "benjamini_hochberg"},
+            "fdr_q": {"$ref": "#/$defs/openUnitIntervalOrNull"},
+            "minimum_condition_support": {"$ref": "#/$defs/positiveIntegerOrNull"},
+            "minimum_candidate_support": {"$ref": "#/$defs/positiveIntegerOrNull"},
+            "minimum_joint_support_post_fdr": {"$ref": "#/$defs/positiveIntegerOrNull"},
+            "wilson_lower_bound_minimum": {"$ref": "#/$defs/unitIntervalOrNull"},
+            "probability_gap_minimum": {"$ref": "#/$defs/unitIntervalOrNull"},
+            "score_ratio_minimum": {"type": ["number", "null"], "exclusiveMinimum": 1},
+            "psr_role": {"const": "ranking_and_ablation_only"}
+          }
+        },
+        "validation_policy": {
+          "type": "object", "additionalProperties": false,
+          "required": ["statuses", "bootstrap_unit", "bootstrap_replicates", "stability_minimum", "missing_reason_code", "zero_denominator_reason_code", "tie_reason_code", "direction_reversed_reason_code", "inconclusive_reason_code"],
+          "properties": {
+            "statuses": {"const": ["validated", "failed", "inconclusive"]},
+            "bootstrap_unit": {"const": "subject_id"},
+            "bootstrap_replicates": {"$ref": "#/$defs/positiveIntegerOrNull"},
+            "stability_minimum": {"$ref": "#/$defs/unitIntervalOrNull"},
+            "missing_reason_code": {"type": "string", "minLength": 1},
+            "zero_denominator_reason_code": {"type": "string", "minLength": 1},
+            "tie_reason_code": {"type": "string", "minLength": 1},
+            "direction_reversed_reason_code": {"type": "string", "minLength": 1},
+            "inconclusive_reason_code": {"type": "string", "minLength": 1}
+          }
+        },
+        "final_test_information_isolation": {
+          "type": "object", "additionalProperties": false,
+          "required": ["forbidden_inputs", "violation_reason_code"],
+          "properties": {
+            "forbidden_inputs": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"enum": ["raw_final_test_rows", "final_test_derived_statistics", "final_test_failure_logs", "final_test_candidate_missingness"]}},
+            "violation_reason_code": {"const": "FINAL_TEST_INFORMATION_FORBIDDEN"}
           }
         }
       }
@@ -88,6 +172,7 @@
         "dependency_lock_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
         "input_manifest_sha256": {
           "type": "object",
+          "propertyNames": {"type": "string", "minLength": 1},
           "additionalProperties": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
         }
       }
@@ -96,6 +181,27 @@
       "type": "array",
       "items": {"type": "string", "minLength": 1},
       "uniqueItems": true
+    }
+  },
+  "$defs": {
+    "positiveIntegerOrNull": {"type": ["integer", "null"], "minimum": 1},
+    "unitIntervalOrNull": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "openUnitIntervalOrNull": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "observationWindow": {
+      "type": "object", "additionalProperties": false,
+      "required": ["start_minutes_before_index", "end_minutes_before_index"],
+      "properties": {
+        "start_minutes_before_index": {"type": ["integer", "null"], "maximum": 0},
+        "end_minutes_before_index": {"const": 0}
+      }
+    },
+    "targetWindow": {
+      "type": "object", "additionalProperties": false,
+      "required": ["start_minutes_after_index", "end_minutes_after_index"],
+      "properties": {
+        "start_minutes_after_index": {"const": 0},
+        "end_minutes_after_index": {"type": ["integer", "null"], "minimum": 1}
+      }
     }
   }
 }

@@ -43,6 +43,39 @@ codes:
   - code: SNAPSHOT_IDENTITY_LEAKAGE
     stage: snapshot
     description: Evidence exposes a forbidden patient or internal identifier.
+  - code: JOURNEY_SPLIT_ROLE_UNKNOWN
+    stage: journey
+    description: Admission subject has no registered split role.
+  - code: JOURNEY_ADMISSION_INVALID_INTERVAL
+    stage: journey
+    description: Admission start or end time is missing, invalid, or reversed.
+  - code: JOURNEY_STANDALONE_ED_EXCLUDED
+    stage: journey
+    description: Standalone ED is excluded from the admission-centric first release.
+  - code: JOURNEY_LINKED_ADMISSION_NOT_FOUND
+    stage: journey
+    description: A native hadm_id does not identify an accepted admission journey.
+  - code: JOURNEY_SUBJECT_MISMATCH
+    stage: journey
+    description: Linked records disagree on subject identity.
+  - code: JOURNEY_ED_HANDOFF_INVALID
+    stage: journey
+    description: ED interval is invalid or does not overlap the native linked admission handoff.
+  - code: JOURNEY_ICU_OUTSIDE_ADMISSION
+    stage: journey
+    description: ICU interval is invalid or not contained by its linked admission.
+  - code: JOURNEY_EVENT_HADM_MISSING
+    stage: journey
+    description: A clinical event has no admission identifier for first-release routing.
+  - code: JOURNEY_EVENT_TIME_INVALID
+    stage: journey
+    description: A clinical event contains a non-null time that violates the local ISO time contract.
+  - code: JOURNEY_EVENT_TIME_UNKNOWN
+    stage: journey
+    description: A clinical event has no usable event time for encounter-boundary assignment.
+  - code: JOURNEY_EVENT_OUTSIDE_BOUNDARY
+    stage: journey
+    description: A clinical event falls before the linked ED handoff window or after discharge.
   - code: HYPOTHESIS_STRUCTURAL_INELIGIBLE
     stage: hypothesis
     description: Pair fails a preregistered structural or comparison-class rule.

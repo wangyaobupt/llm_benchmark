@@ -21,13 +21,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--protocol", type=Path, required=True)
     parser.add_argument("--schema", type=Path, required=True)
     parser.add_argument("--reason-registry", type=Path, required=True)
+    parser.add_argument("--reason-registry-schema", type=Path)
     parser.add_argument("--output", type=Path)
     return parser
 
 
 def main() -> int:
     args = _parser().parse_args()
-    bundle = load_protocol_bundle(args.protocol, args.schema, args.reason_registry)
+    bundle = load_protocol_bundle(
+        args.protocol,
+        args.schema,
+        args.reason_registry,
+        args.reason_registry_schema,
+    )
     if args.command == "validate":
         result = validate_protocol_bundle(bundle)
     else:
@@ -35,7 +41,7 @@ def main() -> int:
     if args.output:
         write_json(args.output, result)
     print(json.dumps(result, ensure_ascii=False, indent=2, sort_keys=True))
-    return 0
+    return 0 if result.get("valid") else 1
 
 
 if __name__ == "__main__":

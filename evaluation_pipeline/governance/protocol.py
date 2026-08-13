@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import subprocess
 from typing import Any
 
 import yaml
@@ -60,6 +61,15 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _find_repository_root(start: Path) -> Path:
+    for candidate in (start.resolve(), *start.resolve().parents):
+        if (candidate / ".git").exists() and (candidate / "uv.lock").is_file():
+            return candidate
+    raise ProtocolBundleError(
+        f"cannot locate repository root containing .git and uv.lock from {start}"
+    )
+
+
 def _load_yaml(path: Path) -> dict[str, Any]:
     value = yaml.safe_load(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -79,35 +89,139 @@ def load_protocol_bundle(
     protocol_path: Path,
     schema_path: Path,
     reason_registry_path: Path,
+    reason_registry_schema_path: Path | None = None,
 ) -> dict[str, Any]:
     """Load the three source documents exposed by the governance interface."""
     paths = {
         "protocol": Path(protocol_path).resolve(),
         "schema": Path(schema_path).resolve(),
         "reason_registry": Path(reason_registry_path).resolve(),
+        "reason_registry_schema": Path(
+            reason_registry_schema_path
+            or Path(schema_path).parent / "reason-code-registry.schema.json"
+        ).resolve(),
     }
     for path in paths.values():
         if not path.is_file():
             raise ProtocolBundleError(f"missing protocol source: {path}")
+    source_bytes = {name: path.read_bytes() for name, path in paths.items()}
+    protocol = yaml.safe_load(source_bytes["protocol"].decode("utf-8"))
+    schema = json.loads(source_bytes["schema"].decode("utf-8"))
+    reason_registry = yaml.safe_load(source_bytes["reason_registry"].decode("utf-8"))
+    reason_registry_schema = json.loads(
+        source_bytes["reason_registry_schema"].decode("utf-8")
+    )
+    for name, value in (
+        ("protocol", protocol), ("schema", schema),
+        ("reason_registry", reason_registry),
+        ("reason_registry_schema", reason_registry_schema),
+    ):
+        if not isinstance(value, dict):
+            raise ProtocolBundleError(f"{paths[name]} must contain an object")
+        _json_types_only(value)
     return {
-        "protocol": _load_yaml(paths["protocol"]),
-        "schema": _load_json(paths["schema"]),
-        "reason_registry": _load_yaml(paths["reason_registry"]),
+        "protocol": protocol,
+        "schema": schema,
+        "reason_registry": reason_registry,
+        "reason_registry_schema": reason_registry_schema,
         "paths": paths,
+        "source_bytes": source_bytes,
+        "repository_root": _find_repository_root(paths["schema"].parent),
     }
+
+
+def _git_output(repository_root: Path, *arguments: str) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", *arguments],
+            cwd=repository_root,
+            text=True,
+            stderr=subprocess.STDOUT,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError) as error:
+        output = getattr(error, "output", "")
+        raise ProtocolBundleError(
+            f"git {' '.join(arguments)} failed: {str(output).strip() or error}"
+        ) from error
+
+
+def _audit_evidence_blockers(bundle: dict[str, Any]) -> list[str]:
+    audit = bundle.get("protocol", {}).get("audit_metadata", {})
+    repository_root = bundle.get("repository_root")
+    if not isinstance(repository_root, Path):
+        return ["AUDIT_EVIDENCE:repository_root_missing"]
+    blockers: list[str] = []
+
+    commit = audit.get("source_git_commit")
+    if commit:
+        try:
+            resolved = _git_output(repository_root, "rev-parse", f"{commit}^{{commit}}")
+            head = _git_output(repository_root, "rev-parse", "HEAD")
+        except ProtocolBundleError:
+            blockers.append("AUDIT_EVIDENCE:source_git_commit_not_found")
+        else:
+            if resolved != commit:
+                blockers.append("AUDIT_EVIDENCE:source_git_commit_not_canonical")
+            if resolved != head:
+                blockers.append("AUDIT_EVIDENCE:source_git_commit_not_current_head")
+
+    dependency_hash = audit.get("dependency_lock_sha256")
+    if dependency_hash:
+        dependency_lock = repository_root / "uv.lock"
+        if not dependency_lock.is_file():
+            blockers.append("AUDIT_EVIDENCE:dependency_lock_missing")
+        elif file_sha256(dependency_lock) != dependency_hash:
+            blockers.append("AUDIT_EVIDENCE:dependency_lock_sha256_mismatch")
+
+    manifests = audit.get("input_manifest_sha256")
+    if isinstance(manifests, dict):
+        for relative_name, expected_hash in sorted(manifests.items()):
+            relative = Path(relative_name)
+            if relative.is_absolute() or ".." in relative.parts:
+                blockers.append(
+                    f"AUDIT_EVIDENCE:input_manifest_path_invalid:{relative_name}"
+                )
+                continue
+            manifest_path = (repository_root / relative).resolve()
+            if repository_root.resolve() not in manifest_path.parents:
+                blockers.append(
+                    f"AUDIT_EVIDENCE:input_manifest_path_invalid:{relative_name}"
+                )
+            elif not manifest_path.is_file():
+                blockers.append(
+                    f"AUDIT_EVIDENCE:input_manifest_missing:{relative_name}"
+                )
+            elif file_sha256(manifest_path) != expected_hash:
+                blockers.append(
+                    f"AUDIT_EVIDENCE:input_manifest_sha256_mismatch:{relative_name}"
+                )
+    return blockers
 
 
 def _registered_reason_codes(registry: dict[str, Any]) -> tuple[set[str], list[str]]:
     errors: list[str] = []
     codes: set[str] = set()
+    if registry.get("schema_version") != "reason-code-registry/1.0.0":
+        errors.append("invalid reason registry schema_version")
+    if registry.get("registry_id") != "investigation-selection-shared-gates":
+        errors.append("invalid reason registry registry_id")
     rows = registry.get("codes")
     if not isinstance(rows, list) or not rows:
         return codes, ["reason registry must contain a non-empty codes list"]
     for index, row in enumerate(rows):
-        if not isinstance(row, dict) or not isinstance(row.get("code"), str):
+        if not isinstance(row, dict) or set(row) != {"code", "stage", "description"}:
+            errors.append(f"reason registry row {index} has invalid fields")
+            continue
+        if not isinstance(row.get("code"), str):
             errors.append(f"reason registry row {index} has no string code")
             continue
         code = row["code"]
+        if not code or any(character not in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" for character in code):
+            errors.append(f"reason registry row {index} has invalid code format")
+        if row.get("stage") not in {"protocol", "split", "snapshot", "journey", "hypothesis", "validation", "release"}:
+            errors.append(f"reason registry row {index} has invalid stage")
+        if not isinstance(row.get("description"), str) or not row["description"]:
+            errors.append(f"reason registry row {index} has empty description")
         if code in codes:
             errors.append(f"duplicate reason code: {code}")
         codes.add(code)
@@ -156,14 +270,46 @@ def validate_protocol_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
     """Validate schema, registry references, construct separation and freeze state."""
     protocol = bundle["protocol"]
     errors: list[str] = []
-    schema_errors = sorted(
-        Draft202012Validator(bundle["schema"]).iter_errors(protocol),
-        key=lambda error: list(error.absolute_path),
-    )
-    errors.extend(
-        f"schema:{'.'.join(map(str, error.absolute_path)) or '$'}:{error.message}"
-        for error in schema_errors
-    )
+    schema_validity: dict[str, bool] = {}
+    for name, schema in (
+        ("protocol", bundle["schema"]),
+        ("reason_registry", bundle["reason_registry_schema"]),
+    ):
+        try:
+            Draft202012Validator.check_schema(schema)
+        except Exception as error:
+            schema_validity[name] = False
+            errors.append(f"invalid_json_schema:{name}:{error}")
+        else:
+            schema_validity[name] = True
+    if schema_validity["protocol"]:
+        try:
+            schema_errors = sorted(
+                Draft202012Validator(bundle["schema"]).iter_errors(protocol),
+                key=lambda error: list(error.absolute_path),
+            )
+        except Exception as error:
+            errors.append(f"invalid_json_schema:protocol:{error}")
+        else:
+            errors.extend(
+                f"schema:{'.'.join(map(str, error.absolute_path)) or '$'}:{error.message}"
+                for error in schema_errors
+            )
+    if schema_validity["reason_registry"]:
+        try:
+            registry_schema_errors = sorted(
+                Draft202012Validator(bundle["reason_registry_schema"]).iter_errors(
+                    bundle["reason_registry"]
+                ),
+                key=lambda error: list(error.absolute_path),
+            )
+        except Exception as error:
+            errors.append(f"invalid_json_schema:reason_registry:{error}")
+        else:
+            errors.extend(
+                f"registry_schema:{'.'.join(map(str, error.absolute_path)) or '$'}:{error.message}"
+                for error in registry_schema_errors
+            )
 
     registered, registry_errors = _registered_reason_codes(bundle["reason_registry"])
     errors.extend(f"registry:{error}" for error in registry_errors)
@@ -199,6 +345,7 @@ def validate_protocol_bundle(bundle: dict[str, Any]) -> dict[str, Any]:
         freeze_blockers.append("AUDIT_METADATA:dependency_lock_sha256")
     if not audit.get("input_manifest_sha256"):
         freeze_blockers.append("AUDIT_METADATA:input_manifest_sha256")
+    freeze_blockers.extend(_audit_evidence_blockers(bundle))
     if status == "frozen" and freeze_blockers:
         errors.append("frozen protocol contains unresolved freeze blockers")
 
@@ -226,8 +373,25 @@ def build_protocol_lock(bundle: dict[str, Any]) -> dict[str, Any]:
         )
     protocol = bundle["protocol"]
     paths: dict[str, Path] = bundle["paths"]
+    source_bytes = bundle.get("source_bytes")
+    if not isinstance(source_bytes, dict) or set(source_bytes) != set(paths):
+        raise ProtocolBundleError("protocol bundle has no complete source-byte binding")
+    parsed_sources = {
+        "protocol": yaml.safe_load(source_bytes["protocol"].decode("utf-8")),
+        "schema": json.loads(source_bytes["schema"].decode("utf-8")),
+        "reason_registry": yaml.safe_load(source_bytes["reason_registry"].decode("utf-8")),
+        "reason_registry_schema": json.loads(
+            source_bytes["reason_registry_schema"].decode("utf-8")
+        ),
+    }
+    for name in parsed_sources:
+        if parsed_sources[name] != bundle[name]:
+            raise ProtocolBundleError(f"in-memory {name} differs from its loaded source bytes")
+        if not paths[name].is_file() or paths[name].read_bytes() != source_bytes[name]:
+            raise ProtocolBundleError(f"source file changed after bundle load: {paths[name]}")
     source_hashes = {
-        name: file_sha256(path) for name, path in sorted(paths.items())
+        name: hashlib.sha256(source_bytes[name]).hexdigest()
+        for name in sorted(paths)
     }
     lock_body = {
         "schema_version": "investigation-selection-protocol-lock/1.0.0",
