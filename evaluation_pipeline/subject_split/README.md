@@ -12,8 +12,11 @@ configuration. It returns:
 The required `ratios` keys are `development`, `validation`, and `final_test`.
 The module never chooses those scientific parameters. The three values must be
 positive and sum to one. `assignment_seed` makes the hash ranking reproducible.
-`subject_ref_secret` is used only to derive references and is never written to
-an output artifact; callers must store it outside Git and identify it with
+Construction also requires the complete protocol lock and its freeze-ready
+source bundle; a bare or fabricated 64-character hash is rejected.
+`subject_ref_secret` must contain at least 32 bytes. It derives subject
+references and authenticates the protected map, but is never written to an
+output artifact; callers must store it outside Git and identify it with
 `subject_ref_key_id`.
 
 Engineering-audit subjects must be passed through
@@ -25,4 +28,9 @@ On the first run, preserve `input_population_sha256` as the baseline. It hashes
 only HMAC-derived `subject_ref` values and roles, never raw subject IDs. On later
 runs, pass it as `expected_input_sha256`; any addition, removal, or role change
 then fails as input drift. `audit_subject_split` can independently recheck
-persisted artifacts without requiring the pseudonymization secret.
+persisted artifacts when the matching pseudonymization secret is supplied; a
+missing or incorrect secret fails closed because public hashes alone cannot
+authenticate a rewritten protected map. The artifact HMAC covers the entire
+public manifest and protected envelope, including protocol-lock lineage, key
+identifier, assignment method, ratios, counts, and records. Both persisted
+artifacts are checked against strict JSON Schemas during every audit.

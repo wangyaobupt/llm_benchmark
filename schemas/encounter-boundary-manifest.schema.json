@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "encounter-boundary-manifest.schema.json",
+  "title": "Admission-centric encounter boundary manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "reference_key_id", "split_lineage", "policy", "policy_sha256", "source_inputs_sha256", "counts", "journeys", "event_assignments", "unresolved", "manifest_sha256", "manifest_hmac_sha256"],
+  "properties": {
+    "schema_version": {"const": "encounter-boundary-manifest/1.0.0"},
+    "reference_key_id": {"type": "string", "minLength": 1},
+    "split_lineage": {"$ref": "#/$defs/splitLineage"},
+    "policy": {"$ref": "#/$defs/policy"},
+    "policy_sha256": {"$ref": "#/$defs/sha256"},
+    "manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "manifest_hmac_sha256": {"$ref": "#/$defs/sha256"},
+    "source_inputs_sha256": {"$ref": "#/$defs/sha256"},
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["journeys", "formal_evaluation_eligible_journeys", "rule_discovery_eligible_journeys", "engineering_audit_journeys", "linked_ed_stays", "icu_substays", "assigned_events", "unresolved_records", "unresolved_reason_counts"],
+      "properties": {
+        "journeys": {"type": "integer", "minimum": 0},
+        "formal_evaluation_eligible_journeys": {"type": "integer", "minimum": 0},
+        "rule_discovery_eligible_journeys": {"type": "integer", "minimum": 0},
+        "engineering_audit_journeys": {"type": "integer", "minimum": 0},
+        "linked_ed_stays": {"type": "integer", "minimum": 0},
+        "icu_substays": {"type": "integer", "minimum": 0},
+        "assigned_events": {"type": "integer", "minimum": 0},
+        "unresolved_records": {"type": "integer", "minimum": 0},
+        "unresolved_reason_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["JOURNEY_SPLIT_ROLE_UNKNOWN", "JOURNEY_ADMISSION_INVALID_INTERVAL", "JOURNEY_STANDALONE_ED_EXCLUDED", "JOURNEY_LINKED_ADMISSION_NOT_FOUND", "JOURNEY_SUBJECT_MISMATCH", "JOURNEY_ED_HANDOFF_INVALID", "JOURNEY_ICU_OUTSIDE_ADMISSION", "JOURNEY_EVENT_HADM_MISSING", "JOURNEY_EVENT_TIME_INVALID", "JOURNEY_EVENT_TIME_UNKNOWN", "JOURNEY_EVENT_OUTSIDE_BOUNDARY"],
+          "properties": {
+            "JOURNEY_SPLIT_ROLE_UNKNOWN": {"type": "integer", "minimum": 0},
+            "JOURNEY_ADMISSION_INVALID_INTERVAL": {"type": "integer", "minimum": 0},
+            "JOURNEY_STANDALONE_ED_EXCLUDED": {"type": "integer", "minimum": 0},
+            "JOURNEY_LINKED_ADMISSION_NOT_FOUND": {"type": "integer", "minimum": 0},
+            "JOURNEY_SUBJECT_MISMATCH": {"type": "integer", "minimum": 0},
+            "JOURNEY_ED_HANDOFF_INVALID": {"type": "integer", "minimum": 0},
+            "JOURNEY_ICU_OUTSIDE_ADMISSION": {"type": "integer", "minimum": 0},
+            "JOURNEY_EVENT_HADM_MISSING": {"type": "integer", "minimum": 0},
+            "JOURNEY_EVENT_TIME_INVALID": {"type": "integer", "minimum": 0},
+            "JOURNEY_EVENT_TIME_UNKNOWN": {"type": "integer", "minimum": 0},
+            "JOURNEY_EVENT_OUTSIDE_BOUNDARY": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "journeys": {"type": "array", "items": {"$ref": "#/$defs/journey"}},
+    "event_assignments": {"type": "array", "items": {"$ref": "#/$defs/eventAssignment"}},
+    "unresolved": {"type": "array", "items": {"$ref": "#/$defs/unresolved"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "reference": {"type": "string", "pattern": "^[a-z_]+_[0-9a-f]{64}$"},
+    "splitLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["split_id", "protocol_lock_sha256", "public_manifest_sha256", "subject_ref_key_id", "subject_role", "permitted_use"],
+      "properties": {
+        "split_id": {"type": "string", "minLength": 1},
+        "protocol_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "public_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "subject_ref_key_id": {"type": "string", "minLength": 1},
+        "subject_role": {"enum": ["development", "validation", "final_test", "engineering_audit"]},
+        "permitted_use": {"enum": ["rule_discovery", "threshold_validation", "blind_final_evaluation", "engineering_audit_only"]}
+      }
+    },
+    "time": {"type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}([T ][0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,6})?)?$"},
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["linked_pre_admission_ed", "standalone_ed", "multi_admission_boundary", "icu_scope", "engineering_audit_policy"],
+      "properties": {
+        "linked_pre_admission_ed": {"const": "include_native_hadm_handoff"},
+        "standalone_ed": {"const": "exclude_first_release"},
+        "multi_admission_boundary": {"const": "one_hadm_per_journey_subject_linked"},
+        "icu_scope": {"const": "nested_substay"},
+        "engineering_audit_policy": {"const": "build_but_formal_statistics_forbidden"}
+      }
+    },
+    "icuSubstay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["icu_stay_ref", "in_time", "out_time"],
+      "properties": {
+        "icu_stay_ref": {"$ref": "#/$defs/reference"},
+        "in_time": {"$ref": "#/$defs/time"},
+        "out_time": {"$ref": "#/$defs/time"}
+      }
+    },
+    "journey": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["journey_id", "subject_ref", "subject_role", "formal_evaluation_eligible", "rule_discovery_eligible", "permitted_use", "admission_ref", "journey_start_time", "admit_time", "discharge_time", "linked_ed_stay_refs", "icu_substays"],
+      "properties": {
+        "journey_id": {"$ref": "#/$defs/reference"},
+        "subject_ref": {"type": "string", "pattern": "^sub_[0-9a-f]{64}$"},
+        "subject_role": {"enum": ["development", "validation", "final_test", "engineering_audit"]},
+        "formal_evaluation_eligible": {"type": "boolean"},
+        "rule_discovery_eligible": {"type": "boolean"},
+        "permitted_use": {"enum": ["rule_discovery", "threshold_validation", "blind_final_evaluation", "engineering_audit_only"]},
+        "admission_ref": {"$ref": "#/$defs/reference"},
+        "journey_start_time": {"$ref": "#/$defs/time"},
+        "admit_time": {"$ref": "#/$defs/time"},
+        "discharge_time": {"$ref": "#/$defs/time"},
+        "linked_ed_stay_refs": {"type": "array", "items": {"$ref": "#/$defs/reference"}, "uniqueItems": true},
+        "icu_substays": {"type": "array", "items": {"$ref": "#/$defs/icuSubstay"}}
+      },
+      "allOf": [
+        {"if": {"properties": {"subject_role": {"const": "development"}}}, "then": {"properties": {"formal_evaluation_eligible": {"const": true}, "rule_discovery_eligible": {"const": true}, "permitted_use": {"const": "rule_discovery"}}}},
+        {"if": {"properties": {"subject_role": {"const": "validation"}}}, "then": {"properties": {"formal_evaluation_eligible": {"const": true}, "rule_discovery_eligible": {"const": false}, "permitted_use": {"const": "threshold_validation"}}}},
+        {"if": {"properties": {"subject_role": {"const": "final_test"}}}, "then": {"properties": {"formal_evaluation_eligible": {"const": true}, "rule_discovery_eligible": {"const": false}, "permitted_use": {"const": "blind_final_evaluation"}}}},
+        {"if": {"properties": {"subject_role": {"const": "engineering_audit"}}}, "then": {"properties": {"formal_evaluation_eligible": {"const": false}, "rule_discovery_eligible": {"const": false}, "permitted_use": {"const": "engineering_audit_only"}}}}
+      ]
+    },
+    "eventAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event_id", "source_event_sha256", "journey_id", "event_time", "available_time", "time_precision", "time_group_id"],
+      "properties": {
+        "event_id": {"type": "string", "pattern": "^evt:[0-9a-f]{24}$"},
+        "source_event_sha256": {"$ref": "#/$defs/sha256"},
+        "journey_id": {"$ref": "#/$defs/reference"},
+        "event_time": {"$ref": "#/$defs/time"},
+        "available_time": {"$ref": "#/$defs/time"},
+        "time_precision": {"enum": ["subsecond", "second", "date", "unknown"]},
+        "time_group_id": {"anyOf": [{"$ref": "#/$defs/reference"}, {"type": "null"}]}
+      }
+    },
+    "unresolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["record_type", "record_ref", "reason_codes"],
+      "properties": {
+        "record_type": {"enum": ["admission", "ed_stay", "icu_stay", "event"]},
+        "record_ref": {"$ref": "#/$defs/reference"},
+        "reason_codes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["JOURNEY_SPLIT_ROLE_UNKNOWN", "JOURNEY_ADMISSION_INVALID_INTERVAL", "JOURNEY_STANDALONE_ED_EXCLUDED", "JOURNEY_LINKED_ADMISSION_NOT_FOUND", "JOURNEY_SUBJECT_MISMATCH", "JOURNEY_ED_HANDOFF_INVALID", "JOURNEY_ICU_OUTSIDE_ADMISSION", "JOURNEY_EVENT_HADM_MISSING", "JOURNEY_EVENT_TIME_INVALID", "JOURNEY_EVENT_TIME_UNKNOWN", "JOURNEY_EVENT_OUTSIDE_BOUNDARY"]}}
+      }
+    }
+  }
+}

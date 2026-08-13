@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import json
 import math
 from pathlib import Path
 import subprocess
-from typing import Any
+from typing import Any, Mapping
 
 import yaml
 from jsonschema import Draft202012Validator
@@ -405,6 +406,18 @@ def build_protocol_lock(bundle: dict[str, Any]) -> dict[str, Any]:
         "source_file_sha256": source_hashes,
     }
     return {**lock_body, "protocol_lock_sha256": semantic_sha256(lock_body)}
+
+
+def verify_protocol_lock(bundle: dict[str, Any], lock: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the canonical lock only when it matches a freeze-ready source bundle."""
+    if not isinstance(lock, Mapping):
+        raise ProtocolBundleError("protocol lock must be a mapping")
+    expected = build_protocol_lock(bundle)
+    if not hmac.compare_digest(
+        canonical_bytes(dict(lock)), canonical_bytes(expected)
+    ):
+        raise ProtocolBundleError("protocol lock does not match its freeze-ready source bundle")
+    return expected
 
 
 def write_json(path: Path, value: Any) -> None:

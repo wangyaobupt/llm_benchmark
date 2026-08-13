@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "protected-subject-map.schema.json",
+  "title": "Protected patient identifier to benchmark reference map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "split_id",
+    "protocol_lock_sha256",
+    "public_manifest_sha256",
+    "subject_ref_key_id",
+    "records",
+    "artifact_hmac_sha256"
+  ],
+  "properties": {
+    "schema_version": {"const": "protected-subject-map/1.0.0"},
+    "split_id": {"type": "string", "minLength": 1},
+    "protocol_lock_sha256": {"$ref": "#/$defs/sha256"},
+    "public_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "subject_ref_key_id": {"type": "string", "minLength": 1},
+    "artifact_hmac_sha256": {"$ref": "#/$defs/sha256"},
+    "records": {
+      "type": "array",
+      "minItems": 3,
+      "items": {"$ref": "#/$defs/record"}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subject_ref", "subject_id", "subject_role"],
+      "properties": {
+        "subject_ref": {"type": "string", "pattern": "^sub_[0-9a-f]{64}$"},
+        "subject_id": {"type": ["integer", "string"], "minLength": 1},
+        "subject_role": {"enum": ["development", "validation", "final_test", "engineering_audit"]}
+      }
+    }
+  }
+}

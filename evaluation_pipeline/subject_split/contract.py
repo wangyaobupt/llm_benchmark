@@ -11,12 +11,20 @@ import hmac
 import json
 import math
 from collections import Counter
+from pathlib import Path
 from typing import Any, Iterable, Mapping
+
+from jsonschema import Draft202012Validator
+
+from evaluation_pipeline.governance import ProtocolBundleError, verify_protocol_lock
 
 
 FORMAL_ROLES = ("development", "validation", "final_test")
 ALL_ROLES = (*FORMAL_ROLES, "engineering_audit")
 ASSIGNMENT_METHOD = "sha256-ranked-largest-remainder/1.0.0"
+SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas"
+PUBLIC_SCHEMA_PATH = SCHEMA_ROOT / "subject-split-manifest.schema.json"
+PROTECTED_SCHEMA_PATH = SCHEMA_ROOT / "protected-subject-map.schema.json"
 
 
 class SubjectSplitError(ValueError):
@@ -70,18 +78,25 @@ def _validated_config(config: Mapping[str, Any]) -> dict[str, Any]:
     if not isinstance(config, Mapping):
         raise SubjectSplitError("config must be a mapping")
     split_id = _required_string(config, "split_id")
-    protocol_lock_sha256 = _required_string(config, "protocol_lock_sha256")
-    if len(protocol_lock_sha256) != 64 or any(
-        character not in "0123456789abcdef" for character in protocol_lock_sha256
-    ):
-        raise SubjectSplitError("config.protocol_lock_sha256 must be 64 lowercase hex characters")
+    protocol_bundle = config.get("protocol_bundle")
+    protocol_lock = config.get("protocol_lock")
+    if not isinstance(protocol_bundle, Mapping) or not isinstance(protocol_lock, Mapping):
+        raise SubjectSplitError(
+            "config must contain a protocol_bundle and its complete protocol_lock"
+        )
+    try:
+        verified_lock = verify_protocol_lock(dict(protocol_bundle), protocol_lock)
+    except ProtocolBundleError as error:
+        raise SubjectSplitError(f"protocol lock verification failed: {error}") from error
     assignment_seed = _required_string(config, "assignment_seed")
     subject_ref_key_id = _required_string(config, "subject_ref_key_id")
     subject_ref_secret = config.get("subject_ref_secret")
     if isinstance(subject_ref_secret, str):
         subject_ref_secret = subject_ref_secret.encode("utf-8")
-    if not isinstance(subject_ref_secret, bytes) or not subject_ref_secret:
-        raise SubjectSplitError("config.subject_ref_secret must be non-empty bytes or string")
+    if not isinstance(subject_ref_secret, bytes) or len(subject_ref_secret) < 32:
+        raise SubjectSplitError(
+            "config.subject_ref_secret must contain at least 32 bytes"
+        )
 
     ratios = config.get("ratios")
     if not isinstance(ratios, Mapping) or set(ratios) != set(FORMAL_ROLES):
@@ -110,7 +125,7 @@ def _validated_config(config: Mapping[str, Any]) -> dict[str, Any]:
 
     return {
         "split_id": split_id,
-        "protocol_lock_sha256": protocol_lock_sha256,
+        "protocol_lock_sha256": verified_lock["protocol_lock_sha256"],
         "assignment_seed": assignment_seed,
         "subject_ref_key_id": subject_ref_key_id,
         "subject_ref_secret": subject_ref_secret,
@@ -168,6 +183,24 @@ def _input_fingerprint(protected_records: list[dict[str, Any]]) -> str:
     return _sha256(rows)
 
 
+def _protected_artifacts_hmac(
+    public_manifest: Mapping[str, Any],
+    protected_body: Mapping[str, Any],
+    secret: bytes,
+) -> str:
+    return hmac.new(
+        secret,
+        b"protected-subject-artifacts/1.0.0\x00"
+        + _canonical_bytes(
+            {
+                "public_manifest": dict(public_manifest),
+                "protected_mapping": dict(protected_body),
+            }
+        ),
+        hashlib.sha256,
+    ).hexdigest()
+
+
 def _contains_key(value: Any, forbidden_key: str) -> bool:
     if isinstance(value, Mapping):
         return forbidden_key in value or any(
@@ -185,7 +218,8 @@ def build_subject_split(
 ) -> dict[str, Any]:
     """Build public/private split artifacts and fail closed on any audit error.
 
-    ``config`` requires ``split_id``, ``protocol_lock_sha256``, all three
+    ``config`` requires ``split_id``, a verified ``protocol_bundle`` and
+    complete ``protocol_lock``, all three
     ``ratios``, ``assignment_seed``, ``subject_ref_key_id``, and
     ``subject_ref_secret``.  An optional ``expected_input_sha256`` turns the
     first generated fingerprint into a drift lock on later runs.
@@ -257,16 +291,25 @@ def build_subject_split(
         "assignments_sha256": _sha256(assignments),
         "assignments": assignments,
     }
-    protected_mapping = {
+    protected_body = {
         "schema_version": "protected-subject-map/1.0.0",
         "split_id": checked["split_id"],
+        "protocol_lock_sha256": checked["protocol_lock_sha256"],
         "public_manifest_sha256": _sha256(public_manifest),
+        "subject_ref_key_id": checked["subject_ref_key_id"],
         "records": protected_records,
+    }
+    protected_mapping = {
+        **protected_body,
+        "artifact_hmac_sha256": _protected_artifacts_hmac(
+            public_manifest, protected_body, checked["subject_ref_secret"]
+        ),
     }
     audit_report = audit_subject_split(
         public_manifest,
         protected_mapping,
         expected_input_sha256=checked["expected_input_sha256"],
+        subject_ref_secret=checked["subject_ref_secret"],
     )
     if not audit_report["valid"]:
         raise SubjectSplitError(
@@ -285,13 +328,36 @@ def audit_subject_split(
     protected_mapping: Mapping[str, Any],
     *,
     expected_input_sha256: str | None = None,
+    subject_ref_secret: bytes | str | None = None,
 ) -> dict[str, Any]:
     """Audit assignment uniqueness, isolation, counts, hashes, and input drift."""
     errors: list[str] = []
+    if isinstance(subject_ref_secret, str):
+        subject_ref_secret = subject_ref_secret.encode("utf-8")
+    if not isinstance(subject_ref_secret, bytes) or len(subject_ref_secret) < 32:
+        errors.append("subject_ref_secret of at least 32 bytes is required for protected mapping audit")
+    for label, path, artifact in (
+        ("public", PUBLIC_SCHEMA_PATH, public_manifest),
+        ("protected", PROTECTED_SCHEMA_PATH, protected_mapping),
+    ):
+        try:
+            schema = json.loads(path.read_text(encoding="utf-8"))
+            Draft202012Validator.check_schema(schema)
+            schema_errors = Draft202012Validator(schema).iter_errors(artifact)
+            errors.extend(
+                f"{label}_schema:{'.'.join(map(str, error.absolute_path)) or '$'}:{error.message}"
+                for error in schema_errors
+            )
+        except Exception as error:
+            errors.append(f"{label}_schema_unavailable_or_invalid:{error}")
     if _contains_key(public_manifest, "subject_id"):
         errors.append("public manifest exposes subject_id")
     if public_manifest.get("split_id") != protected_mapping.get("split_id"):
         errors.append("public and protected split_id values do not match")
+    if public_manifest.get("subject_ref_key_id") != protected_mapping.get("subject_ref_key_id"):
+        errors.append("public and protected subject_ref_key_id values do not match")
+    if public_manifest.get("protocol_lock_sha256") != protected_mapping.get("protocol_lock_sha256"):
+        errors.append("public and protected protocol_lock_sha256 values do not match")
     assignments = public_manifest.get("assignments", [])
     records = protected_mapping.get("records", [])
     if not isinstance(assignments, list):
@@ -368,6 +434,20 @@ def audit_subject_split(
             )
     if public_by_ref != protected_by_ref:
         errors.append("public assignments and protected mapping do not match")
+    if isinstance(subject_ref_secret, bytes) and len(subject_ref_secret) >= 32:
+        try:
+            protected_body = {
+                key: value
+                for key, value in protected_mapping.items()
+                if key != "artifact_hmac_sha256"
+            }
+            expected_hmac = _protected_artifacts_hmac(
+                public_manifest, protected_body, subject_ref_secret
+            )
+        except (KeyError, SubjectSplitError, TypeError, ValueError):
+            expected_hmac = None
+        if protected_mapping.get("artifact_hmac_sha256") != expected_hmac:
+            errors.append("subject split artifact HMAC mismatch")
 
     declared_counts = public_manifest.get("counts", {})
     observed_counts = {

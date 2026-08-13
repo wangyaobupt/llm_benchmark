@@ -61,7 +61,7 @@ LLM 评测、统计分析与报告
 
 ## 当前进展
 
-截至 2026-08-12，项目已经完成 MIMIC 数据层的 100 例端到端清洗与确定性标准化验收，正在进入“文本证据输入准备 + 首个决策任务协议冻结”阶段。
+截至 2026-08-13，项目已经完成 MIMIC 数据层的 100 例端到端清洗与确定性标准化验收，正在进入“文本证据输入准备 + 首个决策任务协议冻结”阶段。
 
 | 阶段 | 状态 | 已完成的证据 | 尚未完成 |
 |---|---|---|---|
@@ -72,7 +72,7 @@ LLM 评测、统计分析与报告
 | 100例 cleaned events | 已通过全目录独立验收 | 113,616条目录输入已按100,843条raw与12,773条derived、65,811条event与43,415条support及4,390条context完整对账；六类support均以原生键关联，未关联为0；产生66,652条accepted事件和43条rejected记录，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
 | 100例确定性标准化 | 已通过独立验收 | 66,652条 normalized events、3,895条 mappings 和1,001条 review queue 已正式发布；batch size 5,000与777复跑的run ID、三份Parquet哈希、计数和状态分布一致；阻断项为0 | 该结论只证明当前100例流水线可复现，不代表全队列已经完成；unresolved 继续进入字典、原生编码或人工审核流程 |
 | 文本事实支路 | 人工双标包已生成 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；模型调用0次 | 由两名标注者独立完成calibration，第三人裁决并计算一致性；通过预设门禁后才能解锁evaluation或设计本地模型运行协议 |
-| Patient journey | 尚未实现 | 已明确 journey 需要支持循环、并行、诊断修正、治疗调整和条件性去向 | 冻结 journey/event/state/node/evidence-edge 合同并完成少量患者的可追溯重建 |
+| Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界，不含 state/node/evidence-edge DAG | 冻结完整 journey/event/state/node/evidence-edge 合同，并完成少量 development 患者的可追溯重建与人工复核 |
 | 决策快照与 gold | 当前设计门禁 | 已明确 `available_time <= index_time`、排除 `post_hoc` 与 `administrative_end`，并区分个体行为、群体规则和规范性 gold | 冻结首个检查检验选择任务的构念、候选目录、统计规则、快照 schema、泄漏门禁和拒题条件 |
 | MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
 | LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |

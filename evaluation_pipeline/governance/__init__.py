@@ -5,6 +5,7 @@ from .protocol import (
     build_protocol_lock,
     load_protocol_bundle,
     validate_protocol_bundle,
+    verify_protocol_lock,
 )
 
 __all__ = [
@@ -12,4 +13,5 @@ __all__ = [
     "build_protocol_lock",
     "load_protocol_bundle",
     "validate_protocol_bundle",
+    "verify_protocol_lock",
 ]
