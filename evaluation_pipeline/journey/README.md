@@ -41,4 +41,5 @@ exact time group。
 计数、角色门禁、唯一性与 event→journey 引用。
 
 该模块仍只是完整 patient journey 的 encounter-boundary 前置层；它不生成 state、
-decision node 或 evidence edge，也不替代后续 boundary→snapshot 的受审计连接器。
+decision node 或 evidence edge。已实现的 boundary→snapshot 受审计连接器只闭合
+前置层到通用快照的来源链，不替代完整 journey DAG 或任务科学协议。

@@ -121,6 +121,9 @@ class SnapshotVisibilityTest(unittest.TestCase):
 
     def test_visible_event_is_projected_to_whitelisted_fields(self) -> None:
         manifest = self._build([clinical_event(1)])
+        self.assertEqual(manifest["lineage_status"], "generic_unverified")
+        self.assertNotIn("source_lineage", manifest)
+        self.assertNotIn("snapshot_hmac_sha256", manifest)
         decision = manifest["events"][0]
         self.assertEqual(decision["visibility_status"], "visible")
         self.assertEqual(decision["exclusion_reason_codes"], [])

@@ -1,21 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://llm-benchmark.local/schemas/snapshot-manifest/1.0.0",
+  "$id": "https://llm-benchmark.local/schemas/snapshot-manifest/1.1.0",
   "title": "Decision snapshot visibility manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schema_version", "index_time", "policy_sha256", "counts", "events",
+    "schema_version", "lineage_status", "index_time", "policy_sha256", "counts", "events",
     "snapshot_sha256"
   ],
   "properties": {
-    "schema_version": {"const": "snapshot-manifest/1.0.0"},
+    "schema_version": {"const": "snapshot-manifest/1.1.0"},
+    "lineage_status": {"enum": ["generic_unverified", "boundary_authenticated"]},
     "index_time": {
       "type": "string",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{6}$"
     },
     "policy_sha256": {"$ref": "#/$defs/sha256"},
+    "source_lineage": {"$ref": "#/$defs/sourceLineage"},
     "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "snapshot_hmac_sha256": {"$ref": "#/$defs/sha256"},
     "counts": {
       "type": "object",
       "additionalProperties": false,
@@ -53,8 +56,41 @@
       "items": {"$ref": "#/$defs/eventDecision"}
     }
   },
+  "allOf": [
+    {
+      "if": {"properties": {"lineage_status": {"const": "boundary_authenticated"}}, "required": ["lineage_status"]},
+      "then": {"required": ["source_lineage", "snapshot_hmac_sha256"]}
+    },
+    {
+      "if": {"properties": {"lineage_status": {"const": "generic_unverified"}}, "required": ["lineage_status"]},
+      "then": {
+        "not": {
+          "anyOf": [
+            {"required": ["source_lineage"]},
+            {"required": ["snapshot_hmac_sha256"]}
+          ]
+        }
+      }
+    }
+  ],
   "$defs": {
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "sourceLineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_lock_sha256", "subject_split_manifest_sha256", "encounter_boundary_manifest_sha256", "encounter_boundary_manifest_hmac_sha256", "boundary_source_inputs_sha256", "boundary_reference_key_id", "journey_id", "subject_role", "permitted_use"],
+      "properties": {
+        "protocol_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "subject_split_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "encounter_boundary_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "encounter_boundary_manifest_hmac_sha256": {"$ref": "#/$defs/sha256"},
+        "boundary_source_inputs_sha256": {"$ref": "#/$defs/sha256"},
+        "boundary_reference_key_id": {"type": "string", "minLength": 1},
+        "journey_id": {"type": "string", "pattern": "^journey_[0-9a-f]{64}$"},
+        "subject_role": {"enum": ["development", "validation", "final_test", "engineering_audit"]},
+        "permitted_use": {"enum": ["rule_discovery", "threshold_validation", "blind_final_evaluation", "engineering_audit_only"]}
+      }
+    },
     "reasonCode": {
       "enum": [
         "SNAPSHOT_NOT_YET_OCCURRED", "SNAPSHOT_NOT_YET_AVAILABLE",

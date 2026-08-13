@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 import hashlib
+import hmac
 from itertools import islice
 import json
 import re
@@ -47,6 +48,12 @@ _DEFAULT_LEAKAGE_TEXT_FIELDS = (
     "normalized_value_text",
     "value_structured_json",
 )
+_SOURCE_LINEAGE_USE = {
+    "development": "rule_discovery",
+    "validation": "threshold_validation",
+    "final_test": "blind_final_evaluation",
+    "engineering_audit": "engineering_audit_only",
+}
 
 
 class SnapshotError(ValueError):
@@ -199,6 +206,53 @@ def _compile_policy(policy: SnapshotPolicy) -> _CompiledPolicy:
     )
 
 
+def _validated_source_lineage(value: Mapping[str, Any] | None) -> dict[str, str] | None:
+    if value is None:
+        return None
+    required = {
+        "protocol_lock_sha256",
+        "subject_split_manifest_sha256",
+        "encounter_boundary_manifest_sha256",
+        "encounter_boundary_manifest_hmac_sha256",
+        "boundary_source_inputs_sha256",
+        "boundary_reference_key_id",
+        "journey_id",
+        "subject_role",
+        "permitted_use",
+    }
+    if not isinstance(value, Mapping) or set(value) != required:
+        raise SnapshotConfigurationError(
+            "source_lineage must contain exactly the formal boundary lineage fields"
+        )
+    for field in (
+        "protocol_lock_sha256",
+        "subject_split_manifest_sha256",
+        "encounter_boundary_manifest_sha256",
+        "encounter_boundary_manifest_hmac_sha256",
+        "boundary_source_inputs_sha256",
+    ):
+        if not isinstance(value[field], str) or not re.fullmatch(
+            r"[0-9a-f]{64}", value[field]
+        ):
+            raise SnapshotConfigurationError(f"source_lineage.{field} must be SHA-256")
+    if not isinstance(value["journey_id"], str) or not re.fullmatch(
+        r"journey_[0-9a-f]{64}", value["journey_id"]
+    ):
+        raise SnapshotConfigurationError("source_lineage.journey_id is invalid")
+    if not isinstance(value["boundary_reference_key_id"], str) or not value[
+        "boundary_reference_key_id"
+    ]:
+        raise SnapshotConfigurationError(
+            "source_lineage.boundary_reference_key_id is invalid"
+        )
+    role = value["subject_role"]
+    if role not in _SOURCE_LINEAGE_USE:
+        raise SnapshotConfigurationError("source_lineage.subject_role is invalid")
+    if value["permitted_use"] != _SOURCE_LINEAGE_USE[role]:
+        raise SnapshotConfigurationError("source_lineage role/use mismatch")
+    return {field: value[field] for field in sorted(required)}
+
+
 def _parse_time(value: Any, field: str, event_id: str | None = None) -> datetime | None:
     if value is None or value == "":
         return None
@@ -326,12 +380,14 @@ def _classify_event(
     }
 
 
-def build_snapshot(
+def _build_snapshot(
     events: Iterable[Mapping[str, Any]],
     *,
     index_time: str | datetime,
     policy: SnapshotPolicy,
     batch_size: int = 1024,
+    source_lineage: Mapping[str, Any] | None = None,
+    authentication_secret: bytes | str | None = None,
 ) -> dict[str, Any]:
     """Return an auditable snapshot manifest without reading or writing files.
 
@@ -342,6 +398,20 @@ def build_snapshot(
     if isinstance(batch_size, bool) or not isinstance(batch_size, int) or batch_size <= 0:
         raise SnapshotConfigurationError("batch_size must be a positive integer")
     compiled = _compile_policy(policy)
+    checked_lineage = _validated_source_lineage(source_lineage)
+    if (checked_lineage is None) != (authentication_secret is None):
+        raise SnapshotConfigurationError(
+            "authenticated source_lineage and authentication_secret are required together"
+        )
+    if isinstance(authentication_secret, str):
+        authentication_secret = authentication_secret.encode("utf-8")
+    if authentication_secret is not None and (
+        not isinstance(authentication_secret, bytes)
+        or len(authentication_secret) < 32
+    ):
+        raise SnapshotConfigurationError(
+            "authentication_secret must contain at least 32 bytes"
+        )
     canonical_index_time, parsed_index_time = _canonical_time(index_time)
 
     records: list[dict[str, Any]] = []
@@ -361,9 +431,19 @@ def build_snapshot(
             reason_counts[code] += 1
     visible_count = sum(record["visibility_status"] == "visible" for record in records)
     body = {
-        "schema_version": "snapshot-manifest/1.0.0",
+        "schema_version": "snapshot-manifest/1.1.0",
+        "lineage_status": (
+            "boundary_authenticated"
+            if checked_lineage is not None
+            else "generic_unverified"
+        ),
         "index_time": canonical_index_time,
         "policy_sha256": _sha256(compiled.canonical),
+        **(
+            {"source_lineage": checked_lineage}
+            if checked_lineage is not None
+            else {}
+        ),
         "counts": {
             "total": len(records),
             "visible": visible_count,
@@ -372,4 +452,27 @@ def build_snapshot(
         },
         "events": records,
     }
-    return {**body, "snapshot_sha256": _sha256(body)}
+    manifest = {**body, "snapshot_sha256": _sha256(body)}
+    if authentication_secret is not None:
+        manifest["snapshot_hmac_sha256"] = hmac.new(
+            authentication_secret,
+            b"boundary-authenticated-snapshot/1.0.0\x00" + _canonical_bytes(body),
+            hashlib.sha256,
+        ).hexdigest()
+    return manifest
+
+
+def build_snapshot(
+    events: Iterable[Mapping[str, Any]],
+    *,
+    index_time: str | datetime,
+    policy: SnapshotPolicy,
+    batch_size: int = 1024,
+) -> dict[str, Any]:
+    """Build a generic snapshot that cannot claim authenticated formal lineage."""
+    return _build_snapshot(
+        events,
+        index_time=index_time,
+        policy=policy,
+        batch_size=batch_size,
+    )

@@ -73,7 +73,7 @@ LLM 评测、统计分析与报告
 | 100例确定性标准化 | 已通过独立验收 | 66,652条 normalized events、3,895条 mappings 和1,001条 review queue 已正式发布；batch size 5,000与777复跑的run ID、三份Parquet哈希、计数和状态分布一致；阻断项为0 | 该结论只证明当前100例流水线可复现，不代表全队列已经完成；unresolved 继续进入字典、原生编码或人工审核流程 |
 | 文本事实支路 | 人工双标包已生成 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；模型调用0次 | 由两名标注者独立完成calibration，第三人裁决并计算一致性；通过预设门禁后才能解锁evaluation或设计本地模型运行协议 |
 | Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界，不含 state/node/evidence-edge DAG | 冻结完整 journey/event/state/node/evidence-edge 合同，并完成少量 development 患者的可追溯重建与人工复核 |
-| 决策快照与 gold | 当前设计门禁 | 已明确 `available_time <= index_time`、排除 `post_hoc` 与 `administrative_end`，并区分个体行为、群体规则和规范性 gold | 冻结首个检查检验选择任务的构念、候选目录、统计规则、快照 schema、泄漏门禁和拒题条件 |
+| 决策快照与 gold | 工程链已实现，科学门禁未冻结 | 已实现通用时间/phase/split/字段白名单快照门禁，以及按 boundary HMAC、protocol/split/source lineage 和 `event_id + source_event_sha256` 强制连接的单 journey adapter；仍无真实正式快照或 gold | 冻结首个检查检验选择任务的构念、时间窗、候选目录、统计规则、语义泄漏词表和拒题条件，再生成 development-only 正式链路产物 |
 | MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
 | LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |
 

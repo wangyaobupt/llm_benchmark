@@ -437,7 +437,7 @@ flowchart TD
 | 语义 | gold、同义词、计划词、最终诊断、出院章节黑名单 | 是否存在隐含但等价的答案提示 |
 | 身份/划分 | subject split、模板哈希、近重复 | 病例是否可由罕见组合重建 |
 
-**当前状态：通用 snapshot builder、manifest schema 与 encounter-boundary 前置层已实现。** 现有 snapshot 能执行时间、phase、split 与字段白名单门禁，但完整 journey state/node/evidence-edge DAG、由冻结候选本体自动派生的语义泄漏检查，以及真实正式产物仍待实施。
+**当前状态：通用 snapshot builder、manifest schema、encounter-boundary 前置层及其受审计 snapshot adapter 已实现。** adapter 强制验证 boundary HMAC、protocol/split/source lineage 与逐事件 source hash；现有 snapshot 能执行时间、phase、split 与字段白名单门禁。但完整 journey state/node/evidence-edge DAG、由冻结候选本体自动派生的语义泄漏检查，以及真实正式产物仍待实施。
 
 ## 12. 五类决策节点的完整任务合同
 
