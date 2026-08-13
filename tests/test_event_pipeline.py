@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import importlib
+import inspect
 import json
 from pathlib import Path
 import tempfile
@@ -40,6 +42,22 @@ from data_pipeline.event_pipeline.event_viewer.app import CleaningViewerStore
 
 
 class EventPipelineTest(unittest.TestCase):
+    def test_acceptance_audits_stream_large_inputs(self) -> None:
+        audit_cleaning_module = importlib.import_module(
+            "data_pipeline.event_pipeline.event_quality.audit_cleaning"
+        )
+        audit_normalization_module = importlib.import_module(
+            "data_pipeline.event_pipeline.event_quality.audit_normalization"
+        )
+        cleaning_source = inspect.getsource(audit_cleaning_module.audit)
+        normalization_source = inspect.getsource(audit_normalization_module.audit)
+        self.assertNotIn(".read()", cleaning_source)
+        self.assertNotIn(".read()", normalization_source)
+        self.assertIn("_iter_parquet_rows", cleaning_source)
+        self.assertIn("_JsonlRecordStore", inspect.getsource(audit_cleaning_module))
+        self.assertIn("_iter_parquet_rows", normalization_source)
+        self.assertIn("sqlite3.connect", normalization_source)
+
     def _record(self) -> dict[str, object]:
         poe = [
             {

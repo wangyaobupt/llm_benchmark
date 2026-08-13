@@ -6,7 +6,7 @@ not call the event transformers, normalization code, or an external model.
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter, OrderedDict, defaultdict
 import argparse
 from datetime import datetime
 import hashlib
@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 import random
 import re
+import sqlite3
 from typing import Any
 
 import pyarrow as pa
@@ -134,21 +135,104 @@ def _decoded_label(row: dict[str, Any], field: str = "itemid_decoded") -> str | 
     return None
 
 
-def _read_jsonl(path: Path) -> dict[int, dict[str, Any]]:
-    records: dict[int, dict[str, Any]] = {}
-    with path.open("rb") as handle:
-        for line_number, raw_line in enumerate(handle, 1):
-            if raw_line.strip():
-                records[line_number] = json.loads(raw_line)
-    return records
+class _JsonlRecordStore:
+    """Disk-backed line-number index for admission JSONL audit inputs."""
+
+    def __init__(self, path: Path):
+        self._connection = sqlite3.connect("")
+        self._connection.execute("PRAGMA temp_store=FILE")
+        self._connection.execute(
+            "CREATE TABLE records(line_number INTEGER PRIMARY KEY, payload BLOB NOT NULL)"
+        )
+        self._cache: OrderedDict[int, dict[str, Any]] = OrderedDict()
+        pending: list[tuple[int, bytes]] = []
+        with path.open("rb") as handle:
+            for line_number, raw_line in enumerate(handle, 1):
+                if not raw_line.strip():
+                    continue
+                json.loads(raw_line)
+                pending.append((line_number, raw_line))
+                if len(pending) >= 1000:
+                    self._connection.executemany(
+                        "INSERT INTO records VALUES (?, ?)", pending
+                    )
+                    pending.clear()
+        if pending:
+            self._connection.executemany("INSERT INTO records VALUES (?, ?)", pending)
+        self._connection.commit()
+
+    def get(self, line_number: int, default: Any = None) -> Any:
+        if line_number in self._cache:
+            value = self._cache.pop(line_number)
+            self._cache[line_number] = value
+            return value
+        row = self._connection.execute(
+            "SELECT payload FROM records WHERE line_number=?", (line_number,)
+        ).fetchone()
+        if row is None:
+            return default
+        value = json.loads(row[0])
+        self._cache[line_number] = value
+        if len(self._cache) > 8:
+            self._cache.popitem(last=False)
+        return value
+
+    def items(self):
+        for line_number, payload in self._connection.execute(
+            "SELECT line_number, payload FROM records ORDER BY line_number"
+        ):
+            yield int(line_number), json.loads(payload)
+
+    def __iter__(self):
+        for (line_number,) in self._connection.execute(
+            "SELECT line_number FROM records ORDER BY line_number"
+        ):
+            yield int(line_number)
+
+    def __len__(self) -> int:
+        return int(self._connection.execute("SELECT count(*) FROM records").fetchone()[0])
+
+    def close(self) -> None:
+        self._connection.close()
+
+
+class _SourceIdentityStore:
+    def __init__(self):
+        self._connection = sqlite3.connect("")
+        self._connection.execute("PRAGMA temp_store=FILE")
+        self._connection.execute(
+            "CREATE TABLE identities(raw_ref TEXT PRIMARY KEY, source_id TEXT NOT NULL)"
+        )
+
+    def add_many(self, rows: list[tuple[str, str]]) -> None:
+        self._connection.executemany("INSERT INTO identities VALUES (?, ?)", rows)
+
+    def get(self, raw_ref: str, default: Any = None) -> Any:
+        row = self._connection.execute(
+            "SELECT source_id FROM identities WHERE raw_ref=?", (raw_ref,)
+        ).fetchone()
+        return row[0] if row is not None else default
+
+    def __getitem__(self, raw_ref: str) -> str:
+        value = self.get(raw_ref)
+        if value is None:
+            raise KeyError(raw_ref)
+        return str(value)
+
+    def close(self) -> None:
+        self._connection.close()
+
+
+def _read_jsonl(path: Path) -> _JsonlRecordStore:
+    return _JsonlRecordStore(path)
 
 
 def _source_identity_index(
-    records: dict[int, dict[str, Any]],
+    records: _JsonlRecordStore,
     input_name: str,
-) -> tuple[dict[str, str], dict[str, dict[str, Any]]]:
-    source_id_by_ref: dict[str, str] = {}
-    raw_by_ref: dict[str, dict[str, Any]] = {}
+) -> _SourceIdentityStore:
+    source_id_by_ref = _SourceIdentityStore()
+    pending: list[tuple[str, str]] = []
     for line_number, admission in records.items():
         for spec in SOURCE_CATALOG:
             occurrences: Counter[str] = Counter()
@@ -168,9 +252,13 @@ def _source_identity_index(
                     f"{input_name}#L{line_number}/"
                     f"{spec.module}.{spec.table}[{index}]"
                 )
-                source_id_by_ref[raw_ref] = source_id
-                raw_by_ref[raw_ref] = row
-    return source_id_by_ref, raw_by_ref
+                pending.append((raw_ref, source_id))
+                if len(pending) >= 5000:
+                    source_id_by_ref.add_many(pending)
+                    pending.clear()
+    if pending:
+        source_id_by_ref.add_many(pending)
+    return source_id_by_ref
 
 
 def _without_enrichment(value: Any) -> Any:
@@ -197,10 +285,11 @@ def _restore_raw_record(value: dict[str, Any]) -> dict[str, Any]:
     source_schema = restored.pop("source_schema", None)
     if not isinstance(source_schema, dict):
         return restored
-    return {
+    result = {
         "schema": source_schema,
         **{key: item for key, item in restored.items() if key != "schema"},
     }
+    return result
 
 
 def _raw_row(
@@ -508,6 +597,15 @@ def _add_issue(
         examples[issue].append(example)
 
 
+def _iter_parquet_rows(
+    parquet_file: pq.ParquetFile,
+    *,
+    batch_size: int = 8192,
+):
+    for batch in parquet_file.iter_batches(batch_size=batch_size):
+        yield from batch.to_pylist()
+
+
 def _arrow_type_contract(data_type: pa.DataType) -> Any:
     if pa.types.is_list(data_type) or pa.types.is_large_list(data_type):
         return (str(data_type.id), _arrow_type_contract(data_type.value_type))
@@ -541,21 +639,15 @@ def audit(
     rejected_file = pq.ParquetFile(rejected_path)
     encounter_path = manifest_path.parent / "encounter_manifest.parquet"
     encounter_file = pq.ParquetFile(encounter_path)
-    cleaned_table = cleaned_file.read()
-    rejected_table = rejected_file.read()
-    encounter_table = encounter_file.read()
-    events = cleaned_table.to_pylist()
-    rejected = rejected_table.to_pylist()
-    encounters = encounter_table.to_pylist()
     records = _read_jsonl(source_path)
     raw_records = _read_jsonl(raw_source_path)
-    source_id_by_ref, _ = _source_identity_index(records, source_path.name)
+    source_id_by_ref = _source_identity_index(records, source_path.name)
     reconciliation = json.loads(reconciliation_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     issue_counts: Counter[str] = Counter()
     issue_examples: dict[str, list[str]] = defaultdict(list)
-    columns = set(cleaned_table.column_names)
+    columns = set(cleaned_file.schema_arrow.names)
     required_exact_fields = {
         "event_id",
         "subject_id",
@@ -592,7 +684,7 @@ def audit(
             "event_schema_field_missing",
             field,
         )
-    rejected_columns = set(rejected_table.column_names)
+    rejected_columns = set(rejected_file.schema_arrow.names)
     missing_rejected_schema_fields = set(REJECTED_ARROW_SCHEMA.names) - rejected_columns
     rejected_structure_valid = not missing_rejected_schema_fields
     for field in sorted(missing_rejected_schema_fields):
@@ -602,7 +694,11 @@ def audit(
             "rejected_schema_field_missing",
             field,
         )
-    event_ids = [row.get("event_id") for row in events]
+    event_ids: set[str] = set()
+    event_id_nulls = 0
+    duplicate_event_ids = 0
+    event_count = 0
+    rejected_count = 0
     accepted_ids: dict[str, set[str]] = defaultdict(set)
     rejected_ids: dict[str, set[str]] = defaultdict(set)
     source_event_counts: Counter[tuple[str, str]] = Counter()
@@ -610,15 +706,39 @@ def audit(
     table_time_counts: dict[str, Counter[str]] = defaultdict(Counter)
     table_phase_counts: Counter[tuple[str, str]] = Counter()
     quality_flag_counts: Counter[str] = Counter()
-    table_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    rng = random.Random(sample_seed)
+    table_seen: Counter[str] = Counter()
+    table_samples: dict[str, list[dict[str, Any]]] = defaultdict(list)
     linked_support_ids: dict[str, set[str]] = defaultdict(set)
 
-    for event in events:
+    for event in _iter_parquet_rows(cleaned_file):
+        event_count += 1
+        candidate_event_id = event.get("event_id")
+        if candidate_event_id is None:
+            event_id_nulls += 1
+        elif candidate_event_id in event_ids:
+            duplicate_event_ids += 1
+        else:
+            event_ids.add(candidate_event_id)
         if not event_structure_valid:
             continue
         event_id = event["event_id"]
         source_table = event["source_table"]
-        table_rows[source_table].append(event)
+        table_seen[source_table] += 1
+        sample = table_samples[source_table]
+        sample_row = {
+            "event_id": event["event_id"],
+            "source_table": source_table,
+            "event_kind": event["event_kind"],
+            "raw_row_ref": event["raw_row_ref"],
+            "source_row_id": event["source_row_id"],
+        }
+        if len(sample) < samples_per_table:
+            sample.append(sample_row)
+        else:
+            replacement = rng.randrange(table_seen[source_table])
+            if replacement < samples_per_table:
+                sample[replacement] = sample_row
         table_kind_counts[(source_table, event["event_kind"])] += 1
         table_phase_counts[(source_table, event["evidence_phase"])] += 1
         accepted_ids[source_table].add(event["source_row_id"])
@@ -822,11 +942,12 @@ def audit(
         elif source_table == "note.discharge" and event["value_text"] is not None:
             _add_issue(issue_counts, issue_examples, "discharge_text_copied_to_event", event_id)
 
-    if len(event_ids) != len(set(event_ids)):
-        issue_counts["duplicate_event_id"] = len(event_ids) - len(set(event_ids))
-    issue_counts["null_event_id"] = sum(value is None for value in event_ids)
+    if duplicate_event_ids:
+        issue_counts["duplicate_event_id"] = duplicate_event_ids
+    issue_counts["null_event_id"] = event_id_nulls
 
-    for row in rejected:
+    for row in _iter_parquet_rows(rejected_file):
+        rejected_count += 1
         if not rejected_structure_valid:
             continue
         source_table = row["source_table"]
@@ -991,7 +1112,7 @@ def audit(
         )
 
     encounter_by_line: dict[int, dict[str, Any]] = {}
-    for row in encounters:
+    for row in _iter_parquet_rows(encounter_file):
         line_number = int(row["jsonl_line_number"])
         if line_number in encounter_by_line:
             _add_issue(
@@ -1050,20 +1171,9 @@ def audit(
             str(extra_line),
         )
 
-    rng = random.Random(sample_seed)
     samples: list[dict[str, Any]] = []
-    for source_table in sorted(table_rows):
-        rows = table_rows[source_table]
-        for row in rng.sample(rows, min(samples_per_table, len(rows))):
-            samples.append(
-                {
-                    "event_id": row["event_id"],
-                    "source_table": source_table,
-                    "event_kind": row["event_kind"],
-                    "raw_row_ref": row["raw_row_ref"],
-                    "source_row_id": row["source_row_id"],
-                }
-            )
+    for source_table in sorted(table_samples):
+        samples.extend(table_samples[source_table])
 
     field_contract = {
         requested: {
@@ -1147,16 +1257,16 @@ def audit(
         == len(SOURCE_CATALOG),
         "source_catalog_event_sources": manifest.get("source_catalog", {}).get("event_sources")
         == len(EVENT_SOURCE_REGISTRY),
-        "arrow_schema_metadata": (cleaned_table.schema.metadata or {}).get(b"schema")
+        "arrow_schema_metadata": (cleaned_file.schema_arrow.metadata or {}).get(b"schema")
         == b"clinical_event/1.2.0",
         "event_arrow_schema": _arrow_schema_matches(
-            cleaned_table.schema, EVENT_ARROW_SCHEMA
+            cleaned_file.schema_arrow, EVENT_ARROW_SCHEMA
         ),
         "rejected_arrow_schema": _arrow_schema_matches(
-            rejected_table.schema, REJECTED_ARROW_SCHEMA
+            rejected_file.schema_arrow, REJECTED_ARROW_SCHEMA
         ),
         "encounter_arrow_schema": _arrow_schema_matches(
-            encounter_table.schema, ENCOUNTER_ARROW_SCHEMA
+            encounter_file.schema_arrow, ENCOUNTER_ARROW_SCHEMA
         ),
         "manifest_admissions": manifest.get("counts", {}).get("admissions")
         == len(records),
@@ -1172,9 +1282,9 @@ def audit(
         == expected_by_role["support"],
         "manifest_context_source_rows": manifest.get("counts", {}).get("context_source_rows")
         == expected_by_role["context"],
-        "manifest_events": manifest.get("counts", {}).get("events") == len(events),
+        "manifest_events": manifest.get("counts", {}).get("events") == event_count,
         "manifest_rejected": manifest.get("counts", {}).get("rejected")
-        == len(rejected),
+        == rejected_count,
     }
     for key, matched in contract_matches_manifest.items():
         if not matched:
@@ -1205,7 +1315,7 @@ def audit(
         for key, value in issue_counts.items()
         if value and key != "null_event_id"
     }
-    return {
+    result = {
         "audit_schema": "cleaned_events_acceptance_audit/2.0.0",
         "inputs": {
             "raw_source_jsonl": str(raw_source_path),
@@ -1234,18 +1344,18 @@ def audit(
             "created_by": cleaned_file.metadata.created_by,
             "arrow_schema_metadata": {
                 key.decode(): value.decode()
-                for key, value in (cleaned_table.schema.metadata or {}).items()
+                for key, value in (cleaned_file.schema_arrow.metadata or {}).items()
             },
             "columns": [
                 {"name": field.name, "type": str(field.type), "nullable": field.nullable}
-                for field in cleaned_table.schema
+                for field in cleaned_file.schema_arrow
             ],
         },
         "requested_field_contract": field_contract,
         "identity": {
-            "event_rows": len(events),
-            "event_id_unique": len(event_ids) == len(set(event_ids)),
-            "event_id_nulls": sum(value is None for value in event_ids),
+            "event_rows": event_count,
+            "event_id_unique": duplicate_event_ids == 0,
+            "event_id_nulls": event_id_nulls,
             "accepted_unique_source_rows": sum(len(values) for values in accepted_ids.values()),
             "rejected_unique_source_rows": sum(len(values) for values in rejected_ids.values()),
         },
@@ -1261,8 +1371,8 @@ def audit(
         "hashes": hashes,
         "hash_matches_manifest": hash_matches_manifest,
         "contract_matches_manifest": contract_matches_manifest,
-        "full_event_lineage_checks": len(events),
-        "full_rejected_lineage_checks": len(rejected),
+        "full_event_lineage_checks": event_count,
+        "full_rejected_lineage_checks": rejected_count,
         "upstream_raw_equivalence": {
             "lines": len(all_line_numbers),
             "identity_matches": raw_identity_matches,
@@ -1284,6 +1394,10 @@ def audit(
             "blocking_issue_codes": sorted(material_issues),
         },
     }
+    source_id_by_ref.close()
+    records.close()
+    raw_records.close()
+    return result
 
 
 def main() -> int:

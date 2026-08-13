@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 import hashlib
+from itertools import zip_longest
 import json
 from pathlib import Path
 import re
+import sqlite3
 from typing import Any
 
 import pyarrow as pa
@@ -212,6 +214,15 @@ def _add_issue(
         examples[issue].append(example)
 
 
+def _iter_parquet_rows(
+    parquet_file: pq.ParquetFile,
+    *,
+    batch_size: int = 8192,
+):
+    for batch in parquet_file.iter_batches(batch_size=batch_size):
+        yield from batch.to_pylist()
+
+
 def audit(
     cleaned_path: Path,
     term_inventory_path: Path,
@@ -225,113 +236,36 @@ def audit(
     normalized_file = pq.ParquetFile(normalized_path)
     mappings_file = pq.ParquetFile(mappings_path)
     review_file = pq.ParquetFile(review_path)
-    cleaned_table = cleaned_file.read()
-    inventory_table = inventory_file.read()
-    normalized_table = normalized_file.read()
-    mappings_table = mappings_file.read()
-    review_table = review_file.read()
-    cleaned = cleaned_table.to_pylist()
-    inventory = inventory_table.to_pylist()
-    normalized = normalized_table.to_pylist()
-    mappings = mappings_table.to_pylist()
-    review = review_table.to_pylist()
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
     issue_counts: Counter[str] = Counter()
     issue_examples: dict[str, list[str]] = defaultdict(list)
     schema_matches = {
-        "cleaned_events": _arrow_schema_matches(cleaned_table.schema, EVENT_ARROW_SCHEMA),
+        "cleaned_events": _arrow_schema_matches(cleaned_file.schema_arrow, EVENT_ARROW_SCHEMA),
         "term_inventory": _arrow_schema_matches(
-            inventory_table.schema, TERM_INVENTORY_ARROW_SCHEMA
+            inventory_file.schema_arrow, TERM_INVENTORY_ARROW_SCHEMA
         ),
         "normalized_events": _arrow_schema_matches(
-            normalized_table.schema, EVENT_ARROW_SCHEMA
+            normalized_file.schema_arrow, EVENT_ARROW_SCHEMA
         ),
         "normalization_mappings": _arrow_schema_matches(
-            mappings_table.schema, MAPPING_ARROW_SCHEMA
+            mappings_file.schema_arrow, MAPPING_ARROW_SCHEMA
         ),
         "normalization_review_queue": _arrow_schema_matches(
-            review_table.schema, REVIEW_ARROW_SCHEMA
+            review_file.schema_arrow, REVIEW_ARROW_SCHEMA
         ),
     }
     for name, matched in schema_matches.items():
         if not matched:
             _add_issue(issue_counts, issue_examples, "arrow_schema_mismatch", name)
 
-    cleaned_ids = [row.get("event_id") for row in cleaned]
-    normalized_ids = [row.get("event_id") for row in normalized]
-    if len(cleaned_ids) != len(set(cleaned_ids)):
-        _add_issue(
-            issue_counts,
-            issue_examples,
-            "duplicate_cleaned_event_id",
-            "cleaned_events.parquet",
-        )
-    if len(normalized_ids) != len(set(normalized_ids)):
-        _add_issue(
-            issue_counts,
-            issue_examples,
-            "duplicate_normalized_event_id",
-            "normalized_events.parquet",
-        )
-    if cleaned_ids != normalized_ids:
-        _add_issue(
-            issue_counts,
-            issue_examples,
-            "event_id_sequence_mismatch",
-            "normalized_events.parquet",
-        )
-
-    cleaned_by_id = {row["event_id"]: row for row in cleaned}
-    normalized_by_id = {row["event_id"]: row for row in normalized}
     immutable_fields = [
         field for field in EVENT_ARROW_SCHEMA.names if field not in MUTABLE_EVENT_FIELDS
     ]
-    for event_id in sorted(set(cleaned_by_id) | set(normalized_by_id)):
-        source = cleaned_by_id.get(event_id)
-        target = normalized_by_id.get(event_id)
-        if source is None:
-            _add_issue(issue_counts, issue_examples, "normalized_event_extra", event_id)
-            continue
-        if target is None:
-            _add_issue(issue_counts, issue_examples, "normalized_event_missing", event_id)
-            continue
-        if any(source.get(field) is not None for field in MUTABLE_EVENT_FIELDS):
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "cleaned_event_already_normalized",
-                event_id,
-            )
-        changed_fields = [
-            field
-            for field in immutable_fields
-            if source.get(field) != target.get(field)
-        ]
-        if changed_fields:
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "immutable_event_field_changed",
-                f"{event_id}:{','.join(changed_fields)}",
-            )
-        if target.get("normalized_value_numeric") != source.get("value_numeric"):
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "normalized_numeric_value_changed",
-                event_id,
-            )
-        if target.get("normalized_value_text") != source.get("value_text"):
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "normalized_text_value_changed",
-                event_id,
-            )
-
     inventory_by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
-    for row in inventory:
+    inventory_rows = 0
+    for row in _iter_parquet_rows(inventory_file):
+        inventory_rows += 1
         key = _term_key(row)
         if key in inventory_by_key:
             _add_issue(
@@ -344,7 +278,9 @@ def audit(
 
     mappings_by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     mapping_rule_counts: Counter[str] = Counter()
-    for row in mappings:
+    mapping_rows = 0
+    for row in _iter_parquet_rows(mappings_file):
+        mapping_rows += 1
         key = _term_key(row, unit_field="source_unit")
         if key in mappings_by_key:
             _add_issue(
@@ -393,37 +329,6 @@ def audit(
     for key in sorted(set(inventory_by_key) - set(mappings_by_key)):
         _add_issue(issue_counts, issue_examples, "inventory_mapping_missing", repr(key))
 
-    for event_id, target in normalized_by_id.items():
-        source = cleaned_by_id.get(event_id)
-        if source is None:
-            continue
-        mapping = mappings_by_key.get(_term_key(source))
-        if source.get("entity_type") is not None and mapping is None:
-            _add_issue(issue_counts, issue_examples, "event_mapping_missing", event_id)
-            continue
-        expected_term = _expected_term_resolution(source)
-        expected_unit, expected_unit_status = _expected_unit(source.get("unit"))
-        expected_event_fields = {
-            **{
-                field: value
-                for field, value in expected_term.items()
-                if field != "mapping_rule"
-            },
-            "terminology_mapping_version": EXPECTED_MAPPING_VERSION,
-            "normalized_unit": expected_unit,
-            "unit_normalization_status": expected_unit_status,
-        }
-        if any(
-            target.get(field) != value
-            for field, value in expected_event_fields.items()
-        ):
-            _add_issue(
-                issue_counts,
-                issue_examples,
-                "event_mapping_application_mismatch",
-                event_id,
-            )
-
     expected_review: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     for key, mapping in mappings_by_key.items():
         reasons = []
@@ -439,7 +344,9 @@ def audit(
             }
     review_by_key: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     review_reason_counts: Counter[str] = Counter()
-    for row in review:
+    review_rows = 0
+    for row in _iter_parquet_rows(review_file):
+        review_rows += 1
         key = _term_key(row)
         if key in review_by_key:
             _add_issue(issue_counts, issue_examples, "duplicate_review_key", repr(key))
@@ -474,10 +381,135 @@ def audit(
     for key in sorted(set(expected_review) - set(review_by_key)):
         _add_issue(issue_counts, issue_examples, "expected_review_row_missing", repr(key))
 
-    status_counts = Counter(row.get("normalization_status") for row in normalized)
-    unit_status_counts = Counter(
-        row.get("unit_normalization_status") for row in normalized
+    status_counts: Counter[Any] = Counter()
+    unit_status_counts: Counter[Any] = Counter()
+    status_by_source: Counter[tuple[Any, Any]] = Counter()
+    status_by_entity: Counter[tuple[Any, Any]] = Counter()
+    cleaned_rows = normalized_rows = 0
+    event_id_sequence_equal = True
+    identity_db = sqlite3.connect("")
+    identity_db.execute("PRAGMA temp_store=FILE")
+    identity_db.execute(
+        "CREATE TABLE event_ids(dataset TEXT NOT NULL, event_id TEXT NOT NULL, "
+        "PRIMARY KEY(dataset, event_id)) WITHOUT ROWID"
     )
+    for source, target in zip_longest(
+        _iter_parquet_rows(cleaned_file), _iter_parquet_rows(normalized_file)
+    ):
+        if source is None:
+            event_id_sequence_equal = False
+            normalized_rows += 1
+            event_id = str(target.get("event_id"))
+            try:
+                identity_db.execute(
+                    "INSERT INTO event_ids VALUES ('normalized', ?)", (event_id,)
+                )
+            except sqlite3.IntegrityError:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "duplicate_normalized_event_id",
+                    event_id,
+                )
+            status = target.get("normalization_status")
+            unit_status = target.get("unit_normalization_status")
+            status_counts[status] += 1
+            unit_status_counts[unit_status] += 1
+            status_by_source[(target.get("source_table"), status)] += 1
+            status_by_entity[(target.get("entity_type"), status)] += 1
+            _add_issue(issue_counts, issue_examples, "normalized_event_extra", event_id)
+            continue
+        if target is None:
+            event_id_sequence_equal = False
+            cleaned_rows += 1
+            event_id = str(source.get("event_id"))
+            try:
+                identity_db.execute(
+                    "INSERT INTO event_ids VALUES ('cleaned', ?)", (event_id,)
+                )
+            except sqlite3.IntegrityError:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "duplicate_cleaned_event_id",
+                    event_id,
+                )
+            _add_issue(issue_counts, issue_examples, "normalized_event_missing", event_id)
+            continue
+        cleaned_rows += 1
+        normalized_rows += 1
+        event_id = str(source.get("event_id"))
+        for dataset, row in (("cleaned", source), ("normalized", target)):
+            candidate = str(row.get("event_id"))
+            try:
+                identity_db.execute(
+                    "INSERT INTO event_ids VALUES (?, ?)", (dataset, candidate)
+                )
+            except sqlite3.IntegrityError:
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    f"duplicate_{dataset}_event_id",
+                    candidate,
+                )
+        if source.get("event_id") != target.get("event_id"):
+            event_id_sequence_equal = False
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "event_id_sequence_mismatch",
+                f"{source.get('event_id')}!={target.get('event_id')}",
+            )
+        if any(source.get(field) is not None for field in MUTABLE_EVENT_FIELDS):
+            _add_issue(issue_counts, issue_examples, "cleaned_event_already_normalized", event_id)
+        changed_fields = [
+            field for field in immutable_fields if source.get(field) != target.get(field)
+        ]
+        if changed_fields:
+            _add_issue(
+                issue_counts,
+                issue_examples,
+                "immutable_event_field_changed",
+                f"{event_id}:{','.join(changed_fields)}",
+            )
+        if target.get("normalized_value_numeric") != source.get("value_numeric"):
+            _add_issue(issue_counts, issue_examples, "normalized_numeric_value_changed", event_id)
+        if target.get("normalized_value_text") != source.get("value_text"):
+            _add_issue(issue_counts, issue_examples, "normalized_text_value_changed", event_id)
+
+        mapping = mappings_by_key.get(_term_key(source))
+        if source.get("entity_type") is not None and mapping is None:
+            _add_issue(issue_counts, issue_examples, "event_mapping_missing", event_id)
+        else:
+            expected_term = _expected_term_resolution(source)
+            expected_unit, expected_unit_status = _expected_unit(source.get("unit"))
+            expected_event_fields = {
+                **{
+                    field: value
+                    for field, value in expected_term.items()
+                    if field != "mapping_rule"
+                },
+                "terminology_mapping_version": EXPECTED_MAPPING_VERSION,
+                "normalized_unit": expected_unit,
+                "unit_normalization_status": expected_unit_status,
+            }
+            if any(
+                target.get(field) != value
+                for field, value in expected_event_fields.items()
+            ):
+                _add_issue(
+                    issue_counts,
+                    issue_examples,
+                    "event_mapping_application_mismatch",
+                    event_id,
+                )
+        status = target.get("normalization_status")
+        unit_status = target.get("unit_normalization_status")
+        status_counts[status] += 1
+        unit_status_counts[unit_status] += 1
+        status_by_source[(target.get("source_table"), status)] += 1
+        status_by_entity[(target.get("entity_type"), status)] += 1
+    identity_db.close()
     hashes = {
         "cleaned_events.parquet": _sha256(cleaned_path),
         "term_inventory.parquet": _sha256(term_inventory_path),
@@ -498,11 +530,11 @@ def audit(
             "term_inventory_sha256"
         )
         == hashes["term_inventory.parquet"],
-        "events": manifest.get("counts", {}).get("events") == len(normalized),
+        "events": manifest.get("counts", {}).get("events") == normalized_rows,
         "mapping_rows": manifest.get("counts", {}).get("mapping_rows")
-        == len(mappings),
+        == mapping_rows,
         "review_queue_rows": manifest.get("counts", {}).get("review_queue_rows")
-        == len(review),
+        == review_rows,
         "normalization_status_counts": manifest.get("normalization_status_counts")
         == dict(sorted(status_counts.items())),
         "unit_normalization_status_counts": manifest.get(
@@ -523,14 +555,6 @@ def audit(
             _add_issue(issue_counts, issue_examples, "manifest_contract_mismatch", name)
 
     material_issues = {key: value for key, value in issue_counts.items() if value}
-    status_by_source = Counter(
-        (row.get("source_table"), row.get("normalization_status"))
-        for row in normalized
-    )
-    status_by_entity = Counter(
-        (row.get("entity_type"), row.get("normalization_status"))
-        for row in normalized
-    )
     return {
         "audit_schema": "normalized_events_acceptance_audit/1.0.0",
         "inputs": {
@@ -542,18 +566,18 @@ def audit(
             "normalization_manifest": str(manifest_path),
         },
         "rows": {
-            "cleaned_events": len(cleaned),
-            "term_inventory": len(inventory),
-            "normalized_events": len(normalized),
-            "normalization_mappings": len(mappings),
-            "normalization_review_queue": len(review),
+            "cleaned_events": cleaned_rows,
+            "term_inventory": inventory_rows,
+            "normalized_events": normalized_rows,
+            "normalization_mappings": mapping_rows,
+            "normalization_review_queue": review_rows,
         },
         "hashes": hashes,
         "schema_matches": schema_matches,
         "manifest_contract": manifest_contract,
         "event_invariants": {
-            "same_row_count": len(cleaned) == len(normalized),
-            "event_id_sequence_equal": cleaned_ids == normalized_ids,
+            "same_row_count": cleaned_rows == normalized_rows,
+            "event_id_sequence_equal": event_id_sequence_equal,
             "immutable_fields_checked": immutable_fields,
             "mutable_fields_allowed": sorted(MUTABLE_EVENT_FIELDS),
         },
