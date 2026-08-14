@@ -5,8 +5,10 @@ import importlib
 import inspect
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
+from unittest import mock
 
 import pyarrow as pa
 import pyarrow.parquet as pq
@@ -16,6 +18,7 @@ from data_pipeline.event_pipeline import (
     EventWorkflowError,
     run_cleaning,
     run_normalization,
+    resume_workflow,
     run_workflow,
 )
 from data_pipeline.event_pipeline.event_contracts.schemas import (
@@ -42,6 +45,33 @@ from data_pipeline.event_pipeline.event_viewer.app import CleaningViewerStore
 
 
 class EventPipelineTest(unittest.TestCase):
+    def test_cleanup_failure_does_not_mask_primary_workflow_error(self) -> None:
+        workflow_module = importlib.import_module(
+            "data_pipeline.event_pipeline.workflow"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            temporary = root / ".event.tmp-test"
+            temporary.mkdir()
+            primary = ValueError("primary audit failure")
+            with mock.patch.object(
+                workflow_module,
+                "_remove_temporary",
+                side_effect=PermissionError("locked parquet"),
+            ):
+                workflow_module._cleanup_without_masking(
+                    temporary,
+                    root,
+                    primary,
+                )
+            self.assertEqual(str(primary), "primary audit failure")
+            self.assertTrue(
+                any(
+                    "locked parquet" in note
+                    for note in getattr(primary, "__notes__", [])
+                )
+            )
+
     def test_acceptance_audits_stream_large_inputs(self) -> None:
         audit_cleaning_module = importlib.import_module(
             "data_pipeline.event_pipeline.event_quality.audit_cleaning"
@@ -49,12 +79,13 @@ class EventPipelineTest(unittest.TestCase):
         audit_normalization_module = importlib.import_module(
             "data_pipeline.event_pipeline.event_quality.audit_normalization"
         )
-        cleaning_source = inspect.getsource(audit_cleaning_module.audit)
+        cleaning_source = inspect.getsource(audit_cleaning_module)
         normalization_source = inspect.getsource(audit_normalization_module.audit)
         self.assertNotIn(".read()", cleaning_source)
         self.assertNotIn(".read()", normalization_source)
         self.assertIn("_iter_parquet_rows", cleaning_source)
         self.assertIn("_JsonlRecordStore", inspect.getsource(audit_cleaning_module))
+        self.assertNotIn("sqlite3.connect", cleaning_source)
         self.assertIn("_iter_parquet_rows", normalization_source)
         self.assertIn("sqlite3.connect", normalization_source)
 
@@ -383,6 +414,99 @@ class EventPipelineTest(unittest.TestCase):
                 replay_batch_size=2,
             )
             self.assertEqual(second_manifest, manifest)
+
+    def test_resume_verifies_cleaning_checkpoint_and_does_not_rerun_it(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            enriched = self._record()
+            raw = deepcopy(enriched)
+
+            def without_enrichment(value):
+                if isinstance(value, dict):
+                    return {
+                        key: without_enrichment(item)
+                        for key, item in value.items()
+                        if not key.endswith("_decoded") and key != "poe_timeline"
+                    }
+                if isinstance(value, list):
+                    return [without_enrichment(item) for item in value]
+                return value
+
+            raw = without_enrichment(raw)
+            source_schema = deepcopy(enriched["schema"])
+            enriched = {
+                "schema": {
+                    "name": "mimic_admission_clinical_readable",
+                    "version": "1.0.0",
+                },
+                "source_schema": source_schema,
+                **{key: value for key, value in enriched.items() if key != "schema"},
+            }
+            source = self._write_source(root, enriched)
+            raw_path = root / "raw.jsonl"
+            raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+
+            first_output = root / "first-output"
+            expected = run_workflow(
+                source,
+                raw_path,
+                first_output,
+                batch_size=3,
+                replay_batch_size=2,
+            )
+            output = root / "resumed-output"
+            staging = root / ".resumed-output.tmp-checkpoint"
+            staging.mkdir()
+            shutil.move(str(first_output / "cleaning"), str(staging / "cleaning"))
+            bad_output = root / "bad-output"
+            bad_staging = root / ".bad-output.tmp-checkpoint"
+            shutil.copytree(staging / "cleaning", bad_staging / "cleaning")
+            shutil.rmtree(first_output)
+
+            reconciliation = bad_staging / "cleaning" / "source_reconciliation.json"
+            reconciliation.write_text(
+                reconciliation.read_text(encoding="utf-8") + " ",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                EventWorkflowError, "artifact hash mismatch"
+            ):
+                resume_workflow(
+                    bad_staging,
+                    source,
+                    raw_path,
+                    bad_output,
+                    batch_size=3,
+                    replay_batch_size=2,
+                )
+            self.assertTrue(bad_staging.is_dir())
+            self.assertFalse(bad_output.exists())
+
+            workflow_module = importlib.import_module(
+                "data_pipeline.event_pipeline.workflow"
+            )
+            with mock.patch.object(
+                workflow_module,
+                "run_cleaning",
+                wraps=workflow_module.run_cleaning,
+            ) as cleaning_mock:
+                actual = resume_workflow(
+                    staging,
+                    source,
+                    raw_path,
+                    output,
+                    batch_size=3,
+                    replay_batch_size=2,
+                    work_directory=root / "audit-work",
+                )
+            self.assertEqual(actual, expected)
+            self.assertEqual(cleaning_mock.call_count, 1)
+            self.assertEqual(
+                cleaning_mock.call_args.kwargs["batch_size"],
+                2,
+            )
+            self.assertFalse(staging.exists())
+            self.assertTrue((output / "workflow_manifest.json").is_file())
 
     def test_single_workflow_does_not_publish_after_cleaning_audit_failure(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

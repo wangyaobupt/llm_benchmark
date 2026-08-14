@@ -6,21 +6,20 @@ not call the event transformers, normalization code, or an external model.
 
 from __future__ import annotations
 
-from collections import Counter, OrderedDict, defaultdict
+from collections import Counter, defaultdict
 import argparse
+from contextlib import ExitStack
 from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
 import random
 import re
-import sqlite3
 from typing import Any
 
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from ..event_cleaning.ids import build_source_row_id, canonical_json
 from ..event_cleaning.pipeline import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA
 from ..event_contracts.schemas import (
     ENCOUNTER_ARROW_SCHEMA,
@@ -34,6 +33,11 @@ from ..event_cleaning.source_catalog import (
     SOURCE_CATALOG,
     SOURCE_CATALOG_SHA256,
     SOURCE_CATALOG_VERSION,
+)
+from .audit_storage import (
+    AuditIndex,
+    JsonlRecordStore as _JsonlRecordStore,
+    SourceIdentityResolver as _SourceIdentityStore,
 )
 
 
@@ -135,94 +139,6 @@ def _decoded_label(row: dict[str, Any], field: str = "itemid_decoded") -> str | 
     return None
 
 
-class _JsonlRecordStore:
-    """Disk-backed line-number index for admission JSONL audit inputs."""
-
-    def __init__(self, path: Path):
-        self._connection = sqlite3.connect("")
-        self._connection.execute("PRAGMA temp_store=FILE")
-        self._connection.execute(
-            "CREATE TABLE records(line_number INTEGER PRIMARY KEY, payload BLOB NOT NULL)"
-        )
-        self._cache: OrderedDict[int, dict[str, Any]] = OrderedDict()
-        pending: list[tuple[int, bytes]] = []
-        with path.open("rb") as handle:
-            for line_number, raw_line in enumerate(handle, 1):
-                if not raw_line.strip():
-                    continue
-                json.loads(raw_line)
-                pending.append((line_number, raw_line))
-                if len(pending) >= 1000:
-                    self._connection.executemany(
-                        "INSERT INTO records VALUES (?, ?)", pending
-                    )
-                    pending.clear()
-        if pending:
-            self._connection.executemany("INSERT INTO records VALUES (?, ?)", pending)
-        self._connection.commit()
-
-    def get(self, line_number: int, default: Any = None) -> Any:
-        if line_number in self._cache:
-            value = self._cache.pop(line_number)
-            self._cache[line_number] = value
-            return value
-        row = self._connection.execute(
-            "SELECT payload FROM records WHERE line_number=?", (line_number,)
-        ).fetchone()
-        if row is None:
-            return default
-        value = json.loads(row[0])
-        self._cache[line_number] = value
-        if len(self._cache) > 8:
-            self._cache.popitem(last=False)
-        return value
-
-    def items(self):
-        for line_number, payload in self._connection.execute(
-            "SELECT line_number, payload FROM records ORDER BY line_number"
-        ):
-            yield int(line_number), json.loads(payload)
-
-    def __iter__(self):
-        for (line_number,) in self._connection.execute(
-            "SELECT line_number FROM records ORDER BY line_number"
-        ):
-            yield int(line_number)
-
-    def __len__(self) -> int:
-        return int(self._connection.execute("SELECT count(*) FROM records").fetchone()[0])
-
-    def close(self) -> None:
-        self._connection.close()
-
-
-class _SourceIdentityStore:
-    def __init__(self):
-        self._connection = sqlite3.connect("")
-        self._connection.execute("PRAGMA temp_store=FILE")
-        self._connection.execute(
-            "CREATE TABLE identities(raw_ref TEXT PRIMARY KEY, source_id TEXT NOT NULL)"
-        )
-
-    def add_many(self, rows: list[tuple[str, str]]) -> None:
-        self._connection.executemany("INSERT INTO identities VALUES (?, ?)", rows)
-
-    def get(self, raw_ref: str, default: Any = None) -> Any:
-        row = self._connection.execute(
-            "SELECT source_id FROM identities WHERE raw_ref=?", (raw_ref,)
-        ).fetchone()
-        return row[0] if row is not None else default
-
-    def __getitem__(self, raw_ref: str) -> str:
-        value = self.get(raw_ref)
-        if value is None:
-            raise KeyError(raw_ref)
-        return str(value)
-
-    def close(self) -> None:
-        self._connection.close()
-
-
 def _read_jsonl(path: Path) -> _JsonlRecordStore:
     return _JsonlRecordStore(path)
 
@@ -231,34 +147,7 @@ def _source_identity_index(
     records: _JsonlRecordStore,
     input_name: str,
 ) -> _SourceIdentityStore:
-    source_id_by_ref = _SourceIdentityStore()
-    pending: list[tuple[str, str]] = []
-    for line_number, admission in records.items():
-        for spec in SOURCE_CATALOG:
-            occurrences: Counter[str] = Counter()
-            rows = admission[spec.module][spec.table]
-            for index, row in enumerate(rows):
-                ordinal = 0
-                if spec.identity_strategy == "canonical_row_hash_with_occurrence":
-                    identity = canonical_json(row)
-                    ordinal = occurrences[identity]
-                    occurrences[identity] += 1
-                source_id = build_source_row_id(
-                    spec,
-                    row,
-                    duplicate_occurrence_ordinal=ordinal,
-                )
-                raw_ref = (
-                    f"{input_name}#L{line_number}/"
-                    f"{spec.module}.{spec.table}[{index}]"
-                )
-                pending.append((raw_ref, source_id))
-                if len(pending) >= 5000:
-                    source_id_by_ref.add_many(pending)
-                    pending.clear()
-    if pending:
-        source_id_by_ref.add_many(pending)
-    return source_id_by_ref
+    return _SourceIdentityStore(records, input_name, RAW_REF_RE)
 
 
 def _without_enrichment(value: Any) -> Any:
@@ -624,7 +513,7 @@ def _arrow_schema_matches(actual: pa.Schema, expected: pa.Schema) -> bool:
     )
 
 
-def audit(
+def _audit(
     cleaned_path: Path,
     rejected_path: Path,
     source_path: Path,
@@ -632,16 +521,26 @@ def audit(
     reconciliation_path: Path,
     manifest_path: Path,
     *,
+    resources: ExitStack,
+    work_directory: Path | None,
     sample_seed: int = 20260812,
     samples_per_table: int = 3,
 ) -> dict[str, Any]:
     cleaned_file = pq.ParquetFile(cleaned_path)
+    resources.callback(cleaned_file.close)
     rejected_file = pq.ParquetFile(rejected_path)
+    resources.callback(rejected_file.close)
     encounter_path = manifest_path.parent / "encounter_manifest.parquet"
     encounter_file = pq.ParquetFile(encounter_path)
+    resources.callback(encounter_file.close)
     records = _read_jsonl(source_path)
+    resources.callback(records.close)
     raw_records = _read_jsonl(raw_source_path)
+    resources.callback(raw_records.close)
     source_id_by_ref = _source_identity_index(records, source_path.name)
+    resources.callback(source_id_by_ref.close)
+    audit_index = AuditIndex(work_directory)
+    resources.callback(audit_index.close)
     reconciliation = json.loads(reconciliation_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
@@ -694,14 +593,9 @@ def audit(
             "rejected_schema_field_missing",
             field,
         )
-    event_ids: set[str] = set()
     event_id_nulls = 0
-    duplicate_event_ids = 0
     event_count = 0
     rejected_count = 0
-    accepted_ids: dict[str, set[str]] = defaultdict(set)
-    rejected_ids: dict[str, set[str]] = defaultdict(set)
-    source_event_counts: Counter[tuple[str, str]] = Counter()
     table_kind_counts: Counter[tuple[str, str]] = Counter()
     table_time_counts: dict[str, Counter[str]] = defaultdict(Counter)
     table_phase_counts: Counter[tuple[str, str]] = Counter()
@@ -709,17 +603,12 @@ def audit(
     rng = random.Random(sample_seed)
     table_seen: Counter[str] = Counter()
     table_samples: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    linked_support_ids: dict[str, set[str]] = defaultdict(set)
 
     for event in _iter_parquet_rows(cleaned_file):
         event_count += 1
         candidate_event_id = event.get("event_id")
         if candidate_event_id is None:
             event_id_nulls += 1
-        elif candidate_event_id in event_ids:
-            duplicate_event_ids += 1
-        else:
-            event_ids.add(candidate_event_id)
         if not event_structure_valid:
             continue
         event_id = event["event_id"]
@@ -741,8 +630,7 @@ def audit(
                 sample[replacement] = sample_row
         table_kind_counts[(source_table, event["event_kind"])] += 1
         table_phase_counts[(source_table, event["evidence_phase"])] += 1
-        accepted_ids[source_table].add(event["source_row_id"])
-        source_event_counts[(source_table, event["source_row_id"])] += 1
+        audit_index.add_event(event_id, source_table, event["source_row_id"])
         for field in ("event_time", "available_time", "recorded_time"):
             table_time_counts[source_table][f"{field}_null"] += int(event[field] is None)
         if event.get("schema_version") != OUTPUT_SCHEMA["version"]:
@@ -840,7 +728,7 @@ def audit(
                     event_id,
                 )
             elif support_spec.role == "support":
-                linked_support_ids[support_spec.source_table].add(support_id)
+                audit_index.add_support(support_spec.source_table, support_id)
                 if support_spec.fact_owner != source_table:
                     _add_issue(
                         issue_counts,
@@ -942,8 +830,6 @@ def audit(
         elif source_table == "note.discharge" and event["value_text"] is not None:
             _add_issue(issue_counts, issue_examples, "discharge_text_copied_to_event", event_id)
 
-    if duplicate_event_ids:
-        issue_counts["duplicate_event_id"] = duplicate_event_ids
     issue_counts["null_event_id"] = event_id_nulls
 
     for row in _iter_parquet_rows(rejected_file):
@@ -951,7 +837,7 @@ def audit(
         if not rejected_structure_valid:
             continue
         source_table = row["source_table"]
-        rejected_ids[source_table].add(row["source_row_id"])
+        audit_index.add_rejected(source_table, row["source_row_id"])
         if row.get("cleaning_status") != "rejected":
             _add_issue(
                 issue_counts,
@@ -976,7 +862,6 @@ def audit(
         if row["reason_code"] != expected_reason:
             _add_issue(issue_counts, issue_examples, "rejected_reason_not_reproduced", row["source_row_id"])
 
-    raw_ids: dict[str, set[str]] = defaultdict(set)
     expected_source_counts: Counter[str] = Counter()
     for line_number, admission in records.items():
         for spec in SOURCE_CATALOG:
@@ -987,30 +872,38 @@ def audit(
                     f"{spec.module}.{spec.table}[{array_index}]"
                 )
                 source_id = source_id_by_ref[raw_ref]
-                raw_ids[spec.source_table].add(source_id)
                 expected_source_counts[spec.source_table] += 1
-                if spec.role == "event":
-                    classified = int(source_id in accepted_ids[spec.source_table]) + int(source_id in rejected_ids[spec.source_table])
-                    if classified != 1:
-                        _add_issue(issue_counts, issue_examples, "source_row_classification_mismatch", f"{spec.source_table}:{source_id}")
-                elif spec.role == "support" and source_id not in linked_support_ids[spec.source_table]:
-                    _add_issue(
-                        issue_counts,
-                        issue_examples,
-                        "supporting_source_row_unlinked",
-                        f"{spec.source_table}:{source_id}",
-                    )
-                if spec.role == "event" and source_id in accepted_ids[spec.source_table]:
-                    expected_events = _expected_event_count(spec.source_table, raw)
-                    actual_events = source_event_counts[(spec.source_table, source_id)]
-                    if actual_events != expected_events:
-                        _add_issue(issue_counts, issue_examples, "source_row_event_count_mismatch", f"{spec.source_table}:{source_id}")
+                expected_events = (
+                    _expected_event_count(spec.source_table, raw)
+                    if spec.role == "event"
+                    else 0
+                )
+                audit_index.add_source(
+                    spec.source_table,
+                    source_id,
+                    spec.role,
+                    expected_events,
+                )
+
+    index_stats = audit_index.analyze()
+    duplicate_event_ids = index_stats["duplicate_event_ids"]
+    if duplicate_event_ids:
+        issue_counts["duplicate_event_id"] = duplicate_event_ids
+        issue_examples["duplicate_event_id"].extend(
+            index_stats["duplicate_event_examples"]
+        )
+    for issue_code, (count, examples) in index_stats["issues"].items():
+        if count:
+            issue_counts[issue_code] = count
+            issue_examples[issue_code].extend(examples)
+    by_table = index_stats["by_table"]
 
     reconciliation_differences: list[dict[str, Any]] = []
     reconciliation_by_table = {row["source_table"]: row for row in reconciliation["tables"]}
     for spec in SOURCE_CATALOG:
         source_table = spec.source_table
-        linked = len(raw_ids[source_table] & linked_support_ids[source_table])
+        table_stats = by_table[source_table]
+        linked = table_stats["linked_source_rows"]
         observed = {
             "source_module": spec.module,
             "source_table": source_table,
@@ -1019,15 +912,15 @@ def audit(
             "fact_owner": spec.fact_owner,
             "input_rows": expected_source_counts[source_table],
             "classified_source_rows": expected_source_counts[source_table],
-            "accepted_source_rows": len(accepted_ids[source_table]),
-            "rejected_source_rows": len(rejected_ids[source_table]),
+            "accepted_source_rows": table_stats["accepted_source_rows"],
+            "rejected_source_rows": table_stats["rejected_source_rows"],
             "linked_source_rows": linked if spec.role == "support" else 0,
             "unlinked_source_rows": (
                 expected_source_counts[source_table] - linked
                 if spec.role == "support"
                 else 0
             ),
-            "events": sum(count for (table, _), count in table_kind_counts.items() if table == source_table),
+            "events": table_stats["events"],
         }
         declared_row = reconciliation_by_table.get(source_table)
         if declared_row is None:
@@ -1076,7 +969,7 @@ def audit(
         }
     )
     linked_support_total = sum(
-        len(raw_ids[spec.source_table] & linked_support_ids[spec.source_table])
+        by_table[spec.source_table]["linked_source_rows"]
         for spec in SOURCE_CATALOG
         if spec.role == "support"
     )
@@ -1198,7 +1091,8 @@ def audit(
     source_reconciliation = []
     for spec in SOURCE_CATALOG:
         table = spec.source_table
-        linked = len(raw_ids[table] & linked_support_ids[table])
+        table_stats = by_table[table]
+        linked = table_stats["linked_source_rows"]
         source_reconciliation.append(
             {
                 "source_module": spec.module,
@@ -1208,18 +1102,19 @@ def audit(
                 "fact_owner": spec.fact_owner,
                 "input_rows": expected_source_counts[table],
                 "classified_source_rows": expected_source_counts[table],
-                "accepted_source_rows": len(accepted_ids[table]),
-                "rejected_source_rows": len(rejected_ids[table]),
+                "accepted_source_rows": table_stats["accepted_source_rows"],
+                "rejected_source_rows": table_stats["rejected_source_rows"],
                 "linked_source_rows": linked if spec.role == "support" else 0,
                 "unlinked_source_rows": (
                     expected_source_counts[table] - linked
                     if spec.role == "support"
                     else 0
                 ),
-                "events": sum(value for (name, _), value in table_kind_counts.items() if name == table),
+                "events": table_stats["events"],
                 "balanced": (
                     expected_source_counts[table]
-                    == len(accepted_ids[table]) + len(rejected_ids[table])
+                    == table_stats["accepted_source_rows"]
+                    + table_stats["rejected_source_rows"]
                     if spec.role == "event"
                     else expected_source_counts[table]
                     == (linked + expected_source_counts[table] - linked)
@@ -1356,8 +1251,12 @@ def audit(
             "event_rows": event_count,
             "event_id_unique": duplicate_event_ids == 0,
             "event_id_nulls": event_id_nulls,
-            "accepted_unique_source_rows": sum(len(values) for values in accepted_ids.values()),
-            "rejected_unique_source_rows": sum(len(values) for values in rejected_ids.values()),
+            "accepted_unique_source_rows": index_stats[
+                "accepted_unique_source_rows"
+            ],
+            "rejected_unique_source_rows": index_stats[
+                "rejected_unique_source_rows"
+            ],
         },
         "event_distribution": event_distribution,
         "evidence_phase_distribution": [
@@ -1394,10 +1293,36 @@ def audit(
             "blocking_issue_codes": sorted(material_issues),
         },
     }
-    source_id_by_ref.close()
-    records.close()
-    raw_records.close()
     return result
+
+
+def audit(
+    cleaned_path: Path,
+    rejected_path: Path,
+    source_path: Path,
+    raw_source_path: Path,
+    reconciliation_path: Path,
+    manifest_path: Path,
+    *,
+    work_directory: Path | None = None,
+    sample_seed: int = 20260812,
+    samples_per_table: int = 3,
+) -> dict[str, Any]:
+    """Audit a cleaning batch while closing every file and disk index reliably."""
+
+    with ExitStack() as resources:
+        return _audit(
+            cleaned_path,
+            rejected_path,
+            source_path,
+            raw_source_path,
+            reconciliation_path,
+            manifest_path,
+            resources=resources,
+            work_directory=work_directory,
+            sample_seed=sample_seed,
+            samples_per_table=samples_per_table,
+        )
 
 
 def main() -> int:
@@ -1409,6 +1334,7 @@ def main() -> int:
     parser.add_argument("--reconciliation", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output-json", type=Path, required=True)
+    parser.add_argument("--work-dir", type=Path)
     args = parser.parse_args()
     result = audit(
         args.cleaned.resolve(),
@@ -1417,6 +1343,7 @@ def main() -> int:
         args.raw_source_jsonl.resolve(),
         args.reconciliation.resolve(),
         args.manifest.resolve(),
+        work_directory=args.work_dir.resolve() if args.work_dir else None,
     )
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     args.output_json.write_text(

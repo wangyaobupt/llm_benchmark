@@ -218,6 +218,12 @@ def render_monitor(state: dict[str, Any]) -> str:
         if error
         else ""
     )
+    stale_html = (
+        '<div id="stale">状态超过 60 秒未更新。后台编排器可能已经停止，'
+        "请展开技术详情检查日志。</div>"
+        if status in {"starting", "running"}
+        else ""
+    )
     updated_at = html.escape(str(state.get("updated_at", "")))
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -258,7 +264,7 @@ ul {{ padding-left:20px; }} .error {{ border-color:#f4b8b2; }} #stale {{ display
     <p>当前阶段没有可靠分母时，不显示推测百分比。</p>
     <div class="action">{html.escape(action)}</div>
   </div>
-  <div id="stale">状态超过 60 秒未更新。后台编排器可能已经停止，请展开技术详情检查日志。</div>
+  {stale_html}
   <section><h2>处理流程</h2><div class="timeline">{timeline_html}</div><div class="uncertain">正在运行的步骤以蓝色标记；绿色仅表示对应产物已经落盘。</div></section>
   <div class="metrics">
     <div class="metric"><div class="label">已完成住院记录</div><div class="value">{admissions_text}</div></div>
@@ -277,7 +283,8 @@ ul {{ padding-left:20px; }} .error {{ border-color:#f4b8b2; }} #stale {{ display
 </main>
 <script>
 const stamp = Date.parse(document.body.dataset.updatedAt);
-if (!Number.isNaN(stamp) && Date.now() - stamp > 60000) document.getElementById('stale').style.display='block';
+const stale = document.getElementById('stale');
+if (stale && !Number.isNaN(stamp) && Date.now() - stamp > 60000) stale.style.display='block';
 </script>
 </body>
 </html>

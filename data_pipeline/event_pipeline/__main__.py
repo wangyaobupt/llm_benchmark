@@ -13,7 +13,7 @@ from .event_quality.consolidate_review import consolidate_review_packages
 from .event_quality.review_normalization import generate_review_package
 from .event_viewer import app as viewer
 from .event_viewer import review_app as review_ui
-from .workflow import run_workflow
+from .workflow import resume_workflow, run_workflow
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -32,6 +32,20 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--batch-size", type=int, default=5000)
     run.add_argument("--replay-batch-size", type=int, default=777)
     run.add_argument("--limit", type=int)
+    run.add_argument("--work-dir", type=Path)
+
+    resume = subparsers.add_parser(
+        "resume",
+        help="Verify and resume from a completed cleaning staging directory",
+    )
+    resume.add_argument("staging_directory", type=Path)
+    resume.add_argument("source_jsonl", type=Path)
+    resume.add_argument("--raw-source-jsonl", type=Path, required=True)
+    resume.add_argument("--output-dir", type=Path, required=True)
+    resume.add_argument("--batch-size", type=int, default=5000)
+    resume.add_argument("--replay-batch-size", type=int, default=777)
+    resume.add_argument("--limit", type=int)
+    resume.add_argument("--work-dir", type=Path)
 
     clean = subparsers.add_parser("clean", help="Run only structured event cleaning")
     clean.add_argument("source_jsonl", type=Path)
@@ -95,6 +109,20 @@ def main() -> None:
             batch_size=args.batch_size,
             replay_batch_size=args.replay_batch_size,
             limit=args.limit,
+            work_directory=args.work_dir,
+        )
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return
+    if args.command == "resume":
+        result = resume_workflow(
+            args.staging_directory,
+            args.source_jsonl,
+            args.raw_source_jsonl,
+            args.output_dir,
+            batch_size=args.batch_size,
+            replay_batch_size=args.replay_batch_size,
+            limit=args.limit,
+            work_directory=args.work_dir,
         )
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return

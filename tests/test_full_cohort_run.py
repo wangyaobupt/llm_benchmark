@@ -13,9 +13,25 @@ from data_pipeline.full_cohort_run import (
     validate_targets,
 )
 from data_pipeline.full_cohort_dashboard import enrich_state, render_once
+from data_pipeline.full_cohort_resume import build_resume_command
 
 
 class FullCohortRunTest(unittest.TestCase):
+    def test_resume_command_uses_verified_checkpoint_and_explicit_work_dir(self) -> None:
+        command = build_resume_command(
+            Path("python.exe"),
+            Path(".event.tmp-checkpoint"),
+            Path("readable.jsonl"),
+            Path("raw.jsonl"),
+            Path("event"),
+            Path(r"D:\Cache\Codex\llm_benchmark\event-audit"),
+            batch_size=5000,
+            replay_batch_size=777,
+        )
+        self.assertEqual(command[1:4], ["-m", "data_pipeline.event_pipeline", "resume"])
+        self.assertIn("--work-dir", command)
+        self.assertIn(r"D:\Cache\Codex\llm_benchmark\event-audit", command)
+
     def test_commands_call_existing_pipeline_entry_points(self) -> None:
         commands = build_commands(
             Path("python.exe"),
@@ -79,6 +95,17 @@ class FullCohortRunTest(unittest.TestCase):
         self.assertIn("处理流程", rendered)
         self.assertIn("无需操作，任务正在后台继续", rendered)
         self.assertIn("技术详情", rendered)
+
+        failed = render_monitor(
+            {
+                "status": "failed",
+                "stage": "event_pipeline",
+                "updated_at": "2026-08-14T12:00:00+08:00",
+                "runtime": {},
+                "error": "exit code 1",
+            }
+        )
+        self.assertNotIn("状态超过 60 秒未更新", failed)
 
     def test_existing_target_is_rejected_without_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

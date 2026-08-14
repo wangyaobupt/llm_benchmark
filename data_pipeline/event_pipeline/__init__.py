@@ -3,7 +3,7 @@
 from .event_cleaning import CLEANING_LOGIC_VERSION, OUTPUT_SCHEMA, EventPipelineError
 from .event_cleaning import run_cleaning as run_cleaning
 from .event_normalization import run_normalization as run_normalization
-from .workflow import EventWorkflowError, WORKFLOW_VERSION, run_workflow
+from .workflow import EventWorkflowError, WORKFLOW_VERSION, resume_workflow, run_workflow
 
 __all__ = [
     "CLEANING_LOGIC_VERSION",
@@ -13,5 +13,6 @@ __all__ = [
     "WORKFLOW_VERSION",
     "run_cleaning",
     "run_normalization",
+    "resume_workflow",
     "run_workflow",
 ]
