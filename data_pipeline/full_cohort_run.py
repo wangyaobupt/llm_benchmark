@@ -103,6 +103,17 @@ def collect_runtime(
     partial_output = readable_output.with_suffix(readable_output.suffix + ".partial")
     event_detail, event_artifacts = _event_stage(event_output)
     disk = shutil.disk_usage(event_output.parent)
+    clinical_metrics: dict[str, Any] = {}
+    if report_path.is_file():
+        try:
+            report = json.loads(report_path.read_text(encoding="utf-8"))
+            clinical_metrics = {
+                "admissions": report.get("admissions"),
+                "decoded_total": report.get("dictionary_decoded_total"),
+                "poe_events": report.get("poe_events"),
+            }
+        except (OSError, json.JSONDecodeError):
+            clinical_metrics = {}
     return {
         "input_bytes": _file_size(input_path),
         "readable_partial_bytes": _file_size(partial_output),
@@ -112,9 +123,51 @@ def collect_runtime(
         "event_detail": event_detail,
         "event_artifacts": event_artifacts,
         "disk_free_bytes": disk.free,
+        "clinical_metrics": clinical_metrics,
         "active_log": str(active_log) if active_log else None,
         "log_tail": _tail(active_log) if active_log else "尚未进入执行阶段。",
     }
+
+
+def _timeline(state: dict[str, Any]) -> list[tuple[str, str, str]]:
+    runtime = state.get("runtime", {})
+    artifacts = set(runtime.get("event_artifacts") or [])
+    published = bool(runtime.get("event_output_exists")) or state.get("status") == "succeeded"
+    clinical_done = runtime.get("readable_output_bytes") is not None
+    cleaning_done = "cleaning/run_manifest.json" in artifacts
+    normalization_done = "normalization/normalization_manifest.json" in artifacts
+    replay_done = ".replay/normalization/normalization_manifest.json" in artifacts
+
+    if published:
+        current = 5
+    elif replay_done:
+        current = 3
+    elif normalization_done:
+        current = 3
+    elif cleaning_done:
+        current = 2
+    elif clinical_done:
+        current = 1
+    else:
+        current = 0
+
+    definitions = (
+        ("临床可读归档", "字典解码与 POE 解析"),
+        ("Event cleaning", "结构化事件与来源对账"),
+        ("审计与归一化", "Cleaning 门禁及确定性归一化"),
+        ("复跑与复现比较", "不同批大小重新运行并核对哈希"),
+        ("原子发布", "全部门禁通过后发布正式目录"),
+    )
+    result: list[tuple[str, str, str]] = []
+    for index, (label, detail) in enumerate(definitions):
+        if published or index < current:
+            item_status = "done"
+        elif index == current:
+            item_status = "failed" if state.get("status") == "failed" else "active"
+        else:
+            item_status = "pending"
+        result.append((label, detail, item_status))
+    return result
 
 
 def render_monitor(state: dict[str, Any]) -> str:
@@ -131,6 +184,30 @@ def render_monitor(state: dict[str, Any]) -> str:
         "succeeded": "success",
         "failed": "failed",
     }.get(status, "starting")
+    headline = {
+        "clinical_readable": "正在生成临床可读 JSONL",
+        "event_pipeline": str(runtime.get("event_detail") or "正在运行 Event 工作流"),
+        "completed": "全流程已完成并通过门禁",
+    }.get(str(state.get("stage")), str(state.get("stage", "正在准备")))
+    if status == "failed":
+        headline = "流水线已停止，请查看失败原因"
+    action = (
+        "无需操作，任务正在后台继续。"
+        if status in {"starting", "running"}
+        else "所有自动门禁均已通过，正式结果已经发布。"
+        if status == "succeeded"
+        else "需要检查失败原因；系统不会自动绕过门禁或重试。"
+    )
+    timeline_html = "".join(
+        f'<div class="step {item_status}"><div class="marker">'
+        f'{"✓" if item_status == "done" else "!" if item_status == "failed" else index + 1}'
+        f'</div><div><strong>{html.escape(label)}</strong>'
+        f'<span>{html.escape(detail)}</span></div></div>'
+        for index, (label, detail, item_status) in enumerate(_timeline(state))
+    )
+    clinical_metrics = runtime.get("clinical_metrics") or {}
+    admissions = clinical_metrics.get("admissions")
+    admissions_text = f"{int(admissions):,}" if admissions is not None else "—"
     artifacts = runtime.get("event_artifacts") or []
     artifact_html = "".join(
         f"<li><code>{html.escape(str(item))}</code></li>" for item in artifacts
@@ -150,34 +227,52 @@ def render_monitor(state: dict[str, Any]) -> str:
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MIMIC 冠脉全队列清洗监控</title>
 <style>
-:root {{ color-scheme: light; --ink:#13231f; --muted:#60706b; --paper:#f3f7f5; --card:#fff; --line:#d8e3df; --accent:#087f5b; --danger:#b42318; }}
+:root {{ color-scheme:light; --ink:#17211e; --muted:#64736e; --paper:#f5f7f6; --card:#fff; --line:#dfe7e3; --green:#087f5b; --blue:#2563eb; --red:#b42318; }}
 * {{ box-sizing:border-box; }} body {{ margin:0; background:var(--paper); color:var(--ink); font:15px/1.55 "Segoe UI","Microsoft YaHei",sans-serif; }}
-main {{ max-width:1120px; margin:0 auto; padding:32px 22px 56px; }} h1 {{ margin:0 0 6px; font-size:28px; }} h2 {{ margin:0 0 12px; font-size:17px; }}
-.sub {{ color:var(--muted); margin-bottom:22px; }} .grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }}
-.card, section {{ background:var(--card); border:1px solid var(--line); border-radius:14px; padding:17px; box-shadow:0 4px 16px rgba(20,55,44,.05); }}
-.label {{ color:var(--muted); font-size:13px; }} .value {{ margin-top:5px; font-size:18px; font-weight:650; overflow-wrap:anywhere; }}
-.status {{ display:inline-block; padding:6px 11px; border-radius:999px; font-weight:700; }} .running {{ color:#075b45; background:#d8f5e9; }} .success {{ color:#075b45; background:#c7f0dd; }} .failed {{ color:#8a1c13; background:#fee4e2; }} .starting {{ color:#6b4f00; background:#fff2c7; }}
-section {{ margin-top:14px; }} code, pre {{ font-family:"Cascadia Mono",Consolas,monospace; }} pre {{ white-space:pre-wrap; overflow-wrap:anywhere; background:#101c19; color:#d9eee7; border-radius:10px; padding:14px; max-height:380px; overflow:auto; }}
-ul {{ margin:0; padding-left:20px; }} .error {{ border-color:#f4b8b2; }} #stale {{ display:none; margin:12px 0; padding:10px 12px; background:#fff2c7; border-radius:9px; }}
+main {{ max-width:1080px; margin:auto; padding:28px 20px 52px; }} h1 {{ margin:0; font-size:25px; }} h2 {{ margin:0 0 14px; font-size:18px; }}
+.topline {{ display:flex; justify-content:space-between; gap:16px; align-items:center; margin-bottom:18px; }} .refresh {{ color:var(--muted); font-size:13px; }}
+.hero, section, .metric {{ background:var(--card); border:1px solid var(--line); border-radius:16px; box-shadow:0 5px 20px rgba(18,48,39,.05); }}
+.hero {{ padding:24px; border-left:6px solid var(--blue); }} .hero.success {{ border-left-color:var(--green); }} .hero.failed {{ border-left-color:var(--red); }}
+.hero-row {{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }} .hero h2 {{ font-size:25px; margin:13px 0 4px; }} .hero p {{ margin:0; color:var(--muted); }}
+.status {{ display:inline-block; padding:6px 11px; border-radius:999px; font-weight:750; }} .running {{ color:#1749a5; background:#e7efff; }} .success {{ color:#075b45; background:#d8f5e9; }} .failed {{ color:#8a1c13; background:#fee4e2; }} .starting {{ color:#6b4f00; background:#fff2c7; }}
+.action {{ margin-top:17px; padding:12px 14px; background:#f0f5ff; border-radius:10px; font-weight:650; }}
+section {{ margin-top:14px; padding:20px; }} .timeline {{ display:grid; grid-template-columns:repeat(5,1fr); gap:0; }}
+.step {{ position:relative; display:flex; gap:10px; padding:6px 10px 6px 0; min-width:0; }} .step:not(:last-child)::after {{ content:""; position:absolute; top:21px; left:37px; right:0; height:3px; background:#d9e1de; z-index:0; }}
+.marker {{ position:relative; z-index:1; flex:0 0 32px; width:32px; height:32px; display:grid; place-items:center; border-radius:50%; background:#e8edeb; color:#72807b; font-weight:800; }}
+.step strong,.step span {{ display:block; }} .step strong {{ margin-top:4px; font-size:14px; }} .step span {{ color:var(--muted); font-size:12px; margin-top:4px; }}
+.step.done .marker {{ background:var(--green); color:white; }} .step.done:not(:last-child)::after {{ background:#72c9aa; }} .step.active .marker {{ background:var(--blue); color:white; box-shadow:0 0 0 6px #dfe9ff; animation:pulse 1.8s infinite; }} .step.failed .marker {{ background:var(--red); color:white; }}
+@keyframes pulse {{ 50% {{ box-shadow:0 0 0 10px rgba(37,99,235,0); }} }}
+.metrics {{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:14px; }} .metric {{ padding:16px; }} .label {{ color:var(--muted); font-size:12px; }} .value {{ margin-top:5px; font-size:19px; font-weight:720; overflow-wrap:anywhere; }}
+.uncertain {{ margin-top:14px; color:#51625c; }} details {{ margin-top:14px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px 18px; }} summary {{ cursor:pointer; font-weight:700; }}
+code,pre {{ font-family:"Cascadia Mono",Consolas,monospace; }} pre {{ white-space:pre-wrap; overflow-wrap:anywhere; background:#101c19; color:#d9eee7; border-radius:10px; padding:14px; max-height:340px; overflow:auto; }}
+ul {{ padding-left:20px; }} .error {{ border-color:#f4b8b2; }} #stale {{ display:none; margin-top:14px; padding:12px 14px; background:#fff2c7; border-radius:10px; font-weight:650; }}
+@media(max-width:760px) {{ .timeline,.metrics {{ grid-template-columns:1fr; }} .step:not(:last-child)::after {{ left:15px; top:38px; bottom:-8px; width:3px; height:auto; right:auto; }} .topline {{ align-items:flex-start; flex-direction:column; }} }}
 </style>
 </head>
 <body data-updated-at="{updated_at}">
 <main>
-  <h1>MIMIC 冠脉全队列清洗监控</h1>
-  <div class="sub">页面每 15 秒重新读取本地 HTML。进度仅展示已落盘、可核验的状态。</div>
-  <div id="stale">状态超过 60 秒未更新，后台编排器可能已经停止；请检查日志。</div>
-  <div class="grid">
-    <div class="card"><div class="label">总状态</div><div class="value"><span class="status {status_class}">{html.escape(status_label)}</span></div></div>
-    <div class="card"><div class="label">当前阶段</div><div class="value">{html.escape(str(state.get("stage", "—")))}</div></div>
-    <div class="card"><div class="label">编排器 / 子进程 PID</div><div class="value">{html.escape(str(state.get("runner_pid", "—")))} / {html.escape(str(state.get("child_pid") or "—"))}</div></div>
-    <div class="card"><div class="label">最后更新</div><div class="value">{updated_at or "—"}</div></div>
-    <div class="card"><div class="label">原始输入</div><div class="value">{_format_bytes(runtime.get("input_bytes"))}</div></div>
-    <div class="card"><div class="label">临床可读 partial</div><div class="value">{_format_bytes(runtime.get("readable_partial_bytes"))}</div></div>
-    <div class="card"><div class="label">临床可读正式输出</div><div class="value">{_format_bytes(runtime.get("readable_output_bytes"))}</div></div>
-    <div class="card"><div class="label">G 盘剩余空间</div><div class="value">{_format_bytes(runtime.get("disk_free_bytes"))}</div></div>
+  <div class="topline"><h1>MIMIC 冠脉全队列</h1><div class="refresh">本地页面每 15 秒刷新 · 只展示可核验状态</div></div>
+  <div class="hero {status_class}">
+    <div class="hero-row"><span class="status {status_class}">{html.escape(status_label)}</span><span class="refresh">最后更新：{updated_at or "—"}</span></div>
+    <h2>{html.escape(headline)}</h2>
+    <p>当前阶段没有可靠分母时，不显示推测百分比。</p>
+    <div class="action">{html.escape(action)}</div>
   </div>
-  <section><h2>Event 阶段</h2><p>{html.escape(str(runtime.get("event_detail", "—")))}</p><ul>{artifact_html}</ul></section>
-  <section><h2>当前日志末尾</h2><div class="label">{html.escape(str(runtime.get("active_log") or "—"))}</div><pre>{html.escape(str(runtime.get("log_tail", "")))}</pre></section>
+  <div id="stale">状态超过 60 秒未更新。后台编排器可能已经停止，请展开技术详情检查日志。</div>
+  <section><h2>处理流程</h2><div class="timeline">{timeline_html}</div><div class="uncertain">正在运行的步骤以蓝色标记；绿色仅表示对应产物已经落盘。</div></section>
+  <div class="metrics">
+    <div class="metric"><div class="label">已完成住院记录</div><div class="value">{admissions_text}</div></div>
+    <div class="metric"><div class="label">临床可读 JSONL</div><div class="value">{_format_bytes(runtime.get("readable_output_bytes"))}</div></div>
+    <div class="metric"><div class="label">G 盘剩余空间</div><div class="value">{_format_bytes(runtime.get("disk_free_bytes"))}</div></div>
+    <div class="metric"><div class="label">当前运行阶段</div><div class="value">{html.escape(str(state.get("stage", "—")))}</div></div>
+  </div>
+  <details><summary>技术详情</summary>
+    <p><strong>编排器 / 子进程 PID：</strong> {html.escape(str(state.get("runner_pid", "—")))} / {html.escape(str(state.get("child_pid") or "—"))}</p>
+    <p><strong>Event 状态：</strong> {html.escape(str(runtime.get("event_detail", "—")))}</p>
+    <p><strong>当前日志：</strong> <code>{html.escape(str(runtime.get("active_log") or "—"))}</code></p>
+    <h3>已落盘阶段标志</h3><ul>{artifact_html}</ul>
+    <h3>日志末尾</h3><pre>{html.escape(str(runtime.get("log_tail", "")))}</pre>
+  </details>
   {error_html}
 </main>
 <script>

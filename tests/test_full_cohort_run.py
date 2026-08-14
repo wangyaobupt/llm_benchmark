@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +12,7 @@ from data_pipeline.full_cohort_run import (
     render_monitor,
     validate_targets,
 )
+from data_pipeline.full_cohort_dashboard import enrich_state, render_once
 
 
 class FullCohortRunTest(unittest.TestCase):
@@ -74,6 +76,9 @@ class FullCohortRunTest(unittest.TestCase):
         self.assertNotIn("<script>alert(1)</script>", rendered)
         self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", rendered)
         self.assertIn("状态超过 60 秒未更新", rendered)
+        self.assertIn("处理流程", rendered)
+        self.assertIn("无需操作，任务正在后台继续", rendered)
+        self.assertIn("技术详情", rendered)
 
     def test_existing_target_is_rejected_without_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -94,6 +99,39 @@ class FullCohortRunTest(unittest.TestCase):
                     root / "event",
                     root / "control",
                 )
+
+    def test_dashboard_enriches_current_state_from_clinical_report(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            report = root / "report.json"
+            report.write_text(
+                '{"admissions":39036,"dictionary_decoded_total":12,"poe_events":34}',
+                encoding="utf-8",
+            )
+            state = {
+                "status": "running",
+                "stage": "event_pipeline",
+                "updated_at": "2026-08-14T15:00:00+08:00",
+                "commands": [
+                    {
+                        "stage": "clinical_readable",
+                        "argv": ["python", "--report", str(report)],
+                    }
+                ],
+                "runtime": {
+                    "readable_output_bytes": 100,
+                    "event_detail": "正在生成正式 cleaning",
+                },
+            }
+            enriched = enrich_state(state)
+            self.assertEqual(
+                enriched["runtime"]["clinical_metrics"]["admissions"], 39036
+            )
+            state_path = root / "run-state.json"
+            output_path = root / "dashboard.html"
+            state_path.write_text(json.dumps(state), encoding="utf-8")
+            self.assertEqual(render_once(state_path, output_path), "running")
+            self.assertIn("39,036", output_path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":
