@@ -22,6 +22,9 @@ from data_pipeline.text_ner.model_interface import (
 from tests.test_text_ner_aggregation_api import _aggregation
 
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+
 def _sha256(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
@@ -164,6 +167,31 @@ def _response(request: dict[str, object], mentions: list[dict[str, object]], rel
 
 
 class FullExtractionInterfaceTests(unittest.TestCase):
+    def test_runtime_prompts_are_self_contained_against_annotation_schema(self) -> None:
+        schema = json.loads(
+            (
+                REPOSITORY_ROOT
+                / "data_pipeline"
+                / "text_ner"
+                / "schemas"
+                / "section-annotation.schema.json"
+            ).read_text(encoding="utf-8")
+        )
+        mention_prompt = (
+            REPOSITORY_ROOT / "config" / "text_ner" / "prompts" / "two-stage-mentions.md"
+        ).read_text(encoding="utf-8")
+        relation_prompt = (
+            REPOSITORY_ROOT / "config" / "text_ner" / "prompts" / "two-stage-relations.md"
+        ).read_text(encoding="utf-8")
+        for field in schema["required"] + schema["$defs"]["mention"]["required"]:
+            self.assertIn(f'"{field}"', mention_prompt)
+        for value in schema["$defs"]["mention"]["properties"]["entity_type"]["enum"]:
+            self.assertIn(value, mention_prompt)
+        for field in schema["required"] + schema["$defs"]["relation"]["required"]:
+            self.assertIn(f'"{field}"', relation_prompt)
+        for value in schema["$defs"]["relation"]["properties"]["relation_type"]["enum"]:
+            self.assertIn(value, relation_prompt)
+
     def test_prepare_full_scope_is_deterministic_and_model_free(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

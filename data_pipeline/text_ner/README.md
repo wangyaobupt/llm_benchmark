@@ -21,7 +21,7 @@
 
 最新版纳入 `hosp.labevents.comments`、`hosp.microbiologyevents.comments`、`ed.triage.chiefcomplaint`、`note.radiology.text` 和 `note.discharge.text`。discharge 保持 `evidence_phase=post_hoc`，但不再从 NER 排除。结构化编码、受控词表、状态、单位、药名和文档元数据不重复送入 NER。
 
-完整生成、API 接入和两阶段编译命令见 `docs/design/text-ner-model-interface.md`。
+从环境变量配置、10例小批运行、断点续跑到全量两阶段编译的可复制命令见[运行手册](../../docs/guides/text-ner-runbook.md)；接口合同与方法边界见[模型接口设计](../../docs/design/text-ner-model-interface.md)。
 
 ## 历史100例接口
 
