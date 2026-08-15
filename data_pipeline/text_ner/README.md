@@ -1,6 +1,6 @@
-# Text NER 输入准备
+# Text NER 与关系抽取接口
 
-本模块只生成可追溯的文本 NER 输入清单，不执行实体识别，也不调用模型或外部 API。
+最新版以已验收的 `event_pipeline_output` 为队列、标准化状态和血缘主入口，回取同批 source JSONL 中明确配置的自由文本，生成模型无关的两阶段请求。默认不执行模型；未来可通过通用 OpenAI-compatible API 接入任意兼容 LLM。
 
 当前同时冻结了 section 标注响应、mention sidecar 和显式关系 sidecar 的首版合同：
 
@@ -10,22 +10,24 @@
 
 标注规则见 `docs/design/text-ner-entity-annotation-protocol.md`。
 
+当前1000例入口：
+
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare `
-  data\mimic-admission-raw-coronary-all-three-modules-random-100.jsonl `
-  --output-dir data\derived\text_ner_sample_100 `
-  --pilot-size 200
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare-event-output-manifest `
+  data\test_1000_0812\event_pipeline_output `
+  config\text_ner\all-free-text-sources.json `
+  --output-dir data\test_1000_0812\event_pipeline_output\NER\input
 ```
 
-输入规则：
+最新版纳入 `hosp.labevents.comments`、`hosp.microbiologyevents.comments`、`ed.triage.chiefcomplaint`、`note.radiology.text` 和 `note.discharge.text`。discharge 保持 `evidence_phase=post_hoc`，但不再从 NER 排除。结构化编码、受控词表、状态、单位、药名和文档元数据不重复送入 NER。
 
-- 纳入 ED `triage.chiefcomplaint`，但保留 `available_time=null`。
-- 纳入 radiology，并以 `storetime` 作为可用时间。
-- discharge summary 记录为 `POST_HOC_DISCHARGE`，不进入 NER。
-- 原始文本不写入 Parquet，只记录来源、字符 span、字符数和 SHA-256。
-- pilot 是人工审核样本，不创建 train/dev/test 数据划分；`split_group_id=subject_id` 为后续患者级划分提供稳定分组键。
+完整生成、API 接入和两阶段编译命令见 `docs/design/text-ner-model-interface.md`。
 
-独立验收：
+## 历史100例接口
+
+`prepare-legacy-ed-radiology`、`audit`、人工 A/B 包和 calibration-only method run 只用于重放旧100例研究记录，不约束最新版1000例接口。旧报告中 `POST_HOC_DISCHARGE`、2,724个文本单元和 ED/radiology-only 的结论均是历史版本事实。
+
+历史接口独立验收：
 
 ```powershell
 .\.venv\Scripts\python.exe -m data_pipeline.text_ner audit `

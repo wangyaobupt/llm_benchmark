@@ -10,18 +10,27 @@ from .audit import audit_manifest
 from .annotation_package import prepare_annotation_package
 from .annotation_package_audit import audit_annotation_package
 from .deepseek_cost import estimate_deepseek_cost
+from .event_output_manifest import prepare_event_output_text_manifest
+from .full_extraction import compile_model_responses, prepare_full_extraction_package
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
 from .method_run import prepare_method_run
 from .method_run_audit import audit_method_run
+from .openai_compatible_api import run_api_batch
 from .scope_rehearsal import rehearse_scope
 
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Prepare and audit traceable text NER inputs without model calls."
+        description=(
+            "Prepare, execute, validate, and compile traceable text NER workflows; "
+            "model execution remains an explicit opt-in action."
+        )
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
-    prepare = subparsers.add_parser("prepare")
+    prepare = subparsers.add_parser(
+        "prepare-legacy-ed-radiology",
+        help="Deprecated historical 100-case ED/radiology manifest builder",
+    )
     prepare.add_argument("input_jsonl", type=Path)
     prepare.add_argument("--output-dir", type=Path, required=True)
     prepare.add_argument("--pilot-size", type=int, default=DEFAULT_PILOT_SIZE)
@@ -89,12 +98,52 @@ def _parser() -> argparse.ArgumentParser:
     deepseek_cost.add_argument("policy", type=Path)
     deepseek_cost.add_argument("--output-json", type=Path)
     deepseek_cost.add_argument("--output-markdown", type=Path)
+    full = subparsers.add_parser(
+        "prepare-full-extraction",
+        help="Prepare requests for all included manifest sources without model calls",
+    )
+    full.add_argument("input_jsonl", type=Path)
+    full.add_argument("manifest", type=Path)
+    full.add_argument("--output-dir", type=Path, required=True)
+    full.add_argument("--mention-prompt", type=Path, required=True)
+    full.add_argument("--relation-prompt", type=Path, required=True)
+    compile_responses = subparsers.add_parser(
+        "compile-model-responses",
+        help="Validate supplied model responses and compile entity/relation sidecars",
+    )
+    compile_responses.add_argument("package_directory", type=Path)
+    compile_responses.add_argument("manifest", type=Path)
+    compile_responses.add_argument("mention_responses", type=Path)
+    compile_responses.add_argument("relation_responses", type=Path)
+    compile_responses.add_argument("--output-dir", type=Path, required=True)
+    event_manifest = subparsers.add_parser(
+        "prepare-event-output-manifest",
+        help="Recover all configured free text through an accepted event-output lineage",
+    )
+    event_manifest.add_argument("event_output_directory", type=Path)
+    event_manifest.add_argument("source_catalog", type=Path)
+    event_manifest.add_argument("--output-dir", type=Path, required=True)
+    api_batch = subparsers.add_parser(
+        "run-openai-compatible-api",
+        help="Explicitly execute or resume one model stage through a generic API",
+    )
+    api_batch.add_argument("requests", type=Path)
+    api_batch.add_argument("prompt", type=Path)
+    api_batch.add_argument("responses", type=Path)
+    api_batch.add_argument("audit", type=Path)
+    api_batch.add_argument("config", type=Path)
+    api_batch.add_argument("--execute", action="store_true")
+    api_batch.add_argument(
+        "--endpoint-scope", choices=("local", "external"), default="external"
+    )
+    api_batch.add_argument("--confirm-data-transfer-authorized", action="store_true")
+    api_batch.add_argument("--maximum-requests", type=int)
     return parser
 
 
 def main() -> None:
     args = _parser().parse_args()
-    if args.command == "prepare":
+    if args.command == "prepare-legacy-ed-radiology":
         result = prepare_manifest(
             args.input_jsonl,
             args.output_dir,
@@ -147,12 +196,46 @@ def main() -> None:
             output_json=args.output_json,
             output_markdown=args.output_markdown,
         )
-    else:
+    elif args.command == "estimate-deepseek-cost":
         result = estimate_deepseek_cost(
             args.method_run_directory,
             args.policy,
             output_json=args.output_json,
             output_markdown=args.output_markdown,
+        )
+    elif args.command == "prepare-full-extraction":
+        result = prepare_full_extraction_package(
+            args.input_jsonl,
+            args.manifest,
+            args.output_dir,
+            mention_prompt_path=args.mention_prompt,
+            relation_prompt_path=args.relation_prompt,
+        )
+    elif args.command == "compile-model-responses":
+        result = compile_model_responses(
+            args.package_directory,
+            args.manifest,
+            args.mention_responses,
+            args.relation_responses,
+            args.output_dir,
+        )
+    elif args.command == "prepare-event-output-manifest":
+        result = prepare_event_output_text_manifest(
+            args.event_output_directory,
+            args.source_catalog,
+            args.output_dir,
+        )
+    else:
+        result = run_api_batch(
+            args.requests,
+            args.prompt,
+            args.responses,
+            args.audit,
+            args.config,
+            execute=args.execute,
+            endpoint_scope=args.endpoint_scope,
+            data_transfer_authorized=args.confirm_data_transfer_authorized,
+            maximum_requests=args.maximum_requests,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

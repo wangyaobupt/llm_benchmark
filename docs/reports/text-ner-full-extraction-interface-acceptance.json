@@ -1,0 +1,64 @@
+{
+  "schema_version": "text-ner-full-extraction-interface-acceptance/1.0.0",
+  "acceptance_status": "passed_interface_ready_no_model_calls",
+  "scope": {
+    "event_output": "data/test_1000_0812/event_pipeline_output",
+    "admissions": 1000,
+    "normalized_events": 757036,
+    "included_documents": 43551,
+    "included_text_units": 64509,
+    "post_hoc_discharge_included": true,
+    "source_counts": {
+      "ed.triage": 1003,
+      "hosp.labevents": 34311,
+      "hosp.microbiologyevents": 3549,
+      "note.discharge": 2471,
+      "note.radiology": 23175
+    }
+  },
+  "lineage": {
+    "workflow_run_id": "57c468f9bb2317c166b63e19",
+    "input_jsonl_sha256": "c1dc7a7d518f881edf3f898bd66a344b226426d4e24182e373e1bb438477215b",
+    "normalized_events_sha256": "90a1dc05686ed4366392ed646d50f786700df5c5376408993eae2474d4d10bd2",
+    "input_manifest_sha256": "dcbe306b065b4e7baf88702e625d7c9df167a2e0e699e0f67dfb24ca46352ce1",
+    "manifest_run_id": "etrun:35dafb6399563d827269c170",
+    "package_run_id": "xrun:b324e2a1af020fdcddb99ff3"
+  },
+  "interface": {
+    "adapter_protocol_version": "text-ner-model-adapter/1.0.0",
+    "request_schema_version": "text-ner-model-request/1.0.0",
+    "response_schema_version": "text-ner-model-response/1.0.0",
+    "annotation_schema_version": "section-annotation/1.0.0",
+    "annotation_protocol_version": "text-ner-annotation-protocol/1.1.0",
+    "provider_bound": false,
+    "model_bound": false,
+    "openai_compatible_api_configured": true
+  },
+  "checks": {
+    "request_count_matches_included_text_units": true,
+    "source_and_section_hashes_verified": true,
+    "all_configured_free_text_sources_included": true,
+    "discharge_included_with_post_hoc_phase": true,
+    "normalized_event_links": 71024,
+    "text_units_without_direct_event_link": 0,
+    "relation_stage_blocked_until_validated_mentions": true,
+    "response_lineage_and_span_validation_tested": true,
+    "typed_empty_sidecars_tested": true,
+    "deterministic_replay_run_id_equal": true,
+    "deterministic_replay_output_hashes_equal": true,
+    "restricted_text_committed_to_git": false
+  },
+  "execution": {
+    "model_calls": 0,
+    "mention_responses_validated": 0,
+    "relation_responses_validated": 0,
+    "entity_mentions": 0,
+    "text_relations": 0,
+    "status": "pending_model_execution"
+  },
+  "test_result": {
+    "text_ner_tests_passed": 34,
+    "text_ner_tests_failed": 0
+  },
+  "interpretation": "接口与全量请求已经就绪；当前没有模型输出，因此没有可作为实验结果的实体或关系。"
+}

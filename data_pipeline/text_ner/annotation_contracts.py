@@ -10,7 +10,7 @@ ENTITY_MENTION_SCHEMA_VERSION = "entity-mention/1.0.0"
 TEXT_RELATION_SCHEMA_VERSION = "text-relation/1.0.0"
 ANNOTATION_ALLOCATION_SCHEMA_VERSION = "annotation-allocation/1.0.0"
 ANNOTATION_DECISION_SCHEMA_VERSION = "annotation-review-decision/1.0.0"
-ANNOTATION_PROTOCOL_VERSION = "text-ner-annotation-protocol/1.0.0"
+ANNOTATION_PROTOCOL_VERSION = "text-ner-annotation-protocol/1.1.0"
 
 ENTITY_TYPES = (
     "symptom_or_sign",

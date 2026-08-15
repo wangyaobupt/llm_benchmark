@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model-response.schema.json",
+  "title": "Model-neutral two-stage text NER response envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "stage_id",
+    "provider",
+    "model_name",
+    "model_version",
+    "annotation"
+  ],
+  "properties": {
+    "schema_version": {"const": "text-ner-model-response/1.0.0"},
+    "request_id": {"type": "string", "minLength": 1},
+    "stage_id": {"enum": ["mentions", "relations"]},
+    "provider": {"type": "string", "minLength": 1},
+    "model_name": {"type": "string", "minLength": 1},
+    "model_version": {"type": "string", "minLength": 1},
+    "annotation": {"$ref": "section-annotation.schema.json"}
+  }
+}

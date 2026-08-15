@@ -1,0 +1,82 @@
+{
+  "schema_version": "text-ner-source-catalog/1.0.0",
+  "catalog_id": "mimic-all-free-text",
+  "catalog_version": "1.0.0",
+  "max_chunk_characters": 6000,
+  "sources": [
+    {
+      "source_module": "mimic_iv_hosp",
+      "source_table": "hosp.labevents",
+      "text_field": "comments",
+      "text_kind": "laboratory_comment",
+      "section_strategy": "bounded_text",
+      "event_time_field": "charttime",
+      "available_time_field": "storetime",
+      "recorded_time_field": "storetime",
+      "evidence_phase": "source_event"
+    },
+    {
+      "source_module": "mimic_iv_hosp",
+      "source_table": "hosp.microbiologyevents",
+      "text_field": "comments",
+      "text_kind": "microbiology_comment",
+      "section_strategy": "bounded_text",
+      "event_time_field": "charttime",
+      "available_time_field": "storetime",
+      "recorded_time_field": "storetime",
+      "evidence_phase": "source_event"
+    },
+    {
+      "source_module": "mimic_iv_ed",
+      "source_table": "ed.triage",
+      "text_field": "chiefcomplaint",
+      "text_kind": "chief_complaint",
+      "section_strategy": "bounded_text",
+      "event_time_field": null,
+      "available_time_field": null,
+      "recorded_time_field": null,
+      "evidence_phase": "source_event"
+    },
+    {
+      "source_module": "mimic_iv_note",
+      "source_table": "note.radiology",
+      "text_field": "text",
+      "text_kind": "radiology_report",
+      "section_strategy": "radiology_sections",
+      "event_time_field": "charttime",
+      "available_time_field": "storetime",
+      "recorded_time_field": "storetime",
+      "evidence_phase": "source_event"
+    },
+    {
+      "source_module": "mimic_iv_note",
+      "source_table": "note.discharge",
+      "text_field": "text",
+      "text_kind": "discharge_summary",
+      "section_strategy": "bounded_text",
+      "event_time_field": "charttime",
+      "available_time_field": "storetime",
+      "recorded_time_field": "storetime",
+      "evidence_phase": "post_hoc"
+    }
+  ],
+  "explicit_exclusions": [
+    {
+      "category": "structured_or_controlled_string",
+      "examples": [
+        "diagnosis and procedure titles",
+        "medication and product names",
+        "status and disposition values",
+        "units and categorical observations",
+        "POE detail values with low-cardinality controlled vocabularies",
+        "note detail metadata"
+      ]
+    },
+    {
+      "category": "upstream_unavailable",
+      "examples": [
+        "icu.chartevents"
+      ]
+    }
+  ]
+}

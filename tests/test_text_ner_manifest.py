@@ -252,7 +252,7 @@ class TextNerManifestTest(unittest.TestCase):
             "manifest_row_id": "row-1",
             "annotator_role": "adjudicator",
             "annotator_id": "judge-1",
-            "protocol_version": "text-ner-annotation-protocol/1.0.0",
+            "protocol_version": "text-ner-annotation-protocol/1.1.0",
             "submitted_at": "2026-08-13T12:00:00+08:00",
             "decision": "reject",
             "annotation_payload_path": None,

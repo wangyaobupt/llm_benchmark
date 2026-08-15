@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "model-request.schema.json",
+  "title": "Model-neutral two-stage text NER request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "interface_protocol_version",
+    "request_id",
+    "stage_id",
+    "candidate_status",
+    "annotation_unit_id",
+    "manifest_row_id",
+    "document_id",
+    "section_id",
+    "source_table",
+    "section_name",
+    "section_text_sha256",
+    "prompt_sha256",
+    "response_schema_version"
+  ],
+  "properties": {
+    "schema_version": {"const": "text-ner-model-request/1.0.0"},
+    "interface_protocol_version": {"const": "text-ner-model-adapter/1.0.0"},
+    "request_id": {"type": "string", "minLength": 1},
+    "stage_id": {"enum": ["mentions", "relations"]},
+    "candidate_status": {"const": "pending_model_execution"},
+    "annotation_unit_id": {"type": "string", "minLength": 1},
+    "manifest_row_id": {"type": "string", "minLength": 1},
+    "document_id": {"type": "string", "minLength": 1},
+    "section_id": {"type": "string", "minLength": 1},
+    "source_table": {"type": "string", "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"},
+    "section_name": {"type": "string", "minLength": 1},
+    "section_text": {"type": "string"},
+    "section_text_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "prompt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "response_schema_version": {"const": "section-annotation/1.0.0"},
+    "dependency_status": {
+      "enum": [
+        "blocked_pending_validated_mentions",
+        "validated_mentions_available"
+      ]
+    },
+    "validated_mentions": {
+      "type": "array",
+      "items": {"type": "object"}
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {"stage_id": {"const": "mentions"}},
+      "required": ["section_text"],
+      "not": {"required": ["dependency_status"]}
+    },
+    {
+      "properties": {
+        "stage_id": {"const": "relations"},
+        "dependency_status": {"const": "blocked_pending_validated_mentions"}
+      },
+      "required": ["dependency_status"],
+      "not": {"required": ["section_text"]}
+    },
+    {
+      "properties": {
+        "stage_id": {"const": "relations"},
+        "dependency_status": {"const": "validated_mentions_available"}
+      },
+      "required": ["dependency_status", "section_text", "validated_mentions"]
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 # 文本 NER 实体与显式关系标注协议
 
-协议版本：`text-ner-annotation-protocol/1.0.0`
+协议版本：`text-ner-annotation-protocol/1.1.0`
 
 ## 1. 目标与边界
 
-本协议只覆盖首批 ED chief complaint 与 radiology report。目标是生成可回到原文字符 span 的实体 mention 和文中显式关系候选，为后续人工裁决、术语标准化、临床事件编译和知识图谱构建提供证据层。
+本协议覆盖 `all-free-text-sources.json` 配置的全部自由文本：hosp laboratory/microbiology comments、ED chief complaint、radiology 和 discharge。目标是生成可回到原文字符 span、来源事件和标准化血缘的实体 mention 与文中显式关系候选。
 
 本层不负责：
 
@@ -109,7 +109,13 @@ NER 输出固定为：
 - 症状与疾病并列时分别标注，例如症状属于 `symptom_or_sign`，已明确疾病属于 `clinical_problem`。
 - 无法可靠展开的缩写保留原 span，并标记 `ABBREVIATION_UNRESOLVED`。
 
-### 6.2 Radiology
+### 6.2 Hosp comments
+
+- laboratory 与 microbiology comments 中的检查名称为 `procedure_or_test`，数值及单位为 `measurement`。
+- 模板化免责声明只有在自身表达受支持临床实体时才标注，不能因来源属于检验表就推断患者事实。
+- comments 中的否定、条件和样本质量描述必须按原文 assertion 标注，不把异常 flag 或结构化结果从表外补入。
+
+### 6.3 Radiology
 
 - `FINDINGS` 和 `IMPRESSION` 中的事实按 assertion 分别保留，不能只抽取阳性发现。
 - `INDICATION/HISTORY` 中待排除的疾病通常为 `clinical_problem + possible`；不能视为已确诊。
@@ -117,6 +123,12 @@ NER 输出固定为：
 - `RECOMMENDATION` 中建议的检查为 `procedure_or_test + future_planned`，不能视为已经完成。
 - `TECHNIQUE/EXAMINATION` 中出现的检查名称可以标注，但后续事件层仍以结构化报告元数据为事实来源。
 - AR 与 RR 的父子关系来自原生 detail 字段，不由 NER 猜测，也不作为文本 relation 重复抽取。
+
+### 6.4 Discharge
+
+- discharge 全文纳入抽取，但所有单元保留 `evidence_phase=post_hoc`。
+- 既往史、住院经过、出院药物、随访建议分别按 temporality 和 assertion 标注；不能把计划或建议当成已执行事件。
+- 下游构建前瞻性决策快照时必须再次排除时间点之后的 discharge 证据，NER 纳入不改变泄漏边界。
 
 ## 7. 文本显式关系
 
@@ -164,7 +176,7 @@ NER 输出固定为：
 
 - JSON Schema 通过率100%。
 - mention surface/span、relation evidence/span 和来源哈希通过率100%。
-- lineage ID 缺失、重复 ID、悬空关系、`post_hoc` 混入均为0。
+- lineage ID 缺失、重复 ID、悬空关系均为0；`post_hoc` 必须显式保留且不得静默混入前瞻性快照。
 - 原始 MIMIC 文本不发送到普通第三方 API。
 - 本地运行器必须默认 dry-run，只有显式 `--execute` 才能调用模型。
 
@@ -181,4 +193,4 @@ NER 输出固定为：
 
 ## 11. 当前结论
 
-真实 pilot 的聚合范围演练已通过，覆盖否定、不确定、比较/历史、建议、测量、侧别、器械和时间表达。患者隔离的人工包也已生成：50份calibration和150份锁定evaluation，患者交叉0；A/B拥有相同任务集合但不同顺序，决定日志和裁决日志初始为空。该结果证明Schema和人工工作输入已准备完成，但不证明人工一致性或模型质量。下一步是A/B独立完成calibration、第三人裁决并计算预设指标；在其通过前，不解锁evaluation，也不开始模型NER。
+最新版1000例接口已生成全来源 manifest 与模型无关请求；当前仍未调用模型。旧100例人工包只作为历史协议证据，不再限定最新版来源范围。真实模型输出必须先通过本协议的机械校验和新的跨来源人工抽样验收，才能用于实验报告。

@@ -3,7 +3,7 @@
   "method_id": "two-stage-explicit-clinical-ner",
   "method_version": "1.0.0",
   "method_kind": "two_stage_structured_candidate_generation",
-  "annotation_protocol_version": "text-ner-annotation-protocol/1.0.0",
+  "annotation_protocol_version": "text-ner-annotation-protocol/1.1.0",
   "candidate_status": "exploratory_candidate",
   "allowed_partitions": [
     "calibration"

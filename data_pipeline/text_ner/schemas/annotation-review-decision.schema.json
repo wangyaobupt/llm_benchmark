@@ -28,7 +28,7 @@
     "manifest_row_id": {"type": "string", "minLength": 1},
     "annotator_role": {"enum": ["annotator_a", "annotator_b", "adjudicator"]},
     "annotator_id": {"type": "string", "minLength": 1},
-    "protocol_version": {"const": "text-ner-annotation-protocol/1.0.0"},
+    "protocol_version": {"const": "text-ner-annotation-protocol/1.1.0"},
     "submitted_at": {"type": "string", "format": "date-time"},
     "decision": {"enum": ["accept", "correct", "reject", "uncertain"]},
     "annotation_payload_path": {"type": ["string", "null"]},

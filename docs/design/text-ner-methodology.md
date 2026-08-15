@@ -1,12 +1,12 @@
 # Text NER 方法学设计
 
-方法版本：`two-stage-explicit-clinical-ner/1.0.0`
+方法版本：`two-stage-explicit-clinical-ner/1.1.0`
 
 ## 1. 研究问题
 
-本阶段研究的不是“某个模型是否已经达到可发布准确率”，而是：在保持来源可追溯、字符span精确、临床语境属性显式和评估集隔离的条件下，哪种候选生成方法能够稳定产出可验证的临床实体与文本显式关系。
+本阶段不比较 NER 方法。目标是：对已验收1000例事件数据关联的全部配置自由文本执行同一套实体识别和文中显式关系抽取，并让每个结果能够回到来源行、原文字符span和标准化事件。
 
-当前只覆盖ED chief complaint和radiology report。结果不能外推到全部临床文书，也不能把术语标准化、事件编译或医学常识推理算作NER能力。
+当前范围由 `all-free-text-sources.json` 冻结，覆盖 hosp laboratory/microbiology comments、ED chief complaint、radiology 和 discharge。discharge 纳入抽取但保留 `evidence_phase=post_hoc`；纳入不表示它可用于更早决策时点。
 
 ## 2. 核心方法
 
@@ -20,26 +20,16 @@
 
 两阶段设计使mention错误和relation错误可以分别计数，也避免模型在建立关系时偷偷增加、删除或改变实体。
 
-## 3. 方法比较空间
+## 3. 固定方法与模型可替换性
 
-后续方法可以替换候选生成器，但不能改变输入、Schema、验证器或正式评估集：
-
-| 方法 | 允许产生的内容 | 主要研究问题 |
-|---|---|---|
-| 保守规则基线 | 测量值、显式时间表达 | 验证链路并建立最低基线 |
-| 传统序列标注NER | mention span和类型 | 局部模型在短主诉与长放射报告上的差异 |
-| 单阶段结构化生成 | mention、属性、关系一次生成 | 简化调用是否导致关系和span相互污染 |
-| 两阶段结构化生成 | 先mention，验证后关系 | 约束分解是否改善合规性和可归因性 |
-| 规则与模型混合 | 确定性类型由规则产生，其余由模型产生 | 是否在保持召回率时减少测量和时间错误 |
-
-方法比较必须记录方法ID、提示词哈希、模型及revision、参数、随机种子、输入包哈希、实现哈希、原始响应哈希和验证拒绝原因。模型通过Schema的比例本身是方法指标，不能只评价被后处理保留下来的结果。
+抽取方法固定为两阶段结构化生成。未来可以更换 LLM 提供商或部署方式，但不能改变输入 manifest、提示词版本、响应 Schema、span 验证、关系依赖或 sidecar 合同。每次执行记录提示词哈希、模型及不可变 revision、参数、输入包哈希、实现哈希、响应文件哈希和验证拒绝原因。
 
 ## 4. 数据与污染控制
 
-- 50份calibration是方法开发区；模型候选目录与A/B人工目录物理分离，标注者不得查看模型输出。
-- 150份evaluation保持`blocked_pending_calibration`，方法开发、提示词修改和错误分析都不能读取它。
-- 当前dry-run只读取`calibration/annotator_a/tasks.jsonl`作为规范化输入顺序，并核对A/B任务集合一致；不读取evaluation任务文件。
-- 原文和模型原始响应只保存在Git忽略的本地运行目录；Git中的报告只包含计数、状态、reason code和哈希。
+- 总体由 `event_pipeline_output/workflow_manifest.json` 锁定，清洗和归一化必须通过 `can_start_text_ner`。
+- `normalized_events.parquet` 是标准化事件主表；正文只按 workflow 声明的同批 source JSONL 和来源键回取。
+- 原文、请求和响应只保存在Git忽略的 `event_pipeline_output/NER`；Git报告只包含计数、状态、reason code和哈希。
+- 模型输出标记为 `unreviewed_model_output`；人工抽样验收完成前不能称为 gold 或经过验证的实验结果。
 
 ## 5. 评价设计
 
@@ -51,27 +41,25 @@ gold可用后报告：
 - 相同类型且字符span有重叠的relaxed指标，使用最大一对一匹配；
 - assertion、temporality、experiencer的端到端macro-F1；
 - 以mention span＋type标识端点的显式关系exact F1；
-- ED与radiology分层结果，以及九种实体类型分层结果；
+- 按 hosp、ED、radiology、discharge 来源和九种实体类型分层的结果；
 - 否定事实当阳性、家族史当患者事实、建议当已执行事件三类严重错误计数。
 
 属性指标将span、实体类型和属性值作为一个端到端预测单元，因此漏抽实体和伪实体都会被惩罚，不会因只在“恰好匹配的实体”上计算属性而虚高。
 
 ## 6. 当前运行门禁
 
-当前方法配置中的provider、model、revision、seed均为`null`，外部API固定为不允许。CLI默认dry-run；显式`--execute`也会失败，因为本版本尚未实现或授权任何模型适配器。
+provider、model 和 revision 通过通用 OpenAI-compatible 接口配置，当前生成产物仍保持未绑定。CLI 默认拒绝执行；必须显式传入 `--execute`。外部端点还必须传入 `--confirm-data-transfer-authorized`，本地端点必须解析为 loopback 地址。
 
 进入真实模型执行前必须另外完成：
 
-1. 确定本地模型或经过合规审查的执行环境；
-2. 冻结模型revision、推理参数和随机性策略；
-3. 实现原始响应不可变保存及逐次调用日志；
-4. 保持模型结果对A/B标注者不可见；
-5. 由用户显式授权一次真实模型执行。
+1. 确定本地模型或经过合规审查的API环境；
+2. 在环境变量中配置 endpoint、model 和不可变 revision；
+3. 明确数据传输权限并由用户显式授权真实执行；
+4. 先用 `--maximum-requests` 完成小批人工检查，再扩大批次；
+5. mention 全部通过验证后，才开始 relation 阶段。
 
-即使真实模型开始运行，calibration完成前的输出仍只能用于方法探索，不能称为经过验证的实验结果。
+即使真实模型开始运行，人工抽样验收完成前的输出也不能称为经过验证的实验结果。
 
-## 7. DeepSeek外部API边界
+## 7. 通用API边界
 
-DeepSeek的成本优势不改变受限数据边界。PhysioNet要求第三方API具备可验证的零数据保留、不训练和无人审；无法完整验证时不得使用。DeepSeek现行公开隐私政策说明会收集用户输入，并可能为服务、研发和安全目的保留数据，未提供本项目可核验的零保留承诺。
-
-因此当前实现包含DeepSeek JSON API请求合同、环境变量读取、响应哈希和usage记录能力，但只允许`synthetic`与`public_nonclinical`数据。`restricted_mimic`在读取API key和构造网络客户端之前即失败，且没有环境变量覆盖入口。若未来获得满足PhysioNet要求的企业零保留协议，必须保存协议证据、升级`deepseek-api-policy`版本、重新验收后才能改变此门禁。
+通用接口兼容 OpenAI-style `/chat/completions`，不代表任意外部服务都已获得临床文本传输授权。环境变量只注入凭据，不能绕过显式执行和传输确认。逐次审计保存 request ID、provider、model revision、请求哈希和 token usage，不保存 API key。DeepSeek 的旧专用适配器继续保留其历史严格阻断策略，但不再限定最新版通用接口的提供商选择。
