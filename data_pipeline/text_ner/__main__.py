@@ -152,6 +152,18 @@ def _parser() -> argparse.ArgumentParser:
     )
     api_batch.add_argument("--confirm-data-transfer-authorized", action="store_true")
     api_batch.add_argument("--maximum-requests", type=int)
+    api_batch.add_argument(
+        "--pilot-target",
+        type=int,
+        help="Select only never-attempted requests until cumulative coverage reaches this target",
+    )
+    api_batch.add_argument("--maximum-failed-requests", type=int)
+    api_batch.add_argument("--maximum-total-tokens", type=int)
+    api_batch.add_argument(
+        "--progress-log",
+        type=Path,
+        help="Append one payload-free Markdown row after every model call",
+    )
     api_monitor = subparsers.add_parser(
         "monitor-openai-compatible-api",
         help="Continuously refresh a read-only HTML dashboard from response/audit JSONL",
@@ -180,6 +192,19 @@ def _parser() -> argparse.ArgumentParser:
         "--watch",
         action="store_true",
         help="Keep updating until Ctrl+C; otherwise write one HTML snapshot",
+    )
+    pilot_report = subparsers.add_parser(
+        "report-openai-compatible-pilot",
+        help="Summarize payload-free API pilot quality, grounding, and token metrics",
+    )
+    pilot_report.add_argument("responses", type=Path)
+    pilot_report.add_argument("audit", type=Path)
+    pilot_report.add_argument("failures", type=Path)
+    pilot_report.add_argument("--pilot-target", type=int, required=True)
+    pilot_report.add_argument("--output-json", type=Path, required=True)
+    pilot_report.add_argument("--output-markdown", type=Path, required=True)
+    pilot_report.add_argument(
+        "--maximum-unresolved-failure-rate", type=float, default=0.05
     )
     return parser
 
@@ -306,6 +331,20 @@ def main() -> None:
                 (lambda message: print(message, flush=True)) if args.watch else None
             ),
         )
+    elif args.command == "report-openai-compatible-pilot":
+        from .api_pilot_report import summarize_api_pilot
+
+        result = summarize_api_pilot(
+            args.responses,
+            args.audit,
+            args.failures,
+            pilot_target=args.pilot_target,
+            output_json_path=args.output_json,
+            output_markdown_path=args.output_markdown,
+            maximum_unresolved_failure_rate=(
+                args.maximum_unresolved_failure_rate
+            ),
+        )
     else:
         from .openai_compatible_api import run_api_batch
 
@@ -319,9 +358,13 @@ def main() -> None:
             endpoint_scope=args.endpoint_scope,
             data_transfer_authorized=args.confirm_data_transfer_authorized,
             maximum_requests=args.maximum_requests,
+            pilot_target=args.pilot_target,
+            maximum_failed_requests=args.maximum_failed_requests,
+            maximum_total_tokens=args.maximum_total_tokens,
             environment_file=args.env_file,
             failure_audit_path=args.failure_audit,
             retry_failures_from=args.retry_failures_from,
+            progress_log_path=args.progress_log,
             progress_reporter=lambda message: print(message, flush=True),
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))

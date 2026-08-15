@@ -249,6 +249,7 @@ Set-Location 'D:\Projects\llm_benchmark'
   --execute `
   --endpoint-scope external `
   --confirm-data-transfer-authorized `
+  --progress-log "$executionRoot\mention_execution_progress.md" `
   --maximum-requests 10
 ```
 
@@ -259,6 +260,7 @@ Set-Location 'D:\Projects\llm_benchmark'
   --env-file $envFile `
   --execute `
   --endpoint-scope local `
+  --progress-log "$executionRoot\mention_execution_progress.md" `
   --maximum-requests 10
 ```
 
@@ -278,6 +280,20 @@ remaining: 64498
 
 API 执行期间会立即打印已载入数量，随后逐次打印“调用/重试/成功/失败并继续”、累计成功/失败数和本次 token usage。响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到成功文件。
 
+启动脚本还会创建或继续追加下面的 Markdown 文件：
+
+```text
+data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_execution_progress.md
+```
+
+它在每次真实模型调用后立即落盘一行，显示 `success`、`retry_scheduled` 或 `failed`、本次/累计 token、实体/关系数量、span 修复数和本次改变的 response/audit 文件。日志不含临床原文、模型原始输出或 API key；重复执行脚本不会覆盖旧记录，不同运行由 `运行 ID` 区分。另开一个 PowerShell 可实时查看追加内容：
+
+```powershell
+Get-Content -LiteralPath `
+  'D:\Projects\llm_benchmark\data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_execution_progress.md' `
+  -Tail 20 -Wait
+```
+
 模型给出的 mention 或 relation evidence offset 不准确时，接口先执行确定性 span grounding。第一层使用原文中大小写敏感的精确 `surface_text`/`evidence_text`；找不到时，第二层仅允许 Unicode casefold 和连续空白折叠匹配，并把结果 surface 回填为原文真实子串。唯一匹配直接落位，多次匹配仅在原 offset 指向唯一最近候选时落位，平局或归一化后仍不存在时拒绝。关系 evidence 还必须覆盖 source/target mentions。接口不改实体类型或其他语义属性，不使用编辑距离、同义词或语义猜测。成功 audit 的 `span_grounding` 保存原始/校正 offset、候选数、规则及是否从原文回填 surface，不保存临床文字。
 
 空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。截断、认证、端点或配置等非内容错误仍立即停止整批。失败审计只保存 reason code、具体标注校验原因、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
@@ -292,7 +308,31 @@ API 执行期间会立即打印已载入数量，随后逐次打印“调用/重
 
 脚本会向 CLI 传递 `--retry-failures-from mention_api_audit.failures.jsonl`。终端启动行应显示 `模式 terminal_failures_only`；`候选`是当前尚未成功的失败 request 数，可能少于 `-MaximumRequests`。
 
-### 7.2 编译 mention 并生成10个 relation 请求
+### 7.2 扩大为累计100条技术 pilot
+
+这里的“100条”是100个不同的文本单元，不是100个 admission，也不是要求100条全部成功。成功 response 和 failure audit 中曾被调用过的 request ID 都只计一次；脚本只选择从未尝试过的新文本，直到累计覆盖100个，因此不会重付已有调用。历史终止失败仍计入覆盖，但会作为未解决失败进入验收门，不会被误报为成功。
+
+```powershell
+Set-Location 'D:\Projects\llm_benchmark'
+& '.\scripts\Run-TextNerMentionSmoke.ps1' `
+  -PilotTarget 100 `
+  -MaximumFailedRequests 10 `
+  -MaximumTotalTokens 200000 `
+  -ConfirmExternalDataTransfer
+```
+
+两个熔断器只计算本次运行：累计出现10个终止失败，或累计模型 usage 达到200,000 tokens 后，在开始下一个文本单元前停止。token 只能在服务端返回后获知，所以最多可能超过阈值一次模型调用的 token。停止后现有结果和追加日志仍然有效；先调查原因，不把达到熔断的批次解释成完成100条。
+
+命令正常结束后自动生成：
+
+```text
+model_execution\mention_pilot_100_summary.json
+model_execution\mention_pilot_100_summary.md
+```
+
+报告对 response、成功 audit 和 failure audit 去重对账，汇总累计覆盖、未解决失败率、异常中断、token、span grounding 以及能否扩大到500条。报告不写 request ID 或临床文本。`technical_pilot_passed` 只说明接口和合同在该规模下达到技术门槛，模型输出仍是 `unreviewed_model_output`，不能当作经过验证的实验结果。
+
+### 7.3 编译 mention 并生成10个 relation 请求
 
 编译器要求 relation response 文件存在。首次运行时创建空文件：
 
@@ -317,7 +357,7 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
 - `relation_requests_ready` 应为10；
 - `compile_status` 仍应为 `pending_model_execution`，因为总体有64,509个单元。
 
-### 7.3 运行10个 relation 请求
+### 7.4 运行10个 relation 请求
 
 外部 API：
 
@@ -337,7 +377,7 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
 
 本地 API 同样改用 `--endpoint-scope local` 并删除传输确认参数。
 
-### 7.4 编译小批结果
+### 7.5 编译小批结果
 
 ```powershell
 & $pythonPath -m data_pipeline.text_ner compile-model-responses `
@@ -371,7 +411,8 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
   --env-file $envFile `
   --execute `
   --endpoint-scope external `
-  --confirm-data-transfer-authorized
+  --confirm-data-transfer-authorized `
+  --progress-log "$executionRoot\mention_execution_progress.md"
 ```
 
 程序读取已有 response request ID，自动跳过前10个并继续剩余请求。中断或空响应重试耗尽后，执行同一条命令即可续跑；现有成功响应不会重新调用。

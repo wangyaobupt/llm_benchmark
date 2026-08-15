@@ -10,6 +10,7 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from data_pipeline.text_ner.annotation_contracts import SECTION_ANNOTATION_SCHEMA_VERSION
+from data_pipeline.text_ner.api_pilot_report import summarize_api_pilot
 from data_pipeline.text_ner.aggregation_manifest import (
     AggregationTextManifestError,
     prepare_aggregation_text_manifest,
@@ -17,6 +18,7 @@ from data_pipeline.text_ner.aggregation_manifest import (
 from data_pipeline.text_ner.model_interface import (
     MODEL_ADAPTER_PROTOCOL_VERSION,
     MODEL_REQUEST_SCHEMA_VERSION,
+    MODEL_RESPONSE_SCHEMA_VERSION,
 )
 from data_pipeline.text_ner.openai_compatible_api import (
     GenericApiError,
@@ -233,6 +235,44 @@ def _api_request(text: str, prompt: str) -> dict[str, object]:
         "section_text_sha256": text_hash,
         "prompt_sha256": prompt_hash,
         "response_schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+    }
+
+
+def _numbered_api_request(
+    number: int, text: str, prompt: str
+) -> dict[str, object]:
+    request = _api_request(text, prompt)
+    request.update(
+        {
+            "request_id": f"request:{number}",
+            "annotation_unit_id": f"unit:{number}",
+            "manifest_row_id": f"manifest:{number}",
+            "document_id": f"document:{number}",
+            "section_id": f"section:{number}",
+        }
+    )
+    return request
+
+
+def _empty_annotation(request: dict[str, object]) -> dict[str, object]:
+    return {
+        "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+        "manifest_row_id": request["manifest_row_id"],
+        "document_id": request["document_id"],
+        "section_id": request["section_id"],
+        "section_text_sha256": request["section_text_sha256"],
+        "mentions": [],
+        "relations": [],
+    }
+
+
+def _local_api_environment() -> dict[str, str]:
+    return {
+        "TEXT_NER_API_KEY": "test-secret",
+        "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+        "TEXT_NER_MODEL": "test-model",
+        "TEXT_NER_MODEL_VERSION": "test-revision",
+        "TEXT_NER_PROVIDER": "test-provider",
     }
 
 
@@ -1047,6 +1087,321 @@ class GenericApiBatchTests(unittest.TestCase):
             self.assertNotIn("thinking", calls[0][2])
             self.assertNotIn("test-secret", repr(calls[0][0]))
             self.assertNotIn("test-secret", audit.read_text(encoding="utf-8"))
+
+    def test_pilot_target_counts_success_and_failure_history_once(self) -> None:
+        prompt_text = "Return JSON."
+        request_rows = [
+            _numbered_api_request(index, f"Text {index}", prompt_text)
+            for index in range(1, 5)
+        ]
+        calls = 0
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            user_payload = json.loads(payload["messages"][1]["content"])
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+            return {
+                "id": f"pilot:{calls}",
+                "choices": [{"message": {"content": json.dumps(annotation)}}],
+                "usage": {"prompt_tokens": 5, "completion_tokens": 3, "total_tokens": 8},
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(
+                "\n".join(json.dumps(row) for row in request_rows) + "\n",
+                encoding="utf-8",
+            )
+            responses = root / "responses.jsonl"
+            responses.write_text(
+                json.dumps(
+                    {
+                        "schema_version": MODEL_RESPONSE_SCHEMA_VERSION,
+                        "request_id": "request:1",
+                        "stage_id": "mentions",
+                        "provider": "test-provider",
+                        "model_name": "test-model",
+                        "model_version": "test-revision",
+                        "annotation": _empty_annotation(request_rows[0]),
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            audit = root / "audit.jsonl"
+            progress_log = root / "progress.md"
+            (root / "audit.failures.jsonl").write_text(
+                json.dumps({"request_id": "request:2", "will_retry": False})
+                + "\n",
+                encoding="utf-8",
+            )
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                audit,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                pilot_target=4,
+                maximum_failed_requests=10,
+                maximum_total_tokens=200_000,
+                progress_log_path=progress_log,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(calls, 2)
+            self.assertEqual(summary["selection_mode"], "new_until_pilot_target")
+            self.assertEqual(summary["historically_attempted"], 2)
+            self.assertEqual(summary["pilot_remaining_before"], 2)
+            self.assertEqual(summary["attempted_requests_this_run"], 2)
+            self.assertEqual(summary["pilot_covered_total"], 4)
+            self.assertEqual(summary["completed_total"], 3)
+            self.assertEqual(summary["stop_reason"], None)
+            progress_text = progress_log.read_text(encoding="utf-8")
+            self.assertEqual(progress_text.count("# Text NER 模型调用追加日志"), 1)
+            self.assertEqual(progress_text.count("| success |"), 2)
+            self.assertIn("responses.jsonl, audit.jsonl", progress_text)
+            self.assertNotIn("Text 3", progress_text)
+
+    def test_failure_circuit_breaker_stops_before_next_text_unit(self) -> None:
+        prompt_text = "Return JSON."
+        request_rows = [
+            _numbered_api_request(index, f"Text {index}", prompt_text)
+            for index in range(1, 4)
+        ]
+        calls = 0
+
+        def transport(*args: object) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            return {
+                "id": f"invalid:{calls}",
+                "choices": [{"message": {"content": "not json"}}],
+                "usage": {"prompt_tokens": 3, "completion_tokens": 2, "total_tokens": 5},
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(
+                "\n".join(json.dumps(row) for row in request_rows) + "\n",
+                encoding="utf-8",
+            )
+            progress_log = root / "progress.md"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                pilot_target=3,
+                maximum_failed_requests=1,
+                maximum_total_tokens=200_000,
+                progress_log_path=progress_log,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(calls, 2)
+            self.assertEqual(summary["attempted_requests_this_run"], 1)
+            self.assertEqual(summary["failed_requests_this_run"], 1)
+            self.assertEqual(
+                summary["stop_reason"], "maximum_failed_requests_reached"
+            )
+            self.assertEqual(summary["batch_status"], "stopped_by_budget")
+            progress_text = progress_log.read_text(encoding="utf-8")
+            self.assertEqual(progress_text.count("| retry_scheduled |"), 1)
+            self.assertEqual(progress_text.count("| failed |"), 1)
+            self.assertIn("audit.failures.jsonl", progress_text)
+            self.assertNotIn("not json", progress_text)
+
+    def test_token_circuit_breaker_stops_after_crossing_budget(self) -> None:
+        prompt_text = "Return JSON."
+        request_rows = [
+            _numbered_api_request(index, f"Text {index}", prompt_text)
+            for index in range(1, 4)
+        ]
+        calls = 0
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            user_payload = json.loads(payload["messages"][1]["content"])
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+            return {
+                "id": f"budget:{calls}",
+                "choices": [{"message": {"content": json.dumps(annotation)}}],
+                "usage": {
+                    "prompt_tokens": 40,
+                    "completion_tokens": 20,
+                    "total_tokens": 60,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(
+                "\n".join(json.dumps(row) for row in request_rows) + "\n",
+                encoding="utf-8",
+            )
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                pilot_target=3,
+                maximum_failed_requests=10,
+                maximum_total_tokens=100,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(calls, 2)
+            self.assertEqual(summary["attempted_requests_this_run"], 2)
+            self.assertEqual(summary["successful_responses_this_run"], 2)
+            self.assertEqual(summary["usage_this_run"]["total_tokens"], 120)
+            self.assertEqual(
+                summary["stop_reason"], "maximum_total_tokens_reached"
+            )
+            self.assertEqual(summary["batch_status"], "stopped_by_budget")
+
+    def test_pilot_report_is_payload_free_and_rejects_incomplete_retry(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            responses = root / "responses.jsonl"
+            responses.write_text(
+                "\n".join(
+                    json.dumps(
+                        {
+                            "request_id": f"request:{index}",
+                            "annotation": {"private_text": "private chest pain"},
+                        }
+                    )
+                    for index in (1, 2)
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            audit = root / "audit.jsonl"
+            audit.write_text(
+                "\n".join(
+                    json.dumps(
+                        {
+                            "request_id": f"request:{index}",
+                            "usage": {
+                                "prompt_tokens": 8,
+                                "completion_tokens": 2,
+                                "total_tokens": 10,
+                            },
+                            "span_grounding": {
+                                "repairs": [
+                                    {
+                                        "rule": "unique_exact_occurrence",
+                                        "surface_rewritten_from_source": False,
+                                    }
+                                ]
+                                if index == 1
+                                else []
+                            },
+                        }
+                    )
+                    for index in (1, 2)
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            failures = root / "audit.failures.jsonl"
+            failures.write_text(
+                "\n".join(
+                    json.dumps(row)
+                    for row in (
+                        {
+                            "request_id": "request:2",
+                            "will_retry": True,
+                            "reason_code": "GENERIC_API_ANNOTATION_JSON_INVALID",
+                            "usage": {"total_tokens": 4},
+                        },
+                        {
+                            "request_id": "request:3",
+                            "will_retry": False,
+                            "reason_code": "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                            "annotation_validation_reason_code": "MENTION_SURFACE_MISMATCH",
+                            "usage": {"total_tokens": 5},
+                        },
+                        {
+                            "request_id": "request:4",
+                            "will_retry": True,
+                            "reason_code": "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
+                            "usage": {"total_tokens": 6},
+                        },
+                    )
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            output_json = root / "summary.json"
+            output_markdown = root / "summary.md"
+            summary = summarize_api_pilot(
+                responses,
+                audit,
+                failures,
+                pilot_target=4,
+                output_json_path=output_json,
+                output_markdown_path=output_markdown,
+            )
+            self.assertEqual(summary["counts"]["attempted_unique"], 4)
+            self.assertEqual(summary["counts"]["successful_unique"], 2)
+            self.assertEqual(summary["counts"]["unresolved_failed_unique"], 1)
+            self.assertEqual(summary["counts"]["incomplete_failed_unique"], 1)
+            self.assertEqual(summary["usage"]["total_tokens"], 35)
+            self.assertFalse(summary["quality_gate"]["can_expand_to_500"])
+            rendered = output_json.read_text(encoding="utf-8") + output_markdown.read_text(
+                encoding="utf-8"
+            )
+            self.assertNotIn("private chest pain", rendered)
+            self.assertNotIn("request:1", rendered)
 
 
 if __name__ == "__main__":

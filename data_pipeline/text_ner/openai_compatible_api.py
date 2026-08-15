@@ -612,6 +612,67 @@ def _append_jsonl(path: Path, value: dict[str, Any]) -> None:
         os.fsync(handle.fileno())
 
 
+def _markdown_cell(value: object) -> str:
+    return str(value if value is not None else "").replace("|", "\\|").replace(
+        "\r", " "
+    ).replace("\n", " ")
+
+
+def _append_progress_markdown(
+    path: Path | None,
+    *,
+    run_id: str,
+    request_id: object,
+    text_unit_number: object,
+    call_number: object,
+    status: str,
+    mention_count: object = "",
+    relation_count: object = "",
+    repair_count: object = "",
+    call_tokens: object = "",
+    cumulative_tokens: object = "",
+    changed_files: object = "",
+    reason: object = "",
+) -> None:
+    """Append one payload-free, human-readable execution event."""
+
+    if path is None:
+        return
+    destination = Path(path)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with destination.open("a+", encoding="utf-8", newline="\n") as handle:
+        handle.seek(0, os.SEEK_END)
+        if handle.tell() == 0:
+            handle.write(
+                "# Text NER 模型调用追加日志\n\n"
+                "> 每次模型调用后追加一行；不保存临床原文、模型原始输出或 API key。\n\n"
+                "| UTC 时间 | 运行 ID | 文本单元 | 调用 | 状态 | request_id | "
+                "实体 | 关系 | span 修复 | 本次 tokens | 本轮累计 tokens | "
+                "已改变文件 | 原因 |\n"
+                "|---|---|---:|---:|---|---|---:|---:|---:|---:|---:|---|---|\n"
+            )
+        values = (
+            datetime.now(timezone.utc).isoformat(),
+            run_id,
+            text_unit_number,
+            call_number,
+            status,
+            request_id,
+            mention_count,
+            relation_count,
+            repair_count,
+            call_tokens,
+            cumulative_tokens,
+            changed_files,
+            reason,
+        )
+        handle.write(
+            "| " + " | ".join(_markdown_cell(value) for value in values) + " |\n"
+        )
+        handle.flush()
+        os.fsync(handle.fileno())
+
+
 def _request_sha256(request: Mapping[str, Any]) -> str:
     return hashlib.sha256(
         json.dumps(
@@ -733,9 +794,13 @@ def run_api_batch(
     endpoint_scope: str = "external",
     data_transfer_authorized: bool = False,
     maximum_requests: int | None = None,
+    pilot_target: int | None = None,
+    maximum_failed_requests: int | None = None,
+    maximum_total_tokens: int | None = None,
     environment_file: Path | None = None,
     failure_audit_path: Path | None = None,
     retry_failures_from: Path | None = None,
+    progress_log_path: Path | None = None,
     environ: Mapping[str, str] | None = None,
     transport: Transport | None = None,
     sleep: Callable[[float], None] = time.sleep,
@@ -775,9 +840,49 @@ def run_api_batch(
             )
         completed.add(response["request_id"])
 
+    resolved_failure_audit_path = (
+        Path(failure_audit_path)
+        if failure_audit_path is not None
+        else _default_failure_audit_path(Path(audit_path))
+    )
+    historical_failure_rows = _load_jsonl(resolved_failure_audit_path)
+    historical_failure_ids = {
+        str(row.get("request_id"))
+        for row in historical_failure_rows
+        if row.get("request_id")
+    }
+    unknown_historical_ids = historical_failure_ids - set(request_by_id)
+    if unknown_historical_ids:
+        raise GenericApiError(
+            "GENERIC_API_FAILURE_HISTORY_REQUEST_UNKNOWN",
+            str(len(unknown_historical_ids)),
+        )
+    historically_attempted_ids = completed | historical_failure_ids
+    if pilot_target is not None and retry_failures_from is not None:
+        raise GenericApiError(
+            "GENERIC_API_SELECTION_MODE_CONFLICT",
+            "pilot_target and retry_failures_from are mutually exclusive",
+        )
+    if pilot_target is not None and maximum_requests is not None:
+        raise GenericApiError(
+            "GENERIC_API_SELECTION_LIMIT_CONFLICT",
+            "pilot_target and maximum_requests are mutually exclusive",
+        )
+
     selection_mode = "all_pending"
     eligible_request_ids = set(request_by_id) - completed
-    if retry_failures_from is not None:
+    pilot_remaining_before: int | None = None
+    if pilot_target is not None:
+        if pilot_target <= 0 or pilot_target > len(requests):
+            raise GenericApiError(
+                "GENERIC_API_PILOT_TARGET_INVALID", str(pilot_target)
+            )
+        selection_mode = "new_until_pilot_target"
+        pilot_remaining_before = max(
+            0, pilot_target - len(historically_attempted_ids)
+        )
+        eligible_request_ids = set(request_by_id) - historically_attempted_ids
+    elif retry_failures_from is not None:
         selection_mode = "terminal_failures_only"
         failure_rows = _load_jsonl(Path(retry_failures_from))
         terminal_failure_ids = {
@@ -794,24 +899,37 @@ def run_api_batch(
         eligible_request_ids &= terminal_failure_ids
 
     adapter = OpenAICompatibleAdapter(settings, config, prompt, transport=transport)
-    resolved_failure_audit_path = (
-        Path(failure_audit_path)
-        if failure_audit_path is not None
-        else _default_failure_audit_path(Path(audit_path))
-    )
     requested_limit = (
-        len(eligible_request_ids) if maximum_requests is None else maximum_requests
+        pilot_remaining_before
+        if pilot_target is not None
+        else (
+            len(eligible_request_ids)
+            if maximum_requests is None
+            else maximum_requests
+        )
     )
     if requested_limit < 0:
         raise GenericApiError(
             "GENERIC_API_MAXIMUM_REQUESTS_INVALID", str(requested_limit)
         )
     limit = min(requested_limit, len(eligible_request_ids))
+    if maximum_failed_requests is not None and maximum_failed_requests <= 0:
+        raise GenericApiError(
+            "GENERIC_API_MAXIMUM_FAILED_REQUESTS_INVALID",
+            str(maximum_failed_requests),
+        )
+    if maximum_total_tokens is not None and maximum_total_tokens <= 0:
+        raise GenericApiError(
+            "GENERIC_API_MAXIMUM_TOTAL_TOKENS_INVALID",
+            str(maximum_total_tokens),
+        )
     successful_responses = 0
     attempted_requests = 0
     failed_requests = 0
     api_attempts = 0
     retries = 0
+    stop_reason: str | None = None
+    run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{os.getpid()}"
     token_usage: dict[str, int] = {
         "prompt_tokens": 0,
         "completion_tokens": 0,
@@ -823,7 +941,9 @@ def run_api_batch(
         progress_reporter(
             f"[API] 已载入 {len(requests):,} 个文本单元 | "
             f"checkpoint {len(completed):,} | 候选 {len(eligible_request_ids):,} | "
-            f"本次最多尝试 {limit:,} 个 | 模式 {selection_mode}"
+            f"本次最多尝试 {limit:,} 个 | 模式 {selection_mode} | "
+            f"失败熔断 {maximum_failed_requests if maximum_failed_requests is not None else '关闭'} | "
+            f"token熔断 {maximum_total_tokens if maximum_total_tokens is not None else '关闭'}"
         )
     for request in requests:
         if request["request_id"] not in eligible_request_ids:
@@ -884,6 +1004,10 @@ def run_api_batch(
                 break
             except GenericApiError as error:
                 _accumulate_usage(token_usage, error.diagnostics.get("usage"))
+                token_budget_reached = (
+                    maximum_total_tokens is not None
+                    and token_usage["total_tokens"] >= maximum_total_tokens
+                )
                 content_sha256 = error.diagnostics.get("content_sha256")
                 repeated_invalid_content = (
                     isinstance(content_sha256, str)
@@ -895,6 +1019,7 @@ def run_api_batch(
                     error.retryable
                     and attempt_number < maximum_attempts
                     and not repeated_invalid_content
+                    and not token_budget_reached
                 )
                 delay = (
                     float(config["batch"]["retry_initial_seconds"])
@@ -903,12 +1028,21 @@ def run_api_batch(
                     else None
                 )
                 retry_stop_reason = (
-                    "identical_invalid_content"
-                    if repeated_invalid_content
+                    "maximum_total_tokens_reached"
+                    if token_budget_reached
                     else (
-                        "maximum_attempts_reached"
-                        if error.retryable and attempt_number >= maximum_attempts
-                        else ("non_retryable_error" if not error.retryable else None)
+                        "identical_invalid_content"
+                        if repeated_invalid_content
+                        else (
+                            "maximum_attempts_reached"
+                            if error.retryable
+                            and attempt_number >= maximum_attempts
+                            else (
+                                "non_retryable_error"
+                                if not error.retryable
+                                else None
+                            )
+                        )
                     )
                 )
                 _append_failure_audit(
@@ -924,6 +1058,24 @@ def run_api_batch(
                     retry_delay_seconds=delay,
                     retry_stop_reason=retry_stop_reason,
                 )
+                failure_reason = (
+                    error.diagnostics.get("annotation_validation_reason_code")
+                    or error.reason_code
+                )
+                _append_progress_markdown(
+                    progress_log_path,
+                    run_id=run_id,
+                    request_id=request["request_id"],
+                    text_unit_number=f"{attempted_requests}/{limit}",
+                    call_number=f"{attempt_number}/{maximum_attempts}",
+                    status="retry_scheduled" if will_retry else "failed",
+                    call_tokens=_sanitized_usage(
+                        error.diagnostics.get("usage")
+                    ).get("total_tokens", 0),
+                    cumulative_tokens=token_usage["total_tokens"],
+                    changed_files=resolved_failure_audit_path.name,
+                    reason=failure_reason,
+                )
                 if not will_retry:
                     quarantinable = error.reason_code in {
                         "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
@@ -932,11 +1084,19 @@ def run_api_batch(
                     }
                     if error.retryable and quarantinable:
                         failed_requests += 1
+                        if token_budget_reached:
+                            stop_reason = "maximum_total_tokens_reached"
+                        elif (
+                            maximum_failed_requests is not None
+                            and failed_requests >= maximum_failed_requests
+                        ):
+                            stop_reason = "maximum_failed_requests_reached"
                         if progress_reporter is not None:
                             progress_reporter(
                                 f"[API] 文本单元失败并继续 | {error.reason_code} | "
                                 f"停止原因 {retry_stop_reason} | "
-                                f"本次失败 {failed_requests:,}"
+                                f"本次失败 {failed_requests:,} | "
+                                f"批次停止 {stop_reason or '否'}"
                             )
                         response = None
                         result = None
@@ -951,6 +1111,8 @@ def run_api_batch(
                 attempt_number += 1
                 sleep(delay)
         if response is None or result is None:
+            if stop_reason is not None:
+                break
             if attempted_requests < limit:
                 sleep(interval)
             continue
@@ -988,20 +1150,53 @@ def run_api_batch(
         _append_jsonl(Path(audit_path), audit)
         completed.add(request["request_id"])
         successful_responses += 1
+        annotation = response["annotation"]
+        _append_progress_markdown(
+            progress_log_path,
+            run_id=run_id,
+            request_id=request["request_id"],
+            text_unit_number=f"{attempted_requests}/{limit}",
+            call_number=f"{attempt_number}/{maximum_attempts}",
+            status="success",
+            mention_count=len(annotation["mentions"]),
+            relation_count=len(annotation["relations"]),
+            repair_count=len(span_repairs),
+            call_tokens=_sanitized_usage(usage).get("total_tokens", 0),
+            cumulative_tokens=token_usage["total_tokens"],
+            changed_files=(
+                f"{Path(output_responses_path).name}, {Path(audit_path).name}"
+            ),
+        )
+        if (
+            maximum_total_tokens is not None
+            and token_usage["total_tokens"] >= maximum_total_tokens
+        ):
+            stop_reason = "maximum_total_tokens_reached"
         if progress_reporter is not None:
             progress_reporter(
                 f"[API] 成功 {successful_responses:,} | 失败 {failed_requests:,} | "
                 f"完成总数 {len(completed):,}/{len(requests):,} | "
-                f"本次 tokens {token_usage['total_tokens']:,}"
+                f"本次 tokens {token_usage['total_tokens']:,} | "
+                f"批次停止 {stop_reason or '否'}"
             )
+        if stop_reason is not None:
+            break
         if attempted_requests < limit:
             sleep(interval)
     return {
-        "schema_version": "text-ner-api-batch-summary/1.3.0",
+        "schema_version": "text-ner-api-batch-summary/1.4.0",
         "requests": len(requests),
         "already_completed": len(existing),
         "selection_mode": selection_mode,
         "eligible_requests": len(eligible_request_ids),
+        "historically_attempted": len(historically_attempted_ids),
+        "pilot_target": pilot_target,
+        "pilot_remaining_before": pilot_remaining_before,
+        "pilot_covered_total": (
+            len(historically_attempted_ids) + attempted_requests
+            if pilot_target is not None
+            else None
+        ),
         "attempted_requests_this_run": attempted_requests,
         "model_calls_this_run": api_attempts,
         "successful_responses_this_run": successful_responses,
@@ -1010,6 +1205,10 @@ def run_api_batch(
         "completed_total": len(completed),
         "remaining": len(requests) - len(completed),
         "retries": retries,
+        "maximum_failed_requests": maximum_failed_requests,
+        "maximum_total_tokens": maximum_total_tokens,
+        "stop_reason": stop_reason,
+        "batch_status": "stopped_by_budget" if stop_reason else "selection_complete",
         "usage_this_run": token_usage,
         "successful_usage_this_run": successful_token_usage,
         "failure_audit_path": str(resolved_failure_audit_path),

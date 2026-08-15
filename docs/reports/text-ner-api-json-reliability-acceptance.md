@@ -22,6 +22,10 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 - `maximum_requests` 限制不同文本单元尝试数；摘要分别报告文本单元尝试数、真实模型调用数、成功响应、失败单元、失败尝试、总 usage 与成功 usage。
 - API 执行终端逐次打印调用、重试、成功、隔离失败和 token 进度。
 - `--retry-failures-from` 只选择已有终止失败且尚未成功的 request ID，不顺带处理新文本。
+- `--pilot-target` 按成功 response 与 failure audit 的 request ID 并集计算累计不同文本单元，只调用尚未尝试的新文本直到目标覆盖数。
+- `--maximum-failed-requests` 和 `--maximum-total-tokens` 分别限制本轮终止失败数和本轮 token；达到阈值后不再开始下一个文本单元。
+- `--progress-log` 在每次真实模型调用后向 Markdown 追加状态、实体/关系数、span 修复、token 和已改变文件，不保存正文或模型原始输出。
+- pilot 结束后生成脱敏 JSON/Markdown 技术报告，对成功、终止失败、重试中断、response/audit 一致性、token 和 grounding 进行累计验收。
 
 ## 验收证据
 
@@ -41,7 +45,11 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 | 调用次数与失败/成功 token usage 对账 | passed |
 | 既有成功响应断点续跑 | passed |
 | failure audit 定向重试且不调用新文本 | passed |
-| Text NER、API monitor 与 aggregation 完整测试 | 55 passed, 0 failed |
+| 累计 pilot 只选择从未尝试的 request ID | passed |
+| 失败数/token 熔断在下一文本单元前停止 | passed |
+| Markdown 每次调用追加且不含临床原文/原始输出/API key | passed |
+| pilot 报告不含 request ID/临床正文并识别重试中断 | passed |
+| Text NER、API monitor 与 aggregation 完整测试 | 59 passed, 0 failed |
 | 本轮诊断和代码修改新增模型调用 | 0 |
 
 ## 本次故障证据
