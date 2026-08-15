@@ -21,6 +21,9 @@ from data_pipeline.text_ner.model_interface import (
 from data_pipeline.text_ner.openai_compatible_api import (
     GenericApiError,
     OpenAICompatibleSettings,
+    load_api_config,
+    load_environment_file,
+    resolve_environment,
     run_api_batch,
 )
 
@@ -275,6 +278,59 @@ class AggregationTextManifestTests(unittest.TestCase):
 
 
 class GenericApiBatchTests(unittest.TestCase):
+    def test_environment_file_is_strict_and_process_environment_overrides(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            environment_file = Path(temporary) / "api-settings.txt"
+            environment_file.write_text(
+                "\n".join(
+                    [
+                        "# Both .env and .txt extensions are accepted.",
+                        "TEXT_NER_API_KEY='file-secret'",
+                        "TEXT_NER_BASE_URL=http://127.0.0.1:9999/v1",
+                        "TEXT_NER_MODEL=file-model",
+                        'TEXT_NER_MODEL_VERSION="file-revision"',
+                        "TEXT_NER_PROVIDER=file-provider",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            loaded = load_environment_file(environment_file)
+            resolved = resolve_environment(
+                environment_file,
+                {
+                    "TEXT_NER_MODEL": "process-model",
+                    "UNRELATED_SETTING": "ignored",
+                },
+            )
+            settings = OpenAICompatibleSettings.from_environment(
+                load_api_config(API_CONFIG), resolved
+            )
+            self.assertEqual(loaded["TEXT_NER_API_KEY"], "file-secret")
+            self.assertEqual(settings.model, "process-model")
+            self.assertEqual(settings.model_version, "file-revision")
+            self.assertNotIn("UNRELATED_SETTING", resolved)
+            self.assertNotIn("file-secret", repr(settings))
+
+    def test_environment_file_rejects_invalid_content_without_secret_values(self) -> None:
+        cases = {
+            "unknown.env": "TEXT_NER_API_KEY=hidden-secret\nUNKNOWN_KEY=value\n",
+            "duplicate.env": (
+                "TEXT_NER_API_KEY=hidden-secret\nTEXT_NER_API_KEY=second-secret\n"
+            ),
+            "malformed.env": "TEXT_NER_API_KEY=hidden-secret\nnot-an-assignment\n",
+            "quote.env": "TEXT_NER_API_KEY='hidden-secret\n",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            for name, content in cases.items():
+                with self.subTest(name=name):
+                    path = root / name
+                    path.write_text(content, encoding="utf-8")
+                    with self.assertRaises(GenericApiError) as raised:
+                        load_environment_file(path)
+                    self.assertNotIn("hidden-secret", str(raised.exception))
+                    self.assertNotIn("second-secret", str(raised.exception))
+
     def test_gates_prevent_transport_before_explicit_authorization(self) -> None:
         calls: list[object] = []
 
@@ -335,6 +391,11 @@ class GenericApiBatchTests(unittest.TestCase):
         }
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
+            environment_file = root / ".env"
+            environment_file.write_text(
+                "\n".join(f"{key}={value}" for key, value in environment.items()),
+                encoding="utf-8",
+            )
             prompt = root / "prompt.md"
             prompt.write_text(prompt_text, encoding="utf-8")
             requests = root / "requests.jsonl"
@@ -349,7 +410,8 @@ class GenericApiBatchTests(unittest.TestCase):
                 API_CONFIG,
                 execute=True,
                 endpoint_scope="local",
-                environ=environment,
+                environment_file=environment_file,
+                environ={},
                 transport=transport,
                 sleep=lambda _: None,
             )

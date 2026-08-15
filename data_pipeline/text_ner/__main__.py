@@ -132,6 +132,14 @@ def _parser() -> argparse.ArgumentParser:
     api_batch.add_argument("responses", type=Path)
     api_batch.add_argument("audit", type=Path)
     api_batch.add_argument("config", type=Path)
+    api_batch.add_argument(
+        "--env-file",
+        type=Path,
+        help=(
+            "Read the five TEXT_NER_* settings from a UTF-8 KEY=VALUE file; "
+            "process environment variables override file values"
+        ),
+    )
     api_batch.add_argument("--execute", action="store_true")
     api_batch.add_argument(
         "--endpoint-scope", choices=("local", "external"), default="external"
@@ -236,6 +244,7 @@ def main() -> None:
             endpoint_scope=args.endpoint_scope,
             data_transfer_authorized=args.confirm_data_transfer_authorized,
             maximum_requests=args.maximum_requests,
+            environment_file=args.env_file,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

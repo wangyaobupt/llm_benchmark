@@ -30,6 +30,7 @@
 - mention/relation prompt 自包含全部必填字段、实体/属性枚举和关系方向；真实 API 不依赖模型读取仓库内协议文件。
 - 全量 hosp/ED/radiology/discharge mention 请求生成。
 - 通用 OpenAI-compatible API，通过环境变量选择未来模型并支持按 request ID 断点续跑。
+- API 配置可通过 `--env-file .env` 从严格的非执行型 `KEY=VALUE` 文件读取；进程环境变量优先，凭据不会写入审计或模型产物。
 - relation 依赖门禁：只有 mention 响应完成并通过校验后才生成可执行 relation 请求。
 - 响应导入校验：请求血缘、输入哈希、精确字符 span、实体枚举、关系引用和 evidence span 全部 fail-closed。
 - typed Parquet sidecar 编译：`entity_mentions.parquet` 和 `text_relations.parquet`。
@@ -48,7 +49,7 @@
 | 当前关系 sidecar 行数 | 0 |
 | 确定性重放 | run ID 与全部输出哈希一致 |
 | 与旧血缘读取器的结果比较 | manifest、event links、文本和切片不变；请求仅因自包含 prompt 哈希更新 |
-| Text NER 与 aggregation 测试 | 38 passed, 0 failed |
+| Text NER 与 aggregation 测试 | 40 passed, 0 failed |
 
 manifest run ID 为 `atrun:892d43da4c5237950f33dba3`，请求包 run ID 为 `xrun:bf546505f3862df419e06fc6`。mention prompt SHA-256 为 `408a55a69107f59a74b1203412189111ab910c9fb41d9d2b1c05fa71737f3e1a`，relation prompt SHA-256 为 `5bbb31a97a2c22989fb8ccead766df11fa352f3e2045db4f7fe45d43ad6db7bf`。aggregation manifest SHA-256 为 `4b8737a1cccafd805a1d36e37c72816e4f4efeec3e82d9079018f57386d73112`，输入 manifest SHA-256 为 `dcbe306b065b4e7baf88702e625d7c9df167a2e0e699e0f67dfb24ca46352ce1`。
 

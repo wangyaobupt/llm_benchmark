@@ -22,6 +22,17 @@ from .model_interface import (
 )
 
 
+ENVIRONMENT_FILE_KEYS = frozenset(
+    {
+        "TEXT_NER_API_KEY",
+        "TEXT_NER_BASE_URL",
+        "TEXT_NER_MODEL",
+        "TEXT_NER_MODEL_VERSION",
+        "TEXT_NER_PROVIDER",
+    }
+)
+
+
 class GenericApiError(ValueError):
     def __init__(self, reason_code: str, message: str, *, retryable: bool = False):
         super().__init__(f"{reason_code}: {message}")
@@ -126,6 +137,71 @@ def load_api_config(path: Path) -> dict[str, Any]:
             "GENERIC_API_CONFIG_FIELD_MISSING", ",".join(sorted(required - set(value)))
         )
     return value
+
+
+def load_environment_file(path: Path) -> dict[str, str]:
+    """Parse a non-executable UTF-8 KEY=VALUE file containing only NER settings."""
+
+    environment_path = Path(path)
+    try:
+        lines = environment_path.read_text(encoding="utf-8-sig").splitlines()
+    except FileNotFoundError as error:
+        raise GenericApiError(
+            "GENERIC_API_ENV_FILE_NOT_FOUND", str(environment_path)
+        ) from error
+    except UnicodeDecodeError as error:
+        raise GenericApiError(
+            "GENERIC_API_ENV_FILE_ENCODING_INVALID", str(environment_path)
+        ) from error
+
+    values: dict[str, str] = {}
+    for line_number, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if "=" not in stripped:
+            raise GenericApiError(
+                "GENERIC_API_ENV_FILE_LINE_INVALID",
+                f"{environment_path}:{line_number}: expected KEY=VALUE",
+            )
+        key, raw_value = stripped.split("=", 1)
+        key = key.strip()
+        if key not in ENVIRONMENT_FILE_KEYS:
+            raise GenericApiError(
+                "GENERIC_API_ENV_FILE_KEY_UNKNOWN",
+                f"{environment_path}:{line_number}: {key or '<empty>'}",
+            )
+        if key in values:
+            raise GenericApiError(
+                "GENERIC_API_ENV_FILE_KEY_DUPLICATE",
+                f"{environment_path}:{line_number}: {key}",
+            )
+        value = raw_value.strip()
+        if value[:1] in {"'", '"'}:
+            if len(value) < 2 or value[-1] != value[0]:
+                raise GenericApiError(
+                    "GENERIC_API_ENV_FILE_QUOTE_INVALID",
+                    f"{environment_path}:{line_number}: {key}",
+                )
+            value = value[1:-1]
+        values[key] = value
+    return values
+
+
+def resolve_environment(
+    environment_file: Path | None,
+    environ: Mapping[str, str] | None = None,
+) -> dict[str, str]:
+    """Load file settings, then apply process-environment overrides."""
+
+    resolved = (
+        load_environment_file(environment_file) if environment_file is not None else {}
+    )
+    process_environment = os.environ if environ is None else environ
+    for key in ENVIRONMENT_FILE_KEYS:
+        if key in process_environment:
+            resolved[key] = process_environment[key]
+    return resolved
 
 
 def enforce_execution_gate(
@@ -318,6 +394,7 @@ def run_api_batch(
     endpoint_scope: str = "external",
     data_transfer_authorized: bool = False,
     maximum_requests: int | None = None,
+    environment_file: Path | None = None,
     environ: Mapping[str, str] | None = None,
     transport: Transport | None = None,
     sleep: Callable[[float], None] = time.sleep,
@@ -330,7 +407,9 @@ def run_api_batch(
         data_transfer_authorized=data_transfer_authorized,
     )
     config = load_api_config(config_path)
-    settings = OpenAICompatibleSettings.from_environment(config, environ)
+    settings = OpenAICompatibleSettings.from_environment(
+        config, resolve_environment(environment_file, environ)
+    )
     enforce_endpoint_scope(settings, endpoint_scope)
     prompt = Path(prompt_path).read_text(encoding="utf-8")
     prompt_sha256 = hashlib.sha256(prompt.encode("utf-8")).hexdigest()

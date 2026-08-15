@@ -12,7 +12,7 @@ data/test_1000_0812/event_pipeline_output/aggregation
 
 ## 1. 运行前边界
 
-- API key 只放在当前进程环境变量中，不写入代码、配置、日志或 Git。
+- API key 只放在 Git 忽略的本地 `.env` 或当前进程环境变量中，不写入代码、日志、运行产物或 Git。`.env` 是本地明文凭据文件，应限制访问权限。
 - `data/test_1000_0812/event_pipeline_output/NER` 含受限临床原文和模型输出，必须继续由 Git 忽略。
 - `--confirm-data-transfer-authorized` 只表示操作者明确发起外部传输，不证明第三方服务满足 MIMIC 或机构数据政策。
 - 本地服务使用 `--endpoint-scope local`，且 URL 必须是 `localhost`、`127.0.0.1` 或 `::1`。
@@ -27,10 +27,11 @@ $pythonPath = '.\.venv\Scripts\python.exe'
 $nerRoot = 'data\test_1000_0812\event_pipeline_output\NER'
 $aggregationRoot = 'data\test_1000_0812\event_pipeline_output\aggregation'
 $apiConfig = 'config\text_ner\openai-compatible-api.json'
+$envFile = '.env'
 $executionRoot = "$nerRoot\model_execution"
 ```
 
-环境变量只对当前 PowerShell 进程及其子进程生效。当前 CLI 不会自动读取 `.env` 文件。
+API 命令通过 `--env-file $envFile` 读取配置。程序不会执行文件内容，只接受 UTF-8 `KEY=VALUE`、空行和 `#` 注释；也不会在未传参数时隐式搜索当前目录。若同名进程环境变量存在，它会覆盖文件值。
 
 ## 3. 确认输入和请求包
 
@@ -72,46 +73,60 @@ if ($missingFiles) {
 
 截至2026年8月15日，DeepSeek 官方 OpenAI-compatible base URL 为 `https://api.deepseek.com`；正式模型名为 `deepseek-v4-flash` 和 `deepseek-v4-pro`。旧的 `deepseek-chat` 与 `deepseek-reasoner` 已在2026年7月24日后进入停用范围，因此本手册不再使用旧名称。参考：[模型与价格](https://api-docs.deepseek.com/quick_start/pricing)、[更新日志](https://api-docs.deepseek.com/updates/)。
 
-成本优先时配置 V4 Flash：
+成本优先时，在仓库根目录创建或编辑 `.env`：
+
+```dotenv
+TEXT_NER_API_KEY=填写真实API-key
+TEXT_NER_BASE_URL=https://api.deepseek.com
+TEXT_NER_MODEL=deepseek-v4-flash
+TEXT_NER_MODEL_VERSION=DeepSeek-V4-Flash
+TEXT_NER_PROVIDER=deepseek
+```
+
+仓库已提供 NER 专用模板 `config\text_ner\openai-compatible-api.env.example`；新环境可复制为根目录 `.env` 后填写 key。当前本地 `.env` 已创建并由 `.gitignore` 排除。根目录 `.env.example` 是多个子系统共用的变量总览，不能整体传给这个严格接口。`.txt` 扩展名也可使用，例如 `--env-file api-settings.txt`；推荐 `.env`，因为忽略规则和用途更明确。
 
 ```powershell
-$secureApiKey = Read-Host 'DeepSeek API key' -AsSecureString
-$env:TEXT_NER_API_KEY = [System.Net.NetworkCredential]::new('', $secureApiKey).Password
-$env:TEXT_NER_BASE_URL = 'https://api.deepseek.com'
-$env:TEXT_NER_MODEL = 'deepseek-v4-flash'
-$env:TEXT_NER_MODEL_VERSION = 'DeepSeek-V4-Flash'
-$env:TEXT_NER_PROVIDER = 'deepseek'
+if (-not (Test-Path -LiteralPath '.env')) {
+  Copy-Item -LiteralPath 'config\text_ner\openai-compatible-api.env.example' -Destination '.env'
+}
+notepad.exe '.env'
 ```
 
 `TEXT_NER_MODEL_VERSION` 是写入本地 provenance 的标签，不会发送给 API，也不能单独证明远端权重完全不可变。若服务商提供不可变 revision，应把该 revision 填入此变量。
 
 当前接口会发送 `response_format={"type":"json_object"}`。DeepSeek 官方要求提示词同时明确要求 JSON；本项目的 mention 和 relation prompt 已满足这一点。参考：[JSON Output](https://api-docs.deepseek.com/guides/json_mode/)。
 
-不要把 key 直接写成 `$env:TEXT_NER_API_KEY='sk-...'` 后保存到脚本，因为这可能进入 PowerShell 历史。
-
-## 5. 配置其他 OpenAI-compatible API
-
-外部服务模板：
+如果不希望把 key 保存到磁盘，可只覆盖 `.env` 中的空 key：
 
 ```powershell
 $secureApiKey = Read-Host 'API key' -AsSecureString
 $env:TEXT_NER_API_KEY = [System.Net.NetworkCredential]::new('', $secureApiKey).Password
-$env:TEXT_NER_BASE_URL = 'https://provider.example/v1'
-$env:TEXT_NER_MODEL = 'provider-model-id'
-$env:TEXT_NER_MODEL_VERSION = 'immutable-model-revision'
-$env:TEXT_NER_PROVIDER = 'provider-name'
+```
+
+进程环境变量会覆盖 `.env` 中的空值。不要把真实 key 写入脚本或 `.env.example`。
+
+## 5. 配置其他 OpenAI-compatible API
+
+外部服务 `.env` 模板：
+
+```dotenv
+TEXT_NER_API_KEY=填写真实API-key
+TEXT_NER_BASE_URL=https://provider.example/v1
+TEXT_NER_MODEL=provider-model-id
+TEXT_NER_MODEL_VERSION=immutable-model-revision
+TEXT_NER_PROVIDER=provider-name
 ```
 
 程序会在 base URL 后追加 `/chat/completions`。因此 base URL 应停在服务商的 API 根路径，不要自行追加 `/chat/completions`。
 
-本地服务模板：
+本地服务 `.env` 模板：
 
-```powershell
-$env:TEXT_NER_API_KEY = 'local-placeholder'
-$env:TEXT_NER_BASE_URL = 'http://127.0.0.1:8000/v1'
-$env:TEXT_NER_MODEL = 'local-model-id'
-$env:TEXT_NER_MODEL_VERSION = 'local-checkpoint-sha256-or-revision'
-$env:TEXT_NER_PROVIDER = 'local-openai-compatible'
+```dotenv
+TEXT_NER_API_KEY=local-placeholder
+TEXT_NER_BASE_URL=http://127.0.0.1:8000/v1
+TEXT_NER_MODEL=local-model-id
+TEXT_NER_MODEL_VERSION=local-checkpoint-sha256-or-revision
+TEXT_NER_PROVIDER=local-openai-compatible
 ```
 
 兼容服务必须支持 Chat Completions、system/user messages、`max_tokens`，并返回 `choices[0].message.content`。默认配置还要求支持 JSON object response format；如果服务不支持，不能直接运行当前配置，应先修改并重新验收该提供商配置。
@@ -119,31 +134,10 @@ $env:TEXT_NER_PROVIDER = 'local-openai-compatible'
 ## 6. 不泄露 key 的配置检查
 
 ```powershell
-$requiredEnvironment = @(
-  'TEXT_NER_API_KEY',
-  'TEXT_NER_BASE_URL',
-  'TEXT_NER_MODEL',
-  'TEXT_NER_MODEL_VERSION',
-  'TEXT_NER_PROVIDER'
-)
-
-$missingEnvironment = $requiredEnvironment | Where-Object {
-  [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($_))
-}
-if ($missingEnvironment) {
-  throw "Missing API settings: $($missingEnvironment -join ', ')"
-}
-
-[pscustomobject]@{
-  ApiKeyConfigured = -not [string]::IsNullOrWhiteSpace($env:TEXT_NER_API_KEY)
-  BaseUrl = $env:TEXT_NER_BASE_URL
-  Model = $env:TEXT_NER_MODEL
-  ModelVersion = $env:TEXT_NER_MODEL_VERSION
-  Provider = $env:TEXT_NER_PROVIDER
-}
+& $pythonPath -c "from pathlib import Path; from data_pipeline.text_ner.openai_compatible_api import load_api_config, resolve_environment, OpenAICompatibleSettings; c=load_api_config(Path(r'$apiConfig')); s=OpenAICompatibleSettings.from_environment(c, resolve_environment(Path(r'$envFile'))); print(s)"
 ```
 
-该检查不会访问网络，也不会打印 API key。
+该检查不会访问网络；`OpenAICompatibleSettings` 会把 API key 固定显示为 `<redacted>`。未知配置项、重复配置项、错误引号和缺失必填项会直接报错，而不会静默忽略。
 
 ## 7. 推荐：先完成10个文本单元的端到端小批运行
 
@@ -158,16 +152,18 @@ if ($missingEnvironment) {
   "$executionRoot\mention_responses.jsonl" `
   "$executionRoot\mention_api_audit.jsonl" `
   $apiConfig `
+  --env-file $envFile `
   --execute `
   --endpoint-scope external `
   --confirm-data-transfer-authorized `
   --maximum-requests 10
 ```
 
-本地 API 将最后四行替换为：
+本地 API 将最后五行替换为：
 
 ```powershell
   $apiConfig `
+  --env-file $envFile `
   --execute `
   --endpoint-scope local `
   --maximum-requests 10
@@ -219,6 +215,7 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
   "$executionRoot\relation_responses.jsonl" `
   "$executionRoot\relation_api_audit.jsonl" `
   $apiConfig `
+  --env-file $envFile `
   --execute `
   --endpoint-scope external `
   --confirm-data-transfer-authorized `
@@ -258,6 +255,7 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
   "$executionRoot\mention_responses.jsonl" `
   "$executionRoot\mention_api_audit.jsonl" `
   $apiConfig `
+  --env-file $envFile `
   --execute `
   --endpoint-scope external `
   --confirm-data-transfer-authorized
@@ -318,6 +316,7 @@ relation_requests_ready = 64509
   "$executionRoot\relation_responses.jsonl" `
   "$executionRoot\relation_api_audit.jsonl" `
   $apiConfig `
+  --env-file $envFile `
   --execute `
   --endpoint-scope external `
   --confirm-data-transfer-authorized
@@ -365,7 +364,8 @@ Get-Content -LiteralPath "$executionRoot\final\compile_summary.json" |
 |---|---|---|
 | `MODEL_EXECUTION_NOT_AUTHORIZED` | 没有显式传入 `--execute` | 确认确实要调用后再加入参数 |
 | `EXTERNAL_DATA_TRANSFER_NOT_AUTHORIZED` | 外部端点未确认数据传输 | 完成合规判断后加入确认参数 |
-| `GENERIC_API_ENVIRONMENT_MISSING` | 环境变量缺失 | 在同一个 PowerShell 中重新配置 |
+| `GENERIC_API_ENVIRONMENT_MISSING` | `.env` 与进程环境合并后仍有配置缺失 | 补齐 `.env`，或在同一 PowerShell 中设置对应环境变量 |
+| `GENERIC_API_ENV_FILE_*` | `.env` 不存在、编码或 `KEY=VALUE` 格式不合法 | 按报错行修正；不要加入未允许的配置名 |
 | `GENERIC_API_LOCAL_SCOPE_REQUIRES_LOOPBACK` | local 模式使用了非本机 URL | 修正 URL 或明确改用 external 模式 |
 | `GENERIC_API_PROMPT_HASH_MISMATCH` | 请求包与提示词不是同一版本 | 重新生成请求包，不能跳过校验 |
 | `GENERIC_API_ANNOTATION_JSON_INVALID` | 模型没有返回可解析 JSON | 检查模型兼容性和 prompt，不手工伪造响应 |
@@ -384,4 +384,4 @@ Remove-Item Env:TEXT_NER_MODEL_VERSION -ErrorAction SilentlyContinue
 Remove-Item Env:TEXT_NER_PROVIDER -ErrorAction SilentlyContinue
 ```
 
-这只清除当前 PowerShell 进程的环境变量，不会删除模型响应、审计日志或编译结果。
+这只清除当前 PowerShell 进程的环境变量，不会修改 `.env`，也不会删除模型响应、审计日志或编译结果。若不再使用磁盘凭据，应从 `.env` 中清空 `TEXT_NER_API_KEY`。
