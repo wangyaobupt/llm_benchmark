@@ -313,6 +313,7 @@ def main() -> None:
             maximum_requests=args.maximum_requests,
             environment_file=args.env_file,
             failure_audit_path=args.failure_audit,
+            progress_reporter=lambda message: print(message, flush=True),
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

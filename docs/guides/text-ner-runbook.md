@@ -242,16 +242,22 @@ relation 阶段将输入文件和标签替换为：
 成功摘要应显示：
 
 ```text
+attempted_requests_this_run: 10
 model_calls_this_run: 10
 successful_responses_this_run: 10
+failed_requests_this_run: 0
 failed_attempts_this_run: 0
-completed_total: 10
-remaining: 64499
+completed_total: 11
+remaining: 64498
 ```
 
-`model_calls_this_run` 现在表示真实 API 尝试次数；发生重试时它会大于 `successful_responses_this_run`，避免低估调用量和成本。
+上述当前值包含已经存在的1条 checkpoint；如果从空 checkpoint 启动，则 `completed_total` 为10。`--maximum-requests 10` 限制本次最多尝试10个不同文本单元，而不是要求必须取得10个成功结果，避免持续无效输出时失控扩大费用。`model_calls_this_run` 表示真实 API 调用次数；发生重试时它会大于 `attempted_requests_this_run`，避免低估调用量和成本。
 
-响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到成功文件。空内容或非法 JSON 最多重试3次，即总计最多4次尝试；完整的 Markdown JSON 代码围栏可以被确定性移除，但不会进行语义性 JSON 修补。失败尝试写入默认文件 `mention_api_audit.failures.jsonl`，只保存 reason code、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
+API 执行期间会立即打印已载入数量，随后逐次打印“调用/重试/成功/失败并继续”、累计成功/失败数和本次 token usage。响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到成功文件。
+
+模型给出的 mention 或 relation evidence offset 不准确时，接口先执行确定性 span grounding：只接受原文中大小写敏感的精确 `surface_text`/`evidence_text`；唯一匹配直接落位，多次匹配仅在原 offset 指向唯一最近候选时落位，平局或原文不存在时拒绝。关系 evidence 还必须覆盖 source/target mentions。接口不改实体文字、类型或其他语义属性。成功 audit 的 `span_grounding` 保存原始/校正 offset、候选数和规则，不保存临床文字。
+
+空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。截断、认证、端点或配置等非内容错误仍立即停止整批。失败审计只保存 reason code、具体标注校验原因、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
 
 ### 7.2 编译 mention 并生成10个 relation 请求
 

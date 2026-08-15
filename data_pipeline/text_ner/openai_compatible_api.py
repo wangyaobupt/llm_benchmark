@@ -21,6 +21,7 @@ from .model_interface import (
     validate_model_request,
     validate_response_envelope,
 )
+from .span_grounding import ground_annotation_spans
 
 
 ENVIRONMENT_FILE_KEYS = frozenset(
@@ -647,6 +648,8 @@ def _safe_failure_diagnostics(error: GenericApiError) -> dict[str, Any]:
         "json_error_line",
         "json_error_column",
         "json_error_position",
+        "annotation_validation_reason_code",
+        "annotation_validation_local_id",
     }
     result = {
         key: error.diagnostics[key]
@@ -669,6 +672,7 @@ def _append_failure_audit(
     maximum_attempts: int,
     will_retry: bool,
     retry_delay_seconds: float | None,
+    retry_stop_reason: str | None,
 ) -> None:
     diagnostics = _safe_failure_diagnostics(error)
     thinking = request_options.get("thinking")
@@ -691,6 +695,7 @@ def _append_failure_audit(
             "retryable": error.retryable,
             "will_retry": will_retry,
             "retry_delay_seconds": retry_delay_seconds,
+            "retry_stop_reason": retry_stop_reason,
             "response_id": diagnostics.get("response_id"),
             "finish_reason": diagnostics.get("finish_reason"),
             "content_state": diagnostics.get("content_state"),
@@ -703,6 +708,12 @@ def _append_failure_audit(
             "json_error_line": diagnostics.get("json_error_line"),
             "json_error_column": diagnostics.get("json_error_column"),
             "json_error_position": diagnostics.get("json_error_position"),
+            "annotation_validation_reason_code": diagnostics.get(
+                "annotation_validation_reason_code"
+            ),
+            "annotation_validation_local_id": diagnostics.get(
+                "annotation_validation_local_id"
+            ),
             "usage": diagnostics["usage"],
             "thinking_mode": thinking_mode,
             "credential_persisted": False,
@@ -727,6 +738,7 @@ def run_api_batch(
     environ: Mapping[str, str] | None = None,
     transport: Transport | None = None,
     sleep: Callable[[float], None] = time.sleep,
+    progress_reporter: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     """Run or resume one stage; no call occurs before both execution gates pass."""
 
@@ -772,6 +784,8 @@ def run_api_batch(
     if limit < 0:
         raise GenericApiError("GENERIC_API_MAXIMUM_REQUESTS_INVALID", str(limit))
     successful_responses = 0
+    attempted_requests = 0
+    failed_requests = 0
     api_attempts = 0
     retries = 0
     token_usage: dict[str, int] = {
@@ -781,11 +795,17 @@ def run_api_batch(
     }
     successful_token_usage = dict(token_usage)
     interval = 60.0 / max(1, int(config["batch"]["requests_per_minute"]))
+    if progress_reporter is not None:
+        progress_reporter(
+            f"[API] 已载入 {len(requests):,} 个文本单元 | "
+            f"checkpoint {len(completed):,} | 本次最多尝试 {limit:,} 个"
+        )
     for request in requests:
         if request["request_id"] in completed:
             continue
-        if successful_responses >= limit:
+        if attempted_requests >= limit:
             break
+        attempted_requests += 1
         if request["prompt_sha256"] != prompt_sha256:
             raise GenericApiError(
                 "GENERIC_API_PROMPT_HASH_MISMATCH", request["request_id"]
@@ -793,32 +813,78 @@ def run_api_batch(
         maximum_retries = int(config["batch"]["maximum_retries"])
         maximum_attempts = maximum_retries + 1
         attempt_number = 1
+        failed_content_hashes: set[str] = set()
+        response: dict[str, Any] | None = None
+        result: Mapping[str, Any] | None = None
+        span_repairs: list[dict[str, Any]] = []
         while True:
             api_attempts += 1
+            if progress_reporter is not None:
+                progress_reporter(
+                    f"[API] 文本单元 {attempted_requests:,}/{limit:,} | "
+                    f"调用 {attempt_number}/{maximum_attempts}"
+                )
             try:
                 result = adapter.generate(request)
                 response = dict(result["response"])
+                grounded_annotation, span_repairs = ground_annotation_spans(
+                    response["annotation"], request["section_text"]
+                )
+                response["annotation"] = grounded_annotation
                 try:
                     _validate_annotation_for_request(response, request)
                 except (
                     AnnotationValidationError,
                     ModelInterfaceError,
                 ) as validation_error:
+                    diagnostics = dict(result["diagnostics"])
+                    diagnostics["annotation_validation_reason_code"] = (
+                        validation_error.reason_code
+                    )
+                    validation_detail = str(validation_error).partition(": ")[2]
+                    if (
+                        len(validation_detail) >= 2
+                        and validation_detail[0] in {"m", "r"}
+                        and validation_detail[1:].isdigit()
+                    ):
+                        diagnostics["annotation_validation_local_id"] = (
+                            validation_detail
+                        )
                     raise GenericApiError(
                         "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
                         validation_error.reason_code,
                         retryable=True,
-                        diagnostics=result["diagnostics"],
+                        diagnostics=diagnostics,
                     ) from validation_error
                 break
             except GenericApiError as error:
                 _accumulate_usage(token_usage, error.diagnostics.get("usage"))
-                will_retry = error.retryable and attempt_number < maximum_attempts
+                content_sha256 = error.diagnostics.get("content_sha256")
+                repeated_invalid_content = (
+                    isinstance(content_sha256, str)
+                    and content_sha256 in failed_content_hashes
+                )
+                if isinstance(content_sha256, str):
+                    failed_content_hashes.add(content_sha256)
+                will_retry = (
+                    error.retryable
+                    and attempt_number < maximum_attempts
+                    and not repeated_invalid_content
+                )
                 delay = (
                     float(config["batch"]["retry_initial_seconds"])
                     * (2 ** (attempt_number - 1))
                     if will_retry
                     else None
+                )
+                retry_stop_reason = (
+                    "identical_invalid_content"
+                    if repeated_invalid_content
+                    else (
+                        "maximum_attempts_reached"
+                        if error.retryable and attempt_number >= maximum_attempts
+                        else ("non_retryable_error" if not error.retryable else None)
+                    )
                 )
                 _append_failure_audit(
                     resolved_failure_audit_path,
@@ -831,19 +897,45 @@ def run_api_batch(
                     maximum_attempts=maximum_attempts,
                     will_retry=will_retry,
                     retry_delay_seconds=delay,
+                    retry_stop_reason=retry_stop_reason,
                 )
                 if not will_retry:
+                    quarantinable = error.reason_code in {
+                        "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
+                        "GENERIC_API_ANNOTATION_JSON_INVALID",
+                        "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                    }
+                    if error.retryable and quarantinable:
+                        failed_requests += 1
+                        if progress_reporter is not None:
+                            progress_reporter(
+                                f"[API] 文本单元失败并继续 | {error.reason_code} | "
+                                f"停止原因 {retry_stop_reason} | "
+                                f"本次失败 {failed_requests:,}"
+                            )
+                        response = None
+                        result = None
+                        break
                     raise
                 retries += 1
+                if progress_reporter is not None:
+                    progress_reporter(
+                        f"[API] 校验失败，{delay:.1f} 秒后重试 | "
+                        f"{error.reason_code}"
+                    )
                 attempt_number += 1
                 sleep(delay)
+        if response is None or result is None:
+            if attempted_requests < limit:
+                sleep(interval)
+            continue
         _append_jsonl(Path(output_responses_path), response)
         usage = result["usage"]
         _accumulate_usage(token_usage, usage)
         _accumulate_usage(successful_token_usage, usage)
         thinking = result["request_options"].get("thinking")
         audit = {
-            "schema_version": "text-ner-api-call-audit/1.1.0",
+            "schema_version": "text-ner-api-call-audit/1.2.0",
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
             "provider": settings.provider,
@@ -856,6 +948,11 @@ def run_api_batch(
             "content_normalization": result["content_normalization"],
             "attempt_number": attempt_number,
             "usage": usage,
+            "span_grounding": {
+                "schema_version": "text-ner-span-grounding/1.0.0",
+                "repair_count": len(span_repairs),
+                "repairs": span_repairs,
+            },
             "thinking_mode": thinking.get("type")
             if isinstance(thinking, Mapping)
             else None,
@@ -866,14 +963,22 @@ def run_api_batch(
         _append_jsonl(Path(audit_path), audit)
         completed.add(request["request_id"])
         successful_responses += 1
-        if successful_responses < limit:
+        if progress_reporter is not None:
+            progress_reporter(
+                f"[API] 成功 {successful_responses:,} | 失败 {failed_requests:,} | "
+                f"完成总数 {len(completed):,}/{len(requests):,} | "
+                f"本次 tokens {token_usage['total_tokens']:,}"
+            )
+        if attempted_requests < limit:
             sleep(interval)
     return {
-        "schema_version": "text-ner-api-batch-summary/1.1.0",
+        "schema_version": "text-ner-api-batch-summary/1.2.0",
         "requests": len(requests),
         "already_completed": len(existing),
+        "attempted_requests_this_run": attempted_requests,
         "model_calls_this_run": api_attempts,
         "successful_responses_this_run": successful_responses,
+        "failed_requests_this_run": failed_requests,
         "failed_attempts_this_run": api_attempts - successful_responses,
         "completed_total": len(completed),
         "remaining": len(requests) - len(completed),

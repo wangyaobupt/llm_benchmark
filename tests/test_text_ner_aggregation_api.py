@@ -26,6 +26,7 @@ from data_pipeline.text_ner.openai_compatible_api import (
     resolve_environment,
     run_api_batch,
 )
+from data_pipeline.text_ner.span_grounding import ground_annotation_spans
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -542,7 +543,7 @@ class GenericApiBatchTests(unittest.TestCase):
             self.assertFalse(failure["will_retry"])
             self.assertEqual(failure["usage"]["total_tokens"], 4106)
 
-    def test_persistent_invalid_json_stops_after_configured_attempts(self) -> None:
+    def test_persistent_identical_invalid_json_is_quarantined_early(self) -> None:
         prompt_text = "Return JSON."
         request = _api_request("Chest pain", prompt_text)
         calls = 0
@@ -579,35 +580,38 @@ class GenericApiBatchTests(unittest.TestCase):
             requests = root / "requests.jsonl"
             requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
             audit = root / "audit.jsonl"
-            with self.assertRaisesRegex(
-                GenericApiError, "GENERIC_API_ANNOTATION_JSON_INVALID"
-            ):
-                run_api_batch(
-                    requests,
-                    prompt,
-                    root / "responses.jsonl",
-                    audit,
-                    API_CONFIG,
-                    execute=True,
-                    endpoint_scope="local",
-                    environ=environment,
-                    transport=transport,
-                    sleep=lambda _: None,
-                )
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                audit,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                environ=environment,
+                transport=transport,
+                sleep=lambda _: None,
+            )
             failures = [
                 json.loads(line)
                 for line in (root / "audit.failures.jsonl")
                 .read_text(encoding="utf-8")
                 .splitlines()
             ]
-            self.assertEqual(calls, 4)
-            self.assertEqual(len(failures), 4)
+            self.assertEqual(calls, 2)
+            self.assertEqual(len(failures), 2)
             self.assertEqual(
-                [row["attempt_number"] for row in failures], [1, 2, 3, 4]
+                [row["attempt_number"] for row in failures], [1, 2]
             )
             self.assertEqual(
-                [row["will_retry"] for row in failures], [True, True, True, False]
+                [row["will_retry"] for row in failures], [True, False]
             )
+            self.assertEqual(
+                failures[-1]["retry_stop_reason"], "identical_invalid_content"
+            )
+            self.assertEqual(summary["attempted_requests_this_run"], 1)
+            self.assertEqual(summary["successful_responses_this_run"], 0)
+            self.assertEqual(summary["failed_requests_this_run"], 1)
             self.assertTrue(
                 all(row["content_sha256"] for row in failures)
             )
@@ -615,6 +619,282 @@ class GenericApiBatchTests(unittest.TestCase):
                 "not json",
                 (root / "audit.failures.jsonl").read_text(encoding="utf-8"),
             )
+
+    def test_unique_exact_surface_is_grounded_and_audited(self) -> None:
+        text = "Chest pain"
+        prompt_text = "Return JSON."
+        request = _api_request(text, prompt_text)
+        annotation = {
+            "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+            "manifest_row_id": request["manifest_row_id"],
+            "document_id": request["document_id"],
+            "section_id": request["section_id"],
+            "section_text_sha256": request["section_text_sha256"],
+            "mentions": [
+                {
+                    "local_id": "m1",
+                    "surface_text": "Chest pain",
+                    "section_span_start": 1,
+                    "section_span_end": 11,
+                    "entity_type": "symptom_or_sign",
+                    "assertion": "present",
+                    "temporality": "current",
+                    "experiencer": "patient",
+                    "laterality": "not_applicable",
+                    "severity": "not_stated",
+                    "trend": "not_stated",
+                    "normalization_status": "unattempted",
+                    "concept_id": None,
+                    "preferred_name": None,
+                    "terminology": None,
+                    "quality_flags": [],
+                }
+            ],
+            "relations": [],
+        }
+
+        def transport(*args: object) -> dict[str, object]:
+            return {
+                "id": "grounded:1",
+                "choices": [{"message": {"content": json.dumps(annotation)}}],
+                "usage": {"prompt_tokens": 10, "completion_tokens": 8, "total_tokens": 18},
+            }
+
+        environment = {
+            "TEXT_NER_API_KEY": "test-secret",
+            "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+            "TEXT_NER_MODEL": "test-model",
+            "TEXT_NER_MODEL_VERSION": "test-revision",
+            "TEXT_NER_PROVIDER": "test-provider",
+        }
+        progress: list[str] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            responses = root / "responses.jsonl"
+            audit = root / "audit.jsonl"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                audit,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=environment,
+                transport=transport,
+                sleep=lambda _: None,
+                progress_reporter=progress.append,
+            )
+            response = json.loads(responses.read_text(encoding="utf-8"))
+            success_audit = json.loads(audit.read_text(encoding="utf-8"))
+            mention = response["annotation"]["mentions"][0]
+            self.assertEqual(
+                (mention["section_span_start"], mention["section_span_end"]),
+                (0, 10),
+            )
+            grounding = success_audit["span_grounding"]
+            self.assertEqual(grounding["repair_count"], 1)
+            self.assertEqual(
+                grounding["repairs"][0]["rule"], "unique_exact_occurrence"
+            )
+            self.assertNotIn("Chest pain", json.dumps(grounding))
+            self.assertEqual(summary["failed_requests_this_run"], 0)
+            self.assertTrue(any("本次 tokens 18" in line for line in progress))
+
+    def test_unrepairable_annotation_is_quarantined_and_batch_continues(self) -> None:
+        prompt_text = "Return JSON."
+        first = _api_request("Chest pain", prompt_text)
+        second = _api_request("Fever", prompt_text)
+        second.update(
+            {
+                "request_id": "request:2",
+                "annotation_unit_id": "unit:2",
+                "manifest_row_id": "manifest:2",
+                "document_id": "document:2",
+                "section_id": "section:2",
+            }
+        )
+
+        invalid_annotation = {
+            "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+            "manifest_row_id": first["manifest_row_id"],
+            "document_id": first["document_id"],
+            "section_id": first["section_id"],
+            "section_text_sha256": first["section_text_sha256"],
+            "mentions": [
+                {
+                    "local_id": "m1",
+                    "surface_text": "hallucinated",
+                    "section_span_start": 0,
+                    "section_span_end": 3,
+                    "entity_type": "clinical_problem",
+                    "assertion": "present",
+                    "temporality": "current",
+                    "experiencer": "patient",
+                    "laterality": "not_applicable",
+                    "severity": "not_stated",
+                    "trend": "not_stated",
+                    "normalization_status": "unattempted",
+                    "concept_id": None,
+                    "preferred_name": None,
+                    "terminology": None,
+                    "quality_flags": [],
+                }
+            ],
+            "relations": [],
+        }
+        valid_annotation = {
+            "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+            "manifest_row_id": second["manifest_row_id"],
+            "document_id": second["document_id"],
+            "section_id": second["section_id"],
+            "section_text_sha256": second["section_text_sha256"],
+            "mentions": [],
+            "relations": [],
+        }
+        calls = 0
+
+        def transport(*args: object) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            annotation = invalid_annotation if calls <= 2 else valid_annotation
+            return {
+                "id": f"response:{calls}",
+                "choices": [{"message": {"content": json.dumps(annotation)}}],
+                "usage": {"prompt_tokens": 5, "completion_tokens": 5, "total_tokens": 10},
+            }
+
+        environment = {
+            "TEXT_NER_API_KEY": "test-secret",
+            "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+            "TEXT_NER_MODEL": "test-model",
+            "TEXT_NER_MODEL_VERSION": "test-revision",
+            "TEXT_NER_PROVIDER": "test-provider",
+        }
+        progress: list[str] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(
+                "\n".join(json.dumps(item) for item in (first, second)) + "\n",
+                encoding="utf-8",
+            )
+            responses = root / "responses.jsonl"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=2,
+                environ=environment,
+                transport=transport,
+                sleep=lambda _: None,
+                progress_reporter=progress.append,
+            )
+            persisted = [
+                json.loads(line)
+                for line in responses.read_text(encoding="utf-8").splitlines()
+            ]
+            failures = [
+                json.loads(line)
+                for line in (root / "audit.failures.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(calls, 3)
+            self.assertEqual(summary["attempted_requests_this_run"], 2)
+            self.assertEqual(summary["successful_responses_this_run"], 1)
+            self.assertEqual(summary["failed_requests_this_run"], 1)
+            self.assertEqual(summary["completed_total"], 1)
+            self.assertEqual(persisted[0]["request_id"], "request:2")
+            self.assertEqual(
+                failures[-1]["annotation_validation_reason_code"],
+                "MENTION_SURFACE_MISMATCH",
+            )
+            self.assertEqual(
+                failures[-1]["annotation_validation_local_id"], "m1"
+            )
+            self.assertTrue(any("文本单元失败并继续" in line for line in progress))
+            self.assertTrue(any("成功 1 | 失败 1" in line for line in progress))
+
+    def test_repeated_surface_requires_a_unique_nearest_occurrence(self) -> None:
+        mention = {
+            "local_id": "m1",
+            "surface_text": "pain",
+            "section_span_start": 7,
+            "section_span_end": 11,
+        }
+        annotation = {"mentions": [mention], "relations": []}
+        grounded, repairs = ground_annotation_spans(annotation, "pain xx pain")
+        self.assertEqual(
+            (
+                grounded["mentions"][0]["section_span_start"],
+                grounded["mentions"][0]["section_span_end"],
+            ),
+            (8, 12),
+        )
+        self.assertEqual(repairs[0]["candidate_count"], 2)
+        self.assertEqual(
+            repairs[0]["rule"], "unique_nearest_exact_occurrence"
+        )
+
+        tied = {
+            "mentions": [
+                {**mention, "section_span_start": 4, "section_span_end": 8}
+            ],
+            "relations": [],
+        }
+        unchanged, tied_repairs = ground_annotation_spans(tied, "pain xx pain")
+        self.assertEqual(unchanged["mentions"][0]["section_span_start"], 4)
+        self.assertEqual(tied_repairs, [])
+
+    def test_relation_evidence_is_grounded_to_occurrence_covering_mentions(self) -> None:
+        annotation = {
+            "mentions": [
+                {
+                    "local_id": "m1",
+                    "surface_text": "pain",
+                    "section_span_start": 14,
+                    "section_span_end": 18,
+                },
+                {
+                    "local_id": "m2",
+                    "surface_text": "fever",
+                    "section_span_start": 19,
+                    "section_span_end": 24,
+                },
+            ],
+            "relations": [
+                {
+                    "local_id": "r1",
+                    "source_mention_id": "m1",
+                    "target_mention_id": "m2",
+                    "evidence_text": "pain fever",
+                    "section_evidence_start": 0,
+                    "section_evidence_end": 10,
+                }
+            ],
+        }
+        grounded, repairs = ground_annotation_spans(
+            annotation, "pain fever xx pain fever"
+        )
+        relation = grounded["relations"][0]
+        self.assertEqual(
+            (relation["section_evidence_start"], relation["section_evidence_end"]),
+            (14, 24),
+        )
+        self.assertEqual(repairs[0]["item_kind"], "relation")
+        self.assertEqual(repairs[0]["candidate_count"], 1)
 
     def test_mock_transport_is_validated_persisted_and_resumable(self) -> None:
         calls: list[object] = []
