@@ -148,7 +148,7 @@ TEXT_NER_PROVIDER=local-openai-compatible
 从仓库根目录可直接复制执行：
 
 ```powershell
-python -m data_pipeline.text_ner monitor-openai-compatible-api `
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner monitor-openai-compatible-api `
   'data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_responses.jsonl' `
   'data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_api_audit.jsonl' `
   --expected-requests 64509 `
@@ -157,7 +157,7 @@ python -m data_pipeline.text_ner monitor-openai-compatible-api `
   --interval-seconds 10
 ```
 
-`--interval-seconds` 是 `--refresh-seconds` 的兼容别名。省略 `--output-html` 时，上述 audit 文件会自动对应到同目录的 `mention_monitor.html`。命令中的两个 JSONL 路径是实际路径，不要再添加尖括号。
+必须使用项目的 Python 3.12 虚拟环境；裸 `python` 可能指向系统中另一个未安装项目依赖、甚至版本不兼容的解释器。可用 `& $pythonPath -c "import sys; print(sys.executable)"` 确认当前路径。`--interval-seconds` 是 `--refresh-seconds` 的兼容别名。省略 `--output-html` 时，上述 audit 文件会自动对应到同目录的 `mention_monitor.html`。命令中的两个 JSONL 路径是实际路径，不要再添加尖括号。
 
 ```powershell
 $monitorHtml = "$executionRoot\mention_monitor.html"

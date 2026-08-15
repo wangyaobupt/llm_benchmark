@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 import tempfile
 import time
@@ -24,6 +26,80 @@ def _append_jsonl(path: Path, *records: dict[str, object]) -> None:
 
 
 class ApiMonitorTests(unittest.TestCase):
+    def test_parquet_command_explains_missing_pyarrow(self) -> None:
+        program = """
+import builtins
+import runpy
+import sys
+
+real_import = builtins.__import__
+
+def reject_pyarrow(name, globals=None, locals=None, fromlist=(), level=0):
+    if name == "pyarrow" or name.startswith("pyarrow."):
+        raise ModuleNotFoundError("No module named 'pyarrow'", name="pyarrow")
+    return real_import(name, globals, locals, fromlist, level)
+
+builtins.__import__ = reject_pyarrow
+sys.argv = [
+    "data_pipeline.text_ner",
+    "prepare-aggregation-manifest",
+    "aggregation",
+    "sources.json",
+    "--output-dir",
+    "output",
+]
+runpy.run_module("data_pipeline.text_ner", run_name="__main__")
+"""
+        completed = subprocess.run(
+            [sys.executable, "-c", program],
+            cwd=Path(__file__).resolve().parents[1],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertIn("TEXT_NER_DEPENDENCY_MISSING", completed.stderr)
+        self.assertIn(".venv", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_monitor_cli_does_not_import_pyarrow(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            output = Path(temporary) / "monitor.html"
+            program = f"""
+import builtins
+import runpy
+import sys
+
+real_import = builtins.__import__
+
+def reject_pyarrow(name, globals=None, locals=None, fromlist=(), level=0):
+    if name == "pyarrow" or name.startswith("pyarrow."):
+        raise AssertionError("monitor command imported pyarrow")
+    return real_import(name, globals, locals, fromlist, level)
+
+builtins.__import__ = reject_pyarrow
+sys.argv = [
+    "data_pipeline.text_ner",
+    "monitor-openai-compatible-api",
+    "missing-responses.jsonl",
+    "missing-audit.jsonl",
+    "--output-html",
+    {str(output)!r},
+    "--expected-requests",
+    "1",
+]
+runpy.run_module("data_pipeline.text_ner", run_name="__main__")
+"""
+            completed = subprocess.run(
+                [sys.executable, "-c", program],
+                cwd=Path(__file__).resolve().parents[1],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(output.is_file())
+
     def test_cli_accepts_interval_alias_and_derives_html_path(self) -> None:
         arguments = _parser().parse_args(
             [

@@ -22,11 +22,10 @@ from .contracts import (
     MANIFEST_LOGIC_VERSION,
     MANIFEST_SCHEMA_VERSION,
 )
+from .defaults import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE
 from .sections import TextSection, split_radiology_sections
 
 
-DEFAULT_PILOT_SIZE = 200
-DEFAULT_PILOT_SEED = "text-ner-pilot/1.0.0"
 ACCEPTED_INPUT_SCHEMAS = {
     ("mimic_admission_raw", "1.0.0"),
     ("mimic_admission_clinical_readable", "1.0.0"),

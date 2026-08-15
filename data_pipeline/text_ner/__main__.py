@@ -6,18 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
-from .audit import audit_manifest
-from .annotation_package import prepare_annotation_package
-from .annotation_package_audit import audit_annotation_package
-from .api_monitor import monitor_api_html
-from .deepseek_cost import estimate_deepseek_cost
-from .aggregation_manifest import prepare_aggregation_text_manifest
-from .full_extraction import compile_model_responses, prepare_full_extraction_package
-from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
-from .method_run import prepare_method_run
-from .method_run_audit import audit_method_run
-from .openai_compatible_api import run_api_batch
-from .scope_rehearsal import rehearse_scope
+from .defaults import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -190,6 +179,8 @@ def _parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = _parser().parse_args()
     if args.command == "prepare-legacy-ed-radiology":
+        from .manifest import prepare_manifest
+
         result = prepare_manifest(
             args.input_jsonl,
             args.output_dir,
@@ -197,6 +188,8 @@ def main() -> None:
             pilot_seed=args.pilot_seed,
         )
     elif args.command == "audit":
+        from .audit import audit_manifest
+
         result = audit_manifest(
             args.input_jsonl,
             args.manifest_directory,
@@ -205,6 +198,8 @@ def main() -> None:
             output_markdown=args.output_markdown,
         )
     elif args.command == "rehearse-scope":
+        from .scope_rehearsal import rehearse_scope
+
         result = rehearse_scope(
             args.input_jsonl,
             args.manifest,
@@ -213,6 +208,8 @@ def main() -> None:
             output_markdown=args.output_markdown,
         )
     elif args.command == "prepare-annotation-package":
+        from .annotation_package import prepare_annotation_package
+
         result = prepare_annotation_package(
             args.input_jsonl,
             args.manifest,
@@ -220,6 +217,8 @@ def main() -> None:
             calibration_documents=args.calibration_documents,
         )
     elif args.command == "audit-annotation-package":
+        from .annotation_package_audit import audit_annotation_package
+
         result = audit_annotation_package(
             args.package_directory,
             replay_directory=args.replay_directory,
@@ -227,6 +226,8 @@ def main() -> None:
             output_markdown=args.output_markdown,
         )
     elif args.command == "prepare-method-run":
+        from .method_run import prepare_method_run
+
         result = prepare_method_run(
             args.annotation_package,
             args.method_config,
@@ -234,6 +235,8 @@ def main() -> None:
             execute=args.execute,
         )
     elif args.command == "audit-method-run":
+        from .method_run_audit import audit_method_run
+
         result = audit_method_run(
             args.annotation_package,
             args.method_config,
@@ -243,6 +246,8 @@ def main() -> None:
             output_markdown=args.output_markdown,
         )
     elif args.command == "estimate-deepseek-cost":
+        from .deepseek_cost import estimate_deepseek_cost
+
         result = estimate_deepseek_cost(
             args.method_run_directory,
             args.policy,
@@ -250,6 +255,8 @@ def main() -> None:
             output_markdown=args.output_markdown,
         )
     elif args.command == "prepare-full-extraction":
+        from .full_extraction import prepare_full_extraction_package
+
         result = prepare_full_extraction_package(
             args.aggregation_directory,
             args.manifest,
@@ -258,6 +265,8 @@ def main() -> None:
             relation_prompt_path=args.relation_prompt,
         )
     elif args.command == "compile-model-responses":
+        from .full_extraction import compile_model_responses
+
         result = compile_model_responses(
             args.package_directory,
             args.manifest,
@@ -266,12 +275,16 @@ def main() -> None:
             args.output_dir,
         )
     elif args.command == "prepare-aggregation-manifest":
+        from .aggregation_manifest import prepare_aggregation_text_manifest
+
         result = prepare_aggregation_text_manifest(
             args.aggregation_directory,
             args.source_catalog,
             args.output_dir,
         )
     elif args.command == "monitor-openai-compatible-api":
+        from .api_monitor import monitor_api_html
+
         result = monitor_api_html(
             args.responses,
             args.audit,
@@ -283,6 +296,8 @@ def main() -> None:
             watch=args.watch,
         )
     else:
+        from .openai_compatible_api import run_api_batch
+
         result = run_api_batch(
             args.requests,
             args.prompt,
@@ -299,5 +314,19 @@ def main() -> None:
     print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+def cli() -> None:
+    try:
+        main()
+    except ModuleNotFoundError as error:
+        if error.name == "pyarrow":
+            raise SystemExit(
+                "TEXT_NER_DEPENDENCY_MISSING: this command requires pyarrow. "
+                "Run it with the project's Python 3.12 virtual environment "
+                "('.\\.venv\\Scripts\\python.exe') or install the dependencies "
+                "declared in pyproject.toml."
+            ) from error
+        raise
+
+
 if __name__ == "__main__":
-    main()
+    cli()
