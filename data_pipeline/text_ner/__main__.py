@@ -1,4 +1,4 @@
-"""Command-line entry point for model-free text NER input preparation."""
+"""Command-line entry point for traceable text NER preparation and execution."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .audit import audit_manifest
 from .annotation_package import prepare_annotation_package
 from .annotation_package_audit import audit_annotation_package
 from .deepseek_cost import estimate_deepseek_cost
-from .event_output_manifest import prepare_event_output_text_manifest
+from .aggregation_manifest import prepare_aggregation_text_manifest
 from .full_extraction import compile_model_responses, prepare_full_extraction_package
 from .manifest import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE, prepare_manifest
 from .method_run import prepare_method_run
@@ -102,7 +102,7 @@ def _parser() -> argparse.ArgumentParser:
         "prepare-full-extraction",
         help="Prepare requests for all included manifest sources without model calls",
     )
-    full.add_argument("input_jsonl", type=Path)
+    full.add_argument("aggregation_directory", type=Path)
     full.add_argument("manifest", type=Path)
     full.add_argument("--output-dir", type=Path, required=True)
     full.add_argument("--mention-prompt", type=Path, required=True)
@@ -116,13 +116,13 @@ def _parser() -> argparse.ArgumentParser:
     compile_responses.add_argument("mention_responses", type=Path)
     compile_responses.add_argument("relation_responses", type=Path)
     compile_responses.add_argument("--output-dir", type=Path, required=True)
-    event_manifest = subparsers.add_parser(
-        "prepare-event-output-manifest",
-        help="Recover all configured free text through an accepted event-output lineage",
+    aggregation_manifest = subparsers.add_parser(
+        "prepare-aggregation-manifest",
+        help="Prepare all configured free text from an accepted aggregation package",
     )
-    event_manifest.add_argument("event_output_directory", type=Path)
-    event_manifest.add_argument("source_catalog", type=Path)
-    event_manifest.add_argument("--output-dir", type=Path, required=True)
+    aggregation_manifest.add_argument("aggregation_directory", type=Path)
+    aggregation_manifest.add_argument("source_catalog", type=Path)
+    aggregation_manifest.add_argument("--output-dir", type=Path, required=True)
     api_batch = subparsers.add_parser(
         "run-openai-compatible-api",
         help="Explicitly execute or resume one model stage through a generic API",
@@ -205,7 +205,7 @@ def main() -> None:
         )
     elif args.command == "prepare-full-extraction":
         result = prepare_full_extraction_package(
-            args.input_jsonl,
+            args.aggregation_directory,
             args.manifest,
             args.output_dir,
             mention_prompt_path=args.mention_prompt,
@@ -219,9 +219,9 @@ def main() -> None:
             args.relation_responses,
             args.output_dir,
         )
-    elif args.command == "prepare-event-output-manifest":
-        result = prepare_event_output_text_manifest(
-            args.event_output_directory,
+    elif args.command == "prepare-aggregation-manifest":
+        result = prepare_aggregation_text_manifest(
+            args.aggregation_directory,
             args.source_catalog,
             args.output_dir,
         )

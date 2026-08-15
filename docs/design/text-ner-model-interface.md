@@ -2,23 +2,25 @@
 
 ## 目标与边界
 
-本接口以已验收的 `data/test_1000_0812/event_pipeline_output` 为队列和标准化血缘主入口，将配置目录中的全部自由文本转换为两阶段结构化请求。当前范围包括 hosp laboratory/microbiology comments、ED chief complaint、radiology 和 discharge；`source_table` 不再限定具体表。接口可配置任意 OpenAI-compatible API，但默认不调用模型。
+本接口以已验收的 `data/test_1000_0812/event_pipeline_output/aggregation` 为唯一最新版输入，将其中的全部自由文本转换为两阶段结构化请求。当前范围包括 hosp laboratory/microbiology comments、ED chief complaint、radiology 和 discharge；`source_table` 不限定具体表。接口可配置任意 OpenAI-compatible API，但默认不调用模型。
 
 因此，`prepared_no_model_calls` 只证明数据与接口已经就绪，不代表已完成实体识别实验。没有模型响应时，实体和关系 sidecar 必须是零行并保持 `pending_model_execution`。
 
 ## 数据流
 
-1. `prepare-event-output-manifest` 验证 workflow 与 normalized events，再按 `all-free-text-sources.json` 从同批 source JSONL 回取自由文本；discharge 纳入并保留 `post_hoc`。
-2. `prepare-full-extraction` 处理 manifest 中所有 `inclusion_status=included` 的合法来源表，不再使用 ED/radiology 白名单。
-3. 每个文本单元生成一个 mention 请求；对应 relation 请求先保持 `blocked_pending_validated_mentions`。
-4. 模型适配器实现 `TextNerModelAdapter.generate(request)`，返回 `text-ner-model-response/1.0.0` envelope。接口不限定提供商、部署方式或传输协议。
-5. `compile-model-responses` 先校验 mention 响应的来源、输入哈希、精确字符 span 和枚举值，再生成带 `validated_mentions` 的 relation 请求。
-6. relation 响应只能引用已验证 mention，且 evidence span 必须覆盖关系两端实体。通过校验后编译 `entity_mentions.parquet` 与 `text_relations.parquet`。
+1. `prepare-aggregation-manifest` 验证 aggregation manifest、quality report、三份 Parquet 的 Schema、行数、大小和 SHA-256，再按 `all-free-text-sources.json` 读取去重的 `raw_source_records.parquet`；discharge 纳入并保留 `post_hoc`。
+2. 文本单元通过 `source_record_id` 与 `processed_events.parquet` 关联；临床可读源行只从 aggregation 内嵌字段读取，不回读 source JSONL。
+3. `prepare-full-extraction` 处理 manifest 中所有 `inclusion_status=included` 的合法来源表，不使用来源白名单。
+4. 每个文本单元生成一个 mention 请求；对应 relation 请求先保持 `blocked_pending_validated_mentions`。
+5. 模型适配器实现 `TextNerModelAdapter.generate(request)`，返回 `text-ner-model-response/1.0.0` envelope。接口不限定提供商、部署方式或传输协议。
+6. `compile-model-responses` 先校验 mention 响应的来源、输入哈希、精确字符 span 和枚举值，再生成带 `validated_mentions` 的 relation 请求。
+7. relation 响应只能引用已验证 mention，且 evidence span 必须覆盖关系两端实体。通过校验后编译 `entity_mentions.parquet` 与 `text_relations.parquet`。
 
 ## 输入
 
-- `event_pipeline_output/workflow_manifest.json` 与 `normalized_events.parquet`：锁定1000例总体、标准化状态和来源事件。
-- workflow 声明的 clinical-readable JSONL：仅用于按 manifest 回取文本并复核 source/section SHA-256。
+- `aggregation/aggregation_manifest.json` 与 `quality_report.json`：锁定1000例总体、聚合质量和文件哈希。
+- `aggregation/raw_source_records.parquet`：提供每条源记录一次、未经改写的自由文本、文本哈希和内嵌源行。
+- `aggregation/processed_events.parquet`：通过 `source_record_id` 提供标准化事件关联。
 - `text_ner_input_manifest.parquet`：决定纳入范围、切片位置、时间语义和来源追踪字段。
 - mention/relation prompt：内容被固化进本地请求包，并记录 SHA-256。
 - 可选模型响应 JSONL：每行包含请求 ID、阶段、模型 provenance 与一个 `section-annotation/1.0.0` 对象。
@@ -52,13 +54,13 @@
 ## 命令
 
 ```powershell
-python -m data_pipeline.text_ner prepare-event-output-manifest `
-  data/test_1000_0812/event_pipeline_output `
+python -m data_pipeline.text_ner prepare-aggregation-manifest `
+  data/test_1000_0812/event_pipeline_output/aggregation `
   config/text_ner/all-free-text-sources.json `
   --output-dir data/test_1000_0812/event_pipeline_output/NER/input
 
 python -m data_pipeline.text_ner prepare-full-extraction `
-  data/test_1000_0812/mimic-admission-clinical-readable-coronary-random-1000.jsonl `
+  data/test_1000_0812/event_pipeline_output/aggregation `
   data/test_1000_0812/event_pipeline_output/NER/input/text_ner_input_manifest.parquet `
   --mention-prompt config/text_ner/prompts/two-stage-mentions.md `
   --relation-prompt config/text_ner/prompts/two-stage-relations.md `

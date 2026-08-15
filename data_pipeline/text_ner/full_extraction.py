@@ -13,6 +13,12 @@ from typing import Any, Iterable
 import pyarrow as pa
 import pyarrow.parquet as pq
 
+from .aggregation_input import (
+    AggregationInputError,
+    load_required_source_texts,
+    sha256_file as aggregation_sha256_file,
+    validate_aggregation_directory,
+)
 from .annotation_contracts import (
     ANNOTATION_PROTOCOL_VERSION,
     ENTITY_MENTION_ARROW_SCHEMA,
@@ -88,45 +94,11 @@ def _load_jsonl(path: Path) -> list[dict[str, Any]]:
     return result
 
 
-def _load_source_texts(
-    input_path: Path, manifest_rows: list[dict[str, Any]]
-) -> dict[tuple[int, str, str, int, str], str]:
-    required = {
-        (
-            row["jsonl_line_number"],
-            row["source_module"],
-            row["source_table"].split(".", 1)[1],
-            row["source_array_index"],
-            row["text_field"],
-        )
-        for row in manifest_rows
-    }
-    required_by_line: dict[int, list[tuple[int, str, str, int, str]]] = {}
-    for key in required:
-        required_by_line.setdefault(key[0], []).append(key)
-    result: dict[tuple[int, str, str, int, str], str] = {}
-    with input_path.open("r", encoding="utf-8") as handle:
-        for line_number, line in enumerate(handle, start=1):
-            if not line.strip():
-                continue
-            line_keys = required_by_line.get(line_number, [])
-            if not line_keys:
-                continue
-            admission = json.loads(line)
-            for key in line_keys:
-                _, module, table, index, field = key
-                rows = admission.get(module, {}).get(table, [])
-                if index < 0 or index >= len(rows):
-                    continue
-                result[key] = str(rows[index].get(field) or "")
-    return result
-
-
 def _source_key(row: dict[str, Any]) -> tuple[int, str, str, int, str]:
     return (
         row["jsonl_line_number"],
         row["source_module"],
-        row["source_table"].split(".", 1)[1],
+        row["source_table"],
         row["source_array_index"],
         row["text_field"],
     )
@@ -136,6 +108,7 @@ def _implementation_hash() -> str:
     directory = Path(__file__).resolve().parent
     paths = [
         directory / "full_extraction.py",
+        directory / "aggregation_input.py",
         directory / "model_interface.py",
         directory / "annotation_validation.py",
         directory / "annotation_contracts.py",
@@ -164,7 +137,7 @@ def _included_rows(manifest_path: Path) -> list[dict[str, Any]]:
 
 
 def prepare_full_extraction_package(
-    input_path: Path,
+    aggregation_directory: Path,
     manifest_path: Path,
     output_directory: Path,
     *,
@@ -173,19 +146,27 @@ def prepare_full_extraction_package(
 ) -> dict[str, Any]:
     """Build requests for every included manifest source without invoking a model."""
 
-    input_path = Path(input_path).resolve()
+    aggregation_directory = Path(aggregation_directory).resolve()
     manifest_path = Path(manifest_path).resolve()
     output_directory = Path(output_directory).resolve()
     mention_prompt_path = Path(mention_prompt_path).resolve()
     relation_prompt_path = Path(relation_prompt_path).resolve()
     if output_directory.exists():
         raise FileExistsError(f"output directory already exists: {output_directory}")
-    for required in (input_path, manifest_path, mention_prompt_path, relation_prompt_path):
+    if not aggregation_directory.is_dir():
+        raise FileNotFoundError(aggregation_directory)
+    for required in (manifest_path, mention_prompt_path, relation_prompt_path):
         if not required.is_file():
             raise FileNotFoundError(required)
 
     rows = _included_rows(manifest_path)
-    source_texts = _load_source_texts(input_path, rows)
+    try:
+        aggregation = validate_aggregation_directory(aggregation_directory)
+        source_texts = load_required_source_texts(
+            aggregation, (_source_key(row) for row in rows)
+        )
+    except AggregationInputError as error:
+        raise ModelInterfaceError(error.reason_code, str(error)) from error
     prompts = {
         "mentions": mention_prompt_path.read_text(encoding="utf-8"),
         "relations": relation_prompt_path.read_text(encoding="utf-8"),
@@ -304,7 +285,8 @@ def prepare_full_extraction_package(
             "schema_version": FULL_EXTRACTION_PACKAGE_VERSION,
             "run_id": _stable_id(
                 "xrun",
-                _sha256_file(input_path),
+                aggregation_sha256_file(aggregation.manifest_path),
+                aggregation.output_sha256["raw_source_records.parquet"],
                 _sha256_file(manifest_path),
                 prompt_hashes["mentions"],
                 prompt_hashes["relations"],
@@ -312,7 +294,12 @@ def prepare_full_extraction_package(
             ),
             "run_status": "prepared_no_model_calls",
             "input": {
-                "input_jsonl_sha256": _sha256_file(input_path),
+                "aggregation_manifest_sha256": aggregation_sha256_file(
+                    aggregation.manifest_path
+                ),
+                "raw_source_records_sha256": aggregation.output_sha256[
+                    "raw_source_records.parquet"
+                ],
                 "input_manifest_sha256": _sha256_file(manifest_path),
                 "text_units": len(rows),
                 "source_counts": dict(sorted(source_counts.items())),

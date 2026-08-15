@@ -1,6 +1,6 @@
 # Text NER 与关系抽取接口
 
-最新版以已验收的 `event_pipeline_output` 为队列、标准化状态和血缘主入口，回取同批 source JSONL 中明确配置的自由文本，生成模型无关的两阶段请求。默认不执行模型；未来可通过通用 OpenAI-compatible API 接入任意兼容 LLM。
+最新版只读取已验收的 `event_pipeline_output/aggregation`：`raw_source_records.parquet` 提供去重后的完整自由文本和源行血缘，`processed_events.parquet` 提供标准化事件关联。NER 不再回读 source JSONL。默认不执行模型；未来可通过通用 OpenAI-compatible API 接入任意兼容 LLM。
 
 当前同时冻结了 section 标注响应、mention sidecar 和显式关系 sidecar 的首版合同：
 
@@ -13,8 +13,8 @@
 当前1000例入口：
 
 ```powershell
-.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare-event-output-manifest `
-  data\test_1000_0812\event_pipeline_output `
+.\.venv\Scripts\python.exe -m data_pipeline.text_ner prepare-aggregation-manifest `
+  data\test_1000_0812\event_pipeline_output\aggregation `
   config\text_ner\all-free-text-sources.json `
   --output-dir data\test_1000_0812\event_pipeline_output\NER\input
 ```

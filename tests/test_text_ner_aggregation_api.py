@@ -10,7 +10,10 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 
 from data_pipeline.text_ner.annotation_contracts import SECTION_ANNOTATION_SCHEMA_VERSION
-from data_pipeline.text_ner.event_output_manifest import prepare_event_output_text_manifest
+from data_pipeline.text_ner.aggregation_manifest import (
+    AggregationTextManifestError,
+    prepare_aggregation_text_manifest,
+)
 from data_pipeline.text_ner.model_interface import (
     MODEL_ADAPTER_PROTOCOL_VERSION,
     MODEL_REQUEST_SCHEMA_VERSION,
@@ -35,8 +38,7 @@ def _sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def _event_output(root: Path) -> Path:
-    source = root / "readable.jsonl"
+def _aggregation(root: Path) -> Path:
     admission = {
         "schema": {"name": "mimic_admission_clinical_readable", "version": "1.0.0"},
         "source_schema": {"name": "mimic_admission_raw", "version": "1.0.0"},
@@ -84,7 +86,7 @@ def _event_output(root: Path) -> Path:
                     "note_type": "RR",
                     "charttime": "2100-01-01 03:00:00",
                     "storetime": "2100-01-01 03:10:00",
-                    "text": "FINDINGS: No edema.",
+                    "text": "FINDINGS: Tube tip is 3 cm above carina.",
                 }
             ],
             "discharge": [
@@ -100,16 +102,47 @@ def _event_output(root: Path) -> Path:
             ],
         },
     }
-    source.write_text(json.dumps(admission) + "\n", encoding="utf-8")
-    output = root / "event_pipeline_output"
-    (output / "normalization").mkdir(parents=True)
-    normalized = output / "normalization" / "normalized_events.parquet"
+    aggregation = root / "aggregation"
+    aggregation.mkdir()
+    source_specs = [
+        ("srec:lab", "mimic_iv_hosp", "hosp.labevents", "labevents", 0, "comments", "laboratory_comment", admission["mimic_iv_hosp"]["labevents"][0]),
+        ("srec:micro", "mimic_iv_hosp", "hosp.microbiologyevents", "microbiologyevents", 0, "comments", "microbiology_comment", admission["mimic_iv_hosp"]["microbiologyevents"][0]),
+        ("srec:triage", "mimic_iv_ed", "ed.triage", "triage", 0, "chiefcomplaint", "chief_complaint", admission["mimic_iv_ed"]["triage"][0]),
+        ("srec:rad", "mimic_iv_note", "note.radiology", "radiology", 0, "text", "radiology_report", admission["mimic_iv_note"]["radiology"][0]),
+        ("srec:discharge", "mimic_iv_note", "note.discharge", "discharge", 0, "text", "discharge_summary", admission["mimic_iv_note"]["discharge"][0]),
+    ]
+    raw_rows = []
+    for source_record_id, module, table, table_name, index, field, kind, record in source_specs:
+        text = record[field]
+        raw_rows.append(
+            {
+                "source_record_id": source_record_id,
+                "subject_id": "1",
+                "hadm_id": "10",
+                "jsonl_line_number": 1,
+                "source_module": module,
+                "source_table": table,
+                "source_table_name": table_name,
+                "source_array_index": index,
+                "raw_row_ref": f"readable.jsonl#L1/{module}.{table_name}[{index}]",
+                "source_text_field": field,
+                "source_text_kind": kind,
+                "source_text": text,
+                "source_text_sha256": hashlib.sha256(text.encode()).hexdigest(),
+                "clinical_readable_record_json": json.dumps(record, sort_keys=True),
+            }
+        )
+    raw_table = pa.Table.from_pylist(raw_rows).replace_schema_metadata(
+        {b"schema": b"event-source-record/1.0.0"}
+    )
+    raw_path = aggregation / "raw_source_records.parquet"
+    pq.write_table(raw_table, raw_path)
     sources = [
-        ("event:lab", "mimic_iv_hosp", "hosp.labevents", 0, "mapped"),
-        ("event:micro", "mimic_iv_hosp", "hosp.microbiologyevents", 0, "mapped"),
-        ("event:triage", "mimic_iv_ed", "ed.triage", 0, "unresolved"),
-        ("event:rad", "mimic_iv_note", "note.radiology", 0, "unresolved"),
-        ("event:discharge", "mimic_iv_note", "note.discharge", 0, "mapped"),
+        ("event:lab", "srec:lab", "hosp.labevents", "mapped"),
+        ("event:micro", "srec:micro", "hosp.microbiologyevents", "mapped"),
+        ("event:triage", "srec:triage", "ed.triage", "unresolved"),
+        ("event:rad", "srec:rad", "note.radiology", "unresolved"),
+        ("event:discharge", "srec:discharge", "note.discharge", "mapped"),
     ]
     rows = [
         {
@@ -117,30 +150,64 @@ def _event_output(root: Path) -> Path:
             "normalization_status": status,
             "concept_id": None,
             "preferred_name": None,
-            "source_module": module,
             "source_table": table,
-            "source_array_index": index,
-            "jsonl_line_number": 1,
+            "source_record_id": source_record_id,
         }
-        for event_id, module, table, index, status in sources
+        for event_id, source_record_id, table, status in sources
     ]
-    pq.write_table(pa.Table.from_pylist(rows), normalized)
-    workflow = {
-        "run_id": "workflow:test",
-        "acceptance": {"can_start_text_ner": True},
-        "inputs": {
-            "source_jsonl": source.name,
-            "source_jsonl_sha256": _sha256_file(source),
-        },
-        "stages": {
-            "cleaning": {"counts": {"admissions": 1}},
-            "normalization": {"counts": {"events": 5}},
+    event_table = pa.Table.from_pylist(rows).replace_schema_metadata(
+        {b"schema": b"event-aggregation/1.0.0"}
+    )
+    processed = aggregation / "processed_events.parquet"
+    traceable = aggregation / "traceable_events.parquet"
+    pq.write_table(event_table, processed)
+    pq.write_table(event_table, traceable)
+    outputs = {}
+    for path in (processed, raw_path, traceable):
+        outputs[path.name] = {
+            "sha256": _sha256_file(path),
+            "bytes": path.stat().st_size,
+            "rows": pq.ParquetFile(path).metadata.num_rows,
+        }
+    quality = {
+        "schema_version": "event-aggregation-quality/1.0.0",
+        "status": "passed",
+        "checks": {"fixture_valid": True},
+        "expected": {"admissions": 1, "events": 5, "all_source_records": 5},
+        "observed": {
+            "admissions": 1,
+            "source_records": 5,
+            "source_text_record_counts": {
+                table: 1 for _, _, table, _, _, _, _, _ in source_specs
+            },
+            "source_text_character_counts": {
+                table: len(record[field])
+                for _, _, table, _, _, field, _, record in source_specs
+            },
         },
     }
-    (output / "workflow_manifest.json").write_text(
-        json.dumps(workflow), encoding="utf-8"
+    (aggregation / "quality_report.json").write_text(
+        json.dumps(quality), encoding="utf-8"
     )
-    return output
+    aggregation_manifest = {
+        "schema_version": "event-aggregation-manifest/1.0.0",
+        "aggregation_schema_version": "event-aggregation/1.0.0",
+        "quality_status": "passed",
+        "outputs": outputs,
+        "text_fields": [
+            {
+                "source_module": module,
+                "source_table": table,
+                "source_text_field": field,
+                "source_text_kind": kind,
+            }
+            for _, module, table, _, _, field, kind, _ in source_specs
+        ],
+    }
+    (aggregation / "aggregation_manifest.json").write_text(
+        json.dumps(aggregation_manifest), encoding="utf-8"
+    )
+    return aggregation
 
 
 def _api_request(text: str, prompt: str) -> dict[str, object]:
@@ -165,14 +232,16 @@ def _api_request(text: str, prompt: str) -> dict[str, object]:
     }
 
 
-class EventOutputTextManifestTests(unittest.TestCase):
+class AggregationTextManifestTests(unittest.TestCase):
     def test_all_configured_free_text_includes_hosp_and_discharge(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            event_output = _event_output(root)
-            result = prepare_event_output_text_manifest(
-                event_output, SOURCE_CATALOG, event_output / "NER" / "input"
+            aggregation = _aggregation(root)
+            result = prepare_aggregation_text_manifest(
+                aggregation, SOURCE_CATALOG, root / "NER" / "input"
             )
+            self.assertEqual(result["aggregation"]["schema_version"], "event-aggregation/1.0.0")
+            self.assertFalse(list(root.rglob("*.jsonl")))
             counts = result["counts"]
             self.assertEqual(counts["admissions"], 1)
             self.assertEqual(counts["documents"], 5)
@@ -182,12 +251,27 @@ class EventOutputTextManifestTests(unittest.TestCase):
             self.assertIn("note.discharge", counts["source_document_counts"])
             self.assertNotIn("hosp.prescriptions", counts["source_document_counts"])
             manifest = pq.read_table(
-                event_output / "NER" / "input" / "text_ner_input_manifest.parquet"
+                root / "NER" / "input" / "text_ner_input_manifest.parquet"
             ).to_pylist()
             discharge = next(row for row in manifest if row["source_table"] == "note.discharge")
             self.assertEqual(discharge["inclusion_status"], "included")
             self.assertEqual(discharge["evidence_phase"], "post_hoc")
             self.assertEqual(counts["text_units_without_direct_event_link"], 0)
+
+    def test_tampered_aggregation_output_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            aggregation = _aggregation(root)
+            manifest_path = aggregation / "aggregation_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["outputs"]["raw_source_records.parquet"]["sha256"] = "0" * 64
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(
+                AggregationTextManifestError, "AGGREGATION_OUTPUT_HASH_MISMATCH"
+            ):
+                prepare_aggregation_text_manifest(
+                    aggregation, SOURCE_CATALOG, root / "NER" / "input"
+                )
 
 
 class GenericApiBatchTests(unittest.TestCase):

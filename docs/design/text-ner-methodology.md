@@ -26,8 +26,8 @@
 
 ## 4. 数据与污染控制
 
-- 总体由 `event_pipeline_output/workflow_manifest.json` 锁定，清洗和归一化必须通过 `can_start_text_ner`。
-- `normalized_events.parquet` 是标准化事件主表；正文只按 workflow 声明的同批 source JSONL 和来源键回取。
+- 总体由已验收的 `event_pipeline_output/aggregation` 锁定；aggregation manifest、quality report、文件行数、Schema 和 SHA-256 必须全部通过校验。
+- `raw_source_records.parquet` 提供去重的完整正文与源行血缘，`processed_events.parquet` 提供标准化事件关联；NER 不再回读 source JSONL。
 - 原文、请求和响应只保存在Git忽略的 `event_pipeline_output/NER`；Git报告只包含计数、状态、reason code和哈希。
 - 模型输出标记为 `unreviewed_model_output`；人工抽样验收完成前不能称为 gold 或经过验证的实验结果。
 

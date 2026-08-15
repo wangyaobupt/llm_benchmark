@@ -19,6 +19,7 @@ from data_pipeline.text_ner.model_interface import (
     MODEL_RESPONSE_SCHEMA_VERSION,
     ModelInterfaceError,
 )
+from tests.test_text_ner_aggregation_api import _aggregation
 
 
 def _sha256(value: str) -> str:
@@ -81,15 +82,7 @@ def _manifest_row(
 def _fixture(root: Path) -> tuple[Path, Path, Path, Path]:
     ed_text = "Chest pain"
     radiology_text = "FINDINGS: Tube tip is 3 cm above carina."
-    raw = {
-        "mimic_iv_ed": {"triage": [{"chiefcomplaint": ed_text}]},
-        "mimic_iv_note": {
-            "radiology": [{"text": radiology_text}],
-            "discharge": [{"text": "Post-hoc diagnosis"}],
-        },
-    }
-    raw_path = root / "raw.jsonl"
-    raw_path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+    aggregation = _aggregation(root)
     rows = [
         _manifest_row(
             "ed",
@@ -122,7 +115,7 @@ def _fixture(root: Path) -> tuple[Path, Path, Path, Path]:
     relation_prompt = root / "relations.md"
     mention_prompt.write_text("Return entity mentions as JSON.", encoding="utf-8")
     relation_prompt.write_text("Return explicit relations as JSON.", encoding="utf-8")
-    return raw_path, manifest_path, mention_prompt, relation_prompt
+    return aggregation, manifest_path, mention_prompt, relation_prompt
 
 
 def _read_jsonl(path: Path) -> list[dict[str, object]]:
@@ -174,16 +167,16 @@ class FullExtractionInterfaceTests(unittest.TestCase):
     def test_prepare_full_scope_is_deterministic_and_model_free(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            raw, manifest, mention_prompt, relation_prompt = _fixture(root)
+            aggregation, manifest, mention_prompt, relation_prompt = _fixture(root)
             first = prepare_full_extraction_package(
-                raw,
+                aggregation,
                 manifest,
                 root / "first",
                 mention_prompt_path=mention_prompt,
                 relation_prompt_path=relation_prompt,
             )
             second = prepare_full_extraction_package(
-                raw,
+                aggregation,
                 manifest,
                 root / "second",
                 mention_prompt_path=mention_prompt,
@@ -203,10 +196,10 @@ class FullExtractionInterfaceTests(unittest.TestCase):
     def test_empty_responses_compile_typed_pending_sidecars(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            raw, manifest, mention_prompt, relation_prompt = _fixture(root)
+            aggregation, manifest, mention_prompt, relation_prompt = _fixture(root)
             package = root / "package"
             prepare_full_extraction_package(
-                raw,
+                aggregation,
                 manifest,
                 package,
                 mention_prompt_path=mention_prompt,
@@ -231,10 +224,10 @@ class FullExtractionInterfaceTests(unittest.TestCase):
     def test_valid_two_stage_responses_compile_entities_and_relation(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            raw, manifest, mention_prompt, relation_prompt = _fixture(root)
+            aggregation, manifest, mention_prompt, relation_prompt = _fixture(root)
             package = root / "package"
             prepare_full_extraction_package(
-                raw,
+                aggregation,
                 manifest,
                 package,
                 mention_prompt_path=mention_prompt,
@@ -285,10 +278,10 @@ class FullExtractionInterfaceTests(unittest.TestCase):
     def test_relation_response_without_validated_mentions_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
-            raw, manifest, mention_prompt, relation_prompt = _fixture(root)
+            aggregation, manifest, mention_prompt, relation_prompt = _fixture(root)
             package = root / "package"
             prepare_full_extraction_package(
-                raw,
+                aggregation,
                 manifest,
                 package,
                 mention_prompt_path=mention_prompt,
