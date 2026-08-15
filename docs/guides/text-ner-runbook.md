@@ -213,7 +213,30 @@ relation 阶段将输入文件和标签替换为：
 
 ### 7.1 运行10个 mention 请求
 
-外部 API：
+推荐使用仓库脚本。它不依赖当前 PowerShell 会话中的 `$pythonPath`、`$nerRoot` 等变量，会自行定位仓库和文件，并在调用前检查 Python 3.12、请求、prompt、API 配置和 `.env`。
+
+先执行只读预检；该命令不会调用 API：
+
+```powershell
+Set-Location 'D:\Projects\llm_benchmark'
+& '.\scripts\Run-TextNerMentionSmoke.ps1' -ValidateOnly
+```
+
+预检通过后，明确确认外部临床文本传输并运行最多10个文本单元：
+
+```powershell
+& '.\scripts\Run-TextNerMentionSmoke.ps1' -ConfirmExternalDataTransfer
+```
+
+如需改变小批数量，例如只运行2个文本单元：
+
+```powershell
+& '.\scripts\Run-TextNerMentionSmoke.ps1' `
+  -MaximumRequests 2 `
+  -ConfirmExternalDataTransfer
+```
+
+下面是脚本内部对应的外部 API 命令，仅用于理解参数。只有已执行第2节变量初始化的同一个 PowerShell 会话才能直接复制这一形式：
 
 ```powershell
 & $pythonPath -m data_pipeline.text_ner run-openai-compatible-api `
