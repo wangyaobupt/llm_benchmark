@@ -5,6 +5,8 @@ param(
 
     [switch]$ConfirmExternalDataTransfer,
 
+    [switch]$RetryFailuresOnly,
+
     [switch]$ValidateOnly
 )
 
@@ -26,6 +28,7 @@ $requestPath = Join-Path $nerRoot 'extraction_interface\requests\mention_request
 $promptPath = Join-Path $nerRoot 'extraction_interface\configuration\prompts\mentions.md'
 $responsePath = Join-Path $executionRoot 'mention_responses.jsonl'
 $auditPath = Join-Path $executionRoot 'mention_api_audit.jsonl'
+$failureAuditPath = Join-Path $executionRoot 'mention_api_audit.failures.jsonl'
 $apiConfigPath = Join-Path $repositoryRoot 'config\text_ner\openai-compatible-api.json'
 $environmentPath = Join-Path $repositoryRoot '.env'
 
@@ -60,6 +63,11 @@ Write-Host "Prompt: $promptPath"
 Write-Host "Responses: $responsePath"
 Write-Host "Audit: $auditPath"
 Write-Host "Maximum text units this run: $MaximumRequests"
+Write-Host "Selection: $(if ($RetryFailuresOnly) { 'terminal failures only' } else { 'all pending' })"
+
+if ($RetryFailuresOnly -and -not (Test-Path -LiteralPath $failureAuditPath -PathType Leaf)) {
+    throw "Failure audit does not exist: $failureAuditPath"
+}
 
 if ($ValidateOnly) {
     Write-Host 'Preflight passed; no API request was sent.'
@@ -84,6 +92,9 @@ $arguments = @(
     '--confirm-data-transfer-authorized',
     '--maximum-requests', $MaximumRequests
 )
+if ($RetryFailuresOnly) {
+    $arguments += @('--retry-failures-from', $failureAuditPath)
+}
 
 Push-Location $repositoryRoot
 try {

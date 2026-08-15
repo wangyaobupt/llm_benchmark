@@ -735,6 +735,7 @@ def run_api_batch(
     maximum_requests: int | None = None,
     environment_file: Path | None = None,
     failure_audit_path: Path | None = None,
+    retry_failures_from: Path | None = None,
     environ: Mapping[str, str] | None = None,
     transport: Transport | None = None,
     sleep: Callable[[float], None] = time.sleep,
@@ -774,15 +775,38 @@ def run_api_batch(
             )
         completed.add(response["request_id"])
 
+    selection_mode = "all_pending"
+    eligible_request_ids = set(request_by_id) - completed
+    if retry_failures_from is not None:
+        selection_mode = "terminal_failures_only"
+        failure_rows = _load_jsonl(Path(retry_failures_from))
+        terminal_failure_ids = {
+            str(row.get("request_id"))
+            for row in failure_rows
+            if row.get("will_retry") is False and row.get("request_id")
+        }
+        unknown_failure_ids = terminal_failure_ids - set(request_by_id)
+        if unknown_failure_ids:
+            raise GenericApiError(
+                "GENERIC_API_RETRY_FAILURE_REQUEST_UNKNOWN",
+                str(len(unknown_failure_ids)),
+            )
+        eligible_request_ids &= terminal_failure_ids
+
     adapter = OpenAICompatibleAdapter(settings, config, prompt, transport=transport)
     resolved_failure_audit_path = (
         Path(failure_audit_path)
         if failure_audit_path is not None
         else _default_failure_audit_path(Path(audit_path))
     )
-    limit = len(requests) if maximum_requests is None else maximum_requests
-    if limit < 0:
-        raise GenericApiError("GENERIC_API_MAXIMUM_REQUESTS_INVALID", str(limit))
+    requested_limit = (
+        len(eligible_request_ids) if maximum_requests is None else maximum_requests
+    )
+    if requested_limit < 0:
+        raise GenericApiError(
+            "GENERIC_API_MAXIMUM_REQUESTS_INVALID", str(requested_limit)
+        )
+    limit = min(requested_limit, len(eligible_request_ids))
     successful_responses = 0
     attempted_requests = 0
     failed_requests = 0
@@ -798,10 +822,11 @@ def run_api_batch(
     if progress_reporter is not None:
         progress_reporter(
             f"[API] 已载入 {len(requests):,} 个文本单元 | "
-            f"checkpoint {len(completed):,} | 本次最多尝试 {limit:,} 个"
+            f"checkpoint {len(completed):,} | 候选 {len(eligible_request_ids):,} | "
+            f"本次最多尝试 {limit:,} 个 | 模式 {selection_mode}"
         )
     for request in requests:
-        if request["request_id"] in completed:
+        if request["request_id"] not in eligible_request_ids:
             continue
         if attempted_requests >= limit:
             break
@@ -949,7 +974,7 @@ def run_api_batch(
             "attempt_number": attempt_number,
             "usage": usage,
             "span_grounding": {
-                "schema_version": "text-ner-span-grounding/1.0.0",
+                "schema_version": "text-ner-span-grounding/1.1.0",
                 "repair_count": len(span_repairs),
                 "repairs": span_repairs,
             },
@@ -972,9 +997,11 @@ def run_api_batch(
         if attempted_requests < limit:
             sleep(interval)
     return {
-        "schema_version": "text-ner-api-batch-summary/1.2.0",
+        "schema_version": "text-ner-api-batch-summary/1.3.0",
         "requests": len(requests),
         "already_completed": len(existing),
+        "selection_mode": selection_mode,
+        "eligible_requests": len(eligible_request_ids),
         "attempted_requests_this_run": attempted_requests,
         "model_calls_this_run": api_attempts,
         "successful_responses_this_run": successful_responses,

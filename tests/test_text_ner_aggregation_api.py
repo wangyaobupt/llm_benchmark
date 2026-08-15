@@ -827,6 +827,54 @@ class GenericApiBatchTests(unittest.TestCase):
             self.assertTrue(any("文本单元失败并继续" in line for line in progress))
             self.assertTrue(any("成功 1 | 失败 1" in line for line in progress))
 
+            retry_calls = 0
+            recovered_annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": first["manifest_row_id"],
+                "document_id": first["document_id"],
+                "section_id": first["section_id"],
+                "section_text_sha256": first["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+
+            def retry_transport(*args: object) -> dict[str, object]:
+                nonlocal retry_calls
+                retry_calls += 1
+                return {
+                    "id": "response:retry",
+                    "choices": [
+                        {"message": {"content": json.dumps(recovered_annotation)}}
+                    ],
+                    "usage": {
+                        "prompt_tokens": 5,
+                        "completion_tokens": 3,
+                        "total_tokens": 8,
+                    },
+                }
+
+            retry_summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=10,
+                retry_failures_from=root / "audit.failures.jsonl",
+                environ=environment,
+                transport=retry_transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(retry_calls, 1)
+            self.assertEqual(
+                retry_summary["selection_mode"], "terminal_failures_only"
+            )
+            self.assertEqual(retry_summary["eligible_requests"], 1)
+            self.assertEqual(retry_summary["attempted_requests_this_run"], 1)
+            self.assertEqual(retry_summary["completed_total"], 2)
+
     def test_repeated_surface_requires_a_unique_nearest_occurrence(self) -> None:
         mention = {
             "local_id": "m1",
@@ -895,6 +943,30 @@ class GenericApiBatchTests(unittest.TestCase):
         )
         self.assertEqual(repairs[0]["item_kind"], "relation")
         self.assertEqual(repairs[0]["candidate_count"], 1)
+
+    def test_casefold_whitespace_match_rewrites_surface_from_source(self) -> None:
+        annotation = {
+            "mentions": [
+                {
+                    "local_id": "m1",
+                    "surface_text": "CHEST PAIN",
+                    "section_span_start": 0,
+                    "section_span_end": 10,
+                }
+            ],
+            "relations": [],
+        }
+        grounded, repairs = ground_annotation_spans(annotation, "Chest\npain")
+        mention = grounded["mentions"][0]
+        self.assertEqual(mention["surface_text"], "Chest\npain")
+        self.assertEqual(
+            (mention["section_span_start"], mention["section_span_end"]),
+            (0, 10),
+        )
+        self.assertEqual(
+            repairs[0]["rule"], "unique_casefold_whitespace_occurrence"
+        )
+        self.assertTrue(repairs[0]["surface_rewritten_from_source"])
 
     def test_mock_transport_is_validated_persisted_and_resumable(self) -> None:
         calls: list[object] = []

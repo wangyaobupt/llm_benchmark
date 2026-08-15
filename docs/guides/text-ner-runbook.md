@@ -278,9 +278,19 @@ remaining: 64498
 
 API 执行期间会立即打印已载入数量，随后逐次打印“调用/重试/成功/失败并继续”、累计成功/失败数和本次 token usage。响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到成功文件。
 
-模型给出的 mention 或 relation evidence offset 不准确时，接口先执行确定性 span grounding：只接受原文中大小写敏感的精确 `surface_text`/`evidence_text`；唯一匹配直接落位，多次匹配仅在原 offset 指向唯一最近候选时落位，平局或原文不存在时拒绝。关系 evidence 还必须覆盖 source/target mentions。接口不改实体文字、类型或其他语义属性。成功 audit 的 `span_grounding` 保存原始/校正 offset、候选数和规则，不保存临床文字。
+模型给出的 mention 或 relation evidence offset 不准确时，接口先执行确定性 span grounding。第一层使用原文中大小写敏感的精确 `surface_text`/`evidence_text`；找不到时，第二层仅允许 Unicode casefold 和连续空白折叠匹配，并把结果 surface 回填为原文真实子串。唯一匹配直接落位，多次匹配仅在原 offset 指向唯一最近候选时落位，平局或归一化后仍不存在时拒绝。关系 evidence 还必须覆盖 source/target mentions。接口不改实体类型或其他语义属性，不使用编辑距离、同义词或语义猜测。成功 audit 的 `span_grounding` 保存原始/校正 offset、候选数、规则及是否从原文回填 surface，不保存临床文字。
 
 空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。截断、认证、端点或配置等非内容错误仍立即停止整批。失败审计只保存 reason code、具体标注校验原因、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
+
+只重试 failure audit 中已经终止且尚未成功的文本单元，不调用新的 pending 文本：
+
+```powershell
+& '.\scripts\Run-TextNerMentionSmoke.ps1' `
+  -RetryFailuresOnly `
+  -ConfirmExternalDataTransfer
+```
+
+脚本会向 CLI 传递 `--retry-failures-from mention_api_audit.failures.jsonl`。终端启动行应显示 `模式 terminal_failures_only`；`候选`是当前尚未成功的失败 request 数，可能少于 `-MaximumRequests`。
 
 ### 7.2 编译 mention 并生成10个 relation 请求
 
