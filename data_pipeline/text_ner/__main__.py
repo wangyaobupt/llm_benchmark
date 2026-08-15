@@ -141,6 +141,14 @@ def _parser() -> argparse.ArgumentParser:
             "process environment variables override file values"
         ),
     )
+    api_batch.add_argument(
+        "--failure-audit",
+        type=Path,
+        help=(
+            "Write failed API attempts to this JSONL; defaults to "
+            "<audit-stem>.failures.jsonl"
+        ),
+    )
     api_batch.add_argument("--execute", action="store_true")
     api_batch.add_argument(
         "--endpoint-scope", choices=("local", "external"), default="external"
@@ -273,6 +281,7 @@ def main() -> None:
             data_transfer_authorized=args.confirm_data_transfer_authorized,
             maximum_requests=args.maximum_requests,
             environment_file=args.env_file,
+            failure_audit_path=args.failure_audit,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))
 

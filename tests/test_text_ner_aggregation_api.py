@@ -354,6 +354,268 @@ class GenericApiBatchTests(unittest.TestCase):
                 run_api_batch(*common, execute=True, transport=transport)
             self.assertEqual(calls, [])
 
+    def test_empty_content_retries_then_accepts_complete_json_fence(self) -> None:
+        text = "Chest pain"
+        prompt_text = "Return JSON."
+        request = _api_request(text, prompt_text)
+        annotation = {
+            "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+            "manifest_row_id": "manifest:1",
+            "document_id": "document:1",
+            "section_id": "section:1",
+            "section_text_sha256": request["section_text_sha256"],
+            "mentions": [],
+            "relations": [],
+        }
+        transport_calls: list[dict[str, object]] = []
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            transport_calls.append(payload)
+            if len(transport_calls) == 1:
+                return {
+                    "id": "empty:1",
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {
+                                "content": "   ",
+                                "reasoning_content": "private reasoning",
+                            },
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 5,
+                        "completion_tokens": 7,
+                        "total_tokens": 12,
+                        "completion_tokens_details": {"reasoning_tokens": 7},
+                    },
+                }
+            return {
+                "id": "valid:2",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": "```json\n"
+                            + json.dumps(annotation)
+                            + "\n```"
+                        },
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 4,
+                    "total_tokens": 14,
+                },
+            }
+
+        environment = {
+            "TEXT_NER_API_KEY": "test-secret",
+            "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+            "TEXT_NER_MODEL": "deepseek-v4-flash",
+            "TEXT_NER_MODEL_VERSION": "DeepSeek-V4-Flash",
+            "TEXT_NER_PROVIDER": "deepseek",
+        }
+        sleeps: list[float] = []
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            responses = root / "responses.jsonl"
+            audit = root / "audit.jsonl"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                audit,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=environment,
+                transport=transport,
+                sleep=sleeps.append,
+            )
+            failures = root / "audit.failures.jsonl"
+            failure_rows = [
+                json.loads(line)
+                for line in failures.read_text(encoding="utf-8").splitlines()
+            ]
+            success_audit = json.loads(audit.read_text(encoding="utf-8"))
+            self.assertEqual(summary["model_calls_this_run"], 2)
+            self.assertEqual(summary["successful_responses_this_run"], 1)
+            self.assertEqual(summary["failed_attempts_this_run"], 1)
+            self.assertEqual(summary["retries"], 1)
+            self.assertEqual(summary["usage_this_run"]["total_tokens"], 26)
+            self.assertEqual(
+                summary["successful_usage_this_run"]["total_tokens"], 14
+            )
+            self.assertEqual(sleeps, [2.0])
+            self.assertEqual(len(failure_rows), 1)
+            self.assertEqual(
+                failure_rows[0]["reason_code"],
+                "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
+            )
+            self.assertTrue(failure_rows[0]["will_retry"])
+            self.assertEqual(failure_rows[0]["reasoning_content_length"], 17)
+            self.assertFalse(failure_rows[0]["raw_model_content_persisted"])
+            self.assertNotIn("private reasoning", failures.read_text(encoding="utf-8"))
+            self.assertNotIn(text, failures.read_text(encoding="utf-8"))
+            self.assertNotIn("test-secret", failures.read_text(encoding="utf-8"))
+            self.assertEqual(
+                success_audit["content_normalization"],
+                "markdown_json_fence_removed",
+            )
+            self.assertEqual(success_audit["attempt_number"], 2)
+            self.assertEqual(success_audit["thinking_mode"], "disabled")
+            self.assertEqual(
+                transport_calls[0]["thinking"], {"type": "disabled"}
+            )
+
+    def test_length_finish_reason_is_audited_without_useless_retry(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("Chest pain", prompt_text)
+        calls = 0
+        sleeps: list[float] = []
+
+        def transport(*args: object) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            return {
+                "id": "truncated:1",
+                "choices": [
+                    {
+                        "finish_reason": "length",
+                        "message": {"content": '{"schema_version":'},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 4096,
+                    "total_tokens": 4106,
+                },
+            }
+
+        environment = {
+            "TEXT_NER_API_KEY": "test-secret",
+            "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+            "TEXT_NER_MODEL": "test-model",
+            "TEXT_NER_MODEL_VERSION": "test-revision",
+            "TEXT_NER_PROVIDER": "test-provider",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            audit = root / "audit.jsonl"
+            with self.assertRaisesRegex(
+                GenericApiError, "GENERIC_API_OUTPUT_TRUNCATED"
+            ):
+                run_api_batch(
+                    requests,
+                    prompt,
+                    root / "responses.jsonl",
+                    audit,
+                    API_CONFIG,
+                    execute=True,
+                    endpoint_scope="local",
+                    environ=environment,
+                    transport=transport,
+                    sleep=sleeps.append,
+                )
+            failure = json.loads(
+                (root / "audit.failures.jsonl").read_text(encoding="utf-8")
+            )
+            self.assertEqual(calls, 1)
+            self.assertEqual(sleeps, [])
+            self.assertEqual(failure["finish_reason"], "length")
+            self.assertFalse(failure["retryable"])
+            self.assertFalse(failure["will_retry"])
+            self.assertEqual(failure["usage"]["total_tokens"], 4106)
+
+    def test_persistent_invalid_json_stops_after_configured_attempts(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("Chest pain", prompt_text)
+        calls = 0
+
+        def transport(*args: object) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            return {
+                "id": f"invalid:{calls}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": "not json"},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 3,
+                    "completion_tokens": 2,
+                    "total_tokens": 5,
+                },
+            }
+
+        environment = {
+            "TEXT_NER_API_KEY": "test-secret",
+            "TEXT_NER_BASE_URL": "http://127.0.0.1:9999/v1",
+            "TEXT_NER_MODEL": "test-model",
+            "TEXT_NER_MODEL_VERSION": "test-revision",
+            "TEXT_NER_PROVIDER": "test-provider",
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            audit = root / "audit.jsonl"
+            with self.assertRaisesRegex(
+                GenericApiError, "GENERIC_API_ANNOTATION_JSON_INVALID"
+            ):
+                run_api_batch(
+                    requests,
+                    prompt,
+                    root / "responses.jsonl",
+                    audit,
+                    API_CONFIG,
+                    execute=True,
+                    endpoint_scope="local",
+                    environ=environment,
+                    transport=transport,
+                    sleep=lambda _: None,
+                )
+            failures = [
+                json.loads(line)
+                for line in (root / "audit.failures.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(calls, 4)
+            self.assertEqual(len(failures), 4)
+            self.assertEqual(
+                [row["attempt_number"] for row in failures], [1, 2, 3, 4]
+            )
+            self.assertEqual(
+                [row["will_retry"] for row in failures], [True, True, True, False]
+            )
+            self.assertTrue(
+                all(row["content_sha256"] for row in failures)
+            )
+            self.assertNotIn(
+                "not json",
+                (root / "audit.failures.jsonl").read_text(encoding="utf-8"),
+            )
+
     def test_mock_transport_is_validated_persisted_and_resumable(self) -> None:
         calls: list[object] = []
         text = "Chest pain"
@@ -430,6 +692,7 @@ class GenericApiBatchTests(unittest.TestCase):
             self.assertEqual(first["model_calls_this_run"], 1)
             self.assertEqual(second["model_calls_this_run"], 0)
             self.assertEqual(len(calls), 1)
+            self.assertNotIn("thinking", calls[0][2])
             self.assertNotIn("test-secret", repr(calls[0][0]))
             self.assertNotIn("test-secret", audit.read_text(encoding="utf-8"))
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -13,7 +14,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from .annotation_validation import SectionAnnotationValidator
+from .annotation_validation import AnnotationValidationError, SectionAnnotationValidator
 from .model_interface import (
     MODEL_RESPONSE_SCHEMA_VERSION,
     ModelInterfaceError,
@@ -34,10 +35,18 @@ ENVIRONMENT_FILE_KEYS = frozenset(
 
 
 class GenericApiError(ValueError):
-    def __init__(self, reason_code: str, message: str, *, retryable: bool = False):
+    def __init__(
+        self,
+        reason_code: str,
+        message: str,
+        *,
+        retryable: bool = False,
+        diagnostics: Mapping[str, Any] | None = None,
+    ):
         super().__init__(f"{reason_code}: {message}")
         self.reason_code = reason_code
         self.retryable = retryable
+        self.diagnostics = dict(diagnostics or {})
 
 
 @dataclass(frozen=True)
@@ -125,6 +134,176 @@ def _http_transport(
         raise GenericApiError("GENERIC_API_RESPONSE_NOT_JSON", str(error)) from error
 
 
+def _sanitized_usage(value: object) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        return {}
+    result: dict[str, Any] = {}
+    for key in (
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+        "prompt_cache_hit_tokens",
+        "prompt_cache_miss_tokens",
+    ):
+        item = value.get(key)
+        if isinstance(item, int) and item >= 0:
+            result[key] = item
+    details = value.get("completion_tokens_details")
+    if isinstance(details, Mapping):
+        reasoning_tokens = details.get("reasoning_tokens")
+        if isinstance(reasoning_tokens, int) and reasoning_tokens >= 0:
+            result["completion_tokens_details"] = {
+                "reasoning_tokens": reasoning_tokens
+            }
+    return result
+
+
+def _short_api_string(value: object) -> str | None:
+    if not isinstance(value, str) or not value:
+        return None
+    return value[:200]
+
+
+def _response_diagnostics(
+    raw: Mapping[str, Any],
+    *,
+    choice: Mapping[str, Any] | None = None,
+    content: object = None,
+) -> dict[str, Any]:
+    message = choice.get("message") if isinstance(choice, Mapping) else None
+    reasoning_content = (
+        message.get("reasoning_content") if isinstance(message, Mapping) else None
+    )
+    diagnostics: dict[str, Any] = {
+        "response_id": _short_api_string(raw.get("id")),
+        "finish_reason": _short_api_string(choice.get("finish_reason"))
+        if isinstance(choice, Mapping)
+        else None,
+        "usage": _sanitized_usage(raw.get("usage")),
+        "content_length": len(content) if isinstance(content, str) else 0,
+        "content_sha256": hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if isinstance(content, str)
+        else None,
+        "reasoning_content_length": len(reasoning_content)
+        if isinstance(reasoning_content, str)
+        else 0,
+    }
+    return diagnostics
+
+
+def _unwrap_complete_json_fence(content: str) -> tuple[str, str]:
+    stripped = content.strip()
+    lines = stripped.splitlines()
+    if (
+        len(lines) >= 3
+        and lines[0].strip().lower() in {"```json", "```"}
+        and lines[-1].strip() == "```"
+    ):
+        return "\n".join(lines[1:-1]).strip(), "markdown_json_fence_removed"
+    return stripped, "none"
+
+
+def _parse_annotation_response(
+    raw: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    try:
+        choice = raw["choices"][0]
+        if not isinstance(choice, Mapping):
+            raise TypeError("choice is not an object")
+        message = choice["message"]
+        if not isinstance(message, Mapping):
+            raise TypeError("message is not an object")
+        content = message.get("content")
+    except (KeyError, IndexError, TypeError) as error:
+        diagnostics = _response_diagnostics(raw)
+        raise GenericApiError(
+            "GENERIC_API_RESPONSE_SHAPE_INVALID",
+            "choices[0].message.content is unavailable",
+            retryable=True,
+            diagnostics=diagnostics,
+        ) from error
+
+    diagnostics = _response_diagnostics(raw, choice=choice, content=content)
+    finish_reason = diagnostics["finish_reason"]
+    if finish_reason == "length":
+        diagnostics["content_state"] = "truncated"
+        raise GenericApiError(
+            "GENERIC_API_OUTPUT_TRUNCATED",
+            (
+                "finish_reason=length; increase request.max_tokens or reduce the "
+                "input section size"
+            ),
+            diagnostics=diagnostics,
+        )
+    if finish_reason == "content_filter":
+        diagnostics["content_state"] = "filtered"
+        raise GenericApiError(
+            "GENERIC_API_OUTPUT_CONTENT_FILTERED",
+            "finish_reason=content_filter",
+            diagnostics=diagnostics,
+        )
+    if finish_reason == "tool_calls":
+        diagnostics["content_state"] = "tool_calls"
+        raise GenericApiError(
+            "GENERIC_API_OUTPUT_TOOL_CALL_UNEXPECTED",
+            "finish_reason=tool_calls is not valid for NER annotation",
+            diagnostics=diagnostics,
+        )
+    if finish_reason == "insufficient_system_resource":
+        diagnostics["content_state"] = "incomplete_system_resource"
+        raise GenericApiError(
+            "GENERIC_API_OUTPUT_RESOURCE_INTERRUPTED",
+            "finish_reason=insufficient_system_resource",
+            retryable=True,
+            diagnostics=diagnostics,
+        )
+    if not isinstance(content, str) or not content.strip():
+        diagnostics["content_state"] = "empty"
+        raise GenericApiError(
+            "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
+            (
+                f"finish_reason={finish_reason or 'missing'}; "
+                f"content_length={diagnostics['content_length']}"
+            ),
+            retryable=True,
+            diagnostics=diagnostics,
+        )
+
+    normalized, normalization = _unwrap_complete_json_fence(content)
+    diagnostics["content_state"] = "nonempty"
+    diagnostics["content_normalization"] = normalization
+    try:
+        annotation = json.loads(normalized)
+    except json.JSONDecodeError as error:
+        diagnostics["json_error_line"] = error.lineno
+        diagnostics["json_error_column"] = error.colno
+        diagnostics["json_error_position"] = error.pos
+        raise GenericApiError(
+            "GENERIC_API_ANNOTATION_JSON_INVALID",
+            (
+                f"finish_reason={finish_reason or 'missing'}; "
+                f"content_length={diagnostics['content_length']}; "
+                f"json_line={error.lineno}; json_column={error.colno}"
+            ),
+            retryable=True,
+            diagnostics=diagnostics,
+        ) from error
+    if not isinstance(annotation, dict):
+        raise GenericApiError(
+            "GENERIC_API_ANNOTATION_ROOT_NOT_OBJECT",
+            f"finish_reason={finish_reason or 'missing'}",
+            retryable=True,
+            diagnostics=diagnostics,
+        )
+    return annotation, {
+        "response_id": diagnostics["response_id"],
+        "finish_reason": finish_reason,
+        "usage": diagnostics["usage"],
+        "content_normalization": normalization,
+        "diagnostics": diagnostics,
+    }
+
+
 def load_api_config(path: Path) -> dict[str, Any]:
     value = json.loads(Path(path).read_text(encoding="utf-8"))
     if value.get("schema_version") != "text-ner-openai-compatible-api/1.0.0":
@@ -137,6 +316,41 @@ def load_api_config(path: Path) -> dict[str, Any]:
             "GENERIC_API_CONFIG_FIELD_MISSING", ",".join(sorted(required - set(value)))
         )
     return value
+
+
+def _provider_request_options(
+    config: Mapping[str, Any], provider: str
+) -> dict[str, Any]:
+    all_options = config.get("provider_request_options", {})
+    if not isinstance(all_options, Mapping):
+        raise GenericApiError(
+            "GENERIC_API_PROVIDER_OPTIONS_INVALID", "provider_request_options"
+        )
+    selected = all_options.get(provider)
+    if selected is None:
+        selected = all_options.get(provider.lower(), {})
+    if not isinstance(selected, Mapping):
+        raise GenericApiError(
+            "GENERIC_API_PROVIDER_OPTIONS_INVALID", provider
+        )
+    unknown = set(selected) - {"thinking"}
+    if unknown:
+        raise GenericApiError(
+            "GENERIC_API_PROVIDER_OPTION_UNKNOWN", ",".join(sorted(unknown))
+        )
+    result: dict[str, Any] = {}
+    if "thinking" in selected:
+        thinking = selected["thinking"]
+        if (
+            not isinstance(thinking, Mapping)
+            or set(thinking) != {"type"}
+            or thinking.get("type") not in {"enabled", "disabled"}
+        ):
+            raise GenericApiError(
+                "GENERIC_API_PROVIDER_OPTIONS_INVALID", f"{provider}.thinking"
+            )
+        result["thinking"] = {"type": thinking["type"]}
+    return result
 
 
 def load_environment_file(path: Path) -> dict[str, str]:
@@ -245,6 +459,7 @@ class OpenAICompatibleAdapter:
         self._config = config
         self._prompt = prompt
         self._transport = transport or _http_transport
+        self._request_options = _provider_request_options(config, settings.provider)
 
     @property
     def provider(self) -> str:
@@ -257,6 +472,10 @@ class OpenAICompatibleAdapter:
     @property
     def model_version(self) -> str:
         return self._settings.model_version
+
+    @property
+    def request_options(self) -> dict[str, Any]:
+        return dict(self._request_options)
 
     def generate(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
         validated = validate_model_request(request)
@@ -291,6 +510,7 @@ class OpenAICompatibleAdapter:
         }
         if request_config.get("response_format_json_object"):
             payload["response_format"] = {"type": "json_object"}
+        payload.update(self._request_options)
         endpoint = (
             self._settings.base_url
             + "/"
@@ -302,11 +522,7 @@ class OpenAICompatibleAdapter:
             payload,
             int(request_config["timeout_seconds"]),
         )
-        try:
-            content = raw["choices"][0]["message"]["content"]
-            annotation = json.loads(content)
-        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as error:
-            raise GenericApiError("GENERIC_API_ANNOTATION_JSON_INVALID", str(error)) from error
+        annotation, response_metadata = _parse_annotation_response(raw)
         response = {
             "schema_version": MODEL_RESPONSE_SCHEMA_VERSION,
             "request_id": validated["request_id"],
@@ -316,11 +532,23 @@ class OpenAICompatibleAdapter:
             "model_version": self.model_version,
             "annotation": annotation,
         }
-        validate_response_envelope(response, validated)
+        try:
+            validate_response_envelope(response, validated)
+        except ModelInterfaceError as error:
+            raise GenericApiError(
+                "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                error.reason_code,
+                retryable=True,
+                diagnostics=response_metadata["diagnostics"],
+            ) from error
         return {
             "response": response,
-            "usage": raw.get("usage") or {},
-            "response_id": raw.get("id"),
+            "usage": response_metadata["usage"],
+            "response_id": response_metadata["response_id"],
+            "finish_reason": response_metadata["finish_reason"],
+            "content_normalization": response_metadata["content_normalization"],
+            "request_options": dict(self._request_options),
+            "diagnostics": response_metadata["diagnostics"],
         }
 
 
@@ -383,6 +611,106 @@ def _append_jsonl(path: Path, value: dict[str, Any]) -> None:
         os.fsync(handle.fileno())
 
 
+def _request_sha256(request: Mapping[str, Any]) -> str:
+    return hashlib.sha256(
+        json.dumps(
+            request,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+
+
+def _default_failure_audit_path(audit_path: Path) -> Path:
+    suffix = audit_path.suffix or ".jsonl"
+    return audit_path.with_name(f"{audit_path.stem}.failures{suffix}")
+
+
+def _accumulate_usage(target: dict[str, int], value: object) -> None:
+    usage = _sanitized_usage(value)
+    for key in target:
+        item = usage.get(key)
+        if isinstance(item, int):
+            target[key] += item
+
+
+def _safe_failure_diagnostics(error: GenericApiError) -> dict[str, Any]:
+    allowed = {
+        "response_id",
+        "finish_reason",
+        "content_length",
+        "content_sha256",
+        "reasoning_content_length",
+        "content_state",
+        "content_normalization",
+        "json_error_line",
+        "json_error_column",
+        "json_error_position",
+    }
+    result = {
+        key: error.diagnostics[key]
+        for key in allowed
+        if key in error.diagnostics
+    }
+    result["usage"] = _sanitized_usage(error.diagnostics.get("usage"))
+    return result
+
+
+def _append_failure_audit(
+    path: Path,
+    *,
+    request: Mapping[str, Any],
+    settings: OpenAICompatibleSettings,
+    endpoint_scope: str,
+    request_options: Mapping[str, Any],
+    error: GenericApiError,
+    attempt_number: int,
+    maximum_attempts: int,
+    will_retry: bool,
+    retry_delay_seconds: float | None,
+) -> None:
+    diagnostics = _safe_failure_diagnostics(error)
+    thinking = request_options.get("thinking")
+    thinking_mode = thinking.get("type") if isinstance(thinking, Mapping) else None
+    _append_jsonl(
+        path,
+        {
+            "schema_version": "text-ner-api-call-failure-audit/1.0.0",
+            "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+            "request_id": request["request_id"],
+            "stage_id": request["stage_id"],
+            "provider": settings.provider,
+            "model_name": settings.model,
+            "model_version": settings.model_version,
+            "endpoint_scope": endpoint_scope,
+            "request_sha256": _request_sha256(request),
+            "attempt_number": attempt_number,
+            "maximum_attempts": maximum_attempts,
+            "reason_code": error.reason_code,
+            "retryable": error.retryable,
+            "will_retry": will_retry,
+            "retry_delay_seconds": retry_delay_seconds,
+            "response_id": diagnostics.get("response_id"),
+            "finish_reason": diagnostics.get("finish_reason"),
+            "content_state": diagnostics.get("content_state"),
+            "content_length": diagnostics.get("content_length", 0),
+            "content_sha256": diagnostics.get("content_sha256"),
+            "content_normalization": diagnostics.get("content_normalization"),
+            "reasoning_content_length": diagnostics.get(
+                "reasoning_content_length", 0
+            ),
+            "json_error_line": diagnostics.get("json_error_line"),
+            "json_error_column": diagnostics.get("json_error_column"),
+            "json_error_position": diagnostics.get("json_error_position"),
+            "usage": diagnostics["usage"],
+            "thinking_mode": thinking_mode,
+            "credential_persisted": False,
+            "raw_model_content_persisted": False,
+        },
+    )
+
+
 def run_api_batch(
     requests_path: Path,
     prompt_path: Path,
@@ -395,6 +723,7 @@ def run_api_batch(
     data_transfer_authorized: bool = False,
     maximum_requests: int | None = None,
     environment_file: Path | None = None,
+    failure_audit_path: Path | None = None,
     environ: Mapping[str, str] | None = None,
     transport: Transport | None = None,
     sleep: Callable[[float], None] = time.sleep,
@@ -433,80 +762,126 @@ def run_api_batch(
             )
         completed.add(response["request_id"])
 
-    adapter = OpenAICompatibleAdapter(
-        settings, config, prompt, transport=transport
+    adapter = OpenAICompatibleAdapter(settings, config, prompt, transport=transport)
+    resolved_failure_audit_path = (
+        Path(failure_audit_path)
+        if failure_audit_path is not None
+        else _default_failure_audit_path(Path(audit_path))
     )
     limit = len(requests) if maximum_requests is None else maximum_requests
     if limit < 0:
         raise GenericApiError("GENERIC_API_MAXIMUM_REQUESTS_INVALID", str(limit))
-    calls = 0
+    successful_responses = 0
+    api_attempts = 0
     retries = 0
     token_usage: dict[str, int] = {
         "prompt_tokens": 0,
         "completion_tokens": 0,
         "total_tokens": 0,
     }
+    successful_token_usage = dict(token_usage)
     interval = 60.0 / max(1, int(config["batch"]["requests_per_minute"]))
     for request in requests:
         if request["request_id"] in completed:
             continue
-        if calls >= limit:
+        if successful_responses >= limit:
             break
         if request["prompt_sha256"] != prompt_sha256:
             raise GenericApiError(
                 "GENERIC_API_PROMPT_HASH_MISMATCH", request["request_id"]
             )
         maximum_retries = int(config["batch"]["maximum_retries"])
-        attempt = 0
+        maximum_attempts = maximum_retries + 1
+        attempt_number = 1
         while True:
+            api_attempts += 1
             try:
                 result = adapter.generate(request)
+                response = dict(result["response"])
+                try:
+                    _validate_annotation_for_request(response, request)
+                except (
+                    AnnotationValidationError,
+                    ModelInterfaceError,
+                ) as validation_error:
+                    raise GenericApiError(
+                        "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                        validation_error.reason_code,
+                        retryable=True,
+                        diagnostics=result["diagnostics"],
+                    ) from validation_error
                 break
             except GenericApiError as error:
-                if not error.retryable or attempt >= maximum_retries:
+                _accumulate_usage(token_usage, error.diagnostics.get("usage"))
+                will_retry = error.retryable and attempt_number < maximum_attempts
+                delay = (
+                    float(config["batch"]["retry_initial_seconds"])
+                    * (2 ** (attempt_number - 1))
+                    if will_retry
+                    else None
+                )
+                _append_failure_audit(
+                    resolved_failure_audit_path,
+                    request=request,
+                    settings=settings,
+                    endpoint_scope=endpoint_scope,
+                    request_options=adapter.request_options,
+                    error=error,
+                    attempt_number=attempt_number,
+                    maximum_attempts=maximum_attempts,
+                    will_retry=will_retry,
+                    retry_delay_seconds=delay,
+                )
+                if not will_retry:
                     raise
-                delay = float(config["batch"]["retry_initial_seconds"]) * (2**attempt)
                 retries += 1
-                attempt += 1
+                attempt_number += 1
                 sleep(delay)
-        response = dict(result["response"])
-        _validate_annotation_for_request(response, request)
         _append_jsonl(Path(output_responses_path), response)
         usage = result["usage"]
-        for key in token_usage:
-            value = usage.get(key)
-            if isinstance(value, int):
-                token_usage[key] += value
+        _accumulate_usage(token_usage, usage)
+        _accumulate_usage(successful_token_usage, usage)
+        thinking = result["request_options"].get("thinking")
         audit = {
-            "schema_version": "text-ner-api-call-audit/1.0.0",
+            "schema_version": "text-ner-api-call-audit/1.1.0",
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
             "provider": settings.provider,
             "model_name": settings.model,
             "model_version": settings.model_version,
             "endpoint_scope": endpoint_scope,
-            "request_sha256": hashlib.sha256(
-                json.dumps(request, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-            ).hexdigest(),
+            "request_sha256": _request_sha256(request),
             "response_id": result["response_id"],
+            "finish_reason": result["finish_reason"],
+            "content_normalization": result["content_normalization"],
+            "attempt_number": attempt_number,
             "usage": usage,
+            "thinking_mode": thinking.get("type")
+            if isinstance(thinking, Mapping)
+            else None,
             "credential_source": config["environment"]["api_key"],
             "credential_persisted": False,
+            "raw_model_content_persisted": False,
         }
         _append_jsonl(Path(audit_path), audit)
         completed.add(request["request_id"])
-        calls += 1
-        if calls < limit:
+        successful_responses += 1
+        if successful_responses < limit:
             sleep(interval)
     return {
-        "schema_version": "text-ner-api-batch-summary/1.0.0",
+        "schema_version": "text-ner-api-batch-summary/1.1.0",
         "requests": len(requests),
         "already_completed": len(existing),
-        "model_calls_this_run": calls,
+        "model_calls_this_run": api_attempts,
+        "successful_responses_this_run": successful_responses,
+        "failed_attempts_this_run": api_attempts - successful_responses,
         "completed_total": len(completed),
         "remaining": len(requests) - len(completed),
         "retries": retries,
         "usage_this_run": token_usage,
+        "successful_usage_this_run": successful_token_usage,
+        "failure_audit_path": str(resolved_failure_audit_path),
+        "request_options": adapter.request_options,
         "provider": settings.provider,
         "model_name": settings.model,
         "model_version": settings.model_version,

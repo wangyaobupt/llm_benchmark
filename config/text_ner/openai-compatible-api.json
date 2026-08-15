@@ -14,6 +14,13 @@
     "response_format_json_object": true,
     "timeout_seconds": 120
   },
+  "provider_request_options": {
+    "deepseek": {
+      "thinking": {
+        "type": "disabled"
+      }
+    }
+  },
   "batch": {
     "requests_per_minute": 30,
     "maximum_retries": 3,

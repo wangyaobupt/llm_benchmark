@@ -94,7 +94,9 @@ notepad.exe '.env'
 
 `TEXT_NER_MODEL_VERSION` 是写入本地 provenance 的标签，不会发送给 API，也不能单独证明远端权重完全不可变。若服务商提供不可变 revision，应把该 revision 填入此变量。
 
-当前接口会发送 `response_format={"type":"json_object"}`。DeepSeek 官方要求提示词同时明确要求 JSON；本项目的 mention 和 relation prompt 已满足这一点。参考：[JSON Output](https://api-docs.deepseek.com/guides/json_mode/)。
+当前接口会发送 `response_format={"type":"json_object"}`。DeepSeek 官方要求提示词同时明确要求 JSON、提供格式示例，并合理设置 `max_tokens`；本项目的 mention 和 relation prompt 已满足前两项。官方同时明确说明 JSON Output 偶尔会返回空 `content`，因此接口把空内容和非法 JSON 设为有限重试，而不是直接把整批任务终止。参考：[JSON Output](https://api-docs.deepseek.com/guides/json_mode/)。
+
+DeepSeek V4 默认启用 thinking。NER 是受 Schema 和精确字符 span 约束的抽取任务，不需要开放式推理；当前 `openai-compatible-api.json` 仅在 provider 为 `deepseek` 时发送 `thinking={"type":"disabled"}`，避免 reasoning token 挤占 JSON 输出预算。其他 OpenAI-compatible provider 不会收到该字段。`finish_reason=length` 表示结果已被 `max_tokens` 或上下文长度截断，此时重复同一请求不能解决问题，接口会停止并要求提高 `request.max_tokens` 或缩短 section。参考：[Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion)。
 
 如果不希望把 key 保存到磁盘，可只覆盖 `.env` 中的空 key：
 
@@ -221,11 +223,15 @@ relation 阶段将输入文件和标签替换为：
 
 ```text
 model_calls_this_run: 10
+successful_responses_this_run: 10
+failed_attempts_this_run: 0
 completed_total: 10
 remaining: 64499
 ```
 
-响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到文件。失败的响应不会写入，下次执行仍从该 request ID 继续。
+`model_calls_this_run` 现在表示真实 API 尝试次数；发生重试时它会大于 `successful_responses_this_run`，避免低估调用量和成本。
+
+响应只有通过 request/response Schema、来源哈希和精确字符 span 校验后才会追加到成功文件。空内容或非法 JSON 最多重试3次，即总计最多4次尝试；完整的 Markdown JSON 代码围栏可以被确定性移除，但不会进行语义性 JSON 修补。失败尝试写入默认文件 `mention_api_audit.failures.jsonl`，只保存 reason code、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
 
 ### 7.2 编译 mention 并生成10个 relation 请求
 
@@ -309,7 +315,7 @@ if (-not (Test-Path -LiteralPath "$executionRoot\relation_responses.jsonl")) {
   --confirm-data-transfer-authorized
 ```
 
-程序读取已有 response request ID，自动跳过前10个并继续剩余请求。中断后执行同一条命令即可续跑。
+程序读取已有 response request ID，自动跳过前10个并继续剩余请求。中断或空响应重试耗尽后，执行同一条命令即可续跑；现有成功响应不会重新调用。
 
 当前配置限制为每分钟30个请求。仅 mention 阶段64,509次调用的理论速率下限约35.8小时，尚未包含服务端延迟和重试；relation 阶段还会产生最多64,509次调用。修改 `requests_per_minute` 前必须确认服务商限流和预算。
 
@@ -417,7 +423,11 @@ Get-Content -LiteralPath "$executionRoot\final\compile_summary.json" |
 | `API_MONITOR_*` | HTML 监测参数或输入类型错误 | 按 reason code 修正请求总数、刷新时间或文件路径 |
 | `GENERIC_API_LOCAL_SCOPE_REQUIRES_LOOPBACK` | local 模式使用了非本机 URL | 修正 URL 或明确改用 external 模式 |
 | `GENERIC_API_PROMPT_HASH_MISMATCH` | 请求包与提示词不是同一版本 | 重新生成请求包，不能跳过校验 |
-| `GENERIC_API_ANNOTATION_JSON_INVALID` | 模型没有返回可解析 JSON | 检查模型兼容性和 prompt，不手工伪造响应 |
+| `GENERIC_API_ANNOTATION_CONTENT_EMPTY` | JSON Output 返回空内容 | 程序自动有限重试；耗尽后检查 failure audit，再执行同一命令续跑 |
+| `GENERIC_API_ANNOTATION_JSON_INVALID` | 模型返回非 JSON；程序已有限重试 | 检查 failure audit 中的 finish reason、长度和 SHA，不手工伪造响应 |
+| `GENERIC_API_OUTPUT_TRUNCATED` | `finish_reason=length`，JSON 被截断 | 提高配置中的 `max_tokens` 或缩短 section；同参数盲目重试无效 |
+| `GENERIC_API_OUTPUT_CONTENT_FILTERED` | 输出被服务商过滤 | 停止并审查该服务商是否适合处理此数据，不自动绕过过滤 |
+| `GENERIC_API_ANNOTATION_CONTRACT_INVALID` | JSON 可解析但不满足 Schema/span 合同 | 程序有限重试；检查 failure audit 和模型兼容性 |
 | `FULL_EXTRACTION_SOURCE_HASH_MISMATCH` | aggregation 正文和 manifest 不一致 | 停止执行并重新审计 aggregation |
 | `RELATION_RESPONSE_BEFORE_VALIDATED_MENTIONS` | relation 没有对应的有效 mention | 先完成 mention 编译 |
 
