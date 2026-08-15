@@ -79,4 +79,4 @@ python -m data_pipeline.text_ner compile-model-responses `
 
 ## 通用 API
 
-配置项为 `TEXT_NER_API_KEY`、`TEXT_NER_BASE_URL`、`TEXT_NER_MODEL`、`TEXT_NER_MODEL_VERSION` 和 `TEXT_NER_PROVIDER`，既可来自进程环境，也可通过 `--env-file .env` 从非执行型 `KEY=VALUE` 文件读取；同名进程环境变量优先。批处理命令为 `run-openai-compatible-api`，支持按 request ID 断点续跑和 `--maximum-requests` 分批执行。没有 `--execute` 时在读取凭据或创建网络连接前失败；外部端点还要求 `--confirm-data-transfer-authorized`，本地端点必须是 loopback 地址。完整参数见 `python -m data_pipeline.text_ner run-openai-compatible-api --help`。
+配置项为 `TEXT_NER_API_KEY`、`TEXT_NER_BASE_URL`、`TEXT_NER_MODEL`、`TEXT_NER_MODEL_VERSION` 和 `TEXT_NER_PROVIDER`，既可来自进程环境，也可通过 `--env-file .env` 从非执行型 `KEY=VALUE` 文件读取；同名进程环境变量优先。批处理命令为 `run-openai-compatible-api`，支持按 request ID 断点续跑和 `--maximum-requests` 分批执行。没有 `--execute` 时在读取凭据或创建网络连接前失败；外部端点还要求 `--confirm-data-transfer-authorized`，本地端点必须是 loopback 地址。`monitor-openai-compatible-api --watch` 只读 response/audit JSONL，每10秒原子更新不含临床正文和具体 request ID 的 HTML 进度页。完整参数见两个命令各自的 `--help`。

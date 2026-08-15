@@ -139,6 +139,54 @@ TEXT_NER_PROVIDER=local-openai-compatible
 
 该检查不会访问网络；`OpenAICompatibleSettings` 会把 API key 固定显示为 `<redacted>`。未知配置项、重复配置项、错误引号和缺失必填项会直接报错，而不会静默忽略。
 
+### 6.1 启动每10秒刷新的 HTML 监测
+
+在单独的 PowerShell 窗口执行下面的命令。监测器可以先于 API 任务启动；response/audit 文件尚不存在时，页面显示“等待任务启动”。
+
+```powershell
+$monitorHtml = "$executionRoot\mention_monitor.html"
+
+& $pythonPath -m data_pipeline.text_ner monitor-openai-compatible-api `
+  "$executionRoot\mention_responses.jsonl" `
+  "$executionRoot\mention_api_audit.jsonl" `
+  --output-html $monitorHtml `
+  --expected-requests 64509 `
+  --stage-label 'Mention 实体识别' `
+  --refresh-seconds 10 `
+  --stalled-after-seconds 300 `
+  --watch
+```
+
+保持这个 PowerShell 窗口运行，然后在另一个窗口打开页面：
+
+```powershell
+Start-Process -FilePath $monitorHtml
+```
+
+监测进程每10秒增量读取新增 JSONL，并原子替换同一个 HTML；浏览器页面也每10秒自动刷新。页面显示：
+
+- response 与 audit 共同存在的已完成 request 数；
+- 完成比例、剩余请求、近5分钟速度和 ETA；
+- response/audit 单边缺失、重复 request ID 和无效 JSONL；
+- token usage、模型 provenance、最近结果时间；
+- 超过300秒无新增时的“可能停滞”提示。
+
+页面不包含临床正文、实体内容、API key 或具体 request ID。“可能停滞”只能说明结果文件没有继续增加，不能单独证明 API 进程已经退出；此时应同时检查执行 API 的 PowerShell 窗口。按 `Ctrl+C` 可停止监测，不会影响 API 任务。
+
+relation 阶段将输入文件和标签替换为：
+
+```powershell
+& $pythonPath -m data_pipeline.text_ner monitor-openai-compatible-api `
+  "$executionRoot\relation_responses.jsonl" `
+  "$executionRoot\relation_api_audit.jsonl" `
+  --output-html "$executionRoot\relation_monitor.html" `
+  --expected-requests 64509 `
+  --stage-label 'Relation 关系抽取' `
+  --refresh-seconds 10 `
+  --stalled-after-seconds 300 `
+  --watch
+```
+
 ## 7. 推荐：先完成10个文本单元的端到端小批运行
 
 ### 7.1 运行10个 mention 请求
@@ -366,6 +414,7 @@ Get-Content -LiteralPath "$executionRoot\final\compile_summary.json" |
 | `EXTERNAL_DATA_TRANSFER_NOT_AUTHORIZED` | 外部端点未确认数据传输 | 完成合规判断后加入确认参数 |
 | `GENERIC_API_ENVIRONMENT_MISSING` | `.env` 与进程环境合并后仍有配置缺失 | 补齐 `.env`，或在同一 PowerShell 中设置对应环境变量 |
 | `GENERIC_API_ENV_FILE_*` | `.env` 不存在、编码或 `KEY=VALUE` 格式不合法 | 按报错行修正；不要加入未允许的配置名 |
+| `API_MONITOR_*` | HTML 监测参数或输入类型错误 | 按 reason code 修正请求总数、刷新时间或文件路径 |
 | `GENERIC_API_LOCAL_SCOPE_REQUIRES_LOOPBACK` | local 模式使用了非本机 URL | 修正 URL 或明确改用 external 模式 |
 | `GENERIC_API_PROMPT_HASH_MISMATCH` | 请求包与提示词不是同一版本 | 重新生成请求包，不能跳过校验 |
 | `GENERIC_API_ANNOTATION_JSON_INVALID` | 模型没有返回可解析 JSON | 检查模型兼容性和 prompt，不手工伪造响应 |

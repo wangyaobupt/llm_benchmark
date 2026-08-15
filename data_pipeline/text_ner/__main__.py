@@ -9,6 +9,7 @@ from pathlib import Path
 from .audit import audit_manifest
 from .annotation_package import prepare_annotation_package
 from .annotation_package_audit import audit_annotation_package
+from .api_monitor import monitor_api_html
 from .deepseek_cost import estimate_deepseek_cost
 from .aggregation_manifest import prepare_aggregation_text_manifest
 from .full_extraction import compile_model_responses, prepare_full_extraction_package
@@ -146,6 +147,22 @@ def _parser() -> argparse.ArgumentParser:
     )
     api_batch.add_argument("--confirm-data-transfer-authorized", action="store_true")
     api_batch.add_argument("--maximum-requests", type=int)
+    api_monitor = subparsers.add_parser(
+        "monitor-openai-compatible-api",
+        help="Continuously refresh a read-only HTML dashboard from response/audit JSONL",
+    )
+    api_monitor.add_argument("responses", type=Path)
+    api_monitor.add_argument("audit", type=Path)
+    api_monitor.add_argument("--output-html", type=Path, required=True)
+    api_monitor.add_argument("--expected-requests", type=int, required=True)
+    api_monitor.add_argument("--stage-label", default="Text NER")
+    api_monitor.add_argument("--refresh-seconds", type=int, default=10)
+    api_monitor.add_argument("--stalled-after-seconds", type=int, default=300)
+    api_monitor.add_argument(
+        "--watch",
+        action="store_true",
+        help="Keep updating until Ctrl+C; otherwise write one HTML snapshot",
+    )
     return parser
 
 
@@ -232,6 +249,17 @@ def main() -> None:
             args.aggregation_directory,
             args.source_catalog,
             args.output_dir,
+        )
+    elif args.command == "monitor-openai-compatible-api":
+        result = monitor_api_html(
+            args.responses,
+            args.audit,
+            args.output_html,
+            expected_requests=args.expected_requests,
+            stage_label=args.stage_label,
+            refresh_seconds=args.refresh_seconds,
+            stalled_after_seconds=args.stalled_after_seconds,
+            watch=args.watch,
         )
     else:
         result = run_api_batch(
