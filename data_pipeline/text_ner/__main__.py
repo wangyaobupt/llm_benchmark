@@ -294,6 +294,9 @@ def main() -> None:
             refresh_seconds=args.refresh_seconds,
             stalled_after_seconds=args.stalled_after_seconds,
             watch=args.watch,
+            console_reporter=(
+                (lambda message: print(message, flush=True)) if args.watch else None
+            ),
         )
     else:
         from .openai_compatible_api import run_api_batch

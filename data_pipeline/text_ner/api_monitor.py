@@ -444,6 +444,21 @@ def default_monitor_html_path(audit_path: Path) -> Path:
     return path.with_name(f"{stem}_monitor.html")
 
 
+def format_monitor_console_line(snapshot: dict[str, Any]) -> str:
+    """Format one payload-free heartbeat for an interactive terminal."""
+
+    return (
+        "[监测器：不发起 API 调用] "
+        f"{_format_timestamp(float(snapshot['generated_at']))} | "
+        f"{snapshot['stage_label']} | {snapshot['status_label']} | "
+        f"完成 {snapshot['completed_requests']:,}/{snapshot['expected_requests']:,} "
+        f"({float(snapshot['completion_percentage']):.2f}%) | "
+        f"剩余 {snapshot['remaining_requests']:,} | "
+        f"速度 {float(snapshot['requests_per_minute']):.2f} requests/分钟 | "
+        f"HTML {snapshot['output_html_path']}"
+    )
+
+
 def monitor_api_html(
     responses_path: Path,
     audit_path: Path,
@@ -455,6 +470,7 @@ def monitor_api_html(
     stalled_after_seconds: int = 300,
     watch: bool = False,
     sleep: Callable[[float], None] = time.sleep,
+    console_reporter: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     """Write one dashboard or continuously refresh it until Ctrl+C."""
 
@@ -479,6 +495,8 @@ def monitor_api_html(
             _write_html_atomically(
                 resolved_output_html_path, render_monitor_html(last_snapshot)
             )
+            if console_reporter is not None:
+                console_reporter(format_monitor_console_line(last_snapshot))
             if not watch:
                 return last_snapshot
             sleep(refresh_seconds)

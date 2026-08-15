@@ -12,6 +12,7 @@ from data_pipeline.text_ner.api_monitor import (
     ApiMonitorError,
     ApiMonitorSession,
     default_monitor_html_path,
+    format_monitor_console_line,
     monitor_api_html,
     render_monitor_html,
 )
@@ -202,6 +203,7 @@ runpy.run_module("data_pipeline.text_ner", run_name="__main__")
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
             output = root / "monitor" / "progress.html"
+            console_lines: list[str] = []
 
             def interrupt(_: float) -> None:
                 raise KeyboardInterrupt
@@ -215,12 +217,39 @@ runpy.run_module("data_pipeline.text_ner", run_name="__main__")
                 refresh_seconds=10,
                 watch=True,
                 sleep=interrupt,
+                console_reporter=console_lines.append,
             )
             self.assertTrue(summary["watch_stopped_by_user"])
             self.assertEqual(summary["status_code"], "waiting")
             self.assertTrue(output.is_file())
             self.assertIn("等待任务启动", output.read_text(encoding="utf-8"))
             self.assertEqual(list(output.parent.glob("*.temporary")), [])
+            self.assertEqual(len(console_lines), 1)
+            self.assertIn("监测器：不发起 API 调用", console_lines[0])
+            self.assertIn("等待任务启动", console_lines[0])
+            self.assertIn("完成 0/64,509", console_lines[0])
+            self.assertIn(str(output), console_lines[0])
+
+    def test_console_line_contains_progress_without_payload(self) -> None:
+        snapshot = {
+            "generated_at": 1_700_000_000.0,
+            "stage_label": "Mention 实体识别",
+            "status_label": "运行中",
+            "completed_requests": 12,
+            "expected_requests": 100,
+            "completion_percentage": 12.0,
+            "remaining_requests": 88,
+            "requests_per_minute": 3.5,
+            "output_html_path": "mention_monitor.html",
+            "clinical_text": "private chest pain",
+            "request_id": "request:secret",
+        }
+        line = format_monitor_console_line(snapshot)
+        self.assertIn("完成 12/100 (12.00%)", line)
+        self.assertIn("速度 3.50 requests/分钟", line)
+        self.assertIn("mention_monitor.html", line)
+        self.assertNotIn("private chest pain", line)
+        self.assertNotIn("request:secret", line)
 
     def test_invalid_jsonl_duplicate_ids_and_invalid_options_are_reported(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

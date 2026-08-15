@@ -179,7 +179,13 @@ $monitorHtml = "$executionRoot\mention_monitor.html"
 Start-Process -FilePath $monitorHtml
 ```
 
-监测进程每10秒增量读取新增 JSONL，并原子替换同一个 HTML；浏览器页面也每10秒自动刷新。页面显示：
+监测进程启动后会立即在终端打印一行状态，此后每10秒打印一次心跳，同时增量读取新增 JSONL，并原子替换同一个 HTML；浏览器页面也每10秒自动刷新。终端输出类似：
+
+```text
+[监测器：不发起 API 调用] 2026-08-15 14:00:00 +0800 | Mention 实体识别 | 可能停滞 | 完成 1/64,509 (0.00%) | 剩余 64,508 | 速度 0.00 requests/分钟 | HTML data\...\mention_monitor.html
+```
+
+监测命令只读取结果，不会启动 NER 模型调用。必须在另一个 PowerShell 窗口执行第7节的 `run-openai-compatible-api --execute`，response/audit 才会继续增加。页面显示：
 
 - response 与 audit 共同存在的已完成 request 数；
 - 完成比例、剩余请求、近5分钟速度和 ETA；
