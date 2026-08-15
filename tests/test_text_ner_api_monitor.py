@@ -9,9 +9,11 @@ import unittest
 from data_pipeline.text_ner.api_monitor import (
     ApiMonitorError,
     ApiMonitorSession,
+    default_monitor_html_path,
     monitor_api_html,
     render_monitor_html,
 )
+from data_pipeline.text_ner.__main__ import _parser
 
 
 def _append_jsonl(path: Path, *records: dict[str, object]) -> None:
@@ -22,6 +24,39 @@ def _append_jsonl(path: Path, *records: dict[str, object]) -> None:
 
 
 class ApiMonitorTests(unittest.TestCase):
+    def test_cli_accepts_interval_alias_and_derives_html_path(self) -> None:
+        arguments = _parser().parse_args(
+            [
+                "monitor-openai-compatible-api",
+                "mention_responses.jsonl",
+                "mention_api_audit.jsonl",
+                "--expected-requests",
+                "64509",
+                "--watch",
+                "--interval-seconds",
+                "10",
+            ]
+        )
+        self.assertEqual(arguments.refresh_seconds, 10)
+        self.assertIsNone(arguments.output_html)
+        self.assertEqual(
+            default_monitor_html_path(Path(arguments.audit)),
+            Path("mention_monitor.html"),
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            audit = root / "mention_api_audit.jsonl"
+            summary = monitor_api_html(
+                root / "mention_responses.jsonl",
+                audit,
+                expected_requests=64509,
+                stage_label="Mention 实体识别",
+            )
+            expected_output = root / "mention_monitor.html"
+            self.assertEqual(summary["output_html_path"], str(expected_output))
+            self.assertTrue(expected_output.is_file())
+
     def test_incremental_progress_rate_consistency_and_payload_redaction(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

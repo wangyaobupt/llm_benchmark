@@ -145,6 +145,20 @@ TEXT_NER_PROVIDER=local-openai-compatible
 
 在单独的 PowerShell 窗口执行下面的命令。监测器可以先于 API 任务启动；response/audit 文件尚不存在时，页面显示“等待任务启动”。
 
+从仓库根目录可直接复制执行：
+
+```powershell
+python -m data_pipeline.text_ner monitor-openai-compatible-api `
+  'data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_responses.jsonl' `
+  'data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_api_audit.jsonl' `
+  --expected-requests 64509 `
+  --stage-label 'Mention 实体识别' `
+  --watch `
+  --interval-seconds 10
+```
+
+`--interval-seconds` 是 `--refresh-seconds` 的兼容别名。省略 `--output-html` 时，上述 audit 文件会自动对应到同目录的 `mention_monitor.html`。命令中的两个 JSONL 路径是实际路径，不要再添加尖括号。
+
 ```powershell
 $monitorHtml = "$executionRoot\mention_monitor.html"
 

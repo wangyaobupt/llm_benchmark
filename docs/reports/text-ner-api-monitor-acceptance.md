@@ -2,7 +2,7 @@
 
 ## 结论
 
-HTML 监测接口验收通过。`monitor-openai-compatible-api --watch` 每10秒增量读取 response/audit JSONL，并原子更新自包含 HTML；监测器本身不调用模型、不读取 `.env`，也不把临床正文、实体内容、API key 或具体 request ID 写进页面。
+HTML 监测接口验收通过。`monitor-openai-compatible-api --watch` 每10秒增量读取 response/audit JSONL，并原子更新自包含 HTML；监测器本身不调用模型、不读取 `.env`，也不把临床正文、实体内容、API key 或具体 request ID 写进页面。CLI 同时接受 `--refresh-seconds` 和 `--interval-seconds`；省略 `--output-html` 时自动在 audit 文件旁生成阶段监测页。
 
 ## 监测口径
 
@@ -22,8 +22,8 @@ HTML 监测接口验收通过。`monitor-openai-compatible-api --watch` 每10秒
 | 单边写入、重复 ID、无效 JSONL检测 | passed |
 | 临床正文和具体 request ID 不进入 HTML | passed |
 | 原子 HTML 替换与 Ctrl+C 停止 | passed |
-| API monitor 专项测试 | 3 passed, 0 failed |
-| Text NER、API monitor 与 aggregation 完整测试 | 43 passed, 0 failed |
+| API monitor 专项测试 | 4 passed, 0 failed |
+| Text NER、API monitor 与 aggregation 完整测试 | 47 passed, 0 failed |
 | 监测器触发模型调用 | 0 |
 
 ## 当前页面快照

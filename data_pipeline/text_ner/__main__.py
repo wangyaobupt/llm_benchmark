@@ -161,10 +161,23 @@ def _parser() -> argparse.ArgumentParser:
     )
     api_monitor.add_argument("responses", type=Path)
     api_monitor.add_argument("audit", type=Path)
-    api_monitor.add_argument("--output-html", type=Path, required=True)
+    api_monitor.add_argument(
+        "--output-html",
+        type=Path,
+        help=(
+            "Dashboard path; by default it is derived beside the audit file"
+        ),
+    )
     api_monitor.add_argument("--expected-requests", type=int, required=True)
     api_monitor.add_argument("--stage-label", default="Text NER")
-    api_monitor.add_argument("--refresh-seconds", type=int, default=10)
+    api_monitor.add_argument(
+        "--refresh-seconds",
+        "--interval-seconds",
+        dest="refresh_seconds",
+        type=int,
+        default=10,
+        help="HTML generation and browser refresh interval (default: 10 seconds)",
+    )
     api_monitor.add_argument("--stalled-after-seconds", type=int, default=300)
     api_monitor.add_argument(
         "--watch",

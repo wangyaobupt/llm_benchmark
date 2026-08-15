@@ -434,10 +434,20 @@ def _write_html_atomically(path: Path, content: str) -> None:
             temporary_path.unlink()
 
 
+def default_monitor_html_path(audit_path: Path) -> Path:
+    """Derive a stable dashboard name from the success-audit path."""
+
+    path = Path(audit_path)
+    stem = path.stem
+    if stem.endswith("_api_audit"):
+        stem = stem[: -len("_api_audit")]
+    return path.with_name(f"{stem}_monitor.html")
+
+
 def monitor_api_html(
     responses_path: Path,
     audit_path: Path,
-    output_html_path: Path,
+    output_html_path: Path | None = None,
     *,
     expected_requests: int,
     stage_label: str,
@@ -448,6 +458,11 @@ def monitor_api_html(
 ) -> dict[str, Any]:
     """Write one dashboard or continuously refresh it until Ctrl+C."""
 
+    resolved_output_html_path = (
+        Path(output_html_path)
+        if output_html_path is not None
+        else default_monitor_html_path(Path(audit_path))
+    )
     session = ApiMonitorSession(
         responses_path=responses_path,
         audit_path=audit_path,
@@ -460,8 +475,9 @@ def monitor_api_html(
     try:
         while True:
             last_snapshot = session.sample()
+            last_snapshot["output_html_path"] = str(resolved_output_html_path)
             _write_html_atomically(
-                Path(output_html_path), render_monitor_html(last_snapshot)
+                resolved_output_html_path, render_monitor_html(last_snapshot)
             )
             if not watch:
                 return last_snapshot
@@ -469,7 +485,8 @@ def monitor_api_html(
     except KeyboardInterrupt:
         if last_snapshot is None:
             last_snapshot = session.sample()
+            last_snapshot["output_html_path"] = str(resolved_output_html_path)
             _write_html_atomically(
-                Path(output_html_path), render_monitor_html(last_snapshot)
+                resolved_output_html_path, render_monitor_html(last_snapshot)
             )
         return {**last_snapshot, "watch_stopped_by_user": True}
