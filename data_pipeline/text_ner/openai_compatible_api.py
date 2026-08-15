@@ -494,6 +494,7 @@ class OpenAICompatibleAdapter:
         request: Mapping[str, Any],
         *,
         max_tokens: int | None = None,
+        validation_retry_failure: tuple[str, str | None] | None = None,
     ) -> Mapping[str, Any]:
         validated = validate_model_request(request)
         request_config = self._config["request"]
@@ -518,20 +519,33 @@ class OpenAICompatibleAdapter:
         }
         if validated["stage_id"] == "relations":
             user_payload["validated_mentions"] = validated["validated_mentions"]
-        payload: dict[str, Any] = {
-            "model": self._settings.model,
-            "messages": [
-                {"role": "system", "content": self._prompt},
+        messages = [
+            {"role": "system", "content": self._prompt},
+            {
+                "role": "user",
+                "content": json.dumps(
+                    user_payload,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ),
+            },
+        ]
+        if validation_retry_failure is not None:
+            messages.append(
                 {
                     "role": "user",
                     "content": json.dumps(
-                        user_payload,
+                        _validation_retry_instruction(validation_retry_failure),
                         ensure_ascii=False,
                         sort_keys=True,
                         separators=(",", ":"),
                     ),
-                },
-            ],
+                }
+            )
+        payload: dict[str, Any] = {
+            "model": self._settings.model,
+            "messages": messages,
             "temperature": request_config["temperature"],
             "max_tokens": resolved_max_tokens,
             "stream": False,
@@ -724,6 +738,56 @@ def _accumulate_usage(target: dict[str, int], value: object) -> None:
             target[key] += item
 
 
+def _annotation_validation_signature(
+    error: GenericApiError,
+) -> tuple[str, str | None] | None:
+    """Return a payload-free signature for one deterministic contract failure."""
+
+    if error.reason_code != "GENERIC_API_ANNOTATION_CONTRACT_INVALID":
+        return None
+    reason_code = error.diagnostics.get("annotation_validation_reason_code")
+    if not isinstance(reason_code, str) or not reason_code:
+        return None
+    local_id = error.diagnostics.get("annotation_validation_local_id")
+    return reason_code, local_id if isinstance(local_id, str) else None
+
+
+def _validation_retry_instruction(
+    signature: tuple[str, str | None],
+) -> dict[str, Any]:
+    """Build a clinical-text-free correction request for one validation retry."""
+
+    reason_code, local_id = signature
+    requirements = [
+        "Regenerate the complete annotation JSON object; do not patch or "
+        "explain the prior response.",
+        "Return only the JSON object required by the system prompt.",
+    ]
+    if reason_code == "MENTION_SURFACE_MISMATCH":
+        requirements.extend(
+            [
+                "For every mention, copy surface_text verbatim from section_text.",
+                "Use zero-based, left-closed right-open Python Unicode offsets "
+                "and verify that surface_text equals section_text[start:end].",
+                "Omit a mention when an exact source span cannot be verified.",
+            ]
+        )
+    else:
+        requirements.append(
+            "Correct the reported deterministic validation failure while preserving "
+            "the required schema and source grounding."
+        )
+    return {
+        "schema_version": "text-ner-validation-retry-instruction/1.0.0",
+        "action": "regenerate_complete_annotation",
+        "validation_failure": {
+            "reason_code": reason_code,
+            "local_id": local_id,
+        },
+        "requirements": requirements,
+    }
+
+
 def _safe_failure_diagnostics(error: GenericApiError) -> dict[str, Any]:
     allowed = {
         "response_id",
@@ -768,6 +832,7 @@ def _append_failure_audit(
     model_call_count: int = 1,
     call_usages: list[Mapping[str, Any]] | None = None,
     api_config_sha256: str | None = None,
+    validation_retry_instruction: Mapping[str, Any] | None = None,
 ) -> None:
     diagnostics = _safe_failure_diagnostics(error)
     thinking = request_options.get("thinking")
@@ -775,7 +840,7 @@ def _append_failure_audit(
     _append_jsonl(
         path,
         {
-            "schema_version": "text-ner-api-call-failure-audit/1.1.0",
+            "schema_version": "text-ner-api-call-failure-audit/1.2.0",
             "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
@@ -817,6 +882,11 @@ def _append_failure_audit(
             ),
             "annotation_validation_local_id": diagnostics.get(
                 "annotation_validation_local_id"
+            ),
+            "validation_retry_instruction": (
+                dict(validation_retry_instruction)
+                if validation_retry_instruction is not None
+                else None
             ),
             "usage": diagnostics["usage"],
             "thinking_mode": thinking_mode,
@@ -1099,6 +1169,8 @@ def run_api_batch(
                 )
             attempt_number = 1
             failed_content_hashes: set[str] = set()
+            failed_validation_signatures: set[tuple[str, str | None]] = set()
+            validation_retry_failure: tuple[str, str | None] | None = None
             leaf_replaced_by_split = False
             while True:
                 api_attempts += 1
@@ -1112,7 +1184,9 @@ def run_api_batch(
                     )
                 try:
                     result = adapter.generate(
-                        child_request, max_tokens=current_max_tokens
+                        child_request,
+                        max_tokens=current_max_tokens,
+                        validation_retry_failure=validation_retry_failure,
                     )
                     child_response = dict(result["response"])
                     grounded_annotation, child_repairs = ground_annotation_spans(
@@ -1166,6 +1240,13 @@ def run_api_batch(
                             "attempt_number": attempt_number,
                             "max_tokens": current_max_tokens,
                             "usage": _sanitized_usage(usage),
+                            "validation_retry_instruction": (
+                                _validation_retry_instruction(
+                                    validation_retry_failure
+                                )
+                                if validation_retry_failure is not None
+                                else None
+                            ),
                         }
                     )
                     chunked_call = (
@@ -1212,6 +1293,13 @@ def run_api_batch(
                     )
                     if isinstance(content_sha256, str):
                         failed_content_hashes.add(content_sha256)
+                    validation_signature = _annotation_validation_signature(error)
+                    repeated_validation_failure = (
+                        validation_signature is not None
+                        and validation_signature in failed_validation_signatures
+                    )
+                    if validation_signature is not None:
+                        failed_validation_signatures.add(validation_signature)
 
                     next_max_tokens: int | None = None
                     split_children: list[TextChunk] = []
@@ -1259,26 +1347,21 @@ def run_api_batch(
                             error.retryable
                             and attempt_number < maximum_attempts
                             and not repeated_invalid_content
+                            and not repeated_validation_failure
                             and not token_budget_reached
                         )
-                        retry_stop_reason = (
-                            "maximum_total_tokens_reached"
-                            if token_budget_reached
-                            else (
-                                "identical_invalid_content"
-                                if repeated_invalid_content
-                                else (
-                                    "maximum_attempts_reached"
-                                    if error.retryable
-                                    and attempt_number >= maximum_attempts
-                                    else (
-                                        "non_retryable_error"
-                                        if not error.retryable
-                                        else None
-                                    )
-                                )
+                        if token_budget_reached:
+                            retry_stop_reason = "maximum_total_tokens_reached"
+                        elif repeated_invalid_content:
+                            retry_stop_reason = "identical_invalid_content"
+                        elif repeated_validation_failure:
+                            retry_stop_reason = (
+                                "repeated_annotation_validation_failure"
                             )
-                        )
+                        elif error.retryable and attempt_number >= maximum_attempts:
+                            retry_stop_reason = "maximum_attempts_reached"
+                        elif not error.retryable:
+                            retry_stop_reason = "non_retryable_error"
 
                     delay = (
                         float(config["batch"]["retry_initial_seconds"])
@@ -1302,6 +1385,13 @@ def run_api_batch(
                         next_request_max_tokens=next_max_tokens,
                         chunk=chunk,
                         api_config_sha256=api_config_sha256,
+                        validation_retry_instruction=(
+                            _validation_retry_instruction(
+                                validation_retry_failure
+                            )
+                            if validation_retry_failure is not None
+                            else None
+                        ),
                     )
                     failure_reason = (
                         error.diagnostics.get(
@@ -1319,6 +1409,8 @@ def run_api_batch(
                         progress_reason += (
                             f"; split {chunk.core_start}:{chunk.core_end}"
                         )
+                    elif retry_stop_reason is not None:
+                        progress_reason += f"; {retry_stop_reason}"
                     _append_progress_markdown(
                         progress_log_path,
                         run_id=run_id,
@@ -1391,6 +1483,7 @@ def run_api_batch(
                         raise
 
                     retries += 1
+                    next_validation_retry_failure = validation_signature
                     if progress_reporter is not None:
                         if next_max_tokens is not None:
                             progress_reporter(
@@ -1398,11 +1491,21 @@ def run_api_batch(
                                 f"从 {current_max_tokens:,} 提高到 {next_max_tokens:,}"
                             )
                         else:
+                            feedback = ""
+                            if next_validation_retry_failure is not None:
+                                reason_code, local_id = (
+                                    next_validation_retry_failure
+                                )
+                                feedback = (
+                                    "; 下次附加纠错反馈 "
+                                    f"{reason_code}:{local_id or '-'}"
+                                )
                             progress_reporter(
                                 f"[API] 校验失败，{delay:.1f} 秒后重试 | "
-                                f"{error.reason_code}"
+                                f"{error.reason_code}{feedback}"
                             )
                     attempt_number += 1
+                    validation_retry_failure = next_validation_retry_failure
                     if next_max_tokens is not None:
                         current_max_tokens = next_max_tokens
                     sleep(delay)
@@ -1539,7 +1642,7 @@ def run_api_batch(
         _append_jsonl(Path(output_responses_path), response)
         thinking = last_result["request_options"].get("thinking")
         audit = {
-            "schema_version": "text-ner-api-call-audit/1.3.0",
+            "schema_version": "text-ner-api-call-audit/1.4.0",
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
             "provider": settings.provider,

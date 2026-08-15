@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from .defaults import DEFAULT_PILOT_SEED, DEFAULT_PILOT_SIZE
@@ -373,6 +374,14 @@ def main() -> None:
 def cli() -> None:
     try:
         main()
+    except KeyboardInterrupt:
+        print(
+            "\nTEXT_NER_INTERRUPTED_BY_USER: 任务已停止；此前已落盘的 "
+            "response、audit 和 progress 记录保持有效。",
+            file=sys.stderr,
+            flush=True,
+        )
+        raise SystemExit(130) from None
     except ModuleNotFoundError as error:
         if error.name == "pyarrow":
             raise SystemExit(

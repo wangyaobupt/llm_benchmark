@@ -1165,6 +1165,187 @@ class GenericApiBatchTests(unittest.TestCase):
                 (root / "audit.failures.jsonl").read_text(encoding="utf-8"),
             )
 
+    def test_repeated_surface_mismatch_gets_feedback_then_stops(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("Chest pain", prompt_text)
+        calls = 0
+        sent_messages: list[list[dict[str, object]]] = []
+
+        def invalid_annotation(*, changed: bool) -> dict[str, object]:
+            annotation = _empty_annotation(request)
+            annotation["mentions"] = [
+                _mention(
+                    "m1",
+                    "Chest",
+                    0,
+                    entity_type=(
+                        "symptom_or_sign" if changed else "clinical_problem"
+                    ),
+                ),
+                _mention("m2", "ache", 6),
+            ]
+            return annotation
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            sent_messages.append(payload["messages"])
+            return {
+                "id": f"surface-mismatch:{calls}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {
+                            "content": json.dumps(
+                                invalid_annotation(changed=calls > 1)
+                            )
+                        },
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 9,
+                    "completion_tokens": 7,
+                    "total_tokens": 16,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            failures = [
+                json.loads(line)
+                for line in (root / "audit.failures.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+
+        self.assertEqual(calls, 2)
+        self.assertEqual(len(sent_messages[0]), 2)
+        self.assertEqual(len(sent_messages[1]), 3)
+        retry_instruction = json.loads(sent_messages[1][-1]["content"])
+        self.assertEqual(
+            retry_instruction["schema_version"],
+            "text-ner-validation-retry-instruction/1.0.0",
+        )
+        self.assertEqual(
+            retry_instruction["validation_failure"]["reason_code"],
+            "MENTION_SURFACE_MISMATCH",
+        )
+        self.assertEqual(
+            retry_instruction["validation_failure"]["local_id"], "m2"
+        )
+        self.assertNotIn("Chest pain", sent_messages[1][-1]["content"])
+        self.assertNotEqual(
+            failures[0]["content_sha256"], failures[1]["content_sha256"]
+        )
+        self.assertEqual([row["will_retry"] for row in failures], [True, False])
+        self.assertIsNone(failures[0]["validation_retry_instruction"])
+        self.assertEqual(
+            failures[1]["validation_retry_instruction"]["validation_failure"],
+            {
+                "reason_code": "MENTION_SURFACE_MISMATCH",
+                "local_id": "m2",
+            },
+        )
+        self.assertEqual(
+            failures[-1]["retry_stop_reason"],
+            "repeated_annotation_validation_failure",
+        )
+        self.assertEqual(summary["model_calls_this_run"], 2)
+        self.assertEqual(summary["failed_requests_this_run"], 1)
+
+    def test_surface_mismatch_feedback_can_recover_valid_annotation(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("Chest pain", prompt_text)
+        calls = 0
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            annotation = _empty_annotation(request)
+            annotation["mentions"] = [
+                _mention("m1", "Chest", 0, entity_type="symptom_or_sign"),
+                (
+                    _mention("m2", "ache", 6)
+                    if calls == 1
+                    else _mention("m2", "pain", 6)
+                ),
+            ]
+            return {
+                "id": f"surface-recovery:{calls}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(annotation)},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 9,
+                    "completion_tokens": 7,
+                    "total_tokens": 16,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            audit = json.loads((root / "audit.jsonl").read_text(encoding="utf-8"))
+
+        self.assertEqual(calls, 2)
+        self.assertEqual(summary["successful_responses_this_run"], 1)
+        self.assertEqual(summary["failed_requests_this_run"], 0)
+        self.assertEqual(
+            audit["chunking"]["successful_calls"][0][
+                "validation_retry_instruction"
+            ]["validation_failure"],
+            {
+                "reason_code": "MENTION_SURFACE_MISMATCH",
+                "local_id": "m2",
+            },
+        )
+
     def test_unique_exact_surface_is_grounded_and_audited(self) -> None:
         text = "Chest pain"
         prompt_text = "Return JSON."

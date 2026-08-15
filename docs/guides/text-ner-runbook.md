@@ -313,7 +313,9 @@ mention 输入超过6,000个Unicode字符时，在调用前按段落、换行、
 
 `finish_reason=length` 时不接受截断 JSON。未分块请求先把输出上限从4,096受控提高到8,192 tokens；若在8,192仍截断，mention core 在接近中点的自然边界确定性二分，最多4层。历史 failure audit 已证明某 request 在4,096截断时，定向重试会直接从8,192开始，避免重复支付已知无效的4,096-token调用。若达到最小块大小或最大深度仍截断，该父文本单元隔离失败并继续批次。
 
-空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。认证、端点、内容过滤或配置错误仍立即停止整批。失败审计额外保存每次调用的 chunk 范围、本次/下次 `max_tokens` 和分块原因，但不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
+空内容、非法 JSON 或无法校正的合同错误会有限重试。第一次确定性合同校验失败后，下一次请求会附加不含临床文本的结构化纠错指令，写明失败原因码和对象 `local_id`，要求重新生成完整 JSON；例如 `MENTION_SURFACE_MISMATCH:m2` 会再次强调逐字复制 surface、Python Unicode offset 和无法确认时省略实体。若纠错后仍在同一 `reason_code + local_id` 失败，即使模型正文哈希发生细微变化，也立即隔离为 `repeated_annotation_validation_failure`；连续两次完全相同的无效正文仍记为 `identical_invalid_content`。这使同一种确定性错误最多消耗一次有信息增量的纠错重试，而不是反复发送未变化的提示。
+
+该文本单元写入 failure audit 后，批次继续处理下一个单元。failure audit `1.2.0` 记录失败调用实际应用的纠错指令；成功 audit `1.4.0` 在 `chunking.successful_calls` 中记录成功调用是否应用了同一指令。两者都不保存模型正文、临床正文或 API key。认证、端点、内容过滤或配置错误仍立即停止整批。下次执行仍从未成功的 request ID 继续。按 `Ctrl+C` 时 CLI 以退出码130干净结束，并明确提示此前已落盘的 response、audit 和 progress 仍有效，不再打印 Python traceback。
 
 只重试 failure audit 中已经终止且尚未成功的文本单元，不调用新的 pending 文本：
 
