@@ -96,7 +96,20 @@ notepad.exe '.env'
 
 当前接口会发送 `response_format={"type":"json_object"}`。DeepSeek 官方要求提示词同时明确要求 JSON、提供格式示例，并合理设置 `max_tokens`；本项目的 mention 和 relation prompt 已满足前两项。官方同时明确说明 JSON Output 偶尔会返回空 `content`，因此接口把空内容和非法 JSON 设为有限重试，而不是直接把整批任务终止。参考：[JSON Output](https://api-docs.deepseek.com/guides/json_mode/)。
 
-DeepSeek V4 默认启用 thinking。NER 是受 Schema 和精确字符 span 约束的抽取任务，不需要开放式推理；当前 `openai-compatible-api.json` 仅在 provider 为 `deepseek` 时发送 `thinking={"type":"disabled"}`，避免 reasoning token 挤占 JSON 输出预算。其他 OpenAI-compatible provider 不会收到该字段。`finish_reason=length` 表示结果已被 `max_tokens` 或上下文长度截断，此时重复同一请求不能解决问题，接口会停止并要求提高 `request.max_tokens` 或缩短 section。参考：[Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion)。
+DeepSeek V4 默认启用 thinking。NER 是受 Schema 和精确字符 span 约束的抽取任务，不需要开放式推理；当前 `openai-compatible-api.json` 仅在 provider 为 `deepseek` 时发送 `thinking={"type":"disabled"}`，避免 reasoning token 挤占 JSON 输出预算。其他 OpenAI-compatible provider 不会收到该字段。`finish_reason=length` 表示结果已被 `max_tokens` 或上下文长度截断；接口不会接受不完整 JSON，而是执行受控输出扩容，必要时确定性分块。参考：[Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion)。
+
+分块与输出上限全部来自 `openai-compatible-api.json` 的 `mention_chunking`，不是代码中的隐式模型特例：
+
+| 配置 | 当前值 | 作用 |
+|---|---:|---|
+| `maximum_input_characters` | 6,000 | 超过后在首次 API 调用前预分块 |
+| `target_core_characters` | 4,000 | 每个不重叠核心区的目标长度 |
+| `overlap_characters` | 400 | 核心区两侧供边界判读的上下文 |
+| `minimum_core_characters` | 500 | 截断递归拆分允许的最小核心区 |
+| `maximum_split_depth` | 4 | 单个 core 的最大递归二分深度 |
+| `maximum_output_tokens` | 8,192 | 受控扩容的硬上限 |
+
+字符分块用于保持Python Unicode offset完全可回映；token安全仍由保守字符阈值、API `usage` 和本轮 token 熔断共同控制。切换模型时可调整配置，但修改后必须重新跑小批技术验收并记录配置版本。
 
 如果不希望把 key 保存到磁盘，可只覆盖 `.env` 中的空 key：
 
@@ -286,7 +299,7 @@ API 执行期间会立即打印已载入数量，随后逐次打印“调用/重
 data\test_1000_0812\event_pipeline_output\NER\model_execution\mention_execution_progress.md
 ```
 
-它在每次真实模型调用后立即落盘一行，显示 `success`、`retry_scheduled` 或 `failed`、本次/累计 token、实体/关系数量、span 修复数和本次改变的 response/audit 文件。日志不含临床原文、模型原始输出或 API key；重复执行脚本不会覆盖旧记录，不同运行由 `运行 ID` 区分。另开一个 PowerShell 可实时查看追加内容：
+它在每次真实模型调用后立即落盘一行，显示 `success`、`retry_scheduled`、`split_scheduled`、`chunk_success_buffered` 或 `failed`、本次/累计 token、实体/关系数量、span 修复数和本次改变的 response/audit 文件。分块结果只有全部子块通过校验并完成全局 offset 合并后，才以父 request ID 写入成功 response。日志不含临床原文、模型原始输出或 API key；重复执行脚本不会覆盖旧记录，不同运行由 `运行 ID` 区分。另开一个 PowerShell 可实时查看追加内容：
 
 ```powershell
 Get-Content -LiteralPath `
@@ -296,17 +309,24 @@ Get-Content -LiteralPath `
 
 模型给出的 mention 或 relation evidence offset 不准确时，接口先执行确定性 span grounding。第一层使用原文中大小写敏感的精确 `surface_text`/`evidence_text`；找不到时，第二层仅允许 Unicode casefold 和连续空白折叠匹配，并把结果 surface 回填为原文真实子串。唯一匹配直接落位，多次匹配仅在原 offset 指向唯一最近候选时落位，平局或归一化后仍不存在时拒绝。关系 evidence 还必须覆盖 source/target mentions。接口不改实体类型或其他语义属性，不使用编辑距离、同义词或语义猜测。成功 audit 的 `span_grounding` 保存原始/校正 offset、候选数、规则及是否从原文回填 surface，不保存临床文字。
 
-空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。截断、认证、端点或配置等非内容错误仍立即停止整批。失败审计只保存 reason code、具体标注校验原因、finish reason、响应 ID、内容长度/SHA-256、usage 和重试状态，不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
+mention 输入超过6,000个Unicode字符时，在调用前按段落、换行、句号等确定性边界分块。每块核心区目标4,000字符，相邻块各保留400字符上下文；模型只看到当前上下文。子块通过校验后，局部字符 span 加上 `context_start` 恢复为原 section 全局 span。重叠区使用“mention 起点所属核心区”确定唯一归属，随后按全局位置重新编号 `m1...mN`。因此最终 response 仍对应原父 request、原 section SHA-256，现有响应 Schema 和后续编译器无需接受半成品子块。
+
+`finish_reason=length` 时不接受截断 JSON。未分块请求先把输出上限从4,096受控提高到8,192 tokens；若在8,192仍截断，mention core 在接近中点的自然边界确定性二分，最多4层。历史 failure audit 已证明某 request 在4,096截断时，定向重试会直接从8,192开始，避免重复支付已知无效的4,096-token调用。若达到最小块大小或最大深度仍截断，该父文本单元隔离失败并继续批次。
+
+空内容、非法 JSON 或无法校正的合同错误会有限重试；连续两次得到相同内容 SHA-256 时提前停止，避免确定性模型重复产生同一无效输出。该文本单元写入 failure audit 后，批次继续处理下一个单元。认证、端点、内容过滤或配置错误仍立即停止整批。失败审计额外保存每次调用的 chunk 范围、本次/下次 `max_tokens` 和分块原因，但不保存模型正文、临床正文或 API key。下次执行仍从未成功的 request ID 继续。
 
 只重试 failure audit 中已经终止且尚未成功的文本单元，不调用新的 pending 文本：
 
 ```powershell
 & '.\scripts\Run-TextNerMentionSmoke.ps1' `
   -RetryFailuresOnly `
+  -MaximumRequests 10 `
+  -MaximumFailedRequests 10 `
+  -MaximumTotalTokens 200000 `
   -ConfirmExternalDataTransfer
 ```
 
-脚本会向 CLI 传递 `--retry-failures-from mention_api_audit.failures.jsonl`。终端启动行应显示 `模式 terminal_failures_only`；`候选`是当前尚未成功的失败 request 数，可能少于 `-MaximumRequests`。
+脚本会向 CLI 传递 `--retry-failures-from mention_api_audit.failures.jsonl`。终端启动行应显示 `模式 terminal_failures_only`；`候选`是当前尚未成功的失败 request 数，可能少于 `-MaximumRequests`。定向重试同样受失败数和 token 熔断保护。
 
 ### 7.2 扩大为累计100条技术 pilot
 
@@ -525,7 +545,7 @@ Get-Content -LiteralPath "$executionRoot\final\compile_summary.json" |
 | `GENERIC_API_PROMPT_HASH_MISMATCH` | 请求包与提示词不是同一版本 | 重新生成请求包，不能跳过校验 |
 | `GENERIC_API_ANNOTATION_CONTENT_EMPTY` | JSON Output 返回空内容 | 程序自动有限重试；耗尽后检查 failure audit，再执行同一命令续跑 |
 | `GENERIC_API_ANNOTATION_JSON_INVALID` | 模型返回非 JSON；程序已有限重试 | 检查 failure audit 中的 finish reason、长度和 SHA，不手工伪造响应 |
-| `GENERIC_API_OUTPUT_TRUNCATED` | `finish_reason=length`，JSON 被截断 | 提高配置中的 `max_tokens` 或缩短 section；同参数盲目重试无效 |
+| `GENERIC_API_OUTPUT_TRUNCATED` | `finish_reason=length`，JSON 被截断 | 程序先受控扩到8,192 tokens，仍截断则确定性拆分 mention；检查 failure audit 的 chunk/max-token 记录 |
 | `GENERIC_API_OUTPUT_CONTENT_FILTERED` | 输出被服务商过滤 | 停止并审查该服务商是否适合处理此数据，不自动绕过过滤 |
 | `GENERIC_API_ANNOTATION_CONTRACT_INVALID` | JSON 可解析但不满足 Schema/span 合同 | 程序有限重试；检查 failure audit 和模型兼容性 |
 | `FULL_EXTRACTION_SOURCE_HASH_MISMATCH` | aggregation 正文和 manifest 不一致 | 停止执行并重新审计 aggregation |

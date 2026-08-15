@@ -29,6 +29,10 @@ from data_pipeline.text_ner.openai_compatible_api import (
     run_api_batch,
 )
 from data_pipeline.text_ner.span_grounding import ground_annotation_spans
+from data_pipeline.text_ner.text_chunking import (
+    load_text_chunking_policy,
+    plan_initial_chunks,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -266,6 +270,33 @@ def _empty_annotation(request: dict[str, object]) -> dict[str, object]:
     }
 
 
+def _mention(
+    local_id: str,
+    surface_text: str,
+    start: int,
+    *,
+    entity_type: str = "clinical_problem",
+) -> dict[str, object]:
+    return {
+        "local_id": local_id,
+        "surface_text": surface_text,
+        "section_span_start": start,
+        "section_span_end": start + len(surface_text),
+        "entity_type": entity_type,
+        "assertion": "present",
+        "temporality": "current",
+        "experiencer": "patient",
+        "laterality": "not_applicable",
+        "severity": "not_stated",
+        "trend": "not_stated",
+        "normalization_status": "unattempted",
+        "concept_id": None,
+        "preferred_name": None,
+        "terminology": None,
+        "quality_flags": [],
+    }
+
+
 def _local_api_environment() -> dict[str, str]:
     return {
         "TEXT_NER_API_KEY": "test-secret",
@@ -319,6 +350,41 @@ class AggregationTextManifestTests(unittest.TestCase):
 
 
 class GenericApiBatchTests(unittest.TestCase):
+    def test_long_text_is_prechunked_with_contiguous_cores_and_overlap(self) -> None:
+        policy = load_text_chunking_policy(load_api_config(API_CONFIG))
+        chunks = plan_initial_chunks("x" * 10_000, policy, namespace="request:1")
+        repeated = plan_initial_chunks(
+            "x" * 10_000, policy, namespace="request:1"
+        )
+        other_request = plan_initial_chunks(
+            "x" * 10_000, policy, namespace="request:2"
+        )
+        self.assertEqual(chunks, repeated)
+        self.assertNotEqual(chunks[0].chunk_id, other_request[0].chunk_id)
+        self.assertEqual(len(chunks), 3)
+        self.assertEqual(chunks[0].core_start, 0)
+        self.assertEqual(chunks[-1].core_end, 10_000)
+        self.assertTrue(
+            all(
+                left.core_end == right.core_start
+                for left, right in zip(chunks, chunks[1:])
+            )
+        )
+        self.assertTrue(
+            all(
+                chunk.context_character_count
+                <= policy.target_core_characters
+                + 2 * policy.overlap_characters
+                for chunk in chunks
+            )
+        )
+        self.assertTrue(
+            all(
+                left.context_end > right.context_start
+                for left, right in zip(chunks, chunks[1:])
+            )
+        )
+
     def test_environment_file_is_strict_and_process_environment_overrides(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             environment_file = Path(temporary) / "api-settings.txt"
@@ -520,15 +586,50 @@ class GenericApiBatchTests(unittest.TestCase):
                 transport_calls[0]["thinking"], {"type": "disabled"}
             )
 
-    def test_length_finish_reason_is_audited_without_useless_retry(self) -> None:
+    def test_length_finish_reason_expands_output_budget_once(self) -> None:
         prompt_text = "Return JSON."
         request = _api_request("Chest pain", prompt_text)
         calls = 0
         sleeps: list[float] = []
 
-        def transport(*args: object) -> dict[str, object]:
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
             nonlocal calls
             calls += 1
+            if calls == 2:
+                user_payload = json.loads(payload["messages"][1]["content"])
+                return {
+                    "id": "complete:2",
+                    "choices": [
+                        {
+                            "finish_reason": "stop",
+                            "message": {
+                                "content": json.dumps(
+                                    {
+                                        "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                                        "manifest_row_id": user_payload["manifest_row_id"],
+                                        "document_id": user_payload["document_id"],
+                                        "section_id": user_payload["section_id"],
+                                        "section_text_sha256": user_payload[
+                                            "section_text_sha256"
+                                        ],
+                                        "mentions": [],
+                                        "relations": [],
+                                    }
+                                )
+                            },
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": 10,
+                        "total_tokens": 20,
+                    },
+                }
             return {
                 "id": "truncated:1",
                 "choices": [
@@ -558,30 +659,434 @@ class GenericApiBatchTests(unittest.TestCase):
             requests = root / "requests.jsonl"
             requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
             audit = root / "audit.jsonl"
-            with self.assertRaisesRegex(
-                GenericApiError, "GENERIC_API_OUTPUT_TRUNCATED"
-            ):
-                run_api_batch(
-                    requests,
-                    prompt,
-                    root / "responses.jsonl",
-                    audit,
-                    API_CONFIG,
-                    execute=True,
-                    endpoint_scope="local",
-                    environ=environment,
-                    transport=transport,
-                    sleep=sleeps.append,
-                )
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                audit,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                environ=environment,
+                transport=transport,
+                sleep=sleeps.append,
+            )
             failure = json.loads(
                 (root / "audit.failures.jsonl").read_text(encoding="utf-8")
             )
-            self.assertEqual(calls, 1)
-            self.assertEqual(sleeps, [])
+            self.assertEqual(calls, 2)
+            self.assertEqual(sleeps, [2.0])
             self.assertEqual(failure["finish_reason"], "length")
-            self.assertFalse(failure["retryable"])
-            self.assertFalse(failure["will_retry"])
+            self.assertTrue(failure["retryable"])
+            self.assertTrue(failure["will_retry"])
+            self.assertEqual(failure["request_max_tokens"], 4096)
+            self.assertEqual(failure["next_request_max_tokens"], 8192)
             self.assertEqual(failure["usage"]["total_tokens"], 4106)
+            self.assertEqual(summary["model_calls_this_run"], 2)
+            self.assertEqual(summary["successful_model_calls_this_run"], 1)
+            self.assertEqual(summary["failed_attempts_this_run"], 1)
+            self.assertEqual(summary["successful_responses_this_run"], 1)
+
+    def test_truncation_at_output_cap_splits_and_merges_global_spans(self) -> None:
+        prompt_text = "Return JSON."
+        characters = list("x" * 1200)
+        markers = ((100, "LEFTSYM"), (550, "BOUNDARY"), (900, "RIGHTSYM"))
+        for start, marker in markers:
+            characters[start : start + len(marker)] = marker
+        text = "".join(characters)
+        request = _api_request(text, prompt_text)
+        calls: list[tuple[int, int]] = []
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            user_payload = json.loads(payload["messages"][1]["content"])
+            child_text = user_payload["section_text"]
+            calls.append((len(child_text), int(payload["max_tokens"])))
+            if len(child_text) == len(text):
+                return {
+                    "id": f"truncated:{len(calls)}",
+                    "choices": [
+                        {
+                            "finish_reason": "length",
+                            "message": {"content": '{"schema_version":'},
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": int(payload["max_tokens"]),
+                        "total_tokens": 10 + int(payload["max_tokens"]),
+                    },
+                }
+            mentions = []
+            for _, marker in markers:
+                local_start = child_text.find(marker)
+                if local_start >= 0:
+                    mentions.append(
+                        _mention(
+                            f"m{len(mentions) + 1}",
+                            marker,
+                            local_start + (1 if marker == "BOUNDARY" else 0),
+                        )
+                    )
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": mentions,
+                "relations": [],
+            }
+            return {
+                "id": f"chunk:{len(calls)}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(annotation)},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 5,
+                    "total_tokens": 15,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            responses = root / "responses.jsonl"
+            audit_path = root / "audit.jsonl"
+            progress_log = root / "progress.md"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                audit_path,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+                progress_log_path=progress_log,
+            )
+            self.assertEqual(
+                calls,
+                [(1200, 4096), (1200, 8192), (1000, 4096), (1000, 4096)],
+            )
+            response = json.loads(responses.read_text(encoding="utf-8"))
+            mentions = response["annotation"]["mentions"]
+            self.assertEqual(
+                [
+                    (
+                        mention["local_id"],
+                        mention["surface_text"],
+                        mention["section_span_start"],
+                        mention["section_span_end"],
+                    )
+                    for mention in mentions
+                ],
+                [
+                    ("m1", "LEFTSYM", 100, 107),
+                    ("m2", "BOUNDARY", 550, 558),
+                    ("m3", "RIGHTSYM", 900, 908),
+                ],
+            )
+            audit = json.loads(audit_path.read_text(encoding="utf-8"))
+            self.assertTrue(audit["chunking"]["applied"])
+            self.assertEqual(audit["chunking"]["initial_chunk_count"], 1)
+            self.assertEqual(audit["chunking"]["final_chunk_count"], 2)
+            self.assertEqual(len(audit["chunking"]["split_events"]), 1)
+            self.assertEqual(audit["model_call_count"], 2)
+            self.assertEqual(audit["span_grounding"]["repair_count"], 1)
+            self.assertEqual(
+                audit["span_grounding"]["repairs"][0]["local_id"], "m2"
+            )
+            self.assertEqual(
+                audit["span_grounding"]["repairs"][0]["grounded_start"], 550
+            )
+            self.assertEqual(summary["model_calls_this_run"], 4)
+            self.assertEqual(summary["successful_model_calls_this_run"], 2)
+            self.assertEqual(summary["failed_attempts_this_run"], 2)
+            failure_rows = [
+                json.loads(line)
+                for line in (root / "audit.failures.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(len(failure_rows), 2)
+            self.assertEqual(
+                failure_rows[1]["retry_stop_reason"],
+                "chunk_split_after_output_cap",
+            )
+            progress = progress_log.read_text(encoding="utf-8")
+            self.assertIn("| split_scheduled |", progress)
+            self.assertEqual(progress.count("| chunk_success_buffered |"), 2)
+            self.assertIn("merged 2 chunks", progress)
+            pilot = summarize_api_pilot(
+                responses,
+                audit_path,
+                root / "audit.failures.jsonl",
+                pilot_target=1,
+                output_json_path=root / "pilot.json",
+                output_markdown_path=root / "pilot.md",
+            )
+            self.assertEqual(pilot["counts"]["model_calls"], 4)
+            self.assertEqual(
+                pilot["chunking"]["successful_responses_with_chunking"], 1
+            )
+            self.assertEqual(pilot["chunking"]["split_event_count"], 1)
+            self.assertEqual(
+                pilot["chunking"]["discarded_overlap_mention_count"], 2
+            )
+            self.assertEqual(pilot["chunking"]["api_config_sha256_count"], 1)
+
+    def test_retry_of_historical_truncation_starts_at_expanded_limit(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("Chest pain", prompt_text)
+        observed_max_tokens: list[int] = []
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            observed_max_tokens.append(int(payload["max_tokens"]))
+            user_payload = json.loads(payload["messages"][1]["content"])
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+            return {
+                "id": "expanded:1",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(annotation)},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 5,
+                    "total_tokens": 15,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            failure_path = root / "audit.failures.jsonl"
+            failure_path.write_text(
+                json.dumps(
+                    {
+                        "request_id": request["request_id"],
+                        "reason_code": "GENERIC_API_OUTPUT_TRUNCATED",
+                        "will_retry": False,
+                        "usage": {
+                            "completion_tokens": 4096,
+                            "total_tokens": 5000,
+                        },
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                root / "audit.jsonl",
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                retry_failures_from=failure_path,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(observed_max_tokens, [8192])
+            self.assertEqual(summary["successful_responses_this_run"], 1)
+            self.assertEqual(summary["model_calls_this_run"], 1)
+
+    def test_long_request_is_prechunked_before_any_transport_call(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("x" * 10_000, prompt_text)
+        observed_lengths: list[int] = []
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            user_payload = json.loads(payload["messages"][1]["content"])
+            observed_lengths.append(len(user_payload["section_text"]))
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+            return {
+                "id": f"prechunk:{len(observed_lengths)}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(annotation)},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 10,
+                    "completion_tokens": 5,
+                    "total_tokens": 15,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            audit_path = root / "audit.jsonl"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                root / "responses.jsonl",
+                audit_path,
+                API_CONFIG,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(len(observed_lengths), 3)
+            self.assertTrue(all(length <= 4800 for length in observed_lengths))
+            self.assertNotIn(10_000, observed_lengths)
+            audit = json.loads(audit_path.read_text(encoding="utf-8"))
+            self.assertTrue(audit["chunking"]["applied"])
+            self.assertEqual(audit["chunking"]["initial_chunk_count"], 3)
+            self.assertEqual(summary["model_calls_this_run"], 3)
+            self.assertEqual(summary["successful_model_calls_this_run"], 3)
+
+    def test_token_budget_interrupts_before_next_chunk_without_partial_response(self) -> None:
+        prompt_text = "Return JSON."
+        request = _api_request("x" * 200, prompt_text)
+        calls = 0
+
+        def transport(
+            settings: OpenAICompatibleSettings,
+            endpoint: str,
+            payload: dict[str, object],
+            timeout: int,
+        ) -> dict[str, object]:
+            nonlocal calls
+            calls += 1
+            user_payload = json.loads(payload["messages"][1]["content"])
+            annotation = {
+                "schema_version": SECTION_ANNOTATION_SCHEMA_VERSION,
+                "manifest_row_id": user_payload["manifest_row_id"],
+                "document_id": user_payload["document_id"],
+                "section_id": user_payload["section_id"],
+                "section_text_sha256": user_payload["section_text_sha256"],
+                "mentions": [],
+                "relations": [],
+            }
+            return {
+                "id": f"budget-chunk:{calls}",
+                "choices": [
+                    {
+                        "finish_reason": "stop",
+                        "message": {"content": json.dumps(annotation)},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 40,
+                    "completion_tokens": 20,
+                    "total_tokens": 60,
+                },
+            }
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            config = load_api_config(API_CONFIG)
+            config["mention_chunking"].update(
+                {
+                    "maximum_input_characters": 100,
+                    "target_core_characters": 80,
+                    "overlap_characters": 10,
+                    "minimum_core_characters": 20,
+                }
+            )
+            config_path = root / "api.json"
+            config_path.write_text(json.dumps(config), encoding="utf-8")
+            prompt = root / "prompt.md"
+            prompt.write_text(prompt_text, encoding="utf-8")
+            requests = root / "requests.jsonl"
+            requests.write_text(json.dumps(request) + "\n", encoding="utf-8")
+            responses = root / "responses.jsonl"
+            summary = run_api_batch(
+                requests,
+                prompt,
+                responses,
+                root / "audit.jsonl",
+                config_path,
+                execute=True,
+                endpoint_scope="local",
+                maximum_requests=1,
+                maximum_total_tokens=100,
+                environ=_local_api_environment(),
+                transport=transport,
+                sleep=lambda _: None,
+            )
+            self.assertEqual(calls, 2)
+            self.assertFalse(responses.exists())
+            self.assertEqual(summary["stop_reason"], "maximum_total_tokens_reached")
+            self.assertEqual(summary["failed_requests_this_run"], 1)
+            self.assertEqual(summary["usage_this_run"]["total_tokens"], 120)
+            failure = json.loads(
+                (root / "audit.failures.jsonl").read_text(encoding="utf-8")
+            )
+            self.assertEqual(
+                failure["reason_code"],
+                "GENERIC_API_CHUNKING_INTERRUPTED_BY_TOKEN_BUDGET",
+            )
+            self.assertEqual(failure["model_call_count"], 2)
+            self.assertEqual(len(failure["call_usages"]), 2)
+            pilot = summarize_api_pilot(
+                responses,
+                root / "audit.jsonl",
+                root / "audit.failures.jsonl",
+                pilot_target=1,
+                output_json_path=root / "pilot.json",
+                output_markdown_path=root / "pilot.md",
+            )
+            self.assertEqual(pilot["counts"]["model_calls"], 2)
+            self.assertEqual(pilot["usage"]["total_tokens"], 120)
 
     def test_persistent_identical_invalid_json_is_quarantined_early(self) -> None:
         prompt_text = "Return JSON."

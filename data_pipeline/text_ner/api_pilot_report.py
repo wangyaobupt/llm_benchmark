@@ -8,7 +8,7 @@ import json
 import os
 from pathlib import Path
 from statistics import median
-from typing import Any
+from typing import Any, Mapping
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -32,6 +32,33 @@ def _usage(value: object) -> dict[str, int]:
         key: item if isinstance(item := source.get(key), int) else 0
         for key in ("prompt_tokens", "completion_tokens", "total_tokens")
     }
+
+
+def _model_call_count(row: Mapping[str, Any]) -> int:
+    value = row.get("model_call_count")
+    if isinstance(value, int) and not isinstance(value, bool) and value >= 0:
+        return value
+    return 0 if row.get("model_call_performed") is False else 1
+
+
+def _per_call_usage_rows(row: Mapping[str, Any]) -> list[dict[str, int]]:
+    chunking = row.get("chunking")
+    if isinstance(chunking, Mapping):
+        successful_calls = chunking.get("successful_calls")
+        if isinstance(successful_calls, list):
+            values = [
+                _usage(call.get("usage"))
+                for call in successful_calls
+                if isinstance(call, Mapping)
+            ]
+            if values:
+                return values
+    call_usages = row.get("call_usages")
+    if isinstance(call_usages, list):
+        values = [_usage(value) for value in call_usages]
+        if values:
+            return values
+    return [_usage(row.get("usage"))] if _model_call_count(row) else []
 
 
 def _write_atomically(path: Path, content: str) -> None:
@@ -58,6 +85,7 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"| `{rule}` | {count:,} |"
         for rule, count in summary["span_grounding"]["rule_counts"].items()
     ) or "| 无 | 0 |"
+    chunking = summary["chunking"]
     return f"""# Text NER API Pilot 验收
 
 ## 结论
@@ -99,6 +127,18 @@ def _markdown(summary: dict[str, Any]) -> str:
 - 发生 grounding 的成功响应：{summary['span_grounding']['successful_responses_with_repairs']:,}
 - repair 总数：{summary['span_grounding']['repair_count']:,}
 - 从原文回填 surface：{summary['span_grounding']['surface_rewrite_count']:,}
+
+## 长文本分块
+
+| 指标 | 数值 |
+|---|---:|
+| 使用分块的成功父响应 | {chunking['successful_responses_with_chunking']:,} |
+| 初始 chunk 总数 | {chunking['initial_chunk_count']:,} |
+| 最终成功 chunk 总数 | {chunking['final_chunk_count']:,} |
+| 截断后二分事件 | {chunking['split_event_count']:,} |
+| 重叠区丢弃的重复 mention | {chunking['discarded_overlap_mention_count']:,} |
+| 带 API 配置哈希的成功 audit | {chunking['audits_with_api_config_sha256']:,} |
+| API 配置哈希种类 | {chunking['api_config_sha256_count']:,} |
 
 ## 尚未解决失败原因
 
@@ -159,17 +199,61 @@ def summarize_api_pilot(
         terminal_reason_by_id[request_id] for request_id in unresolved_failure_ids
     )
 
-    token_rows = [_usage(row.get("usage")) for row in (*audits, *failures)]
+    all_call_rows = (*audits, *failures)
+    token_rows = [_usage(row.get("usage")) for row in all_call_rows]
     total_usage = {
         key: sum(row[key] for row in token_rows)
         for key in ("prompt_tokens", "completion_tokens", "total_tokens")
     }
-    token_values = [row["total_tokens"] for row in token_rows]
+    token_values = [
+        usage["total_tokens"]
+        for row in all_call_rows
+        for usage in _per_call_usage_rows(row)
+    ]
+    model_call_count = sum(_model_call_count(row) for row in all_call_rows)
     grounding_rules: Counter[str] = Counter()
     repaired_successes = 0
     repair_count = 0
     surface_rewrite_count = 0
+    chunked_successes = 0
+    initial_chunk_count = 0
+    final_chunk_count = 0
+    split_event_count = 0
+    discarded_overlap_mention_count = 0
+    api_config_hashes: set[str] = set()
+    audits_with_api_config_hash = 0
     for row in audits:
+        api_config_sha256 = row.get("api_config_sha256")
+        if isinstance(api_config_sha256, str) and api_config_sha256:
+            api_config_hashes.add(api_config_sha256)
+            audits_with_api_config_hash += 1
+        chunking = row.get("chunking")
+        if isinstance(chunking, dict):
+            if chunking.get("applied") is True:
+                chunked_successes += 1
+            for key, target in (
+                ("initial_chunk_count", "initial"),
+                ("final_chunk_count", "final"),
+            ):
+                value = chunking.get(key)
+                if isinstance(value, int) and not isinstance(value, bool):
+                    if target == "initial":
+                        initial_chunk_count += value
+                    else:
+                        final_chunk_count += value
+            split_events = chunking.get("split_events")
+            if isinstance(split_events, list):
+                split_event_count += len(split_events)
+            chunks = chunking.get("chunks")
+            if isinstance(chunks, list):
+                discarded_overlap_mention_count += sum(
+                    int(chunk.get("discarded_overlap_mention_count", 0))
+                    for chunk in chunks
+                    if isinstance(chunk, dict)
+                    and isinstance(
+                        chunk.get("discarded_overlap_mention_count"), int
+                    )
+                )
         grounding = row.get("span_grounding")
         if not isinstance(grounding, dict):
             continue
@@ -206,7 +290,7 @@ def summarize_api_pilot(
         else ("pilot_incomplete" if not coverage_reached else "technical_pilot_failed")
     )
     summary = {
-        "schema_version": "text-ner-api-pilot-report/1.0.0",
+        "schema_version": "text-ner-api-pilot-report/1.1.0",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "pilot_target": pilot_target,
         "counts": {
@@ -214,7 +298,7 @@ def summarize_api_pilot(
             "successful_unique": len(response_ids),
             "unresolved_failed_unique": len(unresolved_failure_ids),
             "incomplete_failed_unique": len(incomplete_failure_ids),
-            "model_calls": len(token_rows),
+            "model_calls": model_call_count,
             "response_only": response_only,
             "audit_only": audit_only,
         },
@@ -232,6 +316,22 @@ def summarize_api_pilot(
             "repair_count": repair_count,
             "surface_rewrite_count": surface_rewrite_count,
             "rule_counts": dict(sorted(grounding_rules.items())),
+        },
+        "chunking": {
+            "successful_responses_with_chunking": chunked_successes,
+            "initial_chunk_count": initial_chunk_count,
+            "final_chunk_count": final_chunk_count,
+            "split_event_count": split_event_count,
+            "discarded_overlap_mention_count": (
+                discarded_overlap_mention_count
+            ),
+            "audits_with_api_config_sha256": audits_with_api_config_hash,
+            "api_config_sha256_count": len(api_config_hashes),
+            "api_config_sha256": (
+                next(iter(api_config_hashes))
+                if len(api_config_hashes) == 1
+                else None
+            ),
         },
         "unresolved_failure_reasons": dict(sorted(unresolved_reasons.items())),
         "quality_gate": {

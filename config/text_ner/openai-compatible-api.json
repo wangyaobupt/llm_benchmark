@@ -1,5 +1,5 @@
 {
-  "schema_version": "text-ner-openai-compatible-api/1.0.0",
+  "schema_version": "text-ner-openai-compatible-api/1.1.0",
   "environment": {
     "api_key": "TEXT_NER_API_KEY",
     "base_url": "TEXT_NER_BASE_URL",
@@ -13,6 +13,16 @@
     "max_tokens": 4096,
     "response_format_json_object": true,
     "timeout_seconds": 120
+  },
+  "mention_chunking": {
+    "enabled": true,
+    "maximum_input_characters": 6000,
+    "target_core_characters": 4000,
+    "overlap_characters": 400,
+    "minimum_core_characters": 500,
+    "maximum_split_depth": 4,
+    "truncation_output_token_multiplier": 2.0,
+    "maximum_output_tokens": 8192
   },
   "provider_request_options": {
     "deepseek": {

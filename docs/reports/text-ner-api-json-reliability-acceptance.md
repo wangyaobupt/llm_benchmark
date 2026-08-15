@@ -14,9 +14,12 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 - 唯一匹配直接落位；重复匹配只接受原 offset 对应的唯一最近候选；平局或原文不存在时保持失败。
 - 每次成功调用在 audit 中保存不含正文的 span grounding provenance。
 - 空 `content`、非法 JSON 和 Schema/span 合同错误最多重试3次；相同无效内容第二次出现时提前停止重复调用。
-- 可隔离的内容失败写入 failure audit 后继续下一个文本单元；认证、配置、截断等非内容错误仍停止整批。
+- 可隔离的内容失败写入 failure audit 后继续下一个文本单元；认证、配置和内容过滤等错误仍停止整批。
 - 仅移除完整的 Markdown JSON 代码围栏，不猜测缺失括号、不重写字段、不进行语义 JSON repair。
-- `finish_reason=length`、`content_filter` 和意外 tool call 不执行无意义重试。
+- `finish_reason=length` 不接受截断内容：4,096输出 tokens 后受控扩到8,192，仍截断的 mention 确定性二分；`content_filter` 和意外 tool call 不执行无意义重试。
+- 超过6,000字符的 mention 输入预先按自然边界分为约4,000字符核心区，并保留两侧各400字符上下文；重叠 mention 按起点所属核心区唯一归属。
+- 子块局部 span 在严格校验后映射回原 section 全局 offset，合并结果继续使用父 request ID 和原 section SHA-256。
+- failure audit 已有4,096-token截断记录时，定向重试直接从8,192开始，不重复已知无效调用。
 - 成功响应仍须通过来源哈希、精确字符 span、实体枚举和关系合同校验。
 - 失败审计不保存模型正文、临床正文或 API key，只保存响应 ID、finish reason、内容长度/SHA-256、usage、reason code 和重试状态。
 - `maximum_requests` 限制不同文本单元尝试数；摘要分别报告文本单元尝试数、真实模型调用数、成功响应、失败单元、失败尝试、总 usage 与成功 usage。
@@ -34,7 +37,12 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 | 空白 content 后重试成功 | passed |
 | 完整 Markdown JSON 外层确定性移除 | passed |
 | DeepSeek thinking disabled | passed |
-| `finish_reason=length` 不盲目重试 | passed |
+| `finish_reason=length` 从4,096受控扩到8,192 | passed |
+| 8,192仍截断后确定性二分并恢复全局 span | passed |
+| 超长输入在首次 transport 前完成重叠分块 | passed |
+| 重叠 mention 核心区唯一归属且局部修复映射为全局 offset | passed |
+| 分块中达到 token 熔断不写入部分父 response | passed |
+| 历史4,096截断的定向重试直接使用8,192 | passed |
 | 唯一 surface 精确匹配自动校正 offset | passed |
 | casefold/空白归一化后从原文回填 surface | passed |
 | 重复 surface 只接受唯一最近候选 | passed |
@@ -49,7 +57,7 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 | 失败数/token 熔断在下一文本单元前停止 | passed |
 | Markdown 每次调用追加且不含临床原文/原始输出/API key | passed |
 | pilot 报告不含 request ID/临床正文并识别重试中断 | passed |
-| Text NER、API monitor 与 aggregation 完整测试 | 59 passed, 0 failed |
+| Text NER、API monitor 与 aggregation 完整测试 | 64 passed, 0 failed |
 | 本轮诊断和代码修改新增模型调用 | 0 |
 
 ## 本次故障证据
@@ -57,5 +65,7 @@ DeepSeek 官方文档明确说明 JSON Output 偶尔可能返回空 `content`；
 修复前的 failure audit 共记录同一文本单元4次 `GENERIC_API_ANNOTATION_CONTRACT_INVALID`：4次模型内容长度均为859、内容 SHA-256 完全相同、每次1,322 tokens，合计5,288 tokens。这证明旧重试在 temperature 0 下重复获得同一无效结果，没有产生纠错价值。新实现会先进行确定性 span grounding；仍无效且第二次内容哈希相同时，以 `retry_stop_reason=identical_invalid_content` 停止该单元的后续重试并继续批次。
 
 修复后的首个10文本单元小批从3条 checkpoint 开始：尝试10条，成功8条、失败2条、真实调用12次，checkpoint 增至11；总计16,986 tokens，其中成功响应9,808，失败尝试7,178。两个失败分别定位到 mention `m2` 和 `m1` 的 `MENTION_SURFACE_MISMATCH`，第二次返回均与第一次内容哈希相同；同时11条成功 audit 中有3条通过 `unique_exact_occurrence` 完成 span 校正。这些证据支持在精确匹配之后增加受限的 casefold/空白归一化，而不支持模糊字符串或语义匹配。
+
+累计100条 pilot 随后从13个历史不同文本单元继续，本轮前5个新文本成功，第6个新文本在首次调用时以 `finish_reason=length` 停止：prompt 2,545 tokens、completion 精确达到配置上限4,096 tokens、总计6,641 tokens，截断内容长度14,328字符。停止时 success response 与成功 audit 均为17条，10秒观察窗口内无文件增长且执行进程已退出。这证明故障是输出容量边界，不是监测页面失效。新实现不会改写17条 checkpoint；该终止失败定向重试时直接从8,192输出 tokens开始，若仍截断再进入确定性子块路径。
 
 现有成功 response/audit checkpoint 未被本次代码修复改写。重新执行相同命令时会跳过已有成功 request ID，从下一个未成功文本单元继续。Codex 受限执行环境不能读取 `extraction_interface` 中的临床请求文件，因此真实 API 恢复没有在本次验收中代替用户发起；本次修复新增模型调用为0。

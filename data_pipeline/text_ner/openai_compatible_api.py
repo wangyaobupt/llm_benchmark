@@ -22,6 +22,16 @@ from .model_interface import (
     validate_response_envelope,
 )
 from .span_grounding import ground_annotation_spans
+from .text_chunking import (
+    TextChunk,
+    TextChunkingError,
+    build_chunk_request,
+    load_text_chunking_policy,
+    merge_chunk_annotations,
+    plan_initial_chunks,
+    split_chunk_after_truncation,
+    whole_text_chunk,
+)
 
 
 ENVIRONMENT_FILE_KEYS = frozenset(
@@ -234,6 +244,7 @@ def _parse_annotation_response(
                 "finish_reason=length; increase request.max_tokens or reduce the "
                 "input section size"
             ),
+            retryable=True,
             diagnostics=diagnostics,
         )
     if finish_reason == "content_filter":
@@ -307,7 +318,7 @@ def _parse_annotation_response(
 
 def load_api_config(path: Path) -> dict[str, Any]:
     value = json.loads(Path(path).read_text(encoding="utf-8"))
-    if value.get("schema_version") != "text-ner-openai-compatible-api/1.0.0":
+    if value.get("schema_version") != "text-ner-openai-compatible-api/1.1.0":
         raise GenericApiError(
             "GENERIC_API_CONFIG_VERSION_INVALID", str(value.get("schema_version"))
         )
@@ -478,9 +489,25 @@ class OpenAICompatibleAdapter:
     def request_options(self) -> dict[str, Any]:
         return dict(self._request_options)
 
-    def generate(self, request: Mapping[str, Any]) -> Mapping[str, Any]:
+    def generate(
+        self,
+        request: Mapping[str, Any],
+        *,
+        max_tokens: int | None = None,
+    ) -> Mapping[str, Any]:
         validated = validate_model_request(request)
         request_config = self._config["request"]
+        resolved_max_tokens = (
+            request_config["max_tokens"] if max_tokens is None else max_tokens
+        )
+        if (
+            not isinstance(resolved_max_tokens, int)
+            or isinstance(resolved_max_tokens, bool)
+            or resolved_max_tokens <= 0
+        ):
+            raise GenericApiError(
+                "GENERIC_API_MAX_TOKENS_INVALID", str(resolved_max_tokens)
+            )
         user_payload = {
             "stage_id": validated["stage_id"],
             "manifest_row_id": validated["manifest_row_id"],
@@ -506,7 +533,7 @@ class OpenAICompatibleAdapter:
                 },
             ],
             "temperature": request_config["temperature"],
-            "max_tokens": request_config["max_tokens"],
+            "max_tokens": resolved_max_tokens,
             "stream": False,
         }
         if request_config.get("response_format_json_object"):
@@ -734,6 +761,13 @@ def _append_failure_audit(
     will_retry: bool,
     retry_delay_seconds: float | None,
     retry_stop_reason: str | None,
+    request_max_tokens: int | None = None,
+    next_request_max_tokens: int | None = None,
+    chunk: TextChunk | None = None,
+    model_call_performed: bool = True,
+    model_call_count: int = 1,
+    call_usages: list[Mapping[str, Any]] | None = None,
+    api_config_sha256: str | None = None,
 ) -> None:
     diagnostics = _safe_failure_diagnostics(error)
     thinking = request_options.get("thinking")
@@ -741,7 +775,7 @@ def _append_failure_audit(
     _append_jsonl(
         path,
         {
-            "schema_version": "text-ner-api-call-failure-audit/1.0.0",
+            "schema_version": "text-ner-api-call-failure-audit/1.1.0",
             "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
@@ -757,6 +791,15 @@ def _append_failure_audit(
             "will_retry": will_retry,
             "retry_delay_seconds": retry_delay_seconds,
             "retry_stop_reason": retry_stop_reason,
+            "request_max_tokens": request_max_tokens,
+            "next_request_max_tokens": next_request_max_tokens,
+            "chunk": chunk.audit_metadata() if chunk is not None else None,
+            "model_call_performed": model_call_performed,
+            "model_call_count": model_call_count,
+            "api_config_sha256": api_config_sha256,
+            "call_usages": [
+                _sanitized_usage(usage) for usage in (call_usages or [])
+            ],
             "response_id": diagnostics.get("response_id"),
             "finish_reason": diagnostics.get("finish_reason"),
             "content_state": diagnostics.get("content_state"),
@@ -813,6 +856,8 @@ def run_api_batch(
         endpoint_scope=endpoint_scope,
         data_transfer_authorized=data_transfer_authorized,
     )
+    config_path = Path(config_path)
+    api_config_sha256 = hashlib.sha256(config_path.read_bytes()).hexdigest()
     config = load_api_config(config_path)
     settings = OpenAICompatibleSettings.from_environment(
         config, resolve_environment(environment_file, environ)
@@ -923,10 +968,50 @@ def run_api_batch(
             "GENERIC_API_MAXIMUM_TOTAL_TOKENS_INVALID",
             str(maximum_total_tokens),
         )
+    try:
+        chunking_policy = load_text_chunking_policy(config)
+    except TextChunkingError as error:
+        raise GenericApiError(error.reason_code, str(error)) from error
+    base_max_tokens = int(config["request"]["max_tokens"])
+    if base_max_tokens <= 0:
+        raise GenericApiError(
+            "GENERIC_API_MAX_TOKENS_INVALID", str(base_max_tokens)
+        )
+    if chunking_policy.maximum_output_tokens < base_max_tokens:
+        raise GenericApiError(
+            "TEXT_CHUNKING_CONFIG_INVALID",
+            "maximum_output_tokens is smaller than request.max_tokens",
+        )
+    historical_truncation_max_tokens: dict[str, int] = {}
+    for row in historical_failure_rows:
+        if row.get("reason_code") != "GENERIC_API_OUTPUT_TRUNCATED":
+            continue
+        request_id = row.get("request_id")
+        if not isinstance(request_id, str) or not request_id:
+            continue
+        observed = row.get("request_max_tokens")
+        if not isinstance(observed, int) or isinstance(observed, bool):
+            usage = row.get("usage")
+            observed = (
+                usage.get("completion_tokens")
+                if isinstance(usage, Mapping)
+                else None
+            )
+        if (
+            isinstance(observed, int)
+            and not isinstance(observed, bool)
+            and observed > 0
+        ):
+            historical_truncation_max_tokens[request_id] = max(
+                observed,
+                historical_truncation_max_tokens.get(request_id, 0),
+            )
+
     successful_responses = 0
     attempted_requests = 0
     failed_requests = 0
     api_attempts = 0
+    successful_model_calls = 0
     retries = 0
     stop_reason: str | None = None
     run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}-{os.getpid()}"
@@ -943,7 +1028,8 @@ def run_api_batch(
             f"checkpoint {len(completed):,} | 候选 {len(eligible_request_ids):,} | "
             f"本次最多尝试 {limit:,} 个 | 模式 {selection_mode} | "
             f"失败熔断 {maximum_failed_requests if maximum_failed_requests is not None else '关闭'} | "
-            f"token熔断 {maximum_total_tokens if maximum_total_tokens is not None else '关闭'}"
+            f"token熔断 {maximum_total_tokens if maximum_total_tokens is not None else '关闭'} | "
+            f"mention分块 {'开启' if chunking_policy.enabled else '关闭'}"
         )
     for request in requests:
         if request["request_id"] not in eligible_request_ids:
@@ -955,95 +1041,386 @@ def run_api_batch(
             raise GenericApiError(
                 "GENERIC_API_PROMPT_HASH_MISMATCH", request["request_id"]
             )
+
+        parent_text = request["section_text"]
+        initial_chunks = (
+            plan_initial_chunks(
+                parent_text,
+                chunking_policy,
+                namespace=str(request["request_id"]),
+            )
+            if request["stage_id"] == "mentions"
+            else [
+                whole_text_chunk(
+                    parent_text, namespace=str(request["request_id"])
+                )
+            ]
+        )
+        pending_chunks = list(initial_chunks)
+        chunk_results: list[
+            tuple[TextChunk, dict[str, Any], list[dict[str, Any]], Mapping[str, Any]]
+        ] = []
+        split_events: list[dict[str, Any]] = []
+        successful_call_records: list[dict[str, Any]] = []
+        unit_success_usage = {
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "total_tokens": 0,
+        }
+        unit_model_calls = 0
+        unit_failed = False
+        terminal_failure_recorded = False
+        buffered_success_usage_recorded = False
         maximum_retries = int(config["batch"]["maximum_retries"])
         maximum_attempts = maximum_retries + 1
-        attempt_number = 1
-        failed_content_hashes: set[str] = set()
-        response: dict[str, Any] | None = None
-        result: Mapping[str, Any] | None = None
-        span_repairs: list[dict[str, Any]] = []
-        while True:
-            api_attempts += 1
-            if progress_reporter is not None:
-                progress_reporter(
-                    f"[API] 文本单元 {attempted_requests:,}/{limit:,} | "
-                    f"调用 {attempt_number}/{maximum_attempts}"
+
+        while pending_chunks and not unit_failed:
+            chunk = pending_chunks.pop(0)
+            child_request = build_chunk_request(request, parent_text, chunk)
+            current_max_tokens = base_max_tokens
+            if (
+                len(initial_chunks) == 1
+                and chunk.context_start == 0
+                and chunk.context_end == len(parent_text)
+                and request["request_id"] in historical_truncation_max_tokens
+            ):
+                previously_truncated_at = historical_truncation_max_tokens[
+                    request["request_id"]
+                ]
+                current_max_tokens = min(
+                    chunking_policy.maximum_output_tokens,
+                    max(
+                        base_max_tokens,
+                        int(
+                            max(base_max_tokens, previously_truncated_at)
+                            * chunking_policy.truncation_output_token_multiplier
+                        ),
+                    ),
                 )
-            try:
-                result = adapter.generate(request)
-                response = dict(result["response"])
-                grounded_annotation, span_repairs = ground_annotation_spans(
-                    response["annotation"], request["section_text"]
-                )
-                response["annotation"] = grounded_annotation
-                try:
-                    _validate_annotation_for_request(response, request)
-                except (
-                    AnnotationValidationError,
-                    ModelInterfaceError,
-                ) as validation_error:
-                    diagnostics = dict(result["diagnostics"])
-                    diagnostics["annotation_validation_reason_code"] = (
-                        validation_error.reason_code
+            attempt_number = 1
+            failed_content_hashes: set[str] = set()
+            leaf_replaced_by_split = False
+            while True:
+                api_attempts += 1
+                unit_model_calls += 1
+                if progress_reporter is not None:
+                    progress_reporter(
+                        f"[API] 文本单元 {attempted_requests:,}/{limit:,} | "
+                        f"chunk {chunk.core_start}:{chunk.core_end} d{chunk.depth} | "
+                        f"调用 {attempt_number}/{maximum_attempts} | "
+                        f"max_tokens {current_max_tokens:,}"
                     )
-                    validation_detail = str(validation_error).partition(": ")[2]
-                    if (
-                        len(validation_detail) >= 2
-                        and validation_detail[0] in {"m", "r"}
-                        and validation_detail[1:].isdigit()
-                    ):
-                        diagnostics["annotation_validation_local_id"] = (
-                            validation_detail
+                try:
+                    result = adapter.generate(
+                        child_request, max_tokens=current_max_tokens
+                    )
+                    child_response = dict(result["response"])
+                    grounded_annotation, child_repairs = ground_annotation_spans(
+                        child_response["annotation"], child_request["section_text"]
+                    )
+                    child_response["annotation"] = grounded_annotation
+                    try:
+                        _validate_annotation_for_request(
+                            child_response, child_request
                         )
-                    raise GenericApiError(
-                        "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
-                        validation_error.reason_code,
-                        retryable=True,
-                        diagnostics=diagnostics,
-                    ) from validation_error
-                break
-            except GenericApiError as error:
-                _accumulate_usage(token_usage, error.diagnostics.get("usage"))
-                token_budget_reached = (
-                    maximum_total_tokens is not None
-                    and token_usage["total_tokens"] >= maximum_total_tokens
-                )
-                content_sha256 = error.diagnostics.get("content_sha256")
-                repeated_invalid_content = (
-                    isinstance(content_sha256, str)
-                    and content_sha256 in failed_content_hashes
-                )
-                if isinstance(content_sha256, str):
-                    failed_content_hashes.add(content_sha256)
-                will_retry = (
-                    error.retryable
-                    and attempt_number < maximum_attempts
-                    and not repeated_invalid_content
-                    and not token_budget_reached
-                )
-                delay = (
-                    float(config["batch"]["retry_initial_seconds"])
-                    * (2 ** (attempt_number - 1))
-                    if will_retry
-                    else None
-                )
-                retry_stop_reason = (
-                    "maximum_total_tokens_reached"
-                    if token_budget_reached
-                    else (
-                        "identical_invalid_content"
-                        if repeated_invalid_content
-                        else (
-                            "maximum_attempts_reached"
-                            if error.retryable
-                            and attempt_number >= maximum_attempts
+                    except (
+                        AnnotationValidationError,
+                        ModelInterfaceError,
+                    ) as validation_error:
+                        diagnostics = dict(result["diagnostics"])
+                        diagnostics["annotation_validation_reason_code"] = (
+                            validation_error.reason_code
+                        )
+                        validation_detail = str(validation_error).partition(": ")[2]
+                        if (
+                            len(validation_detail) >= 2
+                            and validation_detail[0] in {"m", "r"}
+                            and validation_detail[1:].isdigit()
+                        ):
+                            diagnostics["annotation_validation_local_id"] = (
+                                validation_detail
+                            )
+                        raise GenericApiError(
+                            "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                            validation_error.reason_code,
+                            retryable=True,
+                            diagnostics=diagnostics,
+                        ) from validation_error
+
+                    usage = result["usage"]
+                    _accumulate_usage(token_usage, usage)
+                    _accumulate_usage(successful_token_usage, usage)
+                    _accumulate_usage(unit_success_usage, usage)
+                    successful_model_calls += 1
+                    chunk_results.append(
+                        (chunk, grounded_annotation, child_repairs, result)
+                    )
+                    successful_call_records.append(
+                        {
+                            "chunk": chunk.audit_metadata(),
+                            "response_id": result["response_id"],
+                            "finish_reason": result["finish_reason"],
+                            "content_normalization": result[
+                                "content_normalization"
+                            ],
+                            "attempt_number": attempt_number,
+                            "max_tokens": current_max_tokens,
+                            "usage": _sanitized_usage(usage),
+                        }
+                    )
+                    chunked_call = (
+                        len(initial_chunks) > 1
+                        or bool(split_events)
+                        or chunk.context_start != 0
+                        or chunk.context_end != len(parent_text)
+                    )
+                    if chunked_call:
+                        _append_progress_markdown(
+                            progress_log_path,
+                            run_id=run_id,
+                            request_id=request["request_id"],
+                            text_unit_number=f"{attempted_requests}/{limit}",
+                            call_number=f"{attempt_number}/{maximum_attempts}",
+                            status="chunk_success_buffered",
+                            mention_count=len(grounded_annotation["mentions"]),
+                            relation_count=len(grounded_annotation["relations"]),
+                            repair_count=len(child_repairs),
+                            call_tokens=_sanitized_usage(usage).get(
+                                "total_tokens", 0
+                            ),
+                            cumulative_tokens=token_usage["total_tokens"],
+                            changed_files="pending parent merge",
+                            reason=(
+                                f"{chunk.chunk_id}; core="
+                                f"{chunk.core_start}:{chunk.core_end}; "
+                                f"max_tokens={current_max_tokens}"
+                            ),
+                        )
+                    break
+                except GenericApiError as error:
+                    _accumulate_usage(
+                        token_usage, error.diagnostics.get("usage")
+                    )
+                    token_budget_reached = (
+                        maximum_total_tokens is not None
+                        and token_usage["total_tokens"] >= maximum_total_tokens
+                    )
+                    content_sha256 = error.diagnostics.get("content_sha256")
+                    repeated_invalid_content = (
+                        isinstance(content_sha256, str)
+                        and content_sha256 in failed_content_hashes
+                    )
+                    if isinstance(content_sha256, str):
+                        failed_content_hashes.add(content_sha256)
+
+                    next_max_tokens: int | None = None
+                    split_children: list[TextChunk] = []
+                    retry_stop_reason: str | None = None
+                    will_retry = False
+                    if error.reason_code == "GENERIC_API_OUTPUT_TRUNCATED":
+                        if token_budget_reached:
+                            retry_stop_reason = "maximum_total_tokens_reached"
+                        elif (
+                            current_max_tokens
+                            < chunking_policy.maximum_output_tokens
+                            and attempt_number < maximum_attempts
+                        ):
+                            next_max_tokens = min(
+                                chunking_policy.maximum_output_tokens,
+                                max(
+                                    current_max_tokens + 1,
+                                    int(
+                                        current_max_tokens
+                                        * chunking_policy.truncation_output_token_multiplier
+                                    ),
+                                ),
+                            )
+                            will_retry = True
+                        elif request["stage_id"] == "mentions":
+                            split_children = split_chunk_after_truncation(
+                                parent_text,
+                                chunk,
+                                chunking_policy,
+                                namespace=str(request["request_id"]),
+                            )
+                            if split_children:
+                                will_retry = True
+                                retry_stop_reason = (
+                                    "chunk_split_after_output_cap"
+                                )
+                            else:
+                                retry_stop_reason = (
+                                    "maximum_output_tokens_and_split_depth_reached"
+                                )
+                        else:
+                            retry_stop_reason = "maximum_output_tokens_reached"
+                    else:
+                        will_retry = (
+                            error.retryable
+                            and attempt_number < maximum_attempts
+                            and not repeated_invalid_content
+                            and not token_budget_reached
+                        )
+                        retry_stop_reason = (
+                            "maximum_total_tokens_reached"
+                            if token_budget_reached
                             else (
-                                "non_retryable_error"
-                                if not error.retryable
-                                else None
+                                "identical_invalid_content"
+                                if repeated_invalid_content
+                                else (
+                                    "maximum_attempts_reached"
+                                    if error.retryable
+                                    and attempt_number >= maximum_attempts
+                                    else (
+                                        "non_retryable_error"
+                                        if not error.retryable
+                                        else None
+                                    )
+                                )
                             )
                         )
+
+                    delay = (
+                        float(config["batch"]["retry_initial_seconds"])
+                        * (2 ** (attempt_number - 1))
+                        if will_retry and not split_children
+                        else None
                     )
+                    _append_failure_audit(
+                        resolved_failure_audit_path,
+                        request=child_request,
+                        settings=settings,
+                        endpoint_scope=endpoint_scope,
+                        request_options=adapter.request_options,
+                        error=error,
+                        attempt_number=attempt_number,
+                        maximum_attempts=maximum_attempts,
+                        will_retry=will_retry,
+                        retry_delay_seconds=delay,
+                        retry_stop_reason=retry_stop_reason,
+                        request_max_tokens=current_max_tokens,
+                        next_request_max_tokens=next_max_tokens,
+                        chunk=chunk,
+                        api_config_sha256=api_config_sha256,
+                    )
+                    failure_reason = (
+                        error.diagnostics.get(
+                            "annotation_validation_reason_code"
+                        )
+                        or error.reason_code
+                    )
+                    progress_reason = str(failure_reason)
+                    if next_max_tokens is not None:
+                        progress_reason += (
+                            f"; max_tokens {current_max_tokens}"
+                            f"->{next_max_tokens}"
+                        )
+                    elif split_children:
+                        progress_reason += (
+                            f"; split {chunk.core_start}:{chunk.core_end}"
+                        )
+                    _append_progress_markdown(
+                        progress_log_path,
+                        run_id=run_id,
+                        request_id=request["request_id"],
+                        text_unit_number=f"{attempted_requests}/{limit}",
+                        call_number=f"{attempt_number}/{maximum_attempts}",
+                        status=(
+                            "split_scheduled"
+                            if split_children
+                            else ("retry_scheduled" if will_retry else "failed")
+                        ),
+                        call_tokens=_sanitized_usage(
+                            error.diagnostics.get("usage")
+                        ).get("total_tokens", 0),
+                        cumulative_tokens=token_usage["total_tokens"],
+                        changed_files=resolved_failure_audit_path.name,
+                        reason=progress_reason,
+                    )
+
+                    if split_children:
+                        retries += 1
+                        split_events.append(
+                            {
+                                "reason": "output_truncated_at_maximum_tokens",
+                                "parent": chunk.audit_metadata(),
+                                "children": [
+                                    child.audit_metadata()
+                                    for child in split_children
+                                ],
+                            }
+                        )
+                        pending_chunks = split_children + pending_chunks
+                        leaf_replaced_by_split = True
+                        if progress_reporter is not None:
+                            progress_reporter(
+                                f"[API] 输出达到 {current_max_tokens:,} tokens；"
+                                f"将 core {chunk.core_start}:{chunk.core_end} "
+                                f"确定性拆为 {len(split_children)} 个子块"
+                            )
+                        sleep(interval)
+                        break
+
+                    if not will_retry:
+                        quarantinable = error.reason_code in {
+                            "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
+                            "GENERIC_API_ANNOTATION_JSON_INVALID",
+                            "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
+                            "GENERIC_API_OUTPUT_TRUNCATED",
+                        }
+                        if error.retryable and quarantinable:
+                            failed_requests += 1
+                            terminal_failure_recorded = True
+                            unit_failed = True
+                            pending_chunks.clear()
+                            if token_budget_reached:
+                                stop_reason = "maximum_total_tokens_reached"
+                            elif (
+                                maximum_failed_requests is not None
+                                and failed_requests >= maximum_failed_requests
+                            ):
+                                stop_reason = "maximum_failed_requests_reached"
+                            if progress_reporter is not None:
+                                progress_reporter(
+                                    f"[API] 文本单元失败并继续 | {error.reason_code} | "
+                                    f"停止原因 {retry_stop_reason} | "
+                                    f"本次失败 {failed_requests:,} | "
+                                    f"批次停止 {stop_reason or '否'}"
+                                )
+                            break
+                        raise
+
+                    retries += 1
+                    if progress_reporter is not None:
+                        if next_max_tokens is not None:
+                            progress_reporter(
+                                f"[API] 输出截断，{delay:.1f} 秒后将 max_tokens "
+                                f"从 {current_max_tokens:,} 提高到 {next_max_tokens:,}"
+                            )
+                        else:
+                            progress_reporter(
+                                f"[API] 校验失败，{delay:.1f} 秒后重试 | "
+                                f"{error.reason_code}"
+                            )
+                    attempt_number += 1
+                    if next_max_tokens is not None:
+                        current_max_tokens = next_max_tokens
+                    sleep(delay)
+
+            if unit_failed:
+                break
+            if leaf_replaced_by_split:
+                continue
+            if (
+                maximum_total_tokens is not None
+                and token_usage["total_tokens"] >= maximum_total_tokens
+                and pending_chunks
+            ):
+                interruption = GenericApiError(
+                    "GENERIC_API_CHUNKING_INTERRUPTED_BY_TOKEN_BUDGET",
+                    "token budget reached before all chunks completed",
+                    retryable=True,
+                    diagnostics={"usage": unit_success_usage},
                 )
                 _append_failure_audit(
                     resolved_failure_audit_path,
@@ -1051,78 +1428,118 @@ def run_api_batch(
                     settings=settings,
                     endpoint_scope=endpoint_scope,
                     request_options=adapter.request_options,
-                    error=error,
-                    attempt_number=attempt_number,
-                    maximum_attempts=maximum_attempts,
-                    will_retry=will_retry,
-                    retry_delay_seconds=delay,
-                    retry_stop_reason=retry_stop_reason,
-                )
-                failure_reason = (
-                    error.diagnostics.get("annotation_validation_reason_code")
-                    or error.reason_code
+                    error=interruption,
+                    attempt_number=0,
+                    maximum_attempts=0,
+                    will_retry=False,
+                    retry_delay_seconds=None,
+                    retry_stop_reason="maximum_total_tokens_reached",
+                    request_max_tokens=None,
+                    chunk=None,
+                    model_call_performed=False,
+                    model_call_count=len(successful_call_records),
+                    call_usages=[
+                        record["usage"] for record in successful_call_records
+                    ],
+                    api_config_sha256=api_config_sha256,
                 )
                 _append_progress_markdown(
                     progress_log_path,
                     run_id=run_id,
                     request_id=request["request_id"],
                     text_unit_number=f"{attempted_requests}/{limit}",
-                    call_number=f"{attempt_number}/{maximum_attempts}",
-                    status="retry_scheduled" if will_retry else "failed",
-                    call_tokens=_sanitized_usage(
-                        error.diagnostics.get("usage")
-                    ).get("total_tokens", 0),
+                    call_number="orchestration",
+                    status="failed",
+                    call_tokens=0,
                     cumulative_tokens=token_usage["total_tokens"],
                     changed_files=resolved_failure_audit_path.name,
-                    reason=failure_reason,
+                    reason="token budget reached before parent merge",
                 )
-                if not will_retry:
-                    quarantinable = error.reason_code in {
-                        "GENERIC_API_ANNOTATION_CONTENT_EMPTY",
-                        "GENERIC_API_ANNOTATION_JSON_INVALID",
-                        "GENERIC_API_ANNOTATION_CONTRACT_INVALID",
-                    }
-                    if error.retryable and quarantinable:
-                        failed_requests += 1
-                        if token_budget_reached:
-                            stop_reason = "maximum_total_tokens_reached"
-                        elif (
-                            maximum_failed_requests is not None
-                            and failed_requests >= maximum_failed_requests
-                        ):
-                            stop_reason = "maximum_failed_requests_reached"
-                        if progress_reporter is not None:
-                            progress_reporter(
-                                f"[API] 文本单元失败并继续 | {error.reason_code} | "
-                                f"停止原因 {retry_stop_reason} | "
-                                f"本次失败 {failed_requests:,} | "
-                                f"批次停止 {stop_reason or '否'}"
-                            )
-                        response = None
-                        result = None
-                        break
-                    raise
-                retries += 1
-                if progress_reporter is not None:
-                    progress_reporter(
-                        f"[API] 校验失败，{delay:.1f} 秒后重试 | "
-                        f"{error.reason_code}"
-                    )
-                attempt_number += 1
-                sleep(delay)
-        if response is None or result is None:
+                failed_requests += 1
+                terminal_failure_recorded = True
+                buffered_success_usage_recorded = True
+                unit_failed = True
+                stop_reason = "maximum_total_tokens_reached"
+                pending_chunks.clear()
+                break
+            if pending_chunks:
+                sleep(interval)
+
+        if unit_failed:
+            if (
+                successful_call_records
+                and terminal_failure_recorded
+                and not buffered_success_usage_recorded
+            ):
+                discarded = GenericApiError(
+                    "GENERIC_API_CHUNK_RESULTS_DISCARDED",
+                    "parent request failed before chunk merge",
+                    retryable=True,
+                    diagnostics={"usage": unit_success_usage},
+                )
+                _append_failure_audit(
+                    resolved_failure_audit_path,
+                    request=request,
+                    settings=settings,
+                    endpoint_scope=endpoint_scope,
+                    request_options=adapter.request_options,
+                    error=discarded,
+                    attempt_number=0,
+                    maximum_attempts=0,
+                    will_retry=True,
+                    retry_delay_seconds=None,
+                    retry_stop_reason="parent_request_failed",
+                    model_call_performed=False,
+                    model_call_count=len(successful_call_records),
+                    call_usages=[
+                        record["usage"] for record in successful_call_records
+                    ],
+                    api_config_sha256=api_config_sha256,
+                )
             if stop_reason is not None:
                 break
             if attempted_requests < limit:
                 sleep(interval)
             continue
+
+        chunking_applied = len(initial_chunks) > 1 or bool(split_events)
+        if request["stage_id"] == "mentions" and chunking_applied:
+            annotation, span_repairs, chunk_summaries = merge_chunk_annotations(
+                request,
+                [
+                    (chunk, annotation, repairs)
+                    for chunk, annotation, repairs, _ in chunk_results
+                ],
+            )
+            last_result = chunk_results[-1][3]
+            response = {
+                "schema_version": MODEL_RESPONSE_SCHEMA_VERSION,
+                "request_id": request["request_id"],
+                "stage_id": request["stage_id"],
+                "provider": settings.provider,
+                "model_name": settings.model,
+                "model_version": settings.model_version,
+                "annotation": annotation,
+            }
+        else:
+            only_chunk, annotation, span_repairs, last_result = chunk_results[0]
+            chunk_summaries = [
+                {
+                    **only_chunk.audit_metadata(),
+                    "model_mention_count": len(annotation["mentions"]),
+                    "retained_mention_count": len(annotation["mentions"]),
+                    "discarded_overlap_mention_count": 0,
+                    "span_repair_count": len(span_repairs),
+                }
+            ]
+            response = dict(last_result["response"])
+            response["annotation"] = annotation
+
+        _validate_annotation_for_request(response, request)
         _append_jsonl(Path(output_responses_path), response)
-        usage = result["usage"]
-        _accumulate_usage(token_usage, usage)
-        _accumulate_usage(successful_token_usage, usage)
-        thinking = result["request_options"].get("thinking")
+        thinking = last_result["request_options"].get("thinking")
         audit = {
-            "schema_version": "text-ner-api-call-audit/1.2.0",
+            "schema_version": "text-ner-api-call-audit/1.3.0",
             "request_id": request["request_id"],
             "stage_id": request["stage_id"],
             "provider": settings.provider,
@@ -1130,20 +1547,40 @@ def run_api_batch(
             "model_version": settings.model_version,
             "endpoint_scope": endpoint_scope,
             "request_sha256": _request_sha256(request),
-            "response_id": result["response_id"],
-            "finish_reason": result["finish_reason"],
-            "content_normalization": result["content_normalization"],
-            "attempt_number": attempt_number,
-            "usage": usage,
+            "response_id": last_result["response_id"],
+            "response_ids": [
+                record["response_id"] for record in successful_call_records
+            ],
+            "finish_reason": last_result["finish_reason"],
+            "content_normalization": (
+                last_result["content_normalization"]
+                if len(successful_call_records) == 1
+                else "multiple_chunk_calls"
+            ),
+            "attempt_number": unit_model_calls,
+            "model_call_count": len(successful_call_records),
+            "usage": unit_success_usage,
             "span_grounding": {
-                "schema_version": "text-ner-span-grounding/1.1.0",
+                "schema_version": "text-ner-span-grounding/1.2.0",
                 "repair_count": len(span_repairs),
                 "repairs": span_repairs,
+            },
+            "chunking": {
+                "schema_version": "text-ner-mention-chunking-audit/1.0.0",
+                "applied": chunking_applied,
+                "policy": chunking_policy.audit_metadata(),
+                "original_character_count": len(parent_text),
+                "initial_chunk_count": len(initial_chunks),
+                "final_chunk_count": len(chunk_results),
+                "split_events": split_events,
+                "chunks": chunk_summaries,
+                "successful_calls": successful_call_records,
             },
             "thinking_mode": thinking.get("type")
             if isinstance(thinking, Mapping)
             else None,
             "credential_source": config["environment"]["api_key"],
+            "api_config_sha256": api_config_sha256,
             "credential_persisted": False,
             "raw_model_content_persisted": False,
         }
@@ -1156,15 +1593,29 @@ def run_api_batch(
             run_id=run_id,
             request_id=request["request_id"],
             text_unit_number=f"{attempted_requests}/{limit}",
-            call_number=f"{attempt_number}/{maximum_attempts}",
+            call_number=(
+                "parent_commit"
+                if chunking_applied
+                else (
+                    f"{successful_call_records[0]['attempt_number']}"
+                    f"/{maximum_attempts}"
+                )
+            ),
             status="success",
             mention_count=len(annotation["mentions"]),
             relation_count=len(annotation["relations"]),
             repair_count=len(span_repairs),
-            call_tokens=_sanitized_usage(usage).get("total_tokens", 0),
+            call_tokens=(
+                0 if chunking_applied else unit_success_usage["total_tokens"]
+            ),
             cumulative_tokens=token_usage["total_tokens"],
             changed_files=(
                 f"{Path(output_responses_path).name}, {Path(audit_path).name}"
+            ),
+            reason=(
+                f"merged {len(chunk_results)} chunks"
+                if chunking_applied
+                else ""
             ),
         )
         if (
@@ -1176,6 +1627,7 @@ def run_api_batch(
             progress_reporter(
                 f"[API] 成功 {successful_responses:,} | 失败 {failed_requests:,} | "
                 f"完成总数 {len(completed):,}/{len(requests):,} | "
+                f"本次模型调用 {api_attempts:,} | "
                 f"本次 tokens {token_usage['total_tokens']:,} | "
                 f"批次停止 {stop_reason or '否'}"
             )
@@ -1184,7 +1636,7 @@ def run_api_batch(
         if attempted_requests < limit:
             sleep(interval)
     return {
-        "schema_version": "text-ner-api-batch-summary/1.4.0",
+        "schema_version": "text-ner-api-batch-summary/1.5.0",
         "requests": len(requests),
         "already_completed": len(existing),
         "selection_mode": selection_mode,
@@ -1199,9 +1651,10 @@ def run_api_batch(
         ),
         "attempted_requests_this_run": attempted_requests,
         "model_calls_this_run": api_attempts,
+        "successful_model_calls_this_run": successful_model_calls,
         "successful_responses_this_run": successful_responses,
         "failed_requests_this_run": failed_requests,
-        "failed_attempts_this_run": api_attempts - successful_responses,
+        "failed_attempts_this_run": api_attempts - successful_model_calls,
         "completed_total": len(completed),
         "remaining": len(requests) - len(completed),
         "retries": retries,
@@ -1212,6 +1665,8 @@ def run_api_batch(
         "usage_this_run": token_usage,
         "successful_usage_this_run": successful_token_usage,
         "failure_audit_path": str(resolved_failure_audit_path),
+        "api_config_sha256": api_config_sha256,
+        "mention_chunking_policy": chunking_policy.audit_metadata(),
         "request_options": adapter.request_options,
         "provider": settings.provider,
         "model_name": settings.model,

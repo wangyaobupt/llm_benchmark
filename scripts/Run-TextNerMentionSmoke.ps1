@@ -87,6 +87,10 @@ if ($PilotTarget -gt 0) {
 else {
     Write-Host "Maximum text units this run: $MaximumRequests"
     Write-Host "Selection: $(if ($RetryFailuresOnly) { 'terminal failures only' } else { 'all pending' })"
+    if ($RetryFailuresOnly) {
+        Write-Host "Failure circuit breaker: $MaximumFailedRequests this run"
+        Write-Host "Token circuit breaker: $MaximumTotalTokens this run"
+    }
 }
 
 if ($RetryFailuresOnly -and -not (Test-Path -LiteralPath $failureAuditPath -PathType Leaf)) {
@@ -125,6 +129,12 @@ if ($PilotTarget -gt 0) {
 }
 else {
     $arguments += @('--maximum-requests', $MaximumRequests)
+    if ($RetryFailuresOnly) {
+        $arguments += @(
+            '--maximum-failed-requests', $MaximumFailedRequests,
+            '--maximum-total-tokens', $MaximumTotalTokens
+        )
+    }
 }
 if ($RetryFailuresOnly) {
     $arguments += @('--retry-failures-from', $failureAuditPath)
