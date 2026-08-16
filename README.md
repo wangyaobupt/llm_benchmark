@@ -59,9 +59,35 @@ LLM 评测、统计分析与报告
 
 原始归档始终保持不变；清洗、标准化、快照和题目均作为带版本与来源信息的派生产物保存。患者级数据按患者划分训练、开发和测试集合，避免同一患者跨集合泄漏。
 
+## 目录结构
+
+五类临床决策 MCQ 任务已整合到 `tasks/` 下统一管理；共享基础设施保留在仓库根。
+
+```text
+D:\Projects\llm_benchmark\
+├── tasks/                          # 五类临床决策 MCQ 任务（探索性原型，exploratory_unreviewed）
+│   ├── investigation_selection/    # 1. 检查检验选择（selectivity gold）
+│   ├── clinical_diagnosis/         # 2. 临床诊断（PSR gold）
+│   ├── treatment/                  # 3. 治疗处置（T1 开立 / T2 执行 / T3 手术）
+│   ├── referral/                   # 4. 转诊与科室选择（R1 services）
+│   └── discharge_followup/         # 5. 离院指导与随访（F1 文书轨，骨架）
+├── benchmark_common/               # 五维共享：条件归一化、统计门禁、通用任务框架
+├── data_pipeline/                  # 数据支路（清洗/标准化/文本 NER/聚合）
+├── evaluation_pipeline/            # 评测层工程链（split/snapshot/journey）
+├── config/                         # 协议与配置
+├── schemas/                        # JSON schema
+├── docs/                           # 设计文档与报告
+├── tests/                          # 测试
+└── scripts/                        # 工具脚本
+```
+
+每个任务目录自带 `README.md`（含 gold 语义、阈值、结果快照与运行命令）。任务间共享：`benchmark_common/`（条件归一化、统计门禁、通用任务框架）与 `tasks/investigation_selection/output/split/`（患者级 60/20/20 划分，其余四维复用）。所有产物当前均标记 `exploratory_unreviewed`，尚未冻结；见各任务 README 与 `docs/reports/execution-progress-p1-p5.md`。
+
 ## 当前进展
 
-截至 2026-08-13，项目已经完成 MIMIC 数据层的 100 例端到端清洗与确定性标准化验收，并完成患者级划分、住院边界、时间安全快照和文本双标工具的工程实现。当前状态是“工程基础设施基本就绪，但正式评测产物尚未形成”：检查检验选择协议仍是不可冻结的 draft，跨批归一化与文本 NER 的人工门禁尚未关闭，真实正式的 split、journey、snapshot、gold、MCQ 和模型评测结果均不存在。
+截至 2026-08-15，MIMIC 数据层已从 100 例验收样本推进到 1,000 次住院的正式全队列：清洗与确定性标准化通过完整验收并发布 workflow manifest，无损事件聚合把标准化事件重新连接回完整原文与源行血缘，文本事实支路扩展到 1000 例全来源并完成通用 API 接入与多模型小批试点。但正式评测产物仍未形成：检查检验选择协议仍不可冻结，跨批归一化与文本 NER 的人工门禁尚未关闭，真实正式的 split、journey、snapshot、gold、MCQ 和模型评测结果均不存在。已进行的模型调用（DeepSeek/Qwen/Bailian 等）均为 `unreviewed_model_output`，不能替代人工 gold，也不能作为经过验证的实验结果。
+
+> **探索性原型（与正式链路并行）**：五类临床决策 MCQ 的探索性原型已整合在 `tasks/` 下（检查/诊断/治疗/转诊/离院），直接消费 normalized events 出题并做患者级 60/20/20 划分验证与 DeepSeek 模型评测，全部产物标记 `exploratory_unreviewed`，用于预研 gold 语义与阈值，不计入正式评测结果。详见 `docs/reports/execution-progress-p1-p5.md` 与各任务 README。
 
 | 阶段 | 状态 | 已完成的证据 | 尚未完成 |
 |---|---|---|---|
@@ -69,10 +95,11 @@ LLM 评测、统计分析与报告
 | 原始归档 EDA | 已完成 | 已完成全量流式分析，覆盖32张表、原始时间字段、疾病谱、模块覆盖和五类题型数据源准备度 | 后续数据层变化需继续以正式 metrics 和 manifest 对账 |
 | 字典解码与 POE 解析 | 已完成 | 已实现可携带的字典解码与 POE timeline；保留源字段、原生键和可逆追溯关系 | 新输入版本出现时重新执行合同验证 |
 | 临床事件清洗代码 | 33表清洗规则已实现 | 已明确33张输入表的封闭式来源范围与处理规则：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 在扩大样本前继续保持输入范围、处理规则、回归基线和来源对账一致 |
-| 100例 cleaned events | 已通过全目录独立验收 | 113,616条目录输入已按100,843条raw与12,773条derived、65,811条event与43,415条support及4,390条context完整对账；六类support均以原生键关联，未关联为0；产生66,652条accepted事件和43条rejected记录，`can_start_normalization = true` | 该结论只覆盖当前100例验收样本，不能表述为全队列清洗完成 |
-| 100例确定性标准化 | 已通过独立验收 | 66,652条 normalized events、3,895条 mappings 和1,001条 review queue 已正式发布；batch size 5,000与777复跑的run ID、三份Parquet哈希、计数和状态分布一致；阻断项为0 | 该结论只证明当前100例流水线可复现，不代表全队列已经完成；unresolved 继续进入字典、原生编码或人工审核流程 |
-| 跨批归一化人工质量门禁 | 工具与试审队列就绪，人工结果为空 | 两批输出已汇总为1,422,220条 normalized events 和16,860个唯一 mapping key；映射冲突为0，已固定抽取100条人工试审记录 | 人工审阅日志尚未形成；必须先判定映射错误、歧义和目录粒度，必要时修正规则并重跑受影响批次，之后才能冻结首任务候选目录 |
-| 文本事实支路 | 双标包与本地工具就绪，人工结果为空 | 200份pilot按患者严格分为50份calibration和150份锁定evaluation，患者交叉0；calibration为25条ED主诉＋25份放射报告并覆盖全部9个radiology strata；A/B各171个相同任务、顺序不同；已实现仅本机访问、角色隔离、追加式记录和裁决界面，模型调用0次 | A、B和裁决日志目前均为0；两名标注者需独立完成calibration，由第三人裁决并计算一致性，通过预设门禁后才能解锁evaluation |
+| 1000例正式全队列（清洗＋标准化） | 已通过完整验收并发布 workflow manifest | 从 39,036 条冠心病住院总体按固定种子无放回抽样 1,000 次住院（964 名患者）；728,199 条事件源行清洗为 757,036 条事件、218 条拒绝；12,786 个唯一术语/单位组合、2,491 条人工复核队列；batch size 5000 与 777 复跑的 run ID 与 Parquet 哈希一致；`can_start_text_ner = true` | 该结论只覆盖当前 1,000 次住院样本，不代表全队列完成；2,540 条归一化复核仍 pending，临床语义尚未人工确认 |
+| 无损事件聚合 | 已通过验收 | 把标准化事件重新连接回完整原文与源行血缘：1,241,918 条源记录、757,036 条处理后事件、43,551 条自由文本源记录；`processed_events`/`raw_source_records`/`traceable_events` 三份 Parquet 与质量报告全部 fail-closed 校验通过 | 作为文本 NER 与 patient journey 回顾支路的唯一正文入口，不再回读 source JSONL |
+| 跨批归一化人工质量门禁 | 工具与试审队列就绪，人工试审进行中（18/100） | 两批输出已汇总为1,422,220条 normalized events 和16,860个唯一 mapping key；映射冲突为0，已固定抽取100条人工试审并实现本机只读＋追加式审阅界面 | 已写入的18条决定使用占位 reviewer，不能视为完成；100条试审与首任务候选目录判定（`General Xray` 粒度、`Blood tests` 拆分、`Telemetry` 归属等）尚未形成，之后才能冻结候选目录 |
+| 文本事实支路（1000例全来源接口） | 接口验收通过；人工双标为空 | 以已验收 aggregation 为唯一输入，覆盖 lab/micro comments、ED 主诉、放射报告与出院小结共 64,509 个文本单元；通用 OpenAI-compatible API、自包含 prompt、确定性 span grounding、分块与断点续跑均已实现；200份pilot 仍按50 calibration/150 evaluation 患者隔离，A/B各171个相同任务、顺序不同 | 人工 A、B 与裁决日志均为0；出院小结（933份，100例审计中占自由文本字符70%）按 `post_hoc` 排除出前瞻性快照，需独立 event-frame 支路；模型输出尚未人工抽样验收 |
+| 文本 NER v2 与模型试点 | 干净重做版已实现，多模型 100–300 例试点完成 | v2 修复了 surface 偏移循环重试与无界递归分块两类阻断问题，改为 Python 确定性回填 span 与首次调用前确定性分块；37,790 份文档、41,902 分块；DeepSeek 100例 5,666 实体/309 关系、Qwen 100例 2,716 实体/76 关系、Bailian smoke 5例，以及干净 v2 累计 300 例 12,596 实体/919 关系均产出 sidecar | 试点仅覆盖 100–300 份文档，远未完成 37,790 全量；所有输出均为 `unreviewed_model_output`，向外部服务发送受限文本的合规确认与人工验收仍未完成 |
 | 首个检查检验任务协议 | 机器可校验的 draft，尚不可冻结 | 协议、配置、schema、34个固定reason code及fail-closed验证器已实现；当前配置可通过结构校验，但`freeze_ready = false` | 明确患者划分比例、决策时间窗、候选/条件/比较目录版本、缺失与并列策略、统计阈值、bootstrap和稳定性阈值，并补齐输入与代码审计哈希后生成`protocol-lock.json` |
 | 患者级正式划分 | 合同与认证实现完成，尚无正式产物 | 已实现患者原子划分、HMAC公开引用、受保护绑定、工程审计集隔离、输入漂移检测和split角色门禁 | 协议中的划分比例尚未决定；当前通过的是合成测试，尚未在正式患者集合生成可发布split manifest |
 | Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界 | 当前通过的是合成测试，尚无真实正式boundary manifest；仍需实现state、decision node、evidence edge及journey→node→evidence→raw的完整追溯DAG |
@@ -80,14 +107,14 @@ LLM 评测、统计分析与报告
 | MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
 | LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |
 
-当前唯一的关键路径是：关闭首个检查检验选择任务的上游人工质量门禁和科学协议门禁，再生成第一批真实评测产物。下一步不应继续横向增加代码模块。
+当前唯一的关键路径仍是：关闭首个检查检验选择任务的上游人工质量门禁（跨批归一化100条试审＋文本NER人工A/B校准）和科学协议门禁，再生成第一批真实评测产物。文本NER的模型试点可以与人工门禁并行，但它产出的 `unreviewed_model_output` 不能反向替代人工 gold，也不能跳过协议冻结。
 
 优先执行顺序是：
 
-1. **最高优先级：完成跨批归一化的100条人工试审。** 这是冻结检查检验候选目录前的最后一个上游质量门禁；记录错误类型、歧义和目录粒度问题，必要时修正规则并重跑受影响批次；
+1. **最高优先级：完成跨批归一化的100条人工试审。** 这是冻结检查检验候选目录前的最后一个上游质量门禁；记录错误类型、歧义和目录粒度问题，必要时修正规则并重跑受影响批次（当前仅18条、reviewer 为占位值，须以稳定 reviewer 身份重做）；
 2. 使用人工试审结果确定候选目录版本，同时补齐患者划分比例、决策时间窗、统计与验证阈值等科学参数，验证`freeze_ready = true`后生成并固定`protocol-lock.json`；
 3. 在少量development患者上正式生成patient split → encounter boundary → decision snapshot，输出manifest、来源哈希和未来信息泄漏审计；在这一步之后再实现完整的state/node/evidence-edge DAG和单一构念gold；
-4. 文本NER calibration可与前两步并行执行，但不能因工具和任务包已经生成就视为人工gold完成；必须完成A/B独立标注、第三人裁决和一致性门禁后，才能解锁evaluation；
+4. 文本NER calibration可与前两步并行执行，但不能因工具、任务包或模型试点已经生成就视为人工gold完成；必须完成A/B独立标注、第三人裁决和一致性门禁后，才能解锁evaluation；出院小结需按 post_hoc 支路单独建立 event-frame 协议，不得进入前瞻性快照；
 5. 将首个检查检验任务闭环到MCQ生成、自动门禁和临床审核；首个闭环通过后，再逐项扩展诊断、治疗、去向和离院计划，不同时铺开五条未经验证的实现线；
 6. MIMIC方法学冻结后，在香港RWD中重新完成数据合同、时间语义、本体、行为gold和规范gold的本地化，并开展外部验证。
 

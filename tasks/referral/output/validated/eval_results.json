@@ -1,0 +1,510 @@
+{
+  "accuracy": {
+    "total_scored": 33,
+    "total_errors": 0,
+    "accuracy": 0.6061,
+    "by_class": {
+      "referral": {
+        "n": 33,
+        "accuracy": 0.6061
+      }
+    }
+  },
+  "results": [
+    {
+      "question_id": "q_referral_0004",
+      "class": "referral",
+      "condition": "abdominal pain",
+      "gold": "surgery",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0005",
+      "class": "referral",
+      "condition": "abdominal pain, nausea/vomiting",
+      "gold": "surgery",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0010",
+      "class": "referral",
+      "condition": "abnormal labs",
+      "gold": "oncology medicine",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0014",
+      "class": "referral",
+      "condition": "altered mental status",
+      "gold": "neurology medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0020",
+      "class": "referral",
+      "condition": "bradycardia",
+      "gold": "cardiac medicine",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0022",
+      "class": "referral",
+      "condition": "chest pain",
+      "gold": "cardiac medicine",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0029",
+      "class": "referral",
+      "condition": "chest pain, palpitations",
+      "gold": "cardiac medicine",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0034",
+      "class": "referral",
+      "condition": "confusion",
+      "gold": "neurology medicine",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0036",
+      "class": "referral",
+      "condition": "diarrhea",
+      "gold": "oncology medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0039",
+      "class": "referral",
+      "condition": "dyspnea on exertion",
+      "gold": "cardiac medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0043",
+      "class": "referral",
+      "condition": "dyspnea, leg swelling",
+      "gold": "cardiac medicine",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0055",
+      "class": "referral",
+      "condition": "fall, subdural hematoma",
+      "gold": "neurosurgery",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0063",
+      "class": "referral",
+      "condition": "head bleed",
+      "gold": "neurosurgery",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0064",
+      "class": "referral",
+      "condition": "hematuria",
+      "gold": "urology",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0065",
+      "class": "referral",
+      "condition": "hemoptysis",
+      "gold": "trauma surgery",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0071",
+      "class": "referral",
+      "condition": "left foot pain",
+      "gold": "vascular surgery",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0074",
+      "class": "referral",
+      "condition": "left leg pain",
+      "gold": "vascular surgery",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0076",
+      "class": "referral",
+      "condition": "leg swelling",
+      "gold": "cardiac medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0085",
+      "class": "referral",
+      "condition": "palpitations",
+      "gold": "cardiac medicine",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0089",
+      "class": "referral",
+      "condition": "r/o stroke",
+      "gold": "neurology medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0092",
+      "class": "referral",
+      "condition": "right foot pain",
+      "gold": "vascular surgery",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0094",
+      "class": "referral",
+      "condition": "right leg pain",
+      "gold": "vascular surgery",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0095",
+      "class": "referral",
+      "condition": "right lower quadrant abdominal pain",
+      "gold": "surgery",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0097",
+      "class": "referral",
+      "condition": "right upper quadrant abdominal pain",
+      "gold": "surgery",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0098",
+      "class": "referral",
+      "condition": "right weakness",
+      "gold": "neurology medicine",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0101",
+      "class": "referral",
+      "condition": "seizure",
+      "gold": "neurology medicine",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0103",
+      "class": "referral",
+      "condition": "slurred speech",
+      "gold": "neurology medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0104",
+      "class": "referral",
+      "condition": "small bowel obstruction",
+      "gold": "surgery",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0106",
+      "class": "referral",
+      "condition": "stroke",
+      "gold": "neurology medicine",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0107",
+      "class": "referral",
+      "condition": "subarachnoid hemorrhage",
+      "gold": "neurosurgery",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0108",
+      "class": "referral",
+      "condition": "subdural hematoma",
+      "gold": "neurosurgery",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0111",
+      "class": "referral",
+      "condition": "urinary retention",
+      "gold": "urology",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_referral_0115",
+      "class": "referral",
+      "condition": "wound eval",
+      "gold": "vascular surgery",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    }
+  ]
+}

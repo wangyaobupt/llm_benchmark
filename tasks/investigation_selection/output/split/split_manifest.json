@@ -1,0 +1,24 @@
+{
+  "status": "exploratory_unreviewed",
+  "method": "sha256-ranked-largest-remainder",
+  "seed": "exploratory-full-cohort-split-2026",
+  "ratios": {
+    "development": 0.6,
+    "validation": 0.2,
+    "final_test": 0.2
+  },
+  "counts": {
+    "development": {
+      "n_subjects": 12082,
+      "n_admissions": 23626
+    },
+    "validation": {
+      "n_subjects": 4027,
+      "n_admissions": 7683
+    },
+    "final_test": {
+      "n_subjects": 4027,
+      "n_admissions": 7727
+    }
+  }
+}

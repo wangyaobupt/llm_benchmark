@@ -1,0 +1,278 @@
+{
+  "accuracy": {
+    "total_scored": 17,
+    "total_errors": 0,
+    "accuracy": 0.3529,
+    "by_class": {
+      "clinical_order": {
+        "n": 6,
+        "accuracy": 0.1667
+      },
+      "imaging": {
+        "n": 6,
+        "accuracy": 0.1667
+      },
+      "laboratory": {
+        "n": 5,
+        "accuracy": 0.8
+      }
+    }
+  },
+  "results": [
+    {
+      "question_id": "q_expl_0001",
+      "class": "imaging",
+      "condition": "abdominal pain",
+      "gold": "Ultrasound",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0002",
+      "class": "imaging",
+      "condition": "altered mental status",
+      "gold": "MRI",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0003",
+      "class": "imaging",
+      "condition": "chest pain",
+      "gold": "Nuclear Med",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0004",
+      "class": "imaging",
+      "condition": "fall",
+      "gold": "CT Scan",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0005",
+      "class": "imaging",
+      "condition": "sdh",
+      "gold": "CT Scan",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0006",
+      "class": "imaging",
+      "condition": "weakness",
+      "gold": "MRI",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 80,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0007",
+      "class": "clinical_order",
+      "condition": "bright red blood per rectum",
+      "gold": "Blood tests",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 90,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0008",
+      "class": "clinical_order",
+      "condition": "dyspnea",
+      "gold": "Echo",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0009",
+      "class": "clinical_order",
+      "condition": "dyspnea on exertion",
+      "gold": "Echo",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 90,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0010",
+      "class": "clinical_order",
+      "condition": "gi bleed",
+      "gold": "Blood tests",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0011",
+      "class": "clinical_order",
+      "condition": "nstemi",
+      "gold": "Echo",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0012",
+      "class": "clinical_order",
+      "condition": "sdh",
+      "gold": "Blood tests",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0013",
+      "class": "laboratory",
+      "condition": "abdominal pain",
+      "gold": "pancreatic",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0014",
+      "class": "laboratory",
+      "condition": "altered mental status",
+      "gold": "thyroid",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0015",
+      "class": "laboratory",
+      "condition": "chest pain",
+      "gold": "cardiac_markers",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0016",
+      "class": "laboratory",
+      "condition": "nausea/vomiting",
+      "gold": "pancreatic",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_expl_0017",
+      "class": "laboratory",
+      "condition": "nstemi",
+      "gold": "cardiac_markers",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_panel_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 1
+      }
+    }
+  ]
+}

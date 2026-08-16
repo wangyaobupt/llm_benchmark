@@ -1,0 +1,30 @@
+{
+  "events_sha256": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf",
+  "split_sha256": "80f9b4e213102e40abedf86b6c7fa5fe6498ba69d22222e4bc1f5d6e79471846",
+  "summary": {
+    "n_rules": 224,
+    "n_checked": 109,
+    "n_condition_absent": 0,
+    "n_insufficient_support": 115,
+    "n_no_eligible_candidate": 0,
+    "rank1_concordance": 0.7706,
+    "top3_concordance": 0.9541,
+    "by_class": {
+      "imaging": {
+        "n_checked": 43,
+        "rank1_concordance": 0.7907,
+        "top3_concordance": 1.0
+      },
+      "clinical_order": {
+        "n_checked": 23,
+        "rank1_concordance": 0.913,
+        "top3_concordance": 1.0
+      },
+      "laboratory": {
+        "n_checked": 43,
+        "rank1_concordance": 0.6744,
+        "top3_concordance": 0.8837
+      }
+    }
+  }
+}

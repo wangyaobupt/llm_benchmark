@@ -1,0 +1,115 @@
+{"condition": "aaa", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 4}
+{"condition": "abdominal distention", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 5}
+{"condition": "abdominal distention, abdominal pain", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 1}
+{"condition": "abdominal pain", "gold_candidate": "surgery", "status": "checked", "validation_support": 217, "gold_rank": 1, "top_candidate_validation": "surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abdominal pain, nausea/vomiting", "gold_candidate": "surgery", "status": "checked", "validation_support": 27, "gold_rank": 1, "top_candidate_validation": "surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abdominal pain, nausea/vomiting/diarrhea", "gold_candidate": "surgery", "status": "checked", "validation_support": 11, "gold_rank": 3, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "abdominal pain, small bowel obstruction", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 6}
+{"condition": "abdominal pain, transfer", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 3}
+{"condition": "abdominal pain, vomiting", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 8}
+{"condition": "abnormal labs", "gold_candidate": "oncology medicine", "status": "checked", "validation_support": 95, "gold_rank": 1, "top_candidate_validation": "oncology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abnormal sodium level", "gold_candidate": "oncology medicine", "status": "insufficient_support", "validation_support": 2}
+{"condition": "abscess", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 4}
+{"condition": "altered level of consciousness", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 7}
+{"condition": "altered mental status", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 149, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "aphasia", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "atrial fibrillation", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 4}
+{"condition": "back pain, fall", "gold_candidate": "trauma", "status": "insufficient_support", "validation_support": 2}
+{"condition": "bilateral leg swelling, dyspnea", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 6}
+{"condition": "bleeding fistula", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 2}
+{"condition": "bradycardia", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 25, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "bradycardia, chest pain", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "chest pain", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 905, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "chest pain, dyspnea", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 114, "gold_rank": 2, "top_candidate_validation": "cardiac surgery", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "chest pain, elevated troponin", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 13, "gold_rank": 2, "top_candidate_validation": "cardiac surgery", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "chest pain, hypotension", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 5}
+{"condition": "chest pain, left arm pain", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "chest pain, left shoulder pain", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "chest pain, lightheaded", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 1}
+{"condition": "chest pain, palpitations", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "chest pain, presyncope", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 1}
+{"condition": "chest pain, tachycardia", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 4}
+{"condition": "chest tightness", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 6}
+{"condition": "code stroke", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 7}
+{"condition": "confusion", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 30, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "deep vein thrombosis", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 2}
+{"condition": "diarrhea", "gold_candidate": "oncology medicine", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "oncology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "dizziness", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 49, "gold_rank": 2, "top_candidate_validation": "trauma surgery", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "dizzy", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 7}
+{"condition": "dyspnea on exertion", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 65, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "dyspnea on exertion, leg swelling", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 5}
+{"condition": "dyspnea, elevated troponin", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 5}
+{"condition": "dyspnea, fall", "gold_candidate": "trauma", "status": "insufficient_support", "validation_support": 2}
+{"condition": "dyspnea, leg swelling", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 21, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "dyspnea, pedal edema", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 1}
+{"condition": "dyspnea, tachycardia", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 6}
+{"condition": "dyspnea, weakness", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 13, "gold_rank": 3, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "elevated troponin", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "epigastric pain", "gold_candidate": "surgery", "status": "checked", "validation_support": 18, "gold_rank": null, "top_candidate_validation": "cardiac medicine", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "fall, intracranial hemorrhage", "gold_candidate": "neurosurgery", "status": "insufficient_support", "validation_support": 4}
+{"condition": "fall, left hip fracture", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 4}
+{"condition": "fall, left hip pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 9}
+{"condition": "fall, left knee pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 2}
+{"condition": "fall, right hip fracture", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 2}
+{"condition": "fall, right hip pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 7}
+{"condition": "fall, subdural hematoma", "gold_candidate": "neurosurgery", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "neurosurgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "fall, syncope", "gold_candidate": "trauma", "status": "insufficient_support", "validation_support": 1}
+{"condition": "fall, weakness", "gold_candidate": "trauma", "status": "checked", "validation_support": 18, "gold_rank": null, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "fever", "gold_candidate": "oncology medicine", "status": "checked", "validation_support": 94, "gold_rank": 2, "top_candidate_validation": "urology", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "fever, influenza-like illness", "gold_candidate": "oncology medicine", "status": "insufficient_support", "validation_support": 6}
+{"condition": "fever, lethargy", "gold_candidate": "oncology medicine", "status": "condition_absent"}
+{"condition": "fever, weakness", "gold_candidate": "oncology medicine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "foot pain", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 3}
+{"condition": "head bleed", "gold_candidate": "neurosurgery", "status": "checked", "validation_support": 10, "gold_rank": 1, "top_candidate_validation": "neurosurgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hematuria", "gold_candidate": "urology", "status": "checked", "validation_support": 28, "gold_rank": 1, "top_candidate_validation": "urology", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hemoptysis", "gold_candidate": "trauma surgery", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "trauma surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "icd eval", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "jaw pain", "gold_candidate": "cardiac medicine", "status": "condition_absent"}
+{"condition": "left arm numbness", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 2}
+{"condition": "left arm swelling", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 2}
+{"condition": "left flank pain", "gold_candidate": "urology", "status": "insufficient_support", "validation_support": 7}
+{"condition": "left foot pain", "gold_candidate": "vascular surgery", "status": "checked", "validation_support": 14, "gold_rank": 1, "top_candidate_validation": "vascular surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "left foot pain, wound eval", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 2}
+{"condition": "left knee pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 4}
+{"condition": "left leg pain", "gold_candidate": "vascular surgery", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "vascular surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "left weakness", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "leg swelling", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 12, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "leg weakness", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "lower back pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 7}
+{"condition": "lower extremity injury", "gold_candidate": "orthopedics", "status": "condition_absent"}
+{"condition": "lower extremity pain", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 9}
+{"condition": "motor vehicle collision", "gold_candidate": "trauma", "status": "insufficient_support", "validation_support": 9}
+{"condition": "ms changes", "gold_candidate": "oncology medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "nstemi", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 43, "gold_rank": 2, "top_candidate_validation": "cardiac surgery", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "nstemi, transfer", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 3}
+{"condition": "palpitations", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 23, "gold_rank": 1, "top_candidate_validation": "cardiac medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "ped struck", "gold_candidate": "trauma", "status": "insufficient_support", "validation_support": 4}
+{"condition": "pneumonia", "gold_candidate": "cardiac surgery", "status": "checked", "validation_support": 21, "gold_rank": null, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "pulmonary embolism", "gold_candidate": "oncology medicine", "status": "insufficient_support", "validation_support": 4}
+{"condition": "r/o stroke", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 10, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right arm pain", "gold_candidate": "surgery", "status": "insufficient_support", "validation_support": 4}
+{"condition": "right flank pain", "gold_candidate": "urology", "status": "checked", "validation_support": 12, "gold_rank": null, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "right foot pain", "gold_candidate": "vascular surgery", "status": "checked", "validation_support": 17, "gold_rank": 1, "top_candidate_validation": "vascular surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right hip pain", "gold_candidate": "orthopedics", "status": "insufficient_support", "validation_support": 6}
+{"condition": "right leg pain", "gold_candidate": "vascular surgery", "status": "checked", "validation_support": 12, "gold_rank": 1, "top_candidate_validation": "vascular surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right lower quadrant abdominal pain", "gold_candidate": "surgery", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right shoulder pain", "gold_candidate": "orthopedics", "status": "condition_absent"}
+{"condition": "right upper quadrant abdominal pain", "gold_candidate": "surgery", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right weakness", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "s/p arrest", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 4}
+{"condition": "s/p cardiac arrest", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 5}
+{"condition": "seizure", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 42, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "shortness of breath", "gold_candidate": "cardiac surgery", "status": "checked", "validation_support": 105, "gold_rank": 3, "top_candidate_validation": "oncology medicine", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "slurred speech", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 14, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "small bowel obstruction", "gold_candidate": "surgery", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "surgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "stemi", "gold_candidate": "cardiac medicine", "status": "checked", "validation_support": 38, "gold_rank": 2, "top_candidate_validation": "cardiac surgery", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "stroke", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 36, "gold_rank": 1, "top_candidate_validation": "neurology medicine", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "subarachnoid hemorrhage", "gold_candidate": "neurosurgery", "status": "checked", "validation_support": 13, "gold_rank": 1, "top_candidate_validation": "neurosurgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "subdural hematoma", "gold_candidate": "neurosurgery", "status": "checked", "validation_support": 14, "gold_rank": 1, "top_candidate_validation": "neurosurgery", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "toe pain", "gold_candidate": "vascular surgery", "status": "insufficient_support", "validation_support": 5}
+{"condition": "unresponsive", "gold_candidate": "neurology medicine", "status": "checked", "validation_support": 26, "gold_rank": null, "top_candidate_validation": "cardiac surgery", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "urinary retention", "gold_candidate": "urology", "status": "checked", "validation_support": 10, "gold_rank": 1, "top_candidate_validation": "urology", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "visual changes", "gold_candidate": "neurology medicine", "status": "insufficient_support", "validation_support": 7}
+{"condition": "vomiting", "gold_candidate": "surgery", "status": "checked", "validation_support": 10, "gold_rank": 4, "top_candidate_validation": "vascular surgery", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "vtach", "gold_candidate": "cardiac medicine", "status": "insufficient_support", "validation_support": 2}
+{"condition": "wound eval", "gold_candidate": "vascular surgery", "status": "checked", "validation_support": 61, "gold_rank": 1, "top_candidate_validation": "vascular surgery", "concordant_rank1": true, "concordant_top3": true}

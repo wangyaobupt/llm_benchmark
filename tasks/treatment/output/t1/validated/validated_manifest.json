@@ -1,0 +1,8 @@
+{
+  "status": "exploratory_unreviewed",
+  "n_development_questions": 90,
+  "n_rank1_validated": 30,
+  "n_top3_validated": 39,
+  "n_dropped_uncheckable": 44,
+  "n_dropped_discordant": 7
+}

@@ -1,0 +1,375 @@
+{
+  "accuracy": {
+    "total_scored": 24,
+    "total_errors": 0,
+    "accuracy": 0.875,
+    "by_class": {
+      "treatment_t2": {
+        "n": 24,
+        "accuracy": 0.875
+      }
+    }
+  },
+  "results": [
+    {
+      "question_id": "q_treatment_t2_0004",
+      "class": "treatment_t2",
+      "condition": "abdominal pain, nausea/vomiting",
+      "gold": "antiemetic",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0005",
+      "class": "treatment_t2",
+      "condition": "abdominal pain, nausea/vomiting/diarrhea",
+      "gold": "antiemetic",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 92,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0015",
+      "class": "treatment_t2",
+      "condition": "bright red blood per rectum",
+      "gold": "ppi",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0017",
+      "class": "treatment_t2",
+      "condition": "chest pain",
+      "gold": "nitrate",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0030",
+      "class": "treatment_t2",
+      "condition": "cough",
+      "gold": "bronchodilator",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0031",
+      "class": "treatment_t2",
+      "condition": "cough, dyspnea",
+      "gold": "bronchodilator",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0032",
+      "class": "treatment_t2",
+      "condition": "dyspnea on exertion",
+      "gold": "diuretic",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0036",
+      "class": "treatment_t2",
+      "condition": "dyspnea, leg swelling",
+      "gold": "diuretic",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0047",
+      "class": "treatment_t2",
+      "condition": "fever",
+      "gold": "antibiotic",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 80,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0053",
+      "class": "treatment_t2",
+      "condition": "hypoglycemia",
+      "gold": "antidiabetic",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 83,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0055",
+      "class": "treatment_t2",
+      "condition": "influenza-like illness",
+      "gold": "antibiotic",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0056",
+      "class": "treatment_t2",
+      "condition": "intracranial hemorrhage",
+      "gold": "anticonvulsant",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0060",
+      "class": "treatment_t2",
+      "condition": "melena",
+      "gold": "ppi",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0061",
+      "class": "treatment_t2",
+      "condition": "nausea/vomiting",
+      "gold": "antiemetic",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0062",
+      "class": "treatment_t2",
+      "condition": "nausea/vomiting/diarrhea",
+      "gold": "antiemetic",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 89,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0063",
+      "class": "treatment_t2",
+      "condition": "nstemi",
+      "gold": "nitrate",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0065",
+      "class": "treatment_t2",
+      "condition": "seizure",
+      "gold": "anticonvulsant",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0066",
+      "class": "treatment_t2",
+      "condition": "slurred speech",
+      "gold": "anticonvulsant",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": false,
+      "usage": {
+        "prompt_tokens": 86,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0069",
+      "class": "treatment_t2",
+      "condition": "subarachnoid hemorrhage",
+      "gold": "anticonvulsant",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0070",
+      "class": "treatment_t2",
+      "condition": "subdural hematoma",
+      "gold": "anticonvulsant",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 88,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0071",
+      "class": "treatment_t2",
+      "condition": "syncope",
+      "gold": "antiarrhythmic",
+      "correct_letter": "B",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "B",
+      "parsed_letter": "B",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 85,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0072",
+      "class": "treatment_t2",
+      "condition": "tachycardia",
+      "gold": "antiarrhythmic",
+      "correct_letter": "C",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "C",
+      "parsed_letter": "C",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 84,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0075",
+      "class": "treatment_t2",
+      "condition": "vomiting",
+      "gold": "antiemetic",
+      "correct_letter": "D",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "D",
+      "parsed_letter": "D",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 82,
+        "completion_tokens": 1
+      }
+    },
+    {
+      "question_id": "q_treatment_t2_0077",
+      "class": "treatment_t2",
+      "condition": "wound eval",
+      "gold": "antibiotic",
+      "correct_letter": "A",
+      "gold_basis": "behavioral_most_selective_fdr",
+      "model_answer": "A",
+      "parsed_letter": "A",
+      "correct": true,
+      "usage": {
+        "prompt_tokens": 81,
+        "completion_tokens": 1
+      }
+    }
+  ]
+}

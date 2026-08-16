@@ -1,0 +1,12 @@
+{
+  "events_sha256": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf",
+  "split_sha256": "80f9b4e213102e40abedf86b6c7fa5fe6498ba69d22222e4bc1f5d6e79471846",
+  "summary": {
+    "n_rules": 94,
+    "n_checked": 34,
+    "n_condition_absent": 1,
+    "n_insufficient": 32,
+    "rank1_concordance": 0.7059,
+    "top3_concordance": 0.7941
+  }
+}

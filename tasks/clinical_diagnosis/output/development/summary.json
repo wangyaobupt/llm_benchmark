@@ -1,0 +1,5771 @@
+{
+  "status": "exploratory_unreviewed",
+  "task": "clinical_diagnosis",
+  "gold_semantics": "psr",
+  "split_role": "development",
+  "events_path": "G:\\Projects\\llm_benchmark\\data\\derived\\coronary_all_three_modules_full\\event_pipeline\\normalization\\normalized_events.parquet",
+  "events_sha256": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf",
+  "split_path": "D:\\Projects\\llm_benchmark\\investigation_selection\\output\\split\\subject_split.parquet",
+  "split_sha256": "80f9b4e213102e40abedf86b6c7fa5fe6498ba69d22222e4bc1f5d6e79471846",
+  "admissions_total": 23626,
+  "subjects_total": 12082,
+  "admissions_with_condition": 23454,
+  "n_gold_patterns": 94,
+  "n_questions": 94,
+  "gold_patterns": [
+    {
+      "class": "diagnosis",
+      "condition": "abdominal pain",
+      "condition_support": 498,
+      "gold_candidate": "acute pancreatitis",
+      "gold_share": 0.0482,
+      "gold_selectivity": 19.83,
+      "gold_psr": 2.199,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute pancreatitis",
+          "n_adm": 24,
+          "share": 0.0482,
+          "selectivity": 19.83,
+          "psr": 2.199
+        },
+        {
+          "candidate": "diverticulitis of colon",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 21.866,
+          "psr": 1.115
+        },
+        {
+          "candidate": "calculus of gallbladder with acute cholecystitis, without mention of obstruction",
+          "n_adm": 11,
+          "share": 0.0221,
+          "selectivity": 25.903,
+          "psr": 1.056
+        },
+        {
+          "candidate": "constipation",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 12.245,
+          "psr": 0.625
+        },
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 10.037,
+          "psr": 0.512
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abdominal pain, dyspnea",
+      "condition_support": 20,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.45,
+      "gold_selectivity": 5.104,
+      "gold_psr": 3.902,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.45,
+          "selectivity": 5.104,
+          "psr": 3.902
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abdominal pain, fever",
+      "condition_support": 26,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3462,
+      "gold_selectivity": 5.978,
+      "gold_psr": 3.516,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 9,
+          "share": 0.3462,
+          "selectivity": 5.978,
+          "psr": 3.516
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abdominal pain, nausea/vomiting",
+      "condition_support": 66,
+      "gold_candidate": "viral intestinal infection",
+      "gold_share": 0.1212,
+      "gold_selectivity": 67.688,
+      "gold_psr": 13.144,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "viral intestinal infection",
+          "n_adm": 8,
+          "share": 0.1212,
+          "selectivity": 67.688,
+          "psr": 13.144
+        },
+        {
+          "candidate": "acute pancreatitis",
+          "n_adm": 5,
+          "share": 0.0758,
+          "selectivity": 31.172,
+          "psr": 2.362
+        },
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 5,
+          "share": 0.0758,
+          "selectivity": 29.128,
+          "psr": 2.207
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal ekg",
+      "condition_support": 21,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.381,
+      "gold_selectivity": 6.932,
+      "gold_psr": 4.23,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.381,
+          "selectivity": 6.932,
+          "psr": 4.23
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal ekg, chest pain",
+      "condition_support": 30,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.4333,
+      "gold_selectivity": 7.885,
+      "gold_psr": 6.677,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 13,
+          "share": 0.4333,
+          "selectivity": 7.885,
+          "psr": 6.677
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal labs",
+      "condition_support": 233,
+      "gold_candidate": "acute kidney failure",
+      "gold_share": 0.2618,
+      "gold_selectivity": 12.713,
+      "gold_psr": 9.172,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 61,
+          "share": 0.2618,
+          "selectivity": 12.713,
+          "psr": 9.172
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 19,
+          "share": 0.0815,
+          "selectivity": 0.925,
+          "psr": 0.164
+        },
+        {
+          "candidate": "acute posthemorrhagic anemia",
+          "n_adm": 5,
+          "share": 0.0215,
+          "selectivity": 6.371,
+          "psr": 0.137
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.0601,
+          "selectivity": 1.038,
+          "psr": 0.125
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.0215,
+          "selectivity": 0.39,
+          "psr": 0.008
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal labs, dyspnea",
+      "condition_support": 22,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.3636,
+      "gold_selectivity": 4.124,
+      "gold_psr": 2.403,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.3636,
+          "selectivity": 4.124,
+          "psr": 2.403
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal labs, hyperkalemia",
+      "condition_support": 14,
+      "gold_candidate": "hyperkalemia",
+      "gold_share": 0.4286,
+      "gold_selectivity": 287.192,
+      "gold_psr": 160.134,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "hyperkalemia",
+          "n_adm": 6,
+          "share": 0.4286,
+          "selectivity": 287.192,
+          "psr": 160.134
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 17.343,
+          "psr": 6.194
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "abnormal labs, weakness",
+      "condition_support": 14,
+      "gold_candidate": "acute kidney failure",
+      "gold_share": 0.3571,
+      "gold_selectivity": 17.343,
+      "gold_psr": 6.194,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 17.343,
+          "psr": 6.194
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "acute renal failure",
+      "condition_support": 11,
+      "gold_candidate": "acute kidney failure",
+      "gold_share": 0.4545,
+      "gold_selectivity": 22.072,
+      "gold_psr": 10.033,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.4545,
+          "selectivity": 22.072,
+          "psr": 10.033
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "altered mental status",
+      "condition_support": 281,
+      "gold_candidate": "toxic encephalopathy",
+      "gold_share": 0.1032,
+      "gold_selectivity": 22.005,
+      "gold_psr": 5.446,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "toxic encephalopathy",
+          "n_adm": 29,
+          "share": 0.1032,
+          "selectivity": 22.005,
+          "psr": 5.446
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 52,
+          "share": 0.1851,
+          "selectivity": 3.196,
+          "psr": 1.586
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 26,
+          "share": 0.0925,
+          "selectivity": 4.559,
+          "psr": 0.988
+        },
+        {
+          "candidate": "hepatic encephalopathy",
+          "n_adm": 7,
+          "share": 0.0249,
+          "selectivity": 25.403,
+          "psr": 0.935
+        },
+        {
+          "candidate": "hepatic failure, unspecified without coma",
+          "n_adm": 6,
+          "share": 0.0214,
+          "selectivity": 19.261,
+          "psr": 0.535
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "altered mental status, fever",
+      "condition_support": 19,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.6842,
+      "gold_selectivity": 11.817,
+      "gold_psr": 15.801,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 13,
+          "share": 0.6842,
+          "selectivity": 11.817,
+          "psr": 15.801
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "altered mental status, weakness",
+      "condition_support": 15,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3333,
+      "gold_selectivity": 5.757,
+      "gold_psr": 1.919,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.3333,
+          "selectivity": 5.757,
+          "psr": 1.919
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "anemia",
+      "condition_support": 78,
+      "gold_candidate": "iron deficiency anemia secondary to blood loss",
+      "gold_share": 0.1026,
+      "gold_selectivity": 96.222,
+      "gold_psr": 15.811,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "iron deficiency anemia secondary to blood loss",
+          "n_adm": 8,
+          "share": 0.1026,
+          "selectivity": 96.222,
+          "psr": 15.811
+        },
+        {
+          "candidate": "acute posthemorrhagic anemia",
+          "n_adm": 9,
+          "share": 0.1154,
+          "selectivity": 34.256,
+          "psr": 6.715
+        },
+        {
+          "candidate": "anemia",
+          "n_adm": 5,
+          "share": 0.0641,
+          "selectivity": 44.219,
+          "psr": 2.835
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.0641,
+          "selectivity": 0.727,
+          "psr": 0.047
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "aphasia",
+      "condition_support": 21,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.5714,
+      "gold_selectivity": 28.156,
+      "gold_psr": 30.619,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 12,
+          "share": 0.5714,
+          "selectivity": 28.156,
+          "psr": 30.619
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "back pain",
+      "condition_support": 91,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.0549,
+      "gold_selectivity": 0.949,
+      "gold_psr": 0.052,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0549,
+          "selectivity": 0.949,
+          "psr": 0.052
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "bilateral leg swelling",
+      "condition_support": 27,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.5185,
+      "gold_selectivity": 5.881,
+      "gold_psr": 6.099,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 14,
+          "share": 0.5185,
+          "selectivity": 5.881,
+          "psr": 6.099
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "bilateral leg swelling, dyspnea",
+      "condition_support": 12,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.75,
+      "gold_selectivity": 8.506,
+      "gold_psr": 10.839,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.75,
+          "selectivity": 8.506,
+          "psr": 10.839
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "bradycardia",
+      "condition_support": 53,
+      "gold_candidate": "atrioventricular block, complete",
+      "gold_share": 0.2642,
+      "gold_selectivity": 103.257,
+      "gold_psr": 54.551,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "atrioventricular block, complete",
+          "n_adm": 14,
+          "share": 0.2642,
+          "selectivity": 103.257,
+          "psr": 54.551
+        },
+        {
+          "candidate": "sick sinus syndrome",
+          "n_adm": 6,
+          "share": 0.1132,
+          "selectivity": 126.437,
+          "psr": 18.622
+        },
+        {
+          "candidate": "other specified cardiac dysrhythmias",
+          "n_adm": 5,
+          "share": 0.0943,
+          "selectivity": 48.101,
+          "psr": 4.538
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "bright red blood per rectum",
+      "condition_support": 215,
+      "gold_candidate": "diverticulosis of large intestine without perforation or abscess with bleeding",
+      "gold_share": 0.1163,
+      "gold_selectivity": 69.928,
+      "gold_psr": 18.882,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "diverticulosis of large intestine without perforation or abscess with bleeding",
+          "n_adm": 25,
+          "share": 0.1163,
+          "selectivity": 69.928,
+          "psr": 18.882
+        },
+        {
+          "candidate": "diverticulosis of colon with hemorrhage",
+          "n_adm": 22,
+          "share": 0.1023,
+          "selectivity": 74.998,
+          "psr": 17.308
+        },
+        {
+          "candidate": "postprocedural hemorrhage of a digestive system organ or structure following a digestive system procedure",
+          "n_adm": 16,
+          "share": 0.0744,
+          "selectivity": 58.18,
+          "psr": 9.002
+        },
+        {
+          "candidate": "hemorrhage of rectum and anus",
+          "n_adm": 10,
+          "share": 0.0465,
+          "selectivity": 43.635,
+          "psr": 3.609
+        },
+        {
+          "candidate": "blood in stool",
+          "n_adm": 10,
+          "share": 0.0465,
+          "selectivity": 20.202,
+          "psr": 1.671
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "cardiac arrest",
+      "condition_support": 64,
+      "gold_candidate": "ventricular fibrillation",
+      "gold_share": 0.125,
+      "gold_selectivity": 133.261,
+      "gold_psr": 26.687,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "ventricular fibrillation",
+          "n_adm": 8,
+          "share": 0.125,
+          "selectivity": 133.261,
+          "psr": 26.687
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 11,
+          "share": 0.1719,
+          "selectivity": 18.663,
+          "psr": 5.918
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.125,
+          "selectivity": 2.159,
+          "psr": 0.432
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain",
+      "condition_support": 1216,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.3939,
+      "gold_selectivity": 7.167,
+      "gold_psr": 10.381,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 479,
+          "share": 0.3939,
+          "selectivity": 7.167,
+          "psr": 10.381
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 75,
+          "share": 0.0617,
+          "selectivity": 6.697,
+          "psr": 1.178
+        },
+        {
+          "candidate": "intermediate coronary syndrome",
+          "n_adm": 23,
+          "share": 0.0189,
+          "selectivity": 14.787,
+          "psr": 0.637
+        },
+        {
+          "candidate": "acute myocardial infarction of other anterior wall",
+          "n_adm": 30,
+          "share": 0.0247,
+          "selectivity": 8.767,
+          "psr": 0.522
+        },
+        {
+          "candidate": "acute myocardial infarction of other inferior wall",
+          "n_adm": 27,
+          "share": 0.0222,
+          "selectivity": 8.537,
+          "psr": 0.448
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain, dyspnea",
+      "condition_support": 242,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.3719,
+      "gold_selectivity": 4.218,
+      "gold_psr": 4.603,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 90,
+          "share": 0.3719,
+          "selectivity": 4.218,
+          "psr": 4.603
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 45,
+          "share": 0.186,
+          "selectivity": 3.383,
+          "psr": 1.644
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 7,
+          "share": 0.0289,
+          "selectivity": 3.141,
+          "psr": 0.134
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.0289,
+          "selectivity": 0.5,
+          "psr": 0.021
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain, dyspnea on exertion",
+      "condition_support": 22,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.4091,
+      "gold_selectivity": 7.444,
+      "gold_psr": 5.174,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 9,
+          "share": 0.4091,
+          "selectivity": 7.444,
+          "psr": 5.174
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.2273,
+          "selectivity": 2.578,
+          "psr": 0.586
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain, elevated troponin",
+      "condition_support": 38,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.8158,
+      "gold_selectivity": 14.844,
+      "gold_psr": 29.442,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 31,
+          "share": 0.8158,
+          "selectivity": 14.844,
+          "psr": 29.442
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain, nstemi",
+      "condition_support": 30,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.9,
+      "gold_selectivity": 16.376,
+      "gold_psr": 34.808,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 27,
+          "share": 0.9,
+          "selectivity": 16.376,
+          "psr": 34.808
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "chest pain, transfer",
+      "condition_support": 16,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.6875,
+      "gold_selectivity": 12.509,
+      "gold_psr": 15.868,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 11,
+          "share": 0.6875,
+          "selectivity": 12.509,
+          "psr": 15.868
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "coffee ground emesis",
+      "condition_support": 13,
+      "gold_candidate": "hematemesis",
+      "gold_share": 0.3846,
+      "gold_selectivity": 273.357,
+      "gold_psr": 105.137,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "hematemesis",
+          "n_adm": 5,
+          "share": 0.3846,
+          "selectivity": 273.357,
+          "psr": 105.137
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "confusion",
+      "condition_support": 60,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.1,
+      "gold_selectivity": 4.927,
+      "gold_psr": 0.641,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 6,
+          "share": 0.1,
+          "selectivity": 4.927,
+          "psr": 0.641
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.0833,
+          "selectivity": 0.945,
+          "psr": 0.079
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "congestive heart failure",
+      "condition_support": 16,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.6875,
+      "gold_selectivity": 7.797,
+      "gold_psr": 9.891,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 11,
+          "share": 0.6875,
+          "selectivity": 7.797,
+          "psr": 9.891
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "cough",
+      "condition_support": 69,
+      "gold_candidate": "pneumonia",
+      "gold_share": 0.1304,
+      "gold_selectivity": 19.737,
+      "gold_psr": 4.374,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "pneumonia",
+          "n_adm": 9,
+          "share": 0.1304,
+          "selectivity": 19.737,
+          "psr": 4.374
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 20,
+          "share": 0.2899,
+          "selectivity": 3.287,
+          "psr": 2.1
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 5,
+          "share": 0.0725,
+          "selectivity": 8.372,
+          "psr": 0.607
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0725,
+          "selectivity": 1.252,
+          "psr": 0.091
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "cough, dyspnea",
+      "condition_support": 97,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.3505,
+      "gold_selectivity": 3.975,
+      "gold_psr": 3.452,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 34,
+          "share": 0.3505,
+          "selectivity": 3.975,
+          "psr": 3.452
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 7,
+          "share": 0.0722,
+          "selectivity": 8.338,
+          "psr": 0.889
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 5,
+          "share": 0.0515,
+          "selectivity": 15.5,
+          "psr": 0.799
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.0825,
+          "selectivity": 1.424,
+          "psr": 0.188
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "cough, fever",
+      "condition_support": 43,
+      "gold_candidate": "pneumonia, unspecified organism",
+      "gold_share": 0.1628,
+      "gold_selectivity": 18.808,
+      "gold_psr": 4.523,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 7,
+          "share": 0.1628,
+          "selectivity": 18.808,
+          "psr": 4.523
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 11,
+          "share": 0.2558,
+          "selectivity": 4.418,
+          "psr": 2.085
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "diarrhea",
+      "condition_support": 47,
+      "gold_candidate": "enterocolitis due to clostridium difficile",
+      "gold_share": 0.1064,
+      "gold_selectivity": 92.411,
+      "gold_psr": 9.831,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "enterocolitis due to clostridium difficile",
+          "n_adm": 5,
+          "share": 0.1064,
+          "selectivity": 92.411,
+          "psr": 9.831
+        },
+        {
+          "candidate": "intestinal infection due to clostridium difficile",
+          "n_adm": 5,
+          "share": 0.1064,
+          "selectivity": 51.981,
+          "psr": 5.53
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dizziness",
+      "condition_support": 96,
+      "gold_candidate": "benign paroxysmal vertigo, unspecified ear",
+      "gold_share": 0.0938,
+      "gold_selectivity": 109.941,
+      "gold_psr": 17.511,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "benign paroxysmal vertigo, unspecified ear",
+          "n_adm": 9,
+          "share": 0.0938,
+          "selectivity": 109.941,
+          "psr": 17.511
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 5,
+          "share": 0.0521,
+          "selectivity": 2.566,
+          "psr": 0.134
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.0729,
+          "selectivity": 0.827,
+          "psr": 0.089
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dizziness, dyspnea",
+      "condition_support": 20,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.35,
+      "gold_selectivity": 3.969,
+      "gold_psr": 2.052,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.35,
+          "selectivity": 3.969,
+          "psr": 2.052
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea",
+      "condition_support": 1085,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.4922,
+      "gold_selectivity": 5.582,
+      "gold_psr": 10.231,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 534,
+          "share": 0.4922,
+          "selectivity": 5.582,
+          "psr": 10.231
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 24,
+          "share": 0.0221,
+          "selectivity": 6.651,
+          "psr": 0.339
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 69,
+          "share": 0.0636,
+          "selectivity": 1.098,
+          "psr": 0.196
+        },
+        {
+          "candidate": "acute respiratory failure with hypoxia",
+          "n_adm": 17,
+          "share": 0.0157,
+          "selectivity": 5.326,
+          "psr": 0.176
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 57,
+          "share": 0.0525,
+          "selectivity": 0.956,
+          "psr": 0.137
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea on exertion",
+      "condition_support": 109,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.4404,
+      "gold_selectivity": 4.994,
+      "gold_psr": 5.814,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 48,
+          "share": 0.4404,
+          "selectivity": 4.994,
+          "psr": 5.814
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 6,
+          "share": 0.055,
+          "selectivity": 1.002,
+          "psr": 0.072
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea on exertion, leg swelling",
+      "condition_support": 10,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.8,
+      "gold_selectivity": 9.073,
+      "gold_psr": 11.629,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.8,
+          "selectivity": 9.073,
+          "psr": 11.629
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, elevated troponin",
+      "condition_support": 16,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.4375,
+      "gold_selectivity": 7.961,
+      "gold_psr": 5.144,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.4375,
+          "selectivity": 7.961,
+          "psr": 5.144
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.3125,
+          "selectivity": 3.544,
+          "psr": 1.108
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, fever",
+      "condition_support": 46,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.2609,
+      "gold_selectivity": 4.505,
+      "gold_psr": 2.237,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 12,
+          "share": 0.2609,
+          "selectivity": 4.505,
+          "psr": 2.237
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.1522,
+          "selectivity": 1.726,
+          "psr": 0.388
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, hypoxia",
+      "condition_support": 60,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.45,
+      "gold_selectivity": 5.104,
+      "gold_psr": 5.424,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 27,
+          "share": 0.45,
+          "selectivity": 5.104,
+          "psr": 5.424
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 5,
+          "share": 0.0833,
+          "selectivity": 9.628,
+          "psr": 0.802
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.1167,
+          "selectivity": 2.015,
+          "psr": 0.347
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, leg swelling",
+      "condition_support": 47,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.7447,
+      "gold_selectivity": 8.446,
+      "gold_psr": 15.669,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 35,
+          "share": 0.7447,
+          "selectivity": 8.446,
+          "psr": 15.669
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, palpitations",
+      "condition_support": 15,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.4667,
+      "gold_selectivity": 5.293,
+      "gold_psr": 3.648,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.4667,
+          "selectivity": 5.293,
+          "psr": 3.648
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, pedal edema",
+      "condition_support": 12,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.8333,
+      "gold_selectivity": 9.451,
+      "gold_psr": 14.005,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 10,
+          "share": 0.8333,
+          "selectivity": 9.451,
+          "psr": 14.005
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "dyspnea, weakness",
+      "condition_support": 48,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.4583,
+      "gold_selectivity": 5.198,
+      "gold_psr": 5.373,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 22,
+          "share": 0.4583,
+          "selectivity": 5.198,
+          "psr": 5.373
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "ekg changes",
+      "condition_support": 12,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.4167,
+      "gold_selectivity": 7.581,
+      "gold_psr": 3.159,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.4167,
+          "selectivity": 7.581,
+          "psr": 3.159
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "elevated troponin",
+      "condition_support": 42,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.4524,
+      "gold_selectivity": 8.231,
+      "gold_psr": 8.103,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 19,
+          "share": 0.4524,
+          "selectivity": 8.231,
+          "psr": 8.103
+        },
+        {
+          "candidate": "myocardial infarction type 2",
+          "n_adm": 5,
+          "share": 0.119,
+          "selectivity": 43.627,
+          "psr": 5.194
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "epigastric pain",
+      "condition_support": 48,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.1667,
+      "gold_selectivity": 3.033,
+      "gold_psr": 0.81,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.1667,
+          "selectivity": 3.033,
+          "psr": 0.81
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fall",
+      "condition_support": 159,
+      "gold_candidate": "acute kidney failure",
+      "gold_share": 0.0755,
+      "gold_selectivity": 3.665,
+      "gold_psr": 0.526,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 12,
+          "share": 0.0755,
+          "selectivity": 3.665,
+          "psr": 0.526
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 17,
+          "share": 0.1069,
+          "selectivity": 1.847,
+          "psr": 0.417
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 6,
+          "share": 0.0377,
+          "selectivity": 5.71,
+          "psr": 0.28
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 7,
+          "share": 0.044,
+          "selectivity": 2.169,
+          "psr": 0.141
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 11,
+          "share": 0.0692,
+          "selectivity": 0.785,
+          "psr": 0.1
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fatigue",
+      "condition_support": 17,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.5294,
+      "gold_selectivity": 6.004,
+      "gold_psr": 5.401,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.5294,
+          "selectivity": 6.004,
+          "psr": 5.401
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fever",
+      "condition_support": 189,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.4233,
+      "gold_selectivity": 7.31,
+      "gold_psr": 8.914,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 80,
+          "share": 0.4233,
+          "selectivity": 7.31,
+          "psr": 8.914
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 9,
+          "share": 0.0476,
+          "selectivity": 7.206,
+          "psr": 0.583
+        },
+        {
+          "candidate": "cholangitis",
+          "n_adm": 5,
+          "share": 0.0265,
+          "selectivity": 18.249,
+          "psr": 0.483
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 8,
+          "share": 0.0423,
+          "selectivity": 4.89,
+          "psr": 0.332
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fever, hypotension",
+      "condition_support": 11,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.7273,
+      "gold_selectivity": 12.561,
+      "gold_psr": 14.635,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.7273,
+          "selectivity": 12.561,
+          "psr": 14.635
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fever, lethargy",
+      "condition_support": 12,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.6667,
+      "gold_selectivity": 11.514,
+      "gold_psr": 12.297,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.6667,
+          "selectivity": 11.514,
+          "psr": 12.297
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "fever, weakness",
+      "condition_support": 25,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.44,
+      "gold_selectivity": 7.599,
+      "gold_psr": 6.169,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 11,
+          "share": 0.44,
+          "selectivity": 7.599,
+          "psr": 6.169
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "gi bleed",
+      "condition_support": 94,
+      "gold_candidate": "chronic or unspecified gastric ulcer with hemorrhage, without mention of obstruction",
+      "gold_share": 0.0638,
+      "gold_selectivity": 34.024,
+      "gold_psr": 2.826,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "chronic or unspecified gastric ulcer with hemorrhage, without mention of obstruction",
+          "n_adm": 6,
+          "share": 0.0638,
+          "selectivity": 34.024,
+          "psr": 2.826
+        },
+        {
+          "candidate": "gastrointestinal hemorrhage",
+          "n_adm": 6,
+          "share": 0.0638,
+          "selectivity": 24.146,
+          "psr": 2.005
+        },
+        {
+          "candidate": "blood in stool",
+          "n_adm": 5,
+          "share": 0.0532,
+          "selectivity": 23.103,
+          "psr": 1.229
+        },
+        {
+          "candidate": "hemorrhage of gastrointestinal tract",
+          "n_adm": 5,
+          "share": 0.0532,
+          "selectivity": 16.859,
+          "psr": 0.897
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "head bleed",
+      "condition_support": 22,
+      "gold_candidate": "intracerebral hemorrhage",
+      "gold_share": 0.5909,
+      "gold_selectivity": 247.485,
+      "gold_psr": 285.791,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "intracerebral hemorrhage",
+          "n_adm": 13,
+          "share": 0.5909,
+          "selectivity": 247.485,
+          "psr": 285.791
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hyperglycemia",
+      "condition_support": 13,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.4615,
+      "gold_selectivity": 7.971,
+      "gold_psr": 4.787,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.4615,
+          "selectivity": 7.971,
+          "psr": 4.787
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hyperkalemia",
+      "condition_support": 37,
+      "gold_candidate": "hyperpotassemia",
+      "gold_share": 0.2432,
+      "gold_selectivity": 228.201,
+      "gold_psr": 94.307,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "hyperpotassemia",
+          "n_adm": 9,
+          "share": 0.2432,
+          "selectivity": 228.201,
+          "psr": 94.307
+        },
+        {
+          "candidate": "hyperkalemia",
+          "n_adm": 7,
+          "share": 0.1892,
+          "selectivity": 126.778,
+          "psr": 35.429
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 12,
+          "share": 0.3243,
+          "selectivity": 15.749,
+          "psr": 9.72
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hypoglycemia",
+      "condition_support": 14,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3571,
+      "gold_selectivity": 6.168,
+      "gold_psr": 2.203,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 6.168,
+          "psr": 2.203
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hypotension",
+      "condition_support": 133,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3158,
+      "gold_selectivity": 5.454,
+      "gold_psr": 4.443,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 42,
+          "share": 0.3158,
+          "selectivity": 5.454,
+          "psr": 4.443
+        },
+        {
+          "candidate": "hypotension",
+          "n_adm": 10,
+          "share": 0.0752,
+          "selectivity": 31.49,
+          "psr": 4.21
+        },
+        {
+          "candidate": "hypotension of hemodialysis",
+          "n_adm": 5,
+          "share": 0.0376,
+          "selectivity": 44.086,
+          "psr": 1.657
+        },
+        {
+          "candidate": "dehydration",
+          "n_adm": 5,
+          "share": 0.0376,
+          "selectivity": 16.328,
+          "psr": 0.614
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 10,
+          "share": 0.0752,
+          "selectivity": 3.651,
+          "psr": 0.488
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hypotension, weakness",
+      "condition_support": 25,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.32,
+      "gold_selectivity": 5.527,
+      "gold_psr": 2.833,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.32,
+          "selectivity": 5.527,
+          "psr": 2.833
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "hypoxia",
+      "condition_support": 72,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.2917,
+      "gold_selectivity": 3.308,
+      "gold_psr": 2.152,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 21,
+          "share": 0.2917,
+          "selectivity": 3.308,
+          "psr": 2.152
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.1944,
+          "selectivity": 3.358,
+          "psr": 1.306
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "intracranial hemorrhage",
+      "condition_support": 51,
+      "gold_candidate": "intracerebral hemorrhage",
+      "gold_share": 0.1569,
+      "gold_selectivity": 65.697,
+      "gold_psr": 16.51,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "intracerebral hemorrhage",
+          "n_adm": 8,
+          "share": 0.1569,
+          "selectivity": 65.697,
+          "psr": 16.51
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "intubated",
+      "condition_support": 18,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3889,
+      "gold_selectivity": 6.716,
+      "gold_psr": 3.858,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.3889,
+          "selectivity": 6.716,
+          "psr": 3.858
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "left weakness",
+      "condition_support": 31,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.6774,
+      "gold_selectivity": 33.379,
+      "gold_psr": 50.433,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 21,
+          "share": 0.6774,
+          "selectivity": 33.379,
+          "psr": 50.433
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "leg swelling",
+      "condition_support": 35,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.6,
+      "gold_selectivity": 6.805,
+      "gold_psr": 9.107,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 21,
+          "share": 0.6,
+          "selectivity": 6.805,
+          "psr": 9.107
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "lethargy",
+      "condition_support": 50,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.28,
+      "gold_selectivity": 4.836,
+      "gold_psr": 2.708,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.28,
+          "selectivity": 4.836,
+          "psr": 2.708
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.1,
+          "selectivity": 4.856,
+          "psr": 0.486
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.14,
+          "selectivity": 1.588,
+          "psr": 0.328
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "melena",
+      "condition_support": 52,
+      "gold_candidate": "blood in stool",
+      "gold_share": 0.2115,
+      "gold_selectivity": 91.878,
+      "gold_psr": 35.861,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "blood in stool",
+          "n_adm": 11,
+          "share": 0.2115,
+          "selectivity": 91.878,
+          "psr": 35.861
+        },
+        {
+          "candidate": "hemorrhage of gastrointestinal tract",
+          "n_adm": 6,
+          "share": 0.1154,
+          "selectivity": 36.571,
+          "psr": 5.49
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "nausea/vomiting",
+      "condition_support": 83,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.1205,
+      "gold_selectivity": 2.081,
+      "gold_psr": 0.446,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 10,
+          "share": 0.1205,
+          "selectivity": 2.081,
+          "psr": 0.446
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "nstemi",
+      "condition_support": 135,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.7111,
+      "gold_selectivity": 12.939,
+      "gold_psr": 27.27,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 96,
+          "share": 0.7111,
+          "selectivity": 12.939,
+          "psr": 27.27
+        },
+        {
+          "candidate": "myocardial infarction type 2",
+          "n_adm": 6,
+          "share": 0.0444,
+          "selectivity": 16.288,
+          "psr": 0.942
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 8,
+          "share": 0.0593,
+          "selectivity": 6.435,
+          "psr": 0.611
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.0519,
+          "selectivity": 0.588,
+          "psr": 0.045
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "nstemi, transfer",
+      "condition_support": 14,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.7857,
+      "gold_selectivity": 14.296,
+      "gold_psr": 20.726,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 11,
+          "share": 0.7857,
+          "selectivity": 14.296,
+          "psr": 20.726
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "palpitations",
+      "condition_support": 40,
+      "gold_candidate": "ventricular tachycardia",
+      "gold_share": 0.175,
+      "gold_selectivity": 49.451,
+      "gold_psr": 12.783,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "ventricular tachycardia",
+          "n_adm": 7,
+          "share": 0.175,
+          "selectivity": 49.451,
+          "psr": 12.783
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.2,
+          "selectivity": 2.268,
+          "psr": 0.727
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.125,
+          "selectivity": 2.274,
+          "psr": 0.284
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "pneumonia",
+      "condition_support": 38,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.3684,
+      "gold_selectivity": 6.363,
+      "gold_psr": 4.689,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.3684,
+          "selectivity": 6.363,
+          "psr": 4.689
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 5,
+          "share": 0.1316,
+          "selectivity": 19.91,
+          "psr": 2.62
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "r/o stroke",
+      "condition_support": 30,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.6,
+      "gold_selectivity": 29.564,
+      "gold_psr": 38.069,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 18,
+          "share": 0.6,
+          "selectivity": 29.564,
+          "psr": 38.069
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "resp distress",
+      "condition_support": 22,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.3636,
+      "gold_selectivity": 4.124,
+      "gold_psr": 2.403,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.3636,
+          "selectivity": 4.124,
+          "psr": 2.403
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.2727,
+          "selectivity": 4.71,
+          "psr": 1.671
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "respiratory distress",
+      "condition_support": 98,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.2449,
+      "gold_selectivity": 4.23,
+      "gold_psr": 2.383,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 24,
+          "share": 0.2449,
+          "selectivity": 4.23,
+          "psr": 2.383
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 28,
+          "share": 0.2857,
+          "selectivity": 3.24,
+          "psr": 2.204
+        },
+        {
+          "candidate": "acute respiratory failure with hypoxia",
+          "n_adm": 6,
+          "share": 0.0612,
+          "selectivity": 20.811,
+          "psr": 1.658
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.0816,
+          "selectivity": 1.485,
+          "psr": 0.194
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "right upper quadrant abdominal pain",
+      "condition_support": 42,
+      "gold_candidate": "acute cholecystitis",
+      "gold_share": 0.1429,
+      "gold_selectivity": 77.92,
+      "gold_psr": 14.482,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute cholecystitis",
+          "n_adm": 6,
+          "share": 0.1429,
+          "selectivity": 77.92,
+          "psr": 14.482
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.1429,
+          "selectivity": 2.467,
+          "psr": 0.459
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "right weakness",
+      "condition_support": 23,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.6087,
+      "gold_selectivity": 29.992,
+      "gold_psr": 36.512,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 14,
+          "share": 0.6087,
+          "selectivity": 29.992,
+          "psr": 36.512
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "sepsis",
+      "condition_support": 24,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.875,
+      "gold_selectivity": 15.112,
+      "gold_psr": 29.493,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 21,
+          "share": 0.875,
+          "selectivity": 15.112,
+          "psr": 29.493
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "shortness of breath",
+      "condition_support": 265,
+      "gold_candidate": "heart failure",
+      "gold_share": 0.4453,
+      "gold_selectivity": 5.05,
+      "gold_psr": 6.874,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 118,
+          "share": 0.4453,
+          "selectivity": 5.05,
+          "psr": 6.874
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 14,
+          "share": 0.0528,
+          "selectivity": 15.886,
+          "psr": 1.678
+        },
+        {
+          "candidate": "acute respiratory failure",
+          "n_adm": 10,
+          "share": 0.0377,
+          "selectivity": 15.805,
+          "psr": 1.06
+        },
+        {
+          "candidate": "aortic valve disorders",
+          "n_adm": 8,
+          "share": 0.0302,
+          "selectivity": 13.616,
+          "psr": 0.659
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 11,
+          "share": 0.0415,
+          "selectivity": 6.281,
+          "psr": 0.481
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "slurred speech",
+      "condition_support": 42,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.3333,
+      "gold_selectivity": 16.424,
+      "gold_psr": 10.95,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 14,
+          "share": 0.3333,
+          "selectivity": 16.424,
+          "psr": 10.95
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "small bowel obstruction",
+      "condition_support": 23,
+      "gold_candidate": "unspecified intestinal obstruction",
+      "gold_share": 0.3478,
+      "gold_selectivity": 133.736,
+      "gold_psr": 74.523,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 8,
+          "share": 0.3478,
+          "selectivity": 133.736,
+          "psr": 74.523
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "stemi",
+      "condition_support": 88,
+      "gold_candidate": "stemi",
+      "gold_share": 0.3295,
+      "gold_selectivity": 35.783,
+      "gold_psr": 28.277,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "stemi",
+          "n_adm": 29,
+          "share": 0.3295,
+          "selectivity": 35.783,
+          "psr": 28.277
+        },
+        {
+          "candidate": "acute myocardial infarction of other inferior wall",
+          "n_adm": 11,
+          "share": 0.125,
+          "selectivity": 48.061,
+          "psr": 11.085
+        },
+        {
+          "candidate": "acute myocardial infarction of other anterior wall",
+          "n_adm": 11,
+          "share": 0.125,
+          "selectivity": 44.42,
+          "psr": 10.245
+        },
+        {
+          "candidate": "acute myocardial infarction of anterolateral wall",
+          "n_adm": 6,
+          "share": 0.0682,
+          "selectivity": 72.688,
+          "psr": 6.448
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.0909,
+          "selectivity": 1.654,
+          "psr": 0.241
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "stroke",
+      "condition_support": 102,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.7843,
+      "gold_selectivity": 38.646,
+      "gold_psr": 87.318,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 80,
+          "share": 0.7843,
+          "selectivity": 38.646,
+          "psr": 87.318
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "syncope",
+      "condition_support": 85,
+      "gold_candidate": "paroxysmal ventricular tachycardia",
+      "gold_share": 0.0588,
+      "gold_selectivity": 21.225,
+      "gold_psr": 1.249,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "paroxysmal ventricular tachycardia",
+          "n_adm": 5,
+          "share": 0.0588,
+          "selectivity": 21.225,
+          "psr": 1.249
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.0824,
+          "selectivity": 1.498,
+          "psr": 0.182
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "tachycardia",
+      "condition_support": 45,
+      "gold_candidate": "nstemi",
+      "gold_share": 0.1556,
+      "gold_selectivity": 2.83,
+      "gold_psr": 0.65,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.1556,
+          "selectivity": 2.83,
+          "psr": 0.65
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.1556,
+          "selectivity": 2.687,
+          "psr": 0.617
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "unresponsive",
+      "condition_support": 47,
+      "gold_candidate": "sepsis",
+      "gold_share": 0.2979,
+      "gold_selectivity": 5.145,
+      "gold_psr": 3.065,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.2979,
+          "selectivity": 5.145,
+          "psr": 3.065
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "urinary retention",
+      "condition_support": 17,
+      "gold_candidate": "acute kidney failure",
+      "gold_share": 0.4706,
+      "gold_selectivity": 22.851,
+      "gold_psr": 17.228,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 8,
+          "share": 0.4706,
+          "selectivity": 22.851,
+          "psr": 17.228
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "visual changes",
+      "condition_support": 21,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.2381,
+      "gold_selectivity": 11.732,
+      "gold_psr": 2.793,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 5,
+          "share": 0.2381,
+          "selectivity": 11.732,
+          "psr": 2.793
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "vtach",
+      "condition_support": 14,
+      "gold_candidate": "ventricular tachycardia",
+      "gold_share": 0.3571,
+      "gold_selectivity": 100.921,
+      "gold_psr": 36.043,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "ventricular tachycardia",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 100.921,
+          "psr": 36.043
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "weakness",
+      "condition_support": 275,
+      "gold_candidate": "cerebral infarction",
+      "gold_share": 0.0945,
+      "gold_selectivity": 4.659,
+      "gold_psr": 1.032,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 26,
+          "share": 0.0945,
+          "selectivity": 4.659,
+          "psr": 1.032
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 16,
+          "share": 0.0582,
+          "selectivity": 2.825,
+          "psr": 0.342
+        },
+        {
+          "candidate": "dehydration",
+          "n_adm": 6,
+          "share": 0.0218,
+          "selectivity": 9.476,
+          "psr": 0.269
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 21,
+          "share": 0.0764,
+          "selectivity": 1.319,
+          "psr": 0.225
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 9,
+          "share": 0.0327,
+          "selectivity": 3.781,
+          "psr": 0.21
+        }
+      ]
+    },
+    {
+      "class": "diagnosis",
+      "condition": "wound eval",
+      "condition_support": 88,
+      "gold_candidate": "cellulitis of right lower limb",
+      "gold_share": 0.0795,
+      "gold_selectivity": 58.302,
+      "gold_psr": 6.85,
+      "gold_basis": "behavioral_psr",
+      "top_candidates": [
+        {
+          "candidate": "cellulitis of right lower limb",
+          "n_adm": 7,
+          "share": 0.0795,
+          "selectivity": 58.302,
+          "psr": 6.85
+        },
+        {
+          "candidate": "cellulitis of left lower limb",
+          "n_adm": 5,
+          "share": 0.0568,
+          "selectivity": 26.13,
+          "psr": 1.485
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0568,
+          "selectivity": 0.981,
+          "psr": 0.056
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "question_id": "qdx_0001",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abdominal pain",
+      "condition_support": 498,
+      "stem": "A patient presents to the emergency department with abdominal pain. What is the most likely diagnosis?",
+      "options": [
+        "acute pancreatitis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "acute pancreatitis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute pancreatitis",
+          "n_adm": 24,
+          "share": 0.0482,
+          "selectivity": 19.83,
+          "psr": 2.199
+        },
+        {
+          "candidate": "diverticulitis of colon",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 21.866,
+          "psr": 1.115
+        },
+        {
+          "candidate": "calculus of gallbladder with acute cholecystitis, without mention of obstruction",
+          "n_adm": 11,
+          "share": 0.0221,
+          "selectivity": 25.903,
+          "psr": 1.056
+        },
+        {
+          "candidate": "constipation",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 12.245,
+          "psr": 0.625
+        },
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 13,
+          "share": 0.0261,
+          "selectivity": 10.037,
+          "psr": 0.512
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0002",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abdominal pain, dyspnea",
+      "condition_support": 20,
+      "stem": "A patient presents to the emergency department with abdominal pain, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.45,
+          "selectivity": 5.104,
+          "psr": 3.902
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0003",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abdominal pain, fever",
+      "condition_support": 26,
+      "stem": "A patient presents to the emergency department with abdominal pain, fever. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 9,
+          "share": 0.3462,
+          "selectivity": 5.978,
+          "psr": 3.516
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0004",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abdominal pain, nausea/vomiting",
+      "condition_support": 66,
+      "stem": "A patient presents to the emergency department with abdominal pain, nausea/vomiting. What is the most likely diagnosis?",
+      "options": [
+        "viral intestinal infection",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "viral intestinal infection",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "viral intestinal infection",
+          "n_adm": 8,
+          "share": 0.1212,
+          "selectivity": 67.688,
+          "psr": 13.144
+        },
+        {
+          "candidate": "acute pancreatitis",
+          "n_adm": 5,
+          "share": 0.0758,
+          "selectivity": 31.172,
+          "psr": 2.362
+        },
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 5,
+          "share": 0.0758,
+          "selectivity": 29.128,
+          "psr": 2.207
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0005",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal ekg",
+      "condition_support": 21,
+      "stem": "A patient presents to the emergency department with abnormal ekg. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.381,
+          "selectivity": 6.932,
+          "psr": 4.23
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0006",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal ekg, chest pain",
+      "condition_support": 30,
+      "stem": "A patient presents to the emergency department with abnormal ekg, chest pain. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 13,
+          "share": 0.4333,
+          "selectivity": 7.885,
+          "psr": 6.677
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0007",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal labs",
+      "condition_support": 233,
+      "stem": "A patient presents to the emergency department with abnormal labs. What is the most likely diagnosis?",
+      "options": [
+        "acute kidney failure",
+        "heart failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "acute kidney failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 61,
+          "share": 0.2618,
+          "selectivity": 12.713,
+          "psr": 9.172
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 19,
+          "share": 0.0815,
+          "selectivity": 0.925,
+          "psr": 0.164
+        },
+        {
+          "candidate": "acute posthemorrhagic anemia",
+          "n_adm": 5,
+          "share": 0.0215,
+          "selectivity": 6.371,
+          "psr": 0.137
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.0601,
+          "selectivity": 1.038,
+          "psr": 0.125
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.0215,
+          "selectivity": 0.39,
+          "psr": 0.008
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0008",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal labs, dyspnea",
+      "condition_support": 22,
+      "stem": "A patient presents to the emergency department with abnormal labs, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.3636,
+          "selectivity": 4.124,
+          "psr": 2.403
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0009",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal labs, hyperkalemia",
+      "condition_support": 14,
+      "stem": "A patient presents to the emergency department with abnormal labs, hyperkalemia. What is the most likely diagnosis?",
+      "options": [
+        "hyperkalemia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "hyperkalemia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "hyperkalemia",
+          "n_adm": 6,
+          "share": 0.4286,
+          "selectivity": 287.192,
+          "psr": 160.134
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 17.343,
+          "psr": 6.194
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0010",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "abnormal labs, weakness",
+      "condition_support": 14,
+      "stem": "A patient presents to the emergency department with abnormal labs, weakness. What is the most likely diagnosis?",
+      "options": [
+        "acute kidney failure",
+        "heart failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "acute kidney failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 17.343,
+          "psr": 6.194
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0011",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "acute renal failure",
+      "condition_support": 11,
+      "stem": "A patient presents to the emergency department with acute renal failure. What is the most likely diagnosis?",
+      "options": [
+        "acute kidney failure",
+        "heart failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "acute kidney failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.4545,
+          "selectivity": 22.072,
+          "psr": 10.033
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0012",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "altered mental status",
+      "condition_support": 281,
+      "stem": "A patient presents to the emergency department with altered mental status. What is the most likely diagnosis?",
+      "options": [
+        "toxic encephalopathy",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "toxic encephalopathy",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "toxic encephalopathy",
+          "n_adm": 29,
+          "share": 0.1032,
+          "selectivity": 22.005,
+          "psr": 5.446
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 52,
+          "share": 0.1851,
+          "selectivity": 3.196,
+          "psr": 1.586
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 26,
+          "share": 0.0925,
+          "selectivity": 4.559,
+          "psr": 0.988
+        },
+        {
+          "candidate": "hepatic encephalopathy",
+          "n_adm": 7,
+          "share": 0.0249,
+          "selectivity": 25.403,
+          "psr": 0.935
+        },
+        {
+          "candidate": "hepatic failure, unspecified without coma",
+          "n_adm": 6,
+          "share": 0.0214,
+          "selectivity": 19.261,
+          "psr": 0.535
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0013",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "altered mental status, fever",
+      "condition_support": 19,
+      "stem": "A patient presents to the emergency department with altered mental status, fever. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 13,
+          "share": 0.6842,
+          "selectivity": 11.817,
+          "psr": 15.801
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0014",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "altered mental status, weakness",
+      "condition_support": 15,
+      "stem": "A patient presents to the emergency department with altered mental status, weakness. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.3333,
+          "selectivity": 5.757,
+          "psr": 1.919
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0015",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "anemia",
+      "condition_support": 78,
+      "stem": "A patient presents to the emergency department with anemia. What is the most likely diagnosis?",
+      "options": [
+        "iron deficiency anemia secondary to blood loss",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "iron deficiency anemia secondary to blood loss",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "iron deficiency anemia secondary to blood loss",
+          "n_adm": 8,
+          "share": 0.1026,
+          "selectivity": 96.222,
+          "psr": 15.811
+        },
+        {
+          "candidate": "acute posthemorrhagic anemia",
+          "n_adm": 9,
+          "share": 0.1154,
+          "selectivity": 34.256,
+          "psr": 6.715
+        },
+        {
+          "candidate": "anemia",
+          "n_adm": 5,
+          "share": 0.0641,
+          "selectivity": 44.219,
+          "psr": 2.835
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.0641,
+          "selectivity": 0.727,
+          "psr": 0.047
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0016",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "aphasia",
+      "condition_support": 21,
+      "stem": "A patient presents to the emergency department with aphasia. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 12,
+          "share": 0.5714,
+          "selectivity": 28.156,
+          "psr": 30.619
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0017",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "back pain",
+      "condition_support": 91,
+      "stem": "A patient presents to the emergency department with back pain. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0549,
+          "selectivity": 0.949,
+          "psr": 0.052
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0018",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "bilateral leg swelling",
+      "condition_support": 27,
+      "stem": "A patient presents to the emergency department with bilateral leg swelling. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 14,
+          "share": 0.5185,
+          "selectivity": 5.881,
+          "psr": 6.099
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0019",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "bilateral leg swelling, dyspnea",
+      "condition_support": 12,
+      "stem": "A patient presents to the emergency department with bilateral leg swelling, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.75,
+          "selectivity": 8.506,
+          "psr": 10.839
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0020",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "bradycardia",
+      "condition_support": 53,
+      "stem": "A patient presents to the emergency department with bradycardia. What is the most likely diagnosis?",
+      "options": [
+        "atrioventricular block, complete",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "atrioventricular block, complete",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "atrioventricular block, complete",
+          "n_adm": 14,
+          "share": 0.2642,
+          "selectivity": 103.257,
+          "psr": 54.551
+        },
+        {
+          "candidate": "sick sinus syndrome",
+          "n_adm": 6,
+          "share": 0.1132,
+          "selectivity": 126.437,
+          "psr": 18.622
+        },
+        {
+          "candidate": "other specified cardiac dysrhythmias",
+          "n_adm": 5,
+          "share": 0.0943,
+          "selectivity": 48.101,
+          "psr": 4.538
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0021",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "bright red blood per rectum",
+      "condition_support": 215,
+      "stem": "A patient presents to the emergency department with bright red blood per rectum. What is the most likely diagnosis?",
+      "options": [
+        "diverticulosis of large intestine without perforation or abscess with bleeding",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "diverticulosis of large intestine without perforation or abscess with bleeding",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "diverticulosis of large intestine without perforation or abscess with bleeding",
+          "n_adm": 25,
+          "share": 0.1163,
+          "selectivity": 69.928,
+          "psr": 18.882
+        },
+        {
+          "candidate": "diverticulosis of colon with hemorrhage",
+          "n_adm": 22,
+          "share": 0.1023,
+          "selectivity": 74.998,
+          "psr": 17.308
+        },
+        {
+          "candidate": "postprocedural hemorrhage of a digestive system organ or structure following a digestive system procedure",
+          "n_adm": 16,
+          "share": 0.0744,
+          "selectivity": 58.18,
+          "psr": 9.002
+        },
+        {
+          "candidate": "hemorrhage of rectum and anus",
+          "n_adm": 10,
+          "share": 0.0465,
+          "selectivity": 43.635,
+          "psr": 3.609
+        },
+        {
+          "candidate": "blood in stool",
+          "n_adm": 10,
+          "share": 0.0465,
+          "selectivity": 20.202,
+          "psr": 1.671
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0022",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "cardiac arrest",
+      "condition_support": 64,
+      "stem": "A patient presents to the emergency department with cardiac arrest. What is the most likely diagnosis?",
+      "options": [
+        "ventricular fibrillation",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "ventricular fibrillation",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "ventricular fibrillation",
+          "n_adm": 8,
+          "share": 0.125,
+          "selectivity": 133.261,
+          "psr": 26.687
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 11,
+          "share": 0.1719,
+          "selectivity": 18.663,
+          "psr": 5.918
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.125,
+          "selectivity": 2.159,
+          "psr": 0.432
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0023",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain",
+      "condition_support": 1216,
+      "stem": "A patient presents to the emergency department with chest pain. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 479,
+          "share": 0.3939,
+          "selectivity": 7.167,
+          "psr": 10.381
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 75,
+          "share": 0.0617,
+          "selectivity": 6.697,
+          "psr": 1.178
+        },
+        {
+          "candidate": "intermediate coronary syndrome",
+          "n_adm": 23,
+          "share": 0.0189,
+          "selectivity": 14.787,
+          "psr": 0.637
+        },
+        {
+          "candidate": "acute myocardial infarction of other anterior wall",
+          "n_adm": 30,
+          "share": 0.0247,
+          "selectivity": 8.767,
+          "psr": 0.522
+        },
+        {
+          "candidate": "acute myocardial infarction of other inferior wall",
+          "n_adm": 27,
+          "share": 0.0222,
+          "selectivity": 8.537,
+          "psr": 0.448
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0024",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain, dyspnea",
+      "condition_support": 242,
+      "stem": "A patient presents to the emergency department with chest pain, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 90,
+          "share": 0.3719,
+          "selectivity": 4.218,
+          "psr": 4.603
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 45,
+          "share": 0.186,
+          "selectivity": 3.383,
+          "psr": 1.644
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 7,
+          "share": 0.0289,
+          "selectivity": 3.141,
+          "psr": 0.134
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.0289,
+          "selectivity": 0.5,
+          "psr": 0.021
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0025",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain, dyspnea on exertion",
+      "condition_support": 22,
+      "stem": "A patient presents to the emergency department with chest pain, dyspnea on exertion. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 9,
+          "share": 0.4091,
+          "selectivity": 7.444,
+          "psr": 5.174
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.2273,
+          "selectivity": 2.578,
+          "psr": 0.586
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0026",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain, elevated troponin",
+      "condition_support": 38,
+      "stem": "A patient presents to the emergency department with chest pain, elevated troponin. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 31,
+          "share": 0.8158,
+          "selectivity": 14.844,
+          "psr": 29.442
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0027",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain, nstemi",
+      "condition_support": 30,
+      "stem": "A patient presents to the emergency department with chest pain, nstemi. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 27,
+          "share": 0.9,
+          "selectivity": 16.376,
+          "psr": 34.808
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0028",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "chest pain, transfer",
+      "condition_support": 16,
+      "stem": "A patient presents to the emergency department with chest pain, transfer. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 11,
+          "share": 0.6875,
+          "selectivity": 12.509,
+          "psr": 15.868
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0029",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "coffee ground emesis",
+      "condition_support": 13,
+      "stem": "A patient presents to the emergency department with coffee ground emesis. What is the most likely diagnosis?",
+      "options": [
+        "hematemesis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "hematemesis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "hematemesis",
+          "n_adm": 5,
+          "share": 0.3846,
+          "selectivity": 273.357,
+          "psr": 105.137
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0030",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "confusion",
+      "condition_support": 60,
+      "stem": "A patient presents to the emergency department with confusion. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 6,
+          "share": 0.1,
+          "selectivity": 4.927,
+          "psr": 0.641
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.0833,
+          "selectivity": 0.945,
+          "psr": 0.079
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0031",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "congestive heart failure",
+      "condition_support": 16,
+      "stem": "A patient presents to the emergency department with congestive heart failure. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 11,
+          "share": 0.6875,
+          "selectivity": 7.797,
+          "psr": 9.891
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0032",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "cough",
+      "condition_support": 69,
+      "stem": "A patient presents to the emergency department with cough. What is the most likely diagnosis?",
+      "options": [
+        "pneumonia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "pneumonia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "pneumonia",
+          "n_adm": 9,
+          "share": 0.1304,
+          "selectivity": 19.737,
+          "psr": 4.374
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 20,
+          "share": 0.2899,
+          "selectivity": 3.287,
+          "psr": 2.1
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 5,
+          "share": 0.0725,
+          "selectivity": 8.372,
+          "psr": 0.607
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0725,
+          "selectivity": 1.252,
+          "psr": 0.091
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0033",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "cough, dyspnea",
+      "condition_support": 97,
+      "stem": "A patient presents to the emergency department with cough, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 34,
+          "share": 0.3505,
+          "selectivity": 3.975,
+          "psr": 3.452
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 7,
+          "share": 0.0722,
+          "selectivity": 8.338,
+          "psr": 0.889
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 5,
+          "share": 0.0515,
+          "selectivity": 15.5,
+          "psr": 0.799
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.0825,
+          "selectivity": 1.424,
+          "psr": 0.188
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0034",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "cough, fever",
+      "condition_support": 43,
+      "stem": "A patient presents to the emergency department with cough, fever. What is the most likely diagnosis?",
+      "options": [
+        "pneumonia, unspecified organism",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "pneumonia, unspecified organism",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 7,
+          "share": 0.1628,
+          "selectivity": 18.808,
+          "psr": 4.523
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 11,
+          "share": 0.2558,
+          "selectivity": 4.418,
+          "psr": 2.085
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0035",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "diarrhea",
+      "condition_support": 47,
+      "stem": "A patient presents to the emergency department with diarrhea. What is the most likely diagnosis?",
+      "options": [
+        "enterocolitis due to clostridium difficile",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "enterocolitis due to clostridium difficile",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "enterocolitis due to clostridium difficile",
+          "n_adm": 5,
+          "share": 0.1064,
+          "selectivity": 92.411,
+          "psr": 9.831
+        },
+        {
+          "candidate": "intestinal infection due to clostridium difficile",
+          "n_adm": 5,
+          "share": 0.1064,
+          "selectivity": 51.981,
+          "psr": 5.53
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0036",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dizziness",
+      "condition_support": 96,
+      "stem": "A patient presents to the emergency department with dizziness. What is the most likely diagnosis?",
+      "options": [
+        "benign paroxysmal vertigo, unspecified ear",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "benign paroxysmal vertigo, unspecified ear",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "benign paroxysmal vertigo, unspecified ear",
+          "n_adm": 9,
+          "share": 0.0938,
+          "selectivity": 109.941,
+          "psr": 17.511
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 5,
+          "share": 0.0521,
+          "selectivity": 2.566,
+          "psr": 0.134
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.0729,
+          "selectivity": 0.827,
+          "psr": 0.089
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0037",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dizziness, dyspnea",
+      "condition_support": 20,
+      "stem": "A patient presents to the emergency department with dizziness, dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.35,
+          "selectivity": 3.969,
+          "psr": 2.052
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0038",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea",
+      "condition_support": 1085,
+      "stem": "A patient presents to the emergency department with dyspnea. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 534,
+          "share": 0.4922,
+          "selectivity": 5.582,
+          "psr": 10.231
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 24,
+          "share": 0.0221,
+          "selectivity": 6.651,
+          "psr": 0.339
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 69,
+          "share": 0.0636,
+          "selectivity": 1.098,
+          "psr": 0.196
+        },
+        {
+          "candidate": "acute respiratory failure with hypoxia",
+          "n_adm": 17,
+          "share": 0.0157,
+          "selectivity": 5.326,
+          "psr": 0.176
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 57,
+          "share": 0.0525,
+          "selectivity": 0.956,
+          "psr": 0.137
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0039",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea on exertion",
+      "condition_support": 109,
+      "stem": "A patient presents to the emergency department with dyspnea on exertion. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 48,
+          "share": 0.4404,
+          "selectivity": 4.994,
+          "psr": 5.814
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 6,
+          "share": 0.055,
+          "selectivity": 1.002,
+          "psr": 0.072
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0040",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea on exertion, leg swelling",
+      "condition_support": 10,
+      "stem": "A patient presents to the emergency department with dyspnea on exertion, leg swelling. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.8,
+          "selectivity": 9.073,
+          "psr": 11.629
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0041",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, elevated troponin",
+      "condition_support": 16,
+      "stem": "A patient presents to the emergency department with dyspnea, elevated troponin. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.4375,
+          "selectivity": 7.961,
+          "psr": 5.144
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 5,
+          "share": 0.3125,
+          "selectivity": 3.544,
+          "psr": 1.108
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0042",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, fever",
+      "condition_support": 46,
+      "stem": "A patient presents to the emergency department with dyspnea, fever. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 12,
+          "share": 0.2609,
+          "selectivity": 4.505,
+          "psr": 2.237
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.1522,
+          "selectivity": 1.726,
+          "psr": 0.388
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0043",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, hypoxia",
+      "condition_support": 60,
+      "stem": "A patient presents to the emergency department with dyspnea, hypoxia. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 27,
+          "share": 0.45,
+          "selectivity": 5.104,
+          "psr": 5.424
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 5,
+          "share": 0.0833,
+          "selectivity": 9.628,
+          "psr": 0.802
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.1167,
+          "selectivity": 2.015,
+          "psr": 0.347
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0044",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, leg swelling",
+      "condition_support": 47,
+      "stem": "A patient presents to the emergency department with dyspnea, leg swelling. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 35,
+          "share": 0.7447,
+          "selectivity": 8.446,
+          "psr": 15.669
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0045",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, palpitations",
+      "condition_support": 15,
+      "stem": "A patient presents to the emergency department with dyspnea, palpitations. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.4667,
+          "selectivity": 5.293,
+          "psr": 3.648
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0046",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, pedal edema",
+      "condition_support": 12,
+      "stem": "A patient presents to the emergency department with dyspnea, pedal edema. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 10,
+          "share": 0.8333,
+          "selectivity": 9.451,
+          "psr": 14.005
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0047",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "dyspnea, weakness",
+      "condition_support": 48,
+      "stem": "A patient presents to the emergency department with dyspnea, weakness. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 22,
+          "share": 0.4583,
+          "selectivity": 5.198,
+          "psr": 5.373
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0048",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "ekg changes",
+      "condition_support": 12,
+      "stem": "A patient presents to the emergency department with ekg changes. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.4167,
+          "selectivity": 7.581,
+          "psr": 3.159
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0049",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "elevated troponin",
+      "condition_support": 42,
+      "stem": "A patient presents to the emergency department with elevated troponin. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 19,
+          "share": 0.4524,
+          "selectivity": 8.231,
+          "psr": 8.103
+        },
+        {
+          "candidate": "myocardial infarction type 2",
+          "n_adm": 5,
+          "share": 0.119,
+          "selectivity": 43.627,
+          "psr": 5.194
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0050",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "epigastric pain",
+      "condition_support": 48,
+      "stem": "A patient presents to the emergency department with epigastric pain. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.1667,
+          "selectivity": 3.033,
+          "psr": 0.81
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0051",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fall",
+      "condition_support": 159,
+      "stem": "A patient presents to the emergency department with fall. What is the most likely diagnosis?",
+      "options": [
+        "acute kidney failure",
+        "heart failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "acute kidney failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 12,
+          "share": 0.0755,
+          "selectivity": 3.665,
+          "psr": 0.526
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 17,
+          "share": 0.1069,
+          "selectivity": 1.847,
+          "psr": 0.417
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 6,
+          "share": 0.0377,
+          "selectivity": 5.71,
+          "psr": 0.28
+        },
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 7,
+          "share": 0.044,
+          "selectivity": 2.169,
+          "psr": 0.141
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 11,
+          "share": 0.0692,
+          "selectivity": 0.785,
+          "psr": 0.1
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0052",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fatigue",
+      "condition_support": 17,
+      "stem": "A patient presents to the emergency department with fatigue. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 9,
+          "share": 0.5294,
+          "selectivity": 6.004,
+          "psr": 5.401
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0053",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fever",
+      "condition_support": 189,
+      "stem": "A patient presents to the emergency department with fever. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 80,
+          "share": 0.4233,
+          "selectivity": 7.31,
+          "psr": 8.914
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 9,
+          "share": 0.0476,
+          "selectivity": 7.206,
+          "psr": 0.583
+        },
+        {
+          "candidate": "cholangitis",
+          "n_adm": 5,
+          "share": 0.0265,
+          "selectivity": 18.249,
+          "psr": 0.483
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 8,
+          "share": 0.0423,
+          "selectivity": 4.89,
+          "psr": 0.332
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0054",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fever, hypotension",
+      "condition_support": 11,
+      "stem": "A patient presents to the emergency department with fever, hypotension. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.7273,
+          "selectivity": 12.561,
+          "psr": 14.635
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0055",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fever, lethargy",
+      "condition_support": 12,
+      "stem": "A patient presents to the emergency department with fever, lethargy. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.6667,
+          "selectivity": 11.514,
+          "psr": 12.297
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0056",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "fever, weakness",
+      "condition_support": 25,
+      "stem": "A patient presents to the emergency department with fever, weakness. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 11,
+          "share": 0.44,
+          "selectivity": 7.599,
+          "psr": 6.169
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0057",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "gi bleed",
+      "condition_support": 94,
+      "stem": "A patient presents to the emergency department with gi bleed. What is the most likely diagnosis?",
+      "options": [
+        "chronic or unspecified gastric ulcer with hemorrhage, without mention of obstruction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "chronic or unspecified gastric ulcer with hemorrhage, without mention of obstruction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "chronic or unspecified gastric ulcer with hemorrhage, without mention of obstruction",
+          "n_adm": 6,
+          "share": 0.0638,
+          "selectivity": 34.024,
+          "psr": 2.826
+        },
+        {
+          "candidate": "gastrointestinal hemorrhage",
+          "n_adm": 6,
+          "share": 0.0638,
+          "selectivity": 24.146,
+          "psr": 2.005
+        },
+        {
+          "candidate": "blood in stool",
+          "n_adm": 5,
+          "share": 0.0532,
+          "selectivity": 23.103,
+          "psr": 1.229
+        },
+        {
+          "candidate": "hemorrhage of gastrointestinal tract",
+          "n_adm": 5,
+          "share": 0.0532,
+          "selectivity": 16.859,
+          "psr": 0.897
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0058",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "head bleed",
+      "condition_support": 22,
+      "stem": "A patient presents to the emergency department with head bleed. What is the most likely diagnosis?",
+      "options": [
+        "intracerebral hemorrhage",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "intracerebral hemorrhage",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "intracerebral hemorrhage",
+          "n_adm": 13,
+          "share": 0.5909,
+          "selectivity": 247.485,
+          "psr": 285.791
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0059",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hyperglycemia",
+      "condition_support": 13,
+      "stem": "A patient presents to the emergency department with hyperglycemia. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.4615,
+          "selectivity": 7.971,
+          "psr": 4.787
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0060",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hyperkalemia",
+      "condition_support": 37,
+      "stem": "A patient presents to the emergency department with hyperkalemia. What is the most likely diagnosis?",
+      "options": [
+        "hyperpotassemia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "hyperpotassemia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "hyperpotassemia",
+          "n_adm": 9,
+          "share": 0.2432,
+          "selectivity": 228.201,
+          "psr": 94.307
+        },
+        {
+          "candidate": "hyperkalemia",
+          "n_adm": 7,
+          "share": 0.1892,
+          "selectivity": 126.778,
+          "psr": 35.429
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 12,
+          "share": 0.3243,
+          "selectivity": 15.749,
+          "psr": 9.72
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0061",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hypoglycemia",
+      "condition_support": 14,
+      "stem": "A patient presents to the emergency department with hypoglycemia. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 6.168,
+          "psr": 2.203
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0062",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hypotension",
+      "condition_support": 133,
+      "stem": "A patient presents to the emergency department with hypotension. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 42,
+          "share": 0.3158,
+          "selectivity": 5.454,
+          "psr": 4.443
+        },
+        {
+          "candidate": "hypotension",
+          "n_adm": 10,
+          "share": 0.0752,
+          "selectivity": 31.49,
+          "psr": 4.21
+        },
+        {
+          "candidate": "hypotension of hemodialysis",
+          "n_adm": 5,
+          "share": 0.0376,
+          "selectivity": 44.086,
+          "psr": 1.657
+        },
+        {
+          "candidate": "dehydration",
+          "n_adm": 5,
+          "share": 0.0376,
+          "selectivity": 16.328,
+          "psr": 0.614
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 10,
+          "share": 0.0752,
+          "selectivity": 3.651,
+          "psr": 0.488
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0063",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hypotension, weakness",
+      "condition_support": 25,
+      "stem": "A patient presents to the emergency department with hypotension, weakness. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 8,
+          "share": 0.32,
+          "selectivity": 5.527,
+          "psr": 2.833
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0064",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "hypoxia",
+      "condition_support": 72,
+      "stem": "A patient presents to the emergency department with hypoxia. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 21,
+          "share": 0.2917,
+          "selectivity": 3.308,
+          "psr": 2.152
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.1944,
+          "selectivity": 3.358,
+          "psr": 1.306
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0065",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "intracranial hemorrhage",
+      "condition_support": 51,
+      "stem": "A patient presents to the emergency department with intracranial hemorrhage. What is the most likely diagnosis?",
+      "options": [
+        "intracerebral hemorrhage",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "intracerebral hemorrhage",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "intracerebral hemorrhage",
+          "n_adm": 8,
+          "share": 0.1569,
+          "selectivity": 65.697,
+          "psr": 16.51
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0066",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "intubated",
+      "condition_support": 18,
+      "stem": "A patient presents to the emergency department with intubated. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.3889,
+          "selectivity": 6.716,
+          "psr": 3.858
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0067",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "left weakness",
+      "condition_support": 31,
+      "stem": "A patient presents to the emergency department with left weakness. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 21,
+          "share": 0.6774,
+          "selectivity": 33.379,
+          "psr": 50.433
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0068",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "leg swelling",
+      "condition_support": 35,
+      "stem": "A patient presents to the emergency department with leg swelling. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 21,
+          "share": 0.6,
+          "selectivity": 6.805,
+          "psr": 9.107
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0069",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "lethargy",
+      "condition_support": 50,
+      "stem": "A patient presents to the emergency department with lethargy. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.28,
+          "selectivity": 4.836,
+          "psr": 2.708
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 5,
+          "share": 0.1,
+          "selectivity": 4.856,
+          "psr": 0.486
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.14,
+          "selectivity": 1.588,
+          "psr": 0.328
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0070",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "melena",
+      "condition_support": 52,
+      "stem": "A patient presents to the emergency department with melena. What is the most likely diagnosis?",
+      "options": [
+        "blood in stool",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "blood in stool",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "blood in stool",
+          "n_adm": 11,
+          "share": 0.2115,
+          "selectivity": 91.878,
+          "psr": 35.861
+        },
+        {
+          "candidate": "hemorrhage of gastrointestinal tract",
+          "n_adm": 6,
+          "share": 0.1154,
+          "selectivity": 36.571,
+          "psr": 5.49
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0071",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "nausea/vomiting",
+      "condition_support": 83,
+      "stem": "A patient presents to the emergency department with nausea/vomiting. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 10,
+          "share": 0.1205,
+          "selectivity": 2.081,
+          "psr": 0.446
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0072",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "nstemi",
+      "condition_support": 135,
+      "stem": "A patient presents to the emergency department with nstemi. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 96,
+          "share": 0.7111,
+          "selectivity": 12.939,
+          "psr": 27.27
+        },
+        {
+          "candidate": "myocardial infarction type 2",
+          "n_adm": 6,
+          "share": 0.0444,
+          "selectivity": 16.288,
+          "psr": 0.942
+        },
+        {
+          "candidate": "stemi",
+          "n_adm": 8,
+          "share": 0.0593,
+          "selectivity": 6.435,
+          "psr": 0.611
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 7,
+          "share": 0.0519,
+          "selectivity": 0.588,
+          "psr": 0.045
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0073",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "nstemi, transfer",
+      "condition_support": 14,
+      "stem": "A patient presents to the emergency department with nstemi, transfer. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 11,
+          "share": 0.7857,
+          "selectivity": 14.296,
+          "psr": 20.726
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0074",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "palpitations",
+      "condition_support": 40,
+      "stem": "A patient presents to the emergency department with palpitations. What is the most likely diagnosis?",
+      "options": [
+        "ventricular tachycardia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "ventricular tachycardia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "ventricular tachycardia",
+          "n_adm": 7,
+          "share": 0.175,
+          "selectivity": 49.451,
+          "psr": 12.783
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.2,
+          "selectivity": 2.268,
+          "psr": 0.727
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 5,
+          "share": 0.125,
+          "selectivity": 2.274,
+          "psr": 0.284
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0075",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "pneumonia",
+      "condition_support": 38,
+      "stem": "A patient presents to the emergency department with pneumonia. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.3684,
+          "selectivity": 6.363,
+          "psr": 4.689
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 5,
+          "share": 0.1316,
+          "selectivity": 19.91,
+          "psr": 2.62
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0076",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "r/o stroke",
+      "condition_support": 30,
+      "stem": "A patient presents to the emergency department with r/o stroke. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 18,
+          "share": 0.6,
+          "selectivity": 29.564,
+          "psr": 38.069
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0077",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "resp distress",
+      "condition_support": 22,
+      "stem": "A patient presents to the emergency department with resp distress. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 8,
+          "share": 0.3636,
+          "selectivity": 4.124,
+          "psr": 2.403
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.2727,
+          "selectivity": 4.71,
+          "psr": 1.671
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0078",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "respiratory distress",
+      "condition_support": 98,
+      "stem": "A patient presents to the emergency department with respiratory distress. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 24,
+          "share": 0.2449,
+          "selectivity": 4.23,
+          "psr": 2.383
+        },
+        {
+          "candidate": "heart failure",
+          "n_adm": 28,
+          "share": 0.2857,
+          "selectivity": 3.24,
+          "psr": 2.204
+        },
+        {
+          "candidate": "acute respiratory failure with hypoxia",
+          "n_adm": 6,
+          "share": 0.0612,
+          "selectivity": 20.811,
+          "psr": 1.658
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.0816,
+          "selectivity": 1.485,
+          "psr": 0.194
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0079",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "right upper quadrant abdominal pain",
+      "condition_support": 42,
+      "stem": "A patient presents to the emergency department with right upper quadrant abdominal pain. What is the most likely diagnosis?",
+      "options": [
+        "acute cholecystitis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "acute cholecystitis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute cholecystitis",
+          "n_adm": 6,
+          "share": 0.1429,
+          "selectivity": 77.92,
+          "psr": 14.482
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 6,
+          "share": 0.1429,
+          "selectivity": 2.467,
+          "psr": 0.459
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0080",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "right weakness",
+      "condition_support": 23,
+      "stem": "A patient presents to the emergency department with right weakness. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 14,
+          "share": 0.6087,
+          "selectivity": 29.992,
+          "psr": 36.512
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0081",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "sepsis",
+      "condition_support": 24,
+      "stem": "A patient presents to the emergency department with sepsis. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 21,
+          "share": 0.875,
+          "selectivity": 15.112,
+          "psr": 29.493
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0082",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "shortness of breath",
+      "condition_support": 265,
+      "stem": "A patient presents to the emergency department with shortness of breath. What is the most likely diagnosis?",
+      "options": [
+        "heart failure",
+        "acute kidney failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "heart failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "heart failure",
+          "n_adm": 118,
+          "share": 0.4453,
+          "selectivity": 5.05,
+          "psr": 6.874
+        },
+        {
+          "candidate": "obstructive chronic bronchitis with exacerbation",
+          "n_adm": 14,
+          "share": 0.0528,
+          "selectivity": 15.886,
+          "psr": 1.678
+        },
+        {
+          "candidate": "acute respiratory failure",
+          "n_adm": 10,
+          "share": 0.0377,
+          "selectivity": 15.805,
+          "psr": 1.06
+        },
+        {
+          "candidate": "aortic valve disorders",
+          "n_adm": 8,
+          "share": 0.0302,
+          "selectivity": 13.616,
+          "psr": 0.659
+        },
+        {
+          "candidate": "pneumonia",
+          "n_adm": 11,
+          "share": 0.0415,
+          "selectivity": 6.281,
+          "psr": 0.481
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0083",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "slurred speech",
+      "condition_support": 42,
+      "stem": "A patient presents to the emergency department with slurred speech. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 14,
+          "share": 0.3333,
+          "selectivity": 16.424,
+          "psr": 10.95
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0084",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "small bowel obstruction",
+      "condition_support": 23,
+      "stem": "A patient presents to the emergency department with small bowel obstruction. What is the most likely diagnosis?",
+      "options": [
+        "unspecified intestinal obstruction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "unspecified intestinal obstruction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "unspecified intestinal obstruction",
+          "n_adm": 8,
+          "share": 0.3478,
+          "selectivity": 133.736,
+          "psr": 74.523
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0085",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "stemi",
+      "condition_support": 88,
+      "stem": "A patient presents to the emergency department with stemi. What is the most likely diagnosis?",
+      "options": [
+        "stemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "stemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "stemi",
+          "n_adm": 29,
+          "share": 0.3295,
+          "selectivity": 35.783,
+          "psr": 28.277
+        },
+        {
+          "candidate": "acute myocardial infarction of other inferior wall",
+          "n_adm": 11,
+          "share": 0.125,
+          "selectivity": 48.061,
+          "psr": 11.085
+        },
+        {
+          "candidate": "acute myocardial infarction of other anterior wall",
+          "n_adm": 11,
+          "share": 0.125,
+          "selectivity": 44.42,
+          "psr": 10.245
+        },
+        {
+          "candidate": "acute myocardial infarction of anterolateral wall",
+          "n_adm": 6,
+          "share": 0.0682,
+          "selectivity": 72.688,
+          "psr": 6.448
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 8,
+          "share": 0.0909,
+          "selectivity": 1.654,
+          "psr": 0.241
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0086",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "stroke",
+      "condition_support": 102,
+      "stem": "A patient presents to the emergency department with stroke. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 80,
+          "share": 0.7843,
+          "selectivity": 38.646,
+          "psr": 87.318
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0087",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "syncope",
+      "condition_support": 85,
+      "stem": "A patient presents to the emergency department with syncope. What is the most likely diagnosis?",
+      "options": [
+        "paroxysmal ventricular tachycardia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "paroxysmal ventricular tachycardia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "paroxysmal ventricular tachycardia",
+          "n_adm": 5,
+          "share": 0.0588,
+          "selectivity": 21.225,
+          "psr": 1.249
+        },
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.0824,
+          "selectivity": 1.498,
+          "psr": 0.182
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0088",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "tachycardia",
+      "condition_support": 45,
+      "stem": "A patient presents to the emergency department with tachycardia. What is the most likely diagnosis?",
+      "options": [
+        "nstemi",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "nstemi",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "nstemi",
+          "n_adm": 7,
+          "share": 0.1556,
+          "selectivity": 2.83,
+          "psr": 0.65
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 7,
+          "share": 0.1556,
+          "selectivity": 2.687,
+          "psr": 0.617
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0089",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "unresponsive",
+      "condition_support": 47,
+      "stem": "A patient presents to the emergency department with unresponsive. What is the most likely diagnosis?",
+      "options": [
+        "sepsis",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "sepsis",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "sepsis",
+          "n_adm": 14,
+          "share": 0.2979,
+          "selectivity": 5.145,
+          "psr": 3.065
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0090",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "urinary retention",
+      "condition_support": 17,
+      "stem": "A patient presents to the emergency department with urinary retention. What is the most likely diagnosis?",
+      "options": [
+        "acute kidney failure",
+        "heart failure",
+        "anemia",
+        "nstemi"
+      ],
+      "answer_index": 0,
+      "answer": "acute kidney failure",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 8,
+          "share": 0.4706,
+          "selectivity": 22.851,
+          "psr": 17.228
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0091",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "visual changes",
+      "condition_support": 21,
+      "stem": "A patient presents to the emergency department with visual changes. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 5,
+          "share": 0.2381,
+          "selectivity": 11.732,
+          "psr": 2.793
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0092",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "vtach",
+      "condition_support": 14,
+      "stem": "A patient presents to the emergency department with vtach. What is the most likely diagnosis?",
+      "options": [
+        "ventricular tachycardia",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "ventricular tachycardia",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "ventricular tachycardia",
+          "n_adm": 5,
+          "share": 0.3571,
+          "selectivity": 100.921,
+          "psr": 36.043
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0093",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "weakness",
+      "condition_support": 275,
+      "stem": "A patient presents to the emergency department with weakness. What is the most likely diagnosis?",
+      "options": [
+        "cerebral infarction",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cerebral infarction",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cerebral infarction",
+          "n_adm": 26,
+          "share": 0.0945,
+          "selectivity": 4.659,
+          "psr": 1.032
+        },
+        {
+          "candidate": "acute kidney failure",
+          "n_adm": 16,
+          "share": 0.0582,
+          "selectivity": 2.825,
+          "psr": 0.342
+        },
+        {
+          "candidate": "dehydration",
+          "n_adm": 6,
+          "share": 0.0218,
+          "selectivity": 9.476,
+          "psr": 0.269
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 21,
+          "share": 0.0764,
+          "selectivity": 1.319,
+          "psr": 0.225
+        },
+        {
+          "candidate": "pneumonia, unspecified organism",
+          "n_adm": 9,
+          "share": 0.0327,
+          "selectivity": 3.781,
+          "psr": 0.21
+        }
+      ]
+    },
+    {
+      "question_id": "qdx_0094",
+      "task": "clinical_diagnosis",
+      "comparison_class": "diagnosis",
+      "condition": "wound eval",
+      "condition_support": 88,
+      "stem": "A patient presents to the emergency department with wound eval. What is the most likely diagnosis?",
+      "options": [
+        "cellulitis of right lower limb",
+        "heart failure",
+        "acute kidney failure",
+        "anemia"
+      ],
+      "answer_index": 0,
+      "answer": "cellulitis of right lower limb",
+      "gold_basis": "behavioral_psr",
+      "status": "exploratory_unreviewed",
+      "candidate_counts": [
+        {
+          "candidate": "cellulitis of right lower limb",
+          "n_adm": 7,
+          "share": 0.0795,
+          "selectivity": 58.302,
+          "psr": 6.85
+        },
+        {
+          "candidate": "cellulitis of left lower limb",
+          "n_adm": 5,
+          "share": 0.0568,
+          "selectivity": 26.13,
+          "psr": 1.485
+        },
+        {
+          "candidate": "sepsis",
+          "n_adm": 5,
+          "share": 0.0568,
+          "selectivity": 0.981,
+          "psr": 0.056
+        }
+      ]
+    }
+  ]
+}

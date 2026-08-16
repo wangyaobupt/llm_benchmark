@@ -1,0 +1,155 @@
+{"condition": "aaa", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 4}
+{"condition": "abdominal distention", "gold_candidate": "bronchodilator", "status": "insufficient_support", "validation_support": 5}
+{"condition": "abdominal distention, abdominal pain", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 1}
+{"condition": "abdominal distention, dyspnea", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 7}
+{"condition": "abdominal pain", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 217, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abdominal pain, chest pain", "gold_candidate": "antidiabetic", "status": "insufficient_support", "validation_support": 6}
+{"condition": "abdominal pain, fever", "gold_candidate": "antibiotic", "status": "checked", "validation_support": 10, "gold_rank": 8, "top_candidate_validation": "antigout", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "abdominal pain, melena", "gold_candidate": "ppi", "status": "insufficient_support", "validation_support": 1}
+{"condition": "abdominal pain, nausea", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 8}
+{"condition": "abdominal pain, nausea/vomiting", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 27, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abdominal pain, nausea/vomiting/diarrhea", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 11, "gold_rank": 2, "top_candidate_validation": "antacid", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "abdominal pain, vomiting", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 8}
+{"condition": "abnormal ekg", "gold_candidate": "nitrate", "status": "checked", "validation_support": 32, "gold_rank": 3, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "abnormal ekg, chest pain", "gold_candidate": "nitrate", "status": "checked", "validation_support": 13, "gold_rank": 2, "top_candidate_validation": "antacid", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "abnormal labs", "gold_candidate": "antigout", "status": "checked", "validation_support": 95, "gold_rank": 1, "top_candidate_validation": "antigout", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "abnormal labs, dyspnea", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 6}
+{"condition": "abnormal labs, fall", "gold_candidate": "antigout", "status": "insufficient_support", "validation_support": 2}
+{"condition": "abnormal labs, hyperkalemia", "gold_candidate": "antidiabetic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "abnormal mri", "gold_candidate": "vaccine", "status": "checked", "validation_support": 13, "gold_rank": 5, "top_candidate_validation": "h2_blocker", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "abnormal sodium level", "gold_candidate": "thyroid", "status": "insufficient_support", "validation_support": 2}
+{"condition": "abscess", "gold_candidate": "antibiotic", "status": "insufficient_support", "validation_support": 4}
+{"condition": "agitation", "gold_candidate": "sleep_aid", "status": "insufficient_support", "validation_support": 8}
+{"condition": "altered level of consciousness", "gold_candidate": "vitamin", "status": "insufficient_support", "validation_support": 7}
+{"condition": "altered mental status", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 149, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "altered mental status, dyspnea", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 4}
+{"condition": "altered mental status, fever", "gold_candidate": "local_anesthetic", "status": "checked", "validation_support": 11, "gold_rank": 3, "top_candidate_validation": "anticonvulsant", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "anemia", "gold_candidate": "ppi", "status": "checked", "validation_support": 32, "gold_rank": 2, "top_candidate_validation": "antigout", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "anemia, dyspnea", "gold_candidate": "ppi", "status": "insufficient_support", "validation_support": 5}
+{"condition": "aphasia", "gold_candidate": "antihypertensive_other", "status": "insufficient_support", "validation_support": 3}
+{"condition": "asthma exacerbation", "gold_candidate": "steroid", "status": "insufficient_support", "validation_support": 2}
+{"condition": "atrial fibrillation", "gold_candidate": "sleep_aid", "status": "insufficient_support", "validation_support": 4}
+{"condition": "back pain", "gold_candidate": "local_anesthetic", "status": "checked", "validation_support": 39, "gold_rank": 1, "top_candidate_validation": "local_anesthetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "back pain, chest pain", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 6}
+{"condition": "bilateral leg swelling", "gold_candidate": "electrolyte", "status": "insufficient_support", "validation_support": 2}
+{"condition": "bilateral leg swelling, dyspnea", "gold_candidate": "diuretic", "status": "insufficient_support", "validation_support": 6}
+{"condition": "bradycardia", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 25, "gold_rank": 8, "top_candidate_validation": "antigout", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "bright red blood per rectum", "gold_candidate": "ppi", "status": "checked", "validation_support": 78, "gold_rank": 1, "top_candidate_validation": "ppi", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "cardiac arrest", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 23, "gold_rank": 1, "top_candidate_validation": "vasopressor", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "cellulitis", "gold_candidate": "antibiotic", "status": "insufficient_support", "validation_support": 3}
+{"condition": "chest pain", "gold_candidate": "nitrate", "status": "checked", "validation_support": 905, "gold_rank": 1, "top_candidate_validation": "nitrate", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "chest pain, cough", "gold_candidate": "bronchodilator", "status": "insufficient_support", "validation_support": 6}
+{"condition": "chest pain, dyspnea", "gold_candidate": "sleep_aid", "status": "checked", "validation_support": 114, "gold_rank": 14, "top_candidate_validation": "nitrate", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "chest pain, dyspnea on exertion", "gold_candidate": "nitrate", "status": "checked", "validation_support": 17, "gold_rank": 4, "top_candidate_validation": "ace_arb", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "chest pain, elevated troponin", "gold_candidate": "nitrate", "status": "checked", "validation_support": 13, "gold_rank": 1, "top_candidate_validation": "nitrate", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "chest pain, left arm pain", "gold_candidate": "nitrate", "status": "insufficient_support", "validation_support": 8}
+{"condition": "chest pain, nausea/vomiting", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 5}
+{"condition": "chest pain, nstemi", "gold_candidate": "nitrate", "status": "insufficient_support", "validation_support": 9}
+{"condition": "chest pain, palpitations", "gold_candidate": "antiarrhythmic", "status": "checked", "validation_support": 16, "gold_rank": 6, "top_candidate_validation": "thyroid", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "chest pain, transfer", "gold_candidate": "nitrate", "status": "insufficient_support", "validation_support": 6}
+{"condition": "chest pain, weakness", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 9}
+{"condition": "clotted fistula", "gold_candidate": "local_anesthetic", "status": "checked", "validation_support": 16, "gold_rank": 2, "top_candidate_validation": "antigout", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "coffee ground emesis", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "congestive heart failure", "gold_candidate": "diuretic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "cough", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 22, "gold_rank": 1, "top_candidate_validation": "bronchodilator", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "cough, dyspnea", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 37, "gold_rank": 2, "top_candidate_validation": "sleep_aid", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "cough, fever", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 12, "gold_rank": 3, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "cough, weakness", "gold_candidate": "bronchodilator", "status": "insufficient_support", "validation_support": 5}
+{"condition": "diarrhea", "gold_candidate": "vitamin", "status": "checked", "validation_support": 16, "gold_rank": 12, "top_candidate_validation": "anticonvulsant", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "dizziness, nausea/vomiting", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 4}
+{"condition": "dyspnea", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 460, "gold_rank": 1, "top_candidate_validation": "bronchodilator", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "dyspnea on exertion", "gold_candidate": "diuretic", "status": "checked", "validation_support": 65, "gold_rank": 1, "top_candidate_validation": "diuretic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "dyspnea, elevated troponin", "gold_candidate": "antiarrhythmic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "dyspnea, fatigue", "gold_candidate": "nitrate", "status": "insufficient_support", "validation_support": 3}
+{"condition": "dyspnea, fever", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 13, "gold_rank": 3, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "dyspnea, hypoxia", "gold_candidate": "sleep_aid", "status": "checked", "validation_support": 15, "gold_rank": 3, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "dyspnea, influenza-like illness", "gold_candidate": "steroid", "status": "insufficient_support", "validation_support": 6}
+{"condition": "dyspnea, leg swelling", "gold_candidate": "sleep_aid", "status": "checked", "validation_support": 21, "gold_rank": 6, "top_candidate_validation": "diuretic", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "dyspnea, pedal edema", "gold_candidate": "sleep_aid", "status": "insufficient_support", "validation_support": 1}
+{"condition": "dyspnea, respiratory distress", "gold_candidate": "sleep_aid", "status": "insufficient_support", "validation_support": 1}
+{"condition": "dyspnea, tachycardia", "gold_candidate": "antiarrhythmic", "status": "insufficient_support", "validation_support": 6}
+{"condition": "dyspnea, transfer", "gold_candidate": "bronchodilator", "status": "insufficient_support", "validation_support": 2}
+{"condition": "dyspnea, weakness", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 13, "gold_rank": null, "top_candidate_validation": "antidepressant", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "dysuria", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "elevated troponin", "gold_candidate": "vaccine", "status": "insufficient_support", "validation_support": 8}
+{"condition": "epigastric pain", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 18, "gold_rank": 8, "top_candidate_validation": "ace_arb", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "failure to thrive", "gold_candidate": "local_anesthetic", "status": "checked", "validation_support": 11, "gold_rank": 2, "top_candidate_validation": "sedative", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "fall", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 158, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "fall, intracranial hemorrhage", "gold_candidate": "anticonvulsant", "status": "insufficient_support", "validation_support": 4}
+{"condition": "fall, left hip pain", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 9}
+{"condition": "fall, subarachnoid hemorrhage", "gold_candidate": "anticonvulsant", "status": "insufficient_support", "validation_support": 8}
+{"condition": "fall, subdural hematoma", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "fever", "gold_candidate": "antibiotic", "status": "checked", "validation_support": 94, "gold_rank": 1, "top_candidate_validation": "antibiotic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "fever, hypotension", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 3}
+{"condition": "fever, lethargy", "gold_candidate": "antidepressant", "status": "condition_absent"}
+{"condition": "fever, weakness", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 8}
+{"condition": "fever, wound eval", "gold_candidate": "antibiotic", "status": "insufficient_support", "validation_support": 4}
+{"condition": "foot pain", "gold_candidate": "antibiotic", "status": "insufficient_support", "validation_support": 3}
+{"condition": "found down", "gold_candidate": "h2_blocker", "status": "insufficient_support", "validation_support": 5}
+{"condition": "gi bleed", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 38, "gold_rank": 2, "top_candidate_validation": "ppi", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "head bleed", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 10, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "headache", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 17, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hematemesis", "gold_candidate": "ppi", "status": "insufficient_support", "validation_support": 4}
+{"condition": "hematuria", "gold_candidate": "antigout", "status": "checked", "validation_support": 28, "gold_rank": 2, "top_candidate_validation": "local_anesthetic", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "hemoptysis", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 16, "gold_rank": 13, "top_candidate_validation": "thyroid", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "hyperglycemia", "gold_candidate": "antidiabetic", "status": "checked", "validation_support": 26, "gold_rank": 1, "top_candidate_validation": "antidiabetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hypertension", "gold_candidate": "ace_arb", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "ace_arb", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hypoglycemia", "gold_candidate": "antidiabetic", "status": "checked", "validation_support": 15, "gold_rank": 2, "top_candidate_validation": "antigout", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "hypotension", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 50, "gold_rank": 1, "top_candidate_validation": "vasopressor", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "hypotension, weakness", "gold_candidate": "sleep_aid", "status": "insufficient_support", "validation_support": 5}
+{"condition": "hypotensive", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 1}
+{"condition": "hypoxia", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 17, "gold_rank": 1, "top_candidate_validation": "vasopressor", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "icd eval", "gold_candidate": "antiarrhythmic", "status": "insufficient_support", "validation_support": 8}
+{"condition": "influenza-like illness", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 12, "gold_rank": 2, "top_candidate_validation": "thyroid", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "intracranial hemorrhage", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 20, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "intubated", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 7}
+{"condition": "left foot pain", "gold_candidate": "antibiotic", "status": "checked", "validation_support": 14, "gold_rank": 1, "top_candidate_validation": "antibiotic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "left foot pain, wound eval", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 2}
+{"condition": "left hip pain", "gold_candidate": "local_anesthetic", "status": "checked", "validation_support": 10, "gold_rank": 7, "top_candidate_validation": "antiarrhythmic", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "left knee pain", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 4}
+{"condition": "left weakness", "gold_candidate": "anticonvulsant", "status": "insufficient_support", "validation_support": 8}
+{"condition": "leg swelling", "gold_candidate": "diuretic", "status": "checked", "validation_support": 12, "gold_rank": 2, "top_candidate_validation": "nitrate", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "lethargy", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 18, "gold_rank": 19, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "lower back pain", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 7}
+{"condition": "lower extremity pain", "gold_candidate": "antibiotic", "status": "insufficient_support", "validation_support": 9}
+{"condition": "melena", "gold_candidate": "ppi", "status": "checked", "validation_support": 18, "gold_rank": 1, "top_candidate_validation": "ppi", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "motor vehicle collision", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 9}
+{"condition": "nausea", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 7}
+{"condition": "nausea/vomiting", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 37, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "nausea/vomiting/diarrhea", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 19, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "nstemi", "gold_candidate": "nitrate", "status": "checked", "validation_support": 43, "gold_rank": 1, "top_candidate_validation": "nitrate", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "overdose", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 3}
+{"condition": "pain", "gold_candidate": "antigout", "status": "insufficient_support", "validation_support": 3}
+{"condition": "palpitations", "gold_candidate": "antiarrhythmic", "status": "checked", "validation_support": 23, "gold_rank": 1, "top_candidate_validation": "antiarrhythmic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "pneumonia", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 21, "gold_rank": 7, "top_candidate_validation": "antibiotic", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "r/o stroke", "gold_candidate": "antidiabetic", "status": "checked", "validation_support": 10, "gold_rank": 5, "top_candidate_validation": "anticonvulsant", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "resp distress", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 8}
+{"condition": "respiratory distress", "gold_candidate": "vasopressor", "status": "checked", "validation_support": 28, "gold_rank": 1, "top_candidate_validation": "vasopressor", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right foot pain", "gold_candidate": "antibiotic", "status": "checked", "validation_support": 17, "gold_rank": 1, "top_candidate_validation": "antibiotic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right hip pain", "gold_candidate": "antacid", "status": "insufficient_support", "validation_support": 6}
+{"condition": "right upper quadrant abdominal pain", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 16, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "right weakness", "gold_candidate": "antihypertensive_other", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "antihypertensive_other", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "s/p arrest", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 4}
+{"condition": "s/p cardiac arrest", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 5}
+{"condition": "s/p chest pain", "gold_candidate": "nitrate", "status": "insufficient_support", "validation_support": 4}
+{"condition": "seizure", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 42, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "sepsis", "gold_candidate": "vasopressor", "status": "insufficient_support", "validation_support": 9}
+{"condition": "shortness of breath", "gold_candidate": "bronchodilator", "status": "checked", "validation_support": 105, "gold_rank": 1, "top_candidate_validation": "bronchodilator", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "si", "gold_candidate": "antidepressant", "status": "insufficient_support", "validation_support": 6}
+{"condition": "slurred speech", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 14, "gold_rank": 6, "top_candidate_validation": "antihypertensive_other", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "small bowel obstruction", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 11, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "sore throat", "gold_candidate": "local_anesthetic", "status": "insufficient_support", "validation_support": 4}
+{"condition": "stemi", "gold_candidate": "ace_arb", "status": "checked", "validation_support": 38, "gold_rank": 4, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "stroke", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 36, "gold_rank": 2, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "subarachnoid hemorrhage", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 13, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "subdural hematoma", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 14, "gold_rank": 1, "top_candidate_validation": "anticonvulsant", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "syncope/presyncope", "gold_candidate": "vaccine", "status": "insufficient_support", "validation_support": 6}
+{"condition": "tachycardia", "gold_candidate": "antiarrhythmic", "status": "checked", "validation_support": 36, "gold_rank": 1, "top_candidate_validation": "antiarrhythmic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "toe pain", "gold_candidate": "antidiabetic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "unresponsive", "gold_candidate": "anticonvulsant", "status": "checked", "validation_support": 26, "gold_rank": 2, "top_candidate_validation": "vasopressor", "concordant_rank1": false, "concordant_top3": true}
+{"condition": "urinary retention", "gold_candidate": "antihypertensive_other", "status": "checked", "validation_support": 10, "gold_rank": 13, "top_candidate_validation": "sleep_aid", "concordant_rank1": false, "concordant_top3": false}
+{"condition": "visual changes", "gold_candidate": "antidiabetic", "status": "insufficient_support", "validation_support": 7}
+{"condition": "vomiting", "gold_candidate": "antiemetic", "status": "checked", "validation_support": 10, "gold_rank": 1, "top_candidate_validation": "antiemetic", "concordant_rank1": true, "concordant_top3": true}
+{"condition": "vomiting and/or nausea", "gold_candidate": "antiemetic", "status": "insufficient_support", "validation_support": 5}
+{"condition": "vtach", "gold_candidate": "antiarrhythmic", "status": "insufficient_support", "validation_support": 2}
+{"condition": "wound eval", "gold_candidate": "antibiotic", "status": "checked", "validation_support": 61, "gold_rank": 1, "top_candidate_validation": "antibiotic", "concordant_rank1": true, "concordant_top3": true}
