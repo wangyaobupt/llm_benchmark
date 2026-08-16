@@ -9,6 +9,10 @@ mimic/
 # Parquet pipeline artifacts
 *.parquet
 
+# Benchmark task generated artifacts (MIMIC-derived question text, gold,
+# validation/eval results, split manifest) — regenerable, never committed
+tasks/*/output/
+
 # Data directory (patient-level data, never committed)
 data/
 

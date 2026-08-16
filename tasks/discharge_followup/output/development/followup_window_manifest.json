@@ -1,7 +1,0 @@
-{
-  "status": "exploratory_unreviewed",
-  "stage": "f1_followup_window_first_pass",
-  "n_matches": 1330,
-  "n_admissions": 1089,
-  "pattern": "(?:follow[\\s-]*up|followup|return|recheck|f/u|fu)\\s+(?:with\\s+[\\w\\s.,/'-]+?\\s+)?(?:in|within|every|at)\\s+(\\d{1,2})\\s*(?:-\\s*(\\d{1,2}))?\\s*(day|days|week|weeks|month|months|year|years)"
-}
