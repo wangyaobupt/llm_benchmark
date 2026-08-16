@@ -1,0 +1,4 @@
+# 产物与代码副本由 SHA-256 锚定（artifacts_sha256.json / src_sha256.json），
+# 不重复纳入 git 追踪；版本元信息（README / FREEZE_MANIFEST / *_sha256.json）照常追踪。
+artifacts/
+src/

@@ -1,0 +1,100 @@
+{
+  "version": "v0.1-template-stem",
+  "frozen_at": "2026-08-16 16:15:39",
+  "git_branch": "master",
+  "git_head": "d9af459947ecf8333652c681e0beb256e56dbe06",
+  "status": "exploratory_unreviewed",
+  "role": "baseline snapshot (template-stem / deterministic-gold)",
+  "description": "模板题干 + 确定性统计 gold（零 LLM 出题）的四维行为 MCQ 版本基线快照。产物已聚类到本目录 artifacts/（115 个文件），完整文件级 SHA-256 见 artifacts_sha256.json；任何后续开发不得改写本版本目录内容，如需演进，在新版本目录下派生。",
+  "stem_generation": {
+    "method": "template",
+    "uses_llm": false,
+    "template": "A patient presents to the emergency department with {condition}. Which {entity} ...?",
+    "note": "题干仅含归一化主诉（condition），信息量极低；无病例级具体特征。"
+  },
+  "gold_generation": {
+    "method": "deterministic_statistics",
+    "uses_llm": false,
+    "semantics": {
+      "investigation_selection": "selectivity (FDR lift)",
+      "clinical_diagnosis": "psr (probability x specificity x reliability)",
+      "treatment_t1": "selectivity",
+      "treatment_t2": "selectivity",
+      "treatment_t3": "selectivity",
+      "referral": "selectivity"
+    },
+    "source": "MIMIC-IV normalized_events (behavioral gold from real events)",
+    "distractor_method": "first 3 non-gold candidates from fixed pool (naive, NOT hierarchical)"
+  },
+  "inputs": {
+    "normalized_events_sha256": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf",
+    "subject_split_sha256": "80f9b4e213102e40abedf86b6c7fa5fe6498ba69d22222e4bc1f5d6e79471846",
+    "split_ratio": "60/20/20 (development/validation/final_test)",
+    "note": "normalized_events 位于 G:\\Projects\\llm_benchmark\\data\\derived\\coronary_all_three_modules_full\\event_pipeline\\normalization\\normalized_events.parquet（工作区外）。"
+  },
+  "tasks": {
+    "investigation_selection": {
+      "gold_semantics": "selectivity",
+      "dev_questions": 224,
+      "validated_rank1": 84,
+      "validated_top3": 104,
+      "classes": ["imaging", "clinical_order", "laboratory"]
+    },
+    "clinical_diagnosis": {
+      "gold_semantics": "psr",
+      "dev_questions": 94,
+      "validated_rank1": 24,
+      "validated_top3": 27
+    },
+    "treatment_t1": {
+      "gold_semantics": "selectivity",
+      "dev_questions": 90,
+      "validated_rank1": 30,
+      "validated_top3": 39
+    },
+    "treatment_t2": {
+      "gold_semantics": "selectivity",
+      "dev_questions": 77,
+      "validated_rank1": 24,
+      "validated_top3": 33
+    },
+    "treatment_t3": {
+      "gold_semantics": "selectivity",
+      "dev_questions": 55,
+      "validated_rank1": 26,
+      "validated_top3": 34
+    },
+    "referral": {
+      "gold_semantics": "selectivity",
+      "dev_questions": 115,
+      "validated_rank1": 33,
+      "validated_top3": 42
+    },
+    "discharge_followup": {
+      "note": "无 MCQ gold；仅出院全文抽取 + 随访时间窗正则骨架，不参与本基线。其 development 下 4 个 output 文件（discharge_text.parquet 等）未聚类，见 README §5。"
+    }
+  },
+  "total_validated_rank1": 221,
+  "deepseek_baseline": {
+    "model": "deepseek-v4-flash",
+    "provider": "deepseek",
+    "endpoint": "https://api.deepseek.com",
+    "temperature": 0.0,
+    "thinking": "disabled",
+    "accuracy": {
+      "investigation_selection": {"n": 84, "overall": 0.5357, "by_class": {"imaging": 0.7941, "clinical_order": 0.1905, "laboratory": 0.4828}},
+      "clinical_diagnosis": {"n": 24, "overall": 0.9583},
+      "treatment_t1": {"n": 30, "overall": 0.6667},
+      "treatment_t2": {"n": 24, "overall": 0.875},
+      "treatment_t3": {"n": 26, "overall": 0.7308},
+      "referral": {"n": 33, "overall": 0.6061}
+    },
+    "status": "unreviewed_model_output (single-model baseline, not a benchmark result)"
+  },
+  "artifacts_manifest": {
+    "file": "artifacts_sha256.json",
+    "artifact_count": 115,
+    "note": "产物完整 SHA-256 以独立清单 artifacts_sha256.json 为准（键为 artifacts/ 下相对路径，无 tasks/ 前缀）；代码 SHA-256 见 src_sha256.json（43 文件）。本字段不内嵌哈希子集，避免与独立清单重复/不一致。"
+  },
+  "parameters_note": "各维度统计阈值/词表/白名单为占位值，记录于 docs/reports/clinical-review-freeze-checklist.md，尚未冻结；本 manifest 不把占位参数视为已冻结值，仅锚定产物与输入哈希。"
+}
