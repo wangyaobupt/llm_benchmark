@@ -1,0 +1,2304 @@
+{
+  "generated_at": "2026-08-10T12:13:59",
+  "input": "G:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-coronary.jsonl",
+  "input_bytes": 54107625879,
+  "records": 108833,
+  "subjects": 46062,
+  "schema": {
+    "invalid_records": 0,
+    "forbidden_chartevents": 0,
+    "unexpected_top_fields": {}
+  },
+  "line_bytes": {
+    "mean": 497161.9442540406,
+    "p50": 220281.0,
+    "p90": 1126342.4000000001,
+    "p95": 1731662.7999999996,
+    "p99": 4182749.1999999993,
+    "max": 68502295
+  },
+  "cad": {
+    "criteria": "ICD-9 410-414 / ICD-10 I20-I25",
+    "admissions": 108833,
+    "subjects": 46062,
+    "mean_line_bytes": 497161.9442540406,
+    "p50_line_bytes": 220281.0,
+    "p95_line_bytes": 1731662.7999999996
+  },
+  "patient_level": {
+    "admissions_per_subject_mean": 2.362750206243758,
+    "admissions_per_subject_p50": 1.0,
+    "admissions_per_subject_p95": 7.0,
+    "admissions_per_subject_max": 97,
+    "subjects_with_multiple_admissions": 19721,
+    "gender": {
+      "M": 28871,
+      "F": 17191
+    },
+    "anchor_age": {
+      "nonmissing": 46062,
+      "mean": 70.22432807954496,
+      "p50": 71.0,
+      "p95": 91.0
+    },
+    "demographic_conflicts": 0,
+    "partitions": {
+      "final_test": 87256,
+      "development": 21577
+    },
+    "partition_subject_conflicts": 0
+  },
+  "admission_level": {
+    "admission_type": {
+      "EW EMER.": 40841,
+      "EU OBSERVATION": 12852,
+      "URGENT": 12380,
+      "OBSERVATION ADMIT": 21298,
+      "SURGICAL SAME DAY ADMISSION": 7211,
+      "DIRECT EMER.": 4478,
+      "DIRECT OBSERVATION": 5087,
+      "ELECTIVE": 2778,
+      "AMBULATORY OBSERVATION": 1908
+    },
+    "discharge_location": {
+      "HOME": 29498,
+      "missing": 19644,
+      "SKILLED NURSING FACILITY": 17729,
+      "HOME HEALTH CARE": 28489,
+      "REHAB": 3675,
+      "HOSPICE": 1461,
+      "PSYCH FACILITY": 223,
+      "CHRONIC/LONG TERM ACUTE CARE": 2547,
+      "DIED": 4114,
+      "AGAINST ADVICE": 577,
+      "ACUTE HOSPITAL": 489,
+      "ASSISTED LIVING": 158,
+      "OTHER FACILITY": 218,
+      "HEALTHCARE FACILITY": 11
+    },
+    "hospital_expire_flag": {
+      "0": 104659,
+      "1": 4174
+    },
+    "length_of_stay_days": {
+      "nonmissing": 108799,
+      "mean": 5.788722437706229,
+      "p50": 3.759027777777778,
+      "p95": 17.74104166666666,
+      "p99": 35.937513888888894
+    }
+  },
+  "disease_spectrum": {
+    "code3": [
+      {
+        "code": "ICD-10:I20",
+        "rows": 521,
+        "admissions": 516
+      },
+      {
+        "code": "ICD-10:I21",
+        "rows": 9911,
+        "admissions": 9812
+      },
+      {
+        "code": "ICD-10:I22",
+        "rows": 124,
+        "admissions": 123
+      },
+      {
+        "code": "ICD-10:I23",
+        "rows": 120,
+        "admissions": 117
+      },
+      {
+        "code": "ICD-10:I24",
+        "rows": 1690,
+        "admissions": 1687
+      },
+      {
+        "code": "ICD-10:I25",
+        "rows": 70669,
+        "admissions": 50432
+      },
+      {
+        "code": "ICD-9:410",
+        "rows": 6794,
+        "admissions": 6697
+      },
+      {
+        "code": "ICD-9:411",
+        "rows": 4026,
+        "admissions": 4004
+      },
+      {
+        "code": "ICD-9:412",
+        "rows": 15180,
+        "admissions": 15180
+      },
+      {
+        "code": "ICD-9:413",
+        "rows": 3069,
+        "admissions": 3067
+      },
+      {
+        "code": "ICD-9:414",
+        "rows": 54107,
+        "admissions": 49324
+      }
+    ],
+    "clinical_groups": [
+      {
+        "group": "acute_myocardial_infarction",
+        "rows": 16829,
+        "admissions": 16537
+      },
+      {
+        "group": "angina",
+        "rows": 3590,
+        "admissions": 3583
+      },
+      {
+        "group": "chronic_ischemic_or_coronary_atherosclerosis",
+        "rows": 109501,
+        "admissions": 97828
+      },
+      {
+        "group": "old_myocardial_infarction",
+        "rows": 30455,
+        "admissions": 30454
+      },
+      {
+        "group": "other_acute_ischemia",
+        "rows": 5716,
+        "admissions": 5691
+      }
+    ],
+    "primary_cad_admissions": 19819,
+    "secondary_cad_admissions": 103481,
+    "relevant_codes_per_admission": {
+      "1": 63807,
+      "2": 34801,
+      "3": 8423,
+      "4": 1511,
+      "5": 258,
+      "6": 32,
+      "7": 1
+    }
+  },
+  "benchmark_source_readiness": {
+    "investigation_selection": {
+      "admissions": 40107,
+      "coverage": 0.3685187397204892
+    },
+    "clinical_diagnosis": {
+      "admissions": 40145,
+      "coverage": 0.3688678985234258
+    },
+    "treatment_disposition": {
+      "admissions": 106363,
+      "coverage": 0.9773046778091204
+    },
+    "referral_service": {
+      "admissions": 108833,
+      "coverage": 1.0
+    },
+    "discharge_followup": {
+      "admissions": 74467,
+      "coverage": 0.6842318046915917
+    }
+  },
+  "module_coverage": {
+    "mimic_iv_hosp": 1.0,
+    "mimic_iv_ed": 0.3688678985234258,
+    "mimic_iv_note": 0.73762553637224,
+    "mimic_iv_icu": 0.26569147225565776
+  },
+  "tables": [
+    {
+      "table": "mimic_iv_hosp.patients",
+      "rows": 108833,
+      "nonempty_admissions": 108833,
+      "coverage": 1.0,
+      "rows_per_admission": 1.0,
+      "rows_p50": 1.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_hosp.admissions",
+      "rows": 108833,
+      "nonempty_admissions": 108833,
+      "coverage": 1.0,
+      "rows_per_admission": 1.0,
+      "rows_p50": 1.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_hosp.transfers",
+      "rows": 426725,
+      "nonempty_admissions": 108833,
+      "coverage": 1.0,
+      "rows_per_admission": 3.920915531134858,
+      "rows_p50": 3.0,
+      "rows_p95": 7.0,
+      "rows_p99": 10.0
+    },
+    {
+      "table": "mimic_iv_hosp.services",
+      "rows": 123344,
+      "nonempty_admissions": 108828,
+      "coverage": 0.9999540580522451,
+      "rows_per_admission": 1.13333272077403,
+      "rows_p50": 1.0,
+      "rows_p95": 2.0,
+      "rows_p99": 3.0
+    },
+    {
+      "table": "mimic_iv_hosp.labevents",
+      "rows": 24460117,
+      "nonempty_admissions": 101367,
+      "coverage": 0.9313994836125072,
+      "rows_per_admission": 224.74908345814228,
+      "rows_p50": 115.0,
+      "rows_p95": 752.0,
+      "rows_p99": 1793.0
+    },
+    {
+      "table": "mimic_iv_hosp.microbiologyevents",
+      "rows": 434500,
+      "nonempty_admissions": 48440,
+      "coverage": 0.44508558984866725,
+      "rows_per_admission": 3.9923552598935985,
+      "rows_p50": 0.0,
+      "rows_p95": 20.0,
+      "rows_p99": 51.0
+    },
+    {
+      "table": "mimic_iv_hosp.poe",
+      "rows": 14638987,
+      "nonempty_admissions": 108326,
+      "coverage": 0.9953414864976615,
+      "rows_per_admission": 134.5087151874891,
+      "rows_p50": 87.0,
+      "rows_p95": 381.0,
+      "rows_p99": 778.0
+    },
+    {
+      "table": "mimic_iv_hosp.poe_detail",
+      "rows": 2297713,
+      "nonempty_admissions": 108088,
+      "coverage": 0.9931546497845323,
+      "rows_per_admission": 21.112282120312774,
+      "rows_p50": 11.0,
+      "rows_p95": 76.0,
+      "rows_p99": 176.0
+    },
+    {
+      "table": "mimic_iv_hosp.pharmacy",
+      "rows": 5208003,
+      "nonempty_admissions": 102593,
+      "coverage": 0.9426644492019883,
+      "rows_per_admission": 47.85316034658605,
+      "rows_p50": 32.0,
+      "rows_p95": 135.0,
+      "rows_p99": 249.0
+    },
+    {
+      "table": "mimic_iv_hosp.prescriptions",
+      "rows": 5929832,
+      "nonempty_admissions": 102593,
+      "coverage": 0.9426644492019883,
+      "rows_per_admission": 54.485606387768414,
+      "rows_p50": 34.0,
+      "rows_p95": 160.0,
+      "rows_p99": 308.0
+    },
+    {
+      "table": "mimic_iv_hosp.emar",
+      "rows": 12287130,
+      "nonempty_admissions": 63704,
+      "coverage": 0.5853371679545726,
+      "rows_per_admission": 112.89893690332896,
+      "rows_p50": 21.0,
+      "rows_p95": 477.0,
+      "rows_p99": 1187.0
+    },
+    {
+      "table": "mimic_iv_hosp.emar_detail",
+      "rows": 24747795,
+      "nonempty_admissions": 63704,
+      "coverage": 0.5853371679545726,
+      "rows_per_admission": 227.39238098738434,
+      "rows_p50": 43.0,
+      "rows_p95": 959.0,
+      "rows_p99": 2390.0
+    },
+    {
+      "table": "mimic_iv_hosp.diagnoses_icd",
+      "rows": 1841021,
+      "nonempty_admissions": 108833,
+      "coverage": 1.0,
+      "rows_per_admission": 16.916018119504194,
+      "rows_p50": 16.0,
+      "rows_p95": 32.0,
+      "rows_p99": 39.0
+    },
+    {
+      "table": "mimic_iv_hosp.procedures_icd",
+      "rows": 241731,
+      "nonempty_admissions": 65742,
+      "coverage": 0.604063105859436,
+      "rows_per_admission": 2.2211185945439342,
+      "rows_p50": 1.0,
+      "rows_p95": 8.0,
+      "rows_p99": 13.0
+    },
+    {
+      "table": "mimic_iv_hosp.hcpcsevents",
+      "rows": 28551,
+      "nonempty_admissions": 19214,
+      "coverage": 0.17654571683221082,
+      "rows_per_admission": 0.2623377100695561,
+      "rows_p50": 0.0,
+      "rows_p95": 1.0,
+      "rows_p99": 3.0
+    },
+    {
+      "table": "mimic_iv_hosp.drgcodes",
+      "rows": 173127,
+      "nonempty_admissions": 89021,
+      "coverage": 0.817959626216313,
+      "rows_per_admission": 1.590758317789641,
+      "rows_p50": 2.0,
+      "rows_p95": 2.0,
+      "rows_p99": 2.0
+    },
+    {
+      "table": "mimic_iv_icu.icustays",
+      "rows": 32451,
+      "nonempty_admissions": 28916,
+      "coverage": 0.26569147225565776,
+      "rows_per_admission": 0.2981724293183134,
+      "rows_p50": 0.0,
+      "rows_p95": 1.0,
+      "rows_p99": 2.0
+    },
+    {
+      "table": "mimic_iv_icu.datetimeevents",
+      "rows": 3610044,
+      "nonempty_admissions": 28799,
+      "coverage": 0.264616430678195,
+      "rows_per_admission": 33.170490568118126,
+      "rows_p50": 0.0,
+      "rows_p95": 156.0,
+      "rows_p99": 591.0
+    },
+    {
+      "table": "mimic_iv_icu.ingredientevents",
+      "rows": 5084067,
+      "nonempty_admissions": 25892,
+      "coverage": 0.23790578225354442,
+      "rows_per_admission": 46.714388099197855,
+      "rows_p50": 0.0,
+      "rows_p95": 217.0,
+      "rows_p99": 871.0
+    },
+    {
+      "table": "mimic_iv_icu.inputevents",
+      "rows": 3957178,
+      "nonempty_admissions": 25930,
+      "coverage": 0.23825494105648104,
+      "rows_per_admission": 36.36009298650226,
+      "rows_p50": 0.0,
+      "rows_p95": 173.0,
+      "rows_p99": 673.0
+    },
+    {
+      "table": "mimic_iv_icu.outputevents",
+      "rows": 1931578,
+      "nonempty_admissions": 28175,
+      "coverage": 0.25888287559839385,
+      "rows_per_admission": 17.74809111207079,
+      "rows_p50": 0.0,
+      "rows_p95": 95.0,
+      "rows_p99": 269.0
+    },
+    {
+      "table": "mimic_iv_icu.procedureevents",
+      "rows": 303729,
+      "nonempty_admissions": 25953,
+      "coverage": 0.2384662740161532,
+      "rows_per_admission": 2.7907803699245632,
+      "rows_p50": 0.0,
+      "rows_p95": 15.0,
+      "rows_p99": 35.0
+    },
+    {
+      "table": "mimic_iv_ed.edstays",
+      "rows": 40205,
+      "nonempty_admissions": 40145,
+      "coverage": 0.3688678985234258,
+      "rows_per_admission": 0.3694192018964836,
+      "rows_p50": 0.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_ed.triage",
+      "rows": 40205,
+      "nonempty_admissions": 40145,
+      "coverage": 0.3688678985234258,
+      "rows_per_admission": 0.3694192018964836,
+      "rows_p50": 0.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_ed.vitalsign",
+      "rows": 228043,
+      "nonempty_admissions": 39149,
+      "coverage": 0.35971626253066624,
+      "rows_per_admission": 2.095347918370347,
+      "rows_p50": 0.0,
+      "rows_p95": 10.0,
+      "rows_p99": 16.0
+    },
+    {
+      "table": "mimic_iv_ed.diagnosis",
+      "rows": 86448,
+      "nonempty_admissions": 40022,
+      "coverage": 0.3677377266086573,
+      "rows_per_admission": 0.7943178999016842,
+      "rows_p50": 0.0,
+      "rows_p95": 4.0,
+      "rows_p99": 6.0
+    },
+    {
+      "table": "mimic_iv_ed.medrecon",
+      "rows": 527870,
+      "nonempty_admissions": 35387,
+      "coverage": 0.3251495410399419,
+      "rows_per_admission": 4.850275192267051,
+      "rows_p50": 0.0,
+      "rows_p95": 23.0,
+      "rows_p99": 33.0
+    },
+    {
+      "table": "mimic_iv_ed.pyxis",
+      "rows": 216358,
+      "nonempty_admissions": 34065,
+      "coverage": 0.31300249005356834,
+      "rows_per_admission": 1.9879815864673398,
+      "rows_p50": 0.0,
+      "rows_p95": 11.0,
+      "rows_p99": 20.0
+    },
+    {
+      "table": "mimic_iv_note.discharge",
+      "rows": 74467,
+      "nonempty_admissions": 74467,
+      "coverage": 0.6842318046915917,
+      "rows_per_admission": 0.6842318046915917,
+      "rows_p50": 1.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_note.discharge_detail",
+      "rows": 41829,
+      "nonempty_admissions": 41829,
+      "coverage": 0.38434114652724816,
+      "rows_per_admission": 0.38434114652724816,
+      "rows_p50": 0.0,
+      "rows_p95": 1.0,
+      "rows_p99": 1.0
+    },
+    {
+      "table": "mimic_iv_note.radiology",
+      "rows": 290506,
+      "nonempty_admissions": 69346,
+      "coverage": 0.6371780618011081,
+      "rows_per_admission": 2.669282294892174,
+      "rows_p50": 1.0,
+      "rows_p95": 10.0,
+      "rows_p99": 24.0
+    },
+    {
+      "table": "mimic_iv_note.radiology_detail",
+      "rows": 736849,
+      "nonempty_admissions": 69344,
+      "coverage": 0.6371596850220062,
+      "rows_per_admission": 6.770455652237832,
+      "rows_p50": 2.0,
+      "rows_p95": 27.0,
+      "rows_p99": 66.0
+    }
+  ],
+  "time_quality": [
+    {
+      "field": "mimic_iv_ed.edstays.intime",
+      "present": 40205,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.edstays.outtime",
+      "present": 40205,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.medrecon.charttime",
+      "present": 527870,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.pyxis.charttime",
+      "present": 216358,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.vitalsign.charttime",
+      "present": 228043,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.admittime",
+      "present": 108833,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.deathtime",
+      "present": 4170,
+      "missing": 104663,
+      "missing_rate": 0.9616844155724826
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.dischtime",
+      "present": 108833,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.edouttime",
+      "present": 72686,
+      "missing": 36147,
+      "missing_rate": 0.3321327170986741
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.edregtime",
+      "present": 72686,
+      "missing": 36147,
+      "missing_rate": 0.3321327170986741
+    },
+    {
+      "field": "mimic_iv_hosp.emar.charttime",
+      "present": 12287130,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.emar.scheduletime",
+      "present": 12285196,
+      "missing": 1934,
+      "missing_rate": 0.00015740046699269886
+    },
+    {
+      "field": "mimic_iv_hosp.emar.storetime",
+      "present": 12287130,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.hcpcsevents.chartdate",
+      "present": 28551,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.labevents.charttime",
+      "present": 24460117,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.labevents.storetime",
+      "present": 24354915,
+      "missing": 105202,
+      "missing_rate": 0.004300960620916081
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.chartdate",
+      "present": 434500,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.charttime",
+      "present": 434500,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.storedate",
+      "present": 431672,
+      "missing": 2828,
+      "missing_rate": 0.0065086306098964325
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.storetime",
+      "present": 431240,
+      "missing": 3260,
+      "missing_rate": 0.007502876869965478
+    },
+    {
+      "field": "mimic_iv_hosp.patients.dod",
+      "present": 44190,
+      "missing": 64643,
+      "missing_rate": 0.5939650657429273
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.entertime",
+      "present": 5208003,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.expirationdate",
+      "present": 3181,
+      "missing": 5204822,
+      "missing_rate": 0.9993892092612082
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.starttime",
+      "present": 5204764,
+      "missing": 3239,
+      "missing_rate": 0.0006219274451262797
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.stoptime",
+      "present": 5192730,
+      "missing": 15273,
+      "missing_rate": 0.00293260199734908
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.verifiedtime",
+      "present": 5206060,
+      "missing": 1943,
+      "missing_rate": 0.0003730796622044957
+    },
+    {
+      "field": "mimic_iv_hosp.poe.ordertime",
+      "present": 14638987,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.prescriptions.starttime",
+      "present": 5926592,
+      "missing": 3240,
+      "missing_rate": 0.0005463898471322628
+    },
+    {
+      "field": "mimic_iv_hosp.prescriptions.stoptime",
+      "present": 5923947,
+      "missing": 5885,
+      "missing_rate": 0.00099243958344857
+    },
+    {
+      "field": "mimic_iv_hosp.procedures_icd.chartdate",
+      "present": 241731,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.services.transfertime",
+      "present": 123344,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.transfers.intime",
+      "present": 426725,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.transfers.outtime",
+      "present": 317868,
+      "missing": 108857,
+      "missing_rate": 0.2550987169722889
+    },
+    {
+      "field": "mimic_iv_icu.datetimeevents.charttime",
+      "present": 3610044,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.datetimeevents.storetime",
+      "present": 3610044,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.icustays.intime",
+      "present": 32451,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.icustays.outtime",
+      "present": 32447,
+      "missing": 4,
+      "missing_rate": 0.00012326276540014174
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.endtime",
+      "present": 5084067,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.starttime",
+      "present": 5084067,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.storetime",
+      "present": 5084067,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.endtime",
+      "present": 3957178,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.starttime",
+      "present": 3957178,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.storetime",
+      "present": 3957178,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.outputevents.charttime",
+      "present": 1931578,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.outputevents.storetime",
+      "present": 1931578,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.endtime",
+      "present": 303729,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.starttime",
+      "present": 303729,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.storetime",
+      "present": 303729,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.discharge.charttime",
+      "present": 74467,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.discharge.storetime",
+      "present": 74467,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.radiology.charttime",
+      "present": 290506,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.radiology.storetime",
+      "present": 290506,
+      "missing": 0,
+      "missing_rate": 0.0
+    }
+  ],
+  "orphan_child_rows": {
+    "poe_detail": 0,
+    "emar_detail": 0,
+    "ed.triage": 0,
+    "ed.vitalsign": 0,
+    "ed.diagnosis": 0,
+    "ed.medrecon": 0,
+    "ed.pyxis": 0,
+    "discharge_detail": 0,
+    "radiology_detail": 0
+  },
+  "largest_admissions": [
+    {
+      "bytes": 68502295,
+      "subject_id": "10253349",
+      "hadm_id": "26415640"
+    },
+    {
+      "bytes": 33983141,
+      "subject_id": "17277688",
+      "hadm_id": "29642964"
+    },
+    {
+      "bytes": 29113708,
+      "subject_id": "19624089",
+      "hadm_id": "20969955"
+    },
+    {
+      "bytes": 28323595,
+      "subject_id": "12041460",
+      "hadm_id": "20673627"
+    },
+    {
+      "bytes": 25281564,
+      "subject_id": "16534814",
+      "hadm_id": "25466361"
+    },
+    {
+      "bytes": 23849108,
+      "subject_id": "10884861",
+      "hadm_id": "25178923"
+    },
+    {
+      "bytes": 23640041,
+      "subject_id": "18503414",
+      "hadm_id": "24012265"
+    },
+    {
+      "bytes": 23583962,
+      "subject_id": "17299293",
+      "hadm_id": "21067433"
+    },
+    {
+      "bytes": 23583501,
+      "subject_id": "11981179",
+      "hadm_id": "29859074"
+    },
+    {
+      "bytes": 20735888,
+      "subject_id": "13988153",
+      "hadm_id": "27121749"
+    },
+    {
+      "bytes": 20363378,
+      "subject_id": "19118986",
+      "hadm_id": "27325185"
+    },
+    {
+      "bytes": 19242425,
+      "subject_id": "15032392",
+      "hadm_id": "22592769"
+    },
+    {
+      "bytes": 18856126,
+      "subject_id": "17067826",
+      "hadm_id": "22022192"
+    },
+    {
+      "bytes": 18702134,
+      "subject_id": "12807483",
+      "hadm_id": "24178222"
+    },
+    {
+      "bytes": 18612277,
+      "subject_id": "16582052",
+      "hadm_id": "27639797"
+    },
+    {
+      "bytes": 18514488,
+      "subject_id": "18353640",
+      "hadm_id": "21455850"
+    },
+    {
+      "bytes": 18505882,
+      "subject_id": "19700047",
+      "hadm_id": "20478888"
+    },
+    {
+      "bytes": 17960645,
+      "subject_id": "18559633",
+      "hadm_id": "27271391"
+    },
+    {
+      "bytes": 17702593,
+      "subject_id": "12862666",
+      "hadm_id": "24759183"
+    },
+    {
+      "bytes": 17480749,
+      "subject_id": "12106890",
+      "hadm_id": "26937463"
+    }
+  ],
+  "shards": [
+    {
+      "shard_id": 0,
+      "records": 500,
+      "bytes": 222644325,
+      "sha256": "52C8279BE5F17E1E57C2B56CE5849C224A27DD3C8882277B73B48664A77A05D9"
+    },
+    {
+      "shard_id": 1,
+      "records": 500,
+      "bytes": 238318704,
+      "sha256": "7BE085DBB31894AD5F5DB2286360B9826ADE5896DC409C3D2D82D229203E4685"
+    },
+    {
+      "shard_id": 2,
+      "records": 500,
+      "bytes": 272336884,
+      "sha256": "C96B98B904942A3ED06619C81ECA99C4DC651D90ED7CA6CEB41D904CDAED20CC"
+    },
+    {
+      "shard_id": 3,
+      "records": 500,
+      "bytes": 244032648,
+      "sha256": "43D7CEC7B12F4F28217FD1CD00BF4129E48B03BF47E33B8F291C9009BAABE609"
+    },
+    {
+      "shard_id": 4,
+      "records": 500,
+      "bytes": 315040287,
+      "sha256": "403EDD16A59AC5A120D689674E60A635FDEEC229D5D93F8B3CE827AC84A3093E"
+    },
+    {
+      "shard_id": 5,
+      "records": 500,
+      "bytes": 251785035,
+      "sha256": "1E67101733285CFEDC6B8A2E9DE2BBA3015CC5191EC17A425BFE22059531F3F7"
+    },
+    {
+      "shard_id": 6,
+      "records": 500,
+      "bytes": 241138838,
+      "sha256": "F3E35B5F7BC100E9EF8289819D009F3C60892015D3E7B4021B031ADDB78BB652"
+    },
+    {
+      "shard_id": 7,
+      "records": 500,
+      "bytes": 244783581,
+      "sha256": "A4D38DD5022CE2E66ACBAC94581F0BFF7BFDB4E9A6D6C4D99D9F7519B075B381"
+    },
+    {
+      "shard_id": 8,
+      "records": 500,
+      "bytes": 221727111,
+      "sha256": "C0833A897D0F631AD15C11997902DE37A076BD726EA7C44196BE625C7EA89C32"
+    },
+    {
+      "shard_id": 9,
+      "records": 500,
+      "bytes": 265867664,
+      "sha256": "23EF203A16730D77408F973A9F53A3739D7AFBF7B806DEFACC66546DE70B7F21"
+    },
+    {
+      "shard_id": 10,
+      "records": 500,
+      "bytes": 254478282,
+      "sha256": "AA1D693193FEE55BCE4818A3CD20825D1B86A581A65E13DCD993FFDACA675D06"
+    },
+    {
+      "shard_id": 11,
+      "records": 500,
+      "bytes": 228297620,
+      "sha256": "AE3FB893CD0B2ACFCC594694878C0531A9753FF54ADA45DC08E71A7777C03D97"
+    },
+    {
+      "shard_id": 12,
+      "records": 500,
+      "bytes": 245131224,
+      "sha256": "790DFED670F93E47630F871F849BBFC25524433CF5C9774BF825B9FFEB1AB93C"
+    },
+    {
+      "shard_id": 13,
+      "records": 500,
+      "bytes": 257574190,
+      "sha256": "D44B52AF93AE56787C2280C3D06B83BF769249B9108BAADB2A429711AA4D2B3A"
+    },
+    {
+      "shard_id": 14,
+      "records": 500,
+      "bytes": 229959994,
+      "sha256": "F6E2CAC13520CA7B6C5D1EDAC434AE50A27EBEB55850B157E0BBA16C90B74643"
+    },
+    {
+      "shard_id": 15,
+      "records": 500,
+      "bytes": 256306233,
+      "sha256": "43CB2886B22D09BAB7E298E86DD4806E59462BA840F082916E59B75FC092487F"
+    },
+    {
+      "shard_id": 16,
+      "records": 500,
+      "bytes": 287691384,
+      "sha256": "B70CBC678B0F55F038A1E01371FBF929182C98DD67D12BB5FEE4B3E12E2C9B7E"
+    },
+    {
+      "shard_id": 17,
+      "records": 500,
+      "bytes": 250967889,
+      "sha256": "A80B15FE23A10AC252166B812F8C4A02901F051E897A40FCD637C0E295DF6A41"
+    },
+    {
+      "shard_id": 18,
+      "records": 500,
+      "bytes": 259918653,
+      "sha256": "B5BDED62B221E6877E7F8EE93C9D1176A4469A3CDBDC1C6D412B7BBC91EF1A8C"
+    },
+    {
+      "shard_id": 19,
+      "records": 500,
+      "bytes": 262562378,
+      "sha256": "2295493AD6046CDB4EF46C75B9861313BB18F17075EFF5632EE22748E06E73F1"
+    },
+    {
+      "shard_id": 20,
+      "records": 500,
+      "bytes": 241584089,
+      "sha256": "17DBBCDAA034B4ED76515FEA7C58BE91711B29591B21ABE4924C9A5E3BFFAC1A"
+    },
+    {
+      "shard_id": 21,
+      "records": 500,
+      "bytes": 250659896,
+      "sha256": "731BF46B9929BF55D61D4BD27F59419D34DE53290EA415E1F71F90B058D01032"
+    },
+    {
+      "shard_id": 22,
+      "records": 500,
+      "bytes": 234310481,
+      "sha256": "455EFC6BAC026D7CB43FD593A1FEE91783E9E6C485D8318B959BC7AD7452A8C6"
+    },
+    {
+      "shard_id": 23,
+      "records": 500,
+      "bytes": 245060082,
+      "sha256": "56534D235C80ABBD6D9F232CB96929BDBD7442EC97A7FDCDBF5AAC55379B189B"
+    },
+    {
+      "shard_id": 24,
+      "records": 500,
+      "bytes": 238385702,
+      "sha256": "B8875021C8D3342A44E3BBF97BD577FFDA9BF55BFF77881A56A9F197C2D0B531"
+    },
+    {
+      "shard_id": 25,
+      "records": 500,
+      "bytes": 308315571,
+      "sha256": "2474EA1144B85174A900F0FE4F65291BC4526499BA5BC6B86D3AA51B79FC5CEE"
+    },
+    {
+      "shard_id": 26,
+      "records": 500,
+      "bytes": 251954463,
+      "sha256": "B4FB3DB3EF0E4D4B75CB2F2FC66F6BD8C006340044EACCD78A6ED2A7E01AD58E"
+    },
+    {
+      "shard_id": 27,
+      "records": 500,
+      "bytes": 239150124,
+      "sha256": "F170440133877C0C1EE41294A65E88C751224903342D3DDE0CB70390646CD0D8"
+    },
+    {
+      "shard_id": 28,
+      "records": 500,
+      "bytes": 263151120,
+      "sha256": "D373B498C7F616EE98E06FC3FBCE92FBA2923CD44A798DAFF3521461A882AFF5"
+    },
+    {
+      "shard_id": 29,
+      "records": 500,
+      "bytes": 245978820,
+      "sha256": "A527622CDB686B9BE1267E071C63A76B384C4BF4A5AC5949AE79A402A0172C89"
+    },
+    {
+      "shard_id": 30,
+      "records": 500,
+      "bytes": 239577283,
+      "sha256": "5B140D48FEB1DDAA5C06321CD744BA306448A608FFA96C69C243EDA6CE7BB55D"
+    },
+    {
+      "shard_id": 31,
+      "records": 500,
+      "bytes": 222444686,
+      "sha256": "858C19C3E331FD66C1B692480178DE043FA297566473B477B1B73DF27722067B"
+    },
+    {
+      "shard_id": 32,
+      "records": 500,
+      "bytes": 254715895,
+      "sha256": "E9BF423F4E36B91D6E4701DC908B1BAB2E6EF5EBDCE8C344D5915E01B266CB9A"
+    },
+    {
+      "shard_id": 33,
+      "records": 500,
+      "bytes": 260275883,
+      "sha256": "3255C63D851FAF4A486162A19B83967A707AF08E3C67814EA4296FFEEED068E0"
+    },
+    {
+      "shard_id": 34,
+      "records": 500,
+      "bytes": 241559452,
+      "sha256": "9DCF1B507F3415653178629A24158CAF0058A1720F7F883ED0AD984B194B8454"
+    },
+    {
+      "shard_id": 35,
+      "records": 500,
+      "bytes": 235746857,
+      "sha256": "BBEB3B9076AB45081C89879D7F1B641B3FD35180D3D2CE52962D9D26D4D453AF"
+    },
+    {
+      "shard_id": 36,
+      "records": 500,
+      "bytes": 225000011,
+      "sha256": "7F709A4851A1C67F5511B62107FA5E4B8095400D5A2F37353D3CC272263732C4"
+    },
+    {
+      "shard_id": 37,
+      "records": 500,
+      "bytes": 262957975,
+      "sha256": "6507ADA8ECEDF15FB2C0B139AC8C75459645FF4BC7FB184586BDB9B2D50C8F0C"
+    },
+    {
+      "shard_id": 38,
+      "records": 500,
+      "bytes": 258803903,
+      "sha256": "2084DFC20FA615D41DADA12357E354BD6E31F14944BE5978DB22B06321D0E7B1"
+    },
+    {
+      "shard_id": 39,
+      "records": 500,
+      "bytes": 227430077,
+      "sha256": "D1D1B5DBAA9A592FEA3BDDD5975AB2E0FFBB810C291AD3FFF4467BDBAA18E085"
+    },
+    {
+      "shard_id": 40,
+      "records": 500,
+      "bytes": 240243766,
+      "sha256": "69DA1E138588D8D8DA03CFD43810EB33559D8EB9BC93130794361302040D6C4B"
+    },
+    {
+      "shard_id": 41,
+      "records": 500,
+      "bytes": 254163454,
+      "sha256": "FF945B5F74232A6CCE4A4D8FD04C9300B12E49AFC1F922BEA5EE9DEBA11511C9"
+    },
+    {
+      "shard_id": 42,
+      "records": 500,
+      "bytes": 242008147,
+      "sha256": "6E31BB916D4F68D70157CC92E27E1C56321A6AE78B40F5C9E7E35BB11B599CA5"
+    },
+    {
+      "shard_id": 43,
+      "records": 500,
+      "bytes": 258936309,
+      "sha256": "E721CF4DEEBE497054FAB8B0A2799A8907746143DA078B625669B784A3FE08C3"
+    },
+    {
+      "shard_id": 44,
+      "records": 500,
+      "bytes": 227669947,
+      "sha256": "B5B8358BDC838C0D90FDBA522873A7D98BB958509CAB45E98C148D31EEB0D784"
+    },
+    {
+      "shard_id": 45,
+      "records": 500,
+      "bytes": 224071220,
+      "sha256": "667CB7BC75491507DF3BF07C55D686FF78AED7AD5A643AEA868E541C5FB43C80"
+    },
+    {
+      "shard_id": 46,
+      "records": 500,
+      "bytes": 220822793,
+      "sha256": "BE34751A7F8A8E26E493023E400D2BD64ACC1D99B4FA9CD26861AF3BDCC01C5E"
+    },
+    {
+      "shard_id": 47,
+      "records": 500,
+      "bytes": 274782566,
+      "sha256": "A6E46BA42942F7AF61170E97A171A22140BDB2671601E543EDE241281B0C29A1"
+    },
+    {
+      "shard_id": 48,
+      "records": 500,
+      "bytes": 252264111,
+      "sha256": "B1503BB405F4A7F997BCF405D81EA655BE4A025B0B92AB70B34674B664F2194F"
+    },
+    {
+      "shard_id": 49,
+      "records": 500,
+      "bytes": 289978211,
+      "sha256": "A4D2E2B349EA111364DFE6E42D2D16EDF85815A11AAF8DE1D973FE772A869E0E"
+    },
+    {
+      "shard_id": 50,
+      "records": 500,
+      "bytes": 257406573,
+      "sha256": "BADECB275CAB83FCF1210974A8C467ED5106BF903A6D04B9BC881CA5678A1872"
+    },
+    {
+      "shard_id": 51,
+      "records": 500,
+      "bytes": 241487294,
+      "sha256": "8CF5BA165FBBFC3FBC103F2106C9403C1DAE8584A780E7C0B1C2B55F15A918A7"
+    },
+    {
+      "shard_id": 52,
+      "records": 500,
+      "bytes": 218972955,
+      "sha256": "62941B095586C507D627A764ADBE3180153514C3ED21DA9DED046351EF6D48B9"
+    },
+    {
+      "shard_id": 53,
+      "records": 500,
+      "bytes": 240605146,
+      "sha256": "7AD85A50412F5DBFC1BCC1665150FF63395918BE6E8172C3F8687EEA972C4F02"
+    },
+    {
+      "shard_id": 54,
+      "records": 500,
+      "bytes": 250025705,
+      "sha256": "481BF14BC67BC45D34E54D6B3DD20B6DEB53E05E1483967C966AD1F9EB03306F"
+    },
+    {
+      "shard_id": 55,
+      "records": 500,
+      "bytes": 206398622,
+      "sha256": "34C530EBDF8CD3B7070BB565C96C8DE503AF9F761CF4963DF6E685AA70A05914"
+    },
+    {
+      "shard_id": 56,
+      "records": 500,
+      "bytes": 257857826,
+      "sha256": "8278564D163E27E2EA1567A4C0416B1D1E7272B146088E535463D6F08BC0D071"
+    },
+    {
+      "shard_id": 57,
+      "records": 500,
+      "bytes": 241177913,
+      "sha256": "194E943EA55EC67CECA0A100A78F4BE42BF6C193F8F7223A2F0ED720872296D8"
+    },
+    {
+      "shard_id": 58,
+      "records": 500,
+      "bytes": 250173527,
+      "sha256": "1E86E39038841DC9C4AD43EAB5FE7C228CBBCB0A1AE95FE8028F410FB325707F"
+    },
+    {
+      "shard_id": 59,
+      "records": 500,
+      "bytes": 237555203,
+      "sha256": "E0B689E0CE3398DC0B37FC9892DFB5FC5095478DEA1EAF28EDEF734AD9769A4D"
+    },
+    {
+      "shard_id": 60,
+      "records": 500,
+      "bytes": 236498479,
+      "sha256": "64FE355D16EAAD19C67634167665C4563DEF622C432D1B6C2B355C0B6202F181"
+    },
+    {
+      "shard_id": 61,
+      "records": 500,
+      "bytes": 256711786,
+      "sha256": "32D9EDA8B04D4FD2473371834BDB8BA4BB60AECB468977A18E9ED463D1E443CB"
+    },
+    {
+      "shard_id": 62,
+      "records": 500,
+      "bytes": 263072747,
+      "sha256": "5007C2EBC9E0AED6F19E666280585C92400E4CA5F4E6B71A893C603CB4056EB1"
+    },
+    {
+      "shard_id": 63,
+      "records": 500,
+      "bytes": 287432155,
+      "sha256": "AB09ED8256169456AE9B2E0C168AB449F1A0FE758EAFC1E89B40CAC5919ECA65"
+    },
+    {
+      "shard_id": 64,
+      "records": 500,
+      "bytes": 251848514,
+      "sha256": "C79F611FCECC30FDC709367CCE4C412C438BED2B978DC8F8A17F2036D0D66542"
+    },
+    {
+      "shard_id": 65,
+      "records": 500,
+      "bytes": 273827542,
+      "sha256": "1E4B842E6E5A4B4D600CFF8AF1EB86736EC1C342E934CCE8F942A50B8111C913"
+    },
+    {
+      "shard_id": 66,
+      "records": 500,
+      "bytes": 242758007,
+      "sha256": "2742218A7BEE0640975681D2D8907D69130A4A2806324767A281285C6898B2BC"
+    },
+    {
+      "shard_id": 67,
+      "records": 500,
+      "bytes": 234348655,
+      "sha256": "0EFD865598CAE972E11B2E77B851996BDF1338D0060632DB8510591F6EBFE403"
+    },
+    {
+      "shard_id": 68,
+      "records": 500,
+      "bytes": 271466533,
+      "sha256": "4D87F226343E73D98EE990C7BAEC57332C687B8531410B05B0B2073A806A26FB"
+    },
+    {
+      "shard_id": 69,
+      "records": 500,
+      "bytes": 220068194,
+      "sha256": "8C8CE65B47FA9E622FBA76A2A19F38167D4068E84E9B95E5D7ABED084EEBD0F4"
+    },
+    {
+      "shard_id": 70,
+      "records": 500,
+      "bytes": 266842259,
+      "sha256": "4BB2FCCEBF16978A8D41EE174ADA9EBADE30E3EFCB907278BBD702017875FC92"
+    },
+    {
+      "shard_id": 71,
+      "records": 500,
+      "bytes": 252370912,
+      "sha256": "6ADE04ECA03C23B11236F0F5FE7F966411B7C25F0625F560BF414F0EC3D5217C"
+    },
+    {
+      "shard_id": 72,
+      "records": 500,
+      "bytes": 261894270,
+      "sha256": "661CDD92BFB41DF7AC5ABD6E81ABBA9F25ACFC3863D306297F533A7B7C32D739"
+    },
+    {
+      "shard_id": 73,
+      "records": 500,
+      "bytes": 264224935,
+      "sha256": "716ECE54E49800F97D471B252D105493C6C0AE832732D0C71D0B766145BA9472"
+    },
+    {
+      "shard_id": 74,
+      "records": 500,
+      "bytes": 230847585,
+      "sha256": "626ED5EC742D8F2C471B417ADF1E4554346BD83E442C2DCADE2646EA0C2BEBF1"
+    },
+    {
+      "shard_id": 75,
+      "records": 500,
+      "bytes": 229960873,
+      "sha256": "3C15F2F4532A47775743D1BF5EF4FEDEFF25959FFDA7944FBC5A6265165436A7"
+    },
+    {
+      "shard_id": 76,
+      "records": 500,
+      "bytes": 273129452,
+      "sha256": "B517D76AF476B2C68257F4DAC2E0CC020361783FAF3958AC8C825200E330188D"
+    },
+    {
+      "shard_id": 77,
+      "records": 500,
+      "bytes": 231683032,
+      "sha256": "AC3810E2C388068C686A8D7FDD209C340D95FD3FC8735A8318799E01333D4EF7"
+    },
+    {
+      "shard_id": 78,
+      "records": 500,
+      "bytes": 294918528,
+      "sha256": "1465A926912F4DAC0F4244C2A5577C26D495AD765271331778BCBB6364B405C4"
+    },
+    {
+      "shard_id": 79,
+      "records": 500,
+      "bytes": 230857751,
+      "sha256": "29244B365872C2146002AD7FB6DAC36CF7CD54BE5F903041B6B7625B2D56B7FD"
+    },
+    {
+      "shard_id": 80,
+      "records": 500,
+      "bytes": 237793524,
+      "sha256": "39600FCE4BF2DFD05CB04B3EE33BEBE79737FE79E5A236C174833E57EF2A8B02"
+    },
+    {
+      "shard_id": 81,
+      "records": 500,
+      "bytes": 234962090,
+      "sha256": "9ED09430A97032FB20118DF7C5C2E45D6316ECC20B3DBE879A56126CF8FDC402"
+    },
+    {
+      "shard_id": 82,
+      "records": 500,
+      "bytes": 259039805,
+      "sha256": "5B4C3A875C60731334EDFCFBB6A47C7C15AC81D1BD2B98E7B932E873C754CC52"
+    },
+    {
+      "shard_id": 83,
+      "records": 500,
+      "bytes": 249118416,
+      "sha256": "78287C867C4E95AE174E2BD0260450E137116CE969B6F9843D797517326C043F"
+    },
+    {
+      "shard_id": 84,
+      "records": 500,
+      "bytes": 266342016,
+      "sha256": "0159F895135DD72D2E9B0459338E2917FD0414D10922969025412B575B794548"
+    },
+    {
+      "shard_id": 85,
+      "records": 500,
+      "bytes": 293389337,
+      "sha256": "4904F92CAA60C423AE472994E061DEA3C069D43A8CED31EE61FB3F518EE0877B"
+    },
+    {
+      "shard_id": 86,
+      "records": 500,
+      "bytes": 265588322,
+      "sha256": "876E46C7EA29B7CF7F1EED432AA88451DBD19058A20E75C265406DDC78C91BC5"
+    },
+    {
+      "shard_id": 87,
+      "records": 500,
+      "bytes": 242622606,
+      "sha256": "521AABE584EB05EFE4437487634BC42CCE822CAA5DBE1E98739BCE1BD1B7927F"
+    },
+    {
+      "shard_id": 88,
+      "records": 500,
+      "bytes": 248908757,
+      "sha256": "DDA8F78711E587C7667389E076466CD3884816E30C1F4F8E3D219D8906746FE4"
+    },
+    {
+      "shard_id": 89,
+      "records": 500,
+      "bytes": 241010008,
+      "sha256": "87ACD633AF14A843424A4355C1A6CC6BCEC18086E240F79BCB308C90F46280BF"
+    },
+    {
+      "shard_id": 90,
+      "records": 500,
+      "bytes": 249102077,
+      "sha256": "E9958C2A2666767313CA32C6DCC8FFC3F45EC89BAA573E0A15943AEAC5AFB1EC"
+    },
+    {
+      "shard_id": 91,
+      "records": 500,
+      "bytes": 231884856,
+      "sha256": "EBBFFEDB89BFBDD0570E86AF978F08AF37F9D021FB9B8054582AA255B185A5AD"
+    },
+    {
+      "shard_id": 92,
+      "records": 500,
+      "bytes": 245647791,
+      "sha256": "325F5115C19B746A994B0E5F744E7E07EDCF82B3701AFCA7BA06A5E964C7E2CA"
+    },
+    {
+      "shard_id": 93,
+      "records": 500,
+      "bytes": 339990144,
+      "sha256": "675D4CD553A49ABABED3BD6DD1A60348E30C621F674BE292D230050A1D81EC33"
+    },
+    {
+      "shard_id": 94,
+      "records": 500,
+      "bytes": 223880748,
+      "sha256": "75BA674D26E2C0FAB90A2865083BD4F0215EE4687581C29D085CEC0D1407C275"
+    },
+    {
+      "shard_id": 95,
+      "records": 500,
+      "bytes": 242680519,
+      "sha256": "F8E2C7D389C31A7D1DD347DBB914E2F6676170A205899F180C2C4900FB518910"
+    },
+    {
+      "shard_id": 96,
+      "records": 500,
+      "bytes": 274626384,
+      "sha256": "AE473229532551330723698D0C025BF334C17505C098FD25CF4332F13E8F5B36"
+    },
+    {
+      "shard_id": 97,
+      "records": 500,
+      "bytes": 249315027,
+      "sha256": "67D16CC9B9ACE9A84E96AD6D0CB5EE622AE5FF0084215323BCAAF493C9C49D0F"
+    },
+    {
+      "shard_id": 98,
+      "records": 500,
+      "bytes": 202090175,
+      "sha256": "4374089E28664D01C9579B65864D6C4CC5CEFEEA2837B364D374DD6EED398C54"
+    },
+    {
+      "shard_id": 99,
+      "records": 500,
+      "bytes": 251628545,
+      "sha256": "4BA4250F04AA1A9586B7D4196316ECB42D1C186034E4B9FD37A9E2F61F435828"
+    },
+    {
+      "shard_id": 100,
+      "records": 500,
+      "bytes": 282983588,
+      "sha256": "02DE24418F25B9F0B2FAD232379F1D2501538BFDAEB1264A37A6DE125C73E6B2"
+    },
+    {
+      "shard_id": 101,
+      "records": 500,
+      "bytes": 231553693,
+      "sha256": "DBAC70FB1F70D8B7C2777907B6D3E61071C02C06B3460CE20A72E0F9C1703F60"
+    },
+    {
+      "shard_id": 102,
+      "records": 500,
+      "bytes": 250818001,
+      "sha256": "3C54462207CBC5F7F2EBB3094D5495DB89A022563AE1DBBFEC90771A6D6685BC"
+    },
+    {
+      "shard_id": 103,
+      "records": 500,
+      "bytes": 248027198,
+      "sha256": "3436A1DF5D54B8C5A59B596FB3B790E0E4381F52ED58357B46E413F89D672F8D"
+    },
+    {
+      "shard_id": 104,
+      "records": 500,
+      "bytes": 269274556,
+      "sha256": "8B88A2329567056A14832867BF6D2B08486F16FB73F47E6871792EF1A222E5B3"
+    },
+    {
+      "shard_id": 105,
+      "records": 500,
+      "bytes": 279229245,
+      "sha256": "790861EBCC4B10CB59D02EF65A2004CDB3BD6E2F9CCAAD7AE6F9A997C6EDCF0F"
+    },
+    {
+      "shard_id": 106,
+      "records": 500,
+      "bytes": 229390328,
+      "sha256": "251E52E01B923A61A915032D4BF466DEF98506585106167C9C4CEB83691705AE"
+    },
+    {
+      "shard_id": 107,
+      "records": 500,
+      "bytes": 253260033,
+      "sha256": "C08B0EC2982F829C4FBE207ED23C38C387B391FFE77D59DBA1408BAA8CFE496E"
+    },
+    {
+      "shard_id": 108,
+      "records": 500,
+      "bytes": 267637267,
+      "sha256": "142724152C2A0661C91229003CAF68A56B033D000110F0B98F8E3EAFFD855A51"
+    },
+    {
+      "shard_id": 109,
+      "records": 500,
+      "bytes": 263537818,
+      "sha256": "62EE6AC59548BFF156BB137D88C72903C7A50EA6D673EE50837E50E2C4501C37"
+    },
+    {
+      "shard_id": 110,
+      "records": 500,
+      "bytes": 253536022,
+      "sha256": "04BCEA688ADC7D0ABAF00AFF10D532DCC22E218390B12D1AB1EDE597AD21B836"
+    },
+    {
+      "shard_id": 111,
+      "records": 500,
+      "bytes": 227474411,
+      "sha256": "6912441F7254B1A2179165E2E082C1A2A5E5E7BD16A880636E49C8F051F7348D"
+    },
+    {
+      "shard_id": 112,
+      "records": 500,
+      "bytes": 247549486,
+      "sha256": "375AEB2008DBEEE82F7A7E1DAE17F520762EA00EDFC9023927A98BEFE460BF77"
+    },
+    {
+      "shard_id": 113,
+      "records": 500,
+      "bytes": 259625499,
+      "sha256": "7E56B5FC47B0643B96ED8E9B316D904317BD85AEAC000B57F5B6983C7073CA28"
+    },
+    {
+      "shard_id": 114,
+      "records": 500,
+      "bytes": 228437228,
+      "sha256": "DFB011778634E9A1EC9E4D0B04A50F906A2337E546C6BC9681B21C67F8339692"
+    },
+    {
+      "shard_id": 115,
+      "records": 500,
+      "bytes": 257924132,
+      "sha256": "0BA3BF402A351AE6E326A9C379F2D6827DEE76862E0C11862C42323D48411228"
+    },
+    {
+      "shard_id": 116,
+      "records": 500,
+      "bytes": 218240451,
+      "sha256": "235BECB2F6895CBE26CBBF2BEE26F0E8EBC30B3094672CC36816F8E5B8ADF452"
+    },
+    {
+      "shard_id": 117,
+      "records": 500,
+      "bytes": 236131632,
+      "sha256": "BDE03B2CF2C13126E776AF9A8E9B901730ECBC409602CDB7AEF3F2C68307E463"
+    },
+    {
+      "shard_id": 118,
+      "records": 500,
+      "bytes": 236502933,
+      "sha256": "059F9F6F9A3A6041737AC3D9F8C2EB959639373E6DA253387D53900B7ECA58C6"
+    },
+    {
+      "shard_id": 119,
+      "records": 500,
+      "bytes": 266313300,
+      "sha256": "2E6F52D44655C9835984F1B64667E970F798A2BDA4BF04E300817E5194835339"
+    },
+    {
+      "shard_id": 120,
+      "records": 500,
+      "bytes": 225943462,
+      "sha256": "F191D454AA54BB2F5ED8FF6D92F884E4F934C1746DF1273B69D412B3064BFAE4"
+    },
+    {
+      "shard_id": 121,
+      "records": 500,
+      "bytes": 272766016,
+      "sha256": "BC2630888E012ECEA75BC53BB40EEE094FB31BC8A62BE068ADA74D05F493FEAA"
+    },
+    {
+      "shard_id": 122,
+      "records": 500,
+      "bytes": 222042126,
+      "sha256": "9EC45350388DE3EF8910C3DBDA5A0646FF634F2849B1139CD39E5313984B0B86"
+    },
+    {
+      "shard_id": 123,
+      "records": 500,
+      "bytes": 228389836,
+      "sha256": "6D9F69A1253E0436E25E0DAEF6642BC1AEB08513D7FB90B0354C875D09D3D7EE"
+    },
+    {
+      "shard_id": 124,
+      "records": 500,
+      "bytes": 232251878,
+      "sha256": "900E6467C1BA663A0ADACBE46BA78045953FF628FE742E0ECB5073958C6660C3"
+    },
+    {
+      "shard_id": 125,
+      "records": 500,
+      "bytes": 211615398,
+      "sha256": "7E2BBE5060ABE8573C7654655898FE57C29D835E0FB7E7C0960F0C1017B4B18D"
+    },
+    {
+      "shard_id": 126,
+      "records": 500,
+      "bytes": 281292225,
+      "sha256": "AAB4410F5DDFC740C370E38563860ECB5AA45F2AE0DD859534B066C4F9C8081B"
+    },
+    {
+      "shard_id": 127,
+      "records": 500,
+      "bytes": 247110987,
+      "sha256": "CD859E022332E553D29CB69A501AB28253B616DF893EB751BB08E6648802AAC3"
+    },
+    {
+      "shard_id": 128,
+      "records": 500,
+      "bytes": 263303121,
+      "sha256": "CAABCFB2A5FC199CA4EBF63E68D7A0E608FA33A825FB19E5E4DDD9A001DADD93"
+    },
+    {
+      "shard_id": 129,
+      "records": 500,
+      "bytes": 225389630,
+      "sha256": "B98FABF0902FE71F0159066E03A4B60492B3E61C3869EEB922F8D6965749C6C1"
+    },
+    {
+      "shard_id": 130,
+      "records": 500,
+      "bytes": 244193709,
+      "sha256": "33342102B69CB244D25F9B0093A3DFAAAB56A053A3639F1C886B6E996E2D0418"
+    },
+    {
+      "shard_id": 131,
+      "records": 500,
+      "bytes": 238169930,
+      "sha256": "B1072B56501047DFF3F97B3AE33AC8082D970BDE52284303BE7E1E775845A8D3"
+    },
+    {
+      "shard_id": 132,
+      "records": 500,
+      "bytes": 257903969,
+      "sha256": "90143FD7B107BDED1B9C057803C5BE0D84AC4FCC4429F093C968B3BB0E7D3762"
+    },
+    {
+      "shard_id": 133,
+      "records": 500,
+      "bytes": 247184778,
+      "sha256": "7EFC0EBF30CB1866FE45590F481A8A20701CC9634C13BDEEBF653C31498CE170"
+    },
+    {
+      "shard_id": 134,
+      "records": 500,
+      "bytes": 258055886,
+      "sha256": "D1062307BDCAA3F173A0597CA01ECE1B8C5F3DA769D9614B4AB14072DC09FB10"
+    },
+    {
+      "shard_id": 135,
+      "records": 500,
+      "bytes": 241278490,
+      "sha256": "2E9F4A167164F814F474EA5770184E5BA586C1787C7E9A7A46F1B3C151BBE455"
+    },
+    {
+      "shard_id": 136,
+      "records": 500,
+      "bytes": 254028493,
+      "sha256": "3B7CB866993B342E6B8D828FC8A039EB926424F469FA18B535217CE713F1CE7B"
+    },
+    {
+      "shard_id": 137,
+      "records": 500,
+      "bytes": 246014852,
+      "sha256": "D961481424F443AB91C0E2D3E462ACB350EC721AC89F8282B75D9BC14FE2D79F"
+    },
+    {
+      "shard_id": 138,
+      "records": 500,
+      "bytes": 294191872,
+      "sha256": "26F92DF6EFFB79772323368511E8AB8FB528508FEC86F165BFB83A80939BBB9D"
+    },
+    {
+      "shard_id": 139,
+      "records": 500,
+      "bytes": 227438737,
+      "sha256": "8531CBF05DDCE4223D989CE487A1B21F8F060107CBF1A90975B1CBE9A379DFDF"
+    },
+    {
+      "shard_id": 140,
+      "records": 500,
+      "bytes": 235249283,
+      "sha256": "27DD158DD1E55A9FFECC7D83E650AAF1197AE85380850AE0692A748E9A437132"
+    },
+    {
+      "shard_id": 141,
+      "records": 500,
+      "bytes": 237618201,
+      "sha256": "D0D2AF82434D1BF096070B3396A00E4BCBAEB2CD723824BDED6D552B09722A5B"
+    },
+    {
+      "shard_id": 142,
+      "records": 500,
+      "bytes": 245779544,
+      "sha256": "0E7ABD5A68C00BD1EF02E4A43EA7635A8295FF937A82B84CF4AD48332537DEF9"
+    },
+    {
+      "shard_id": 143,
+      "records": 500,
+      "bytes": 219405147,
+      "sha256": "2459B077F8B2C7FD8B7B8F813A686B8E60A1CFA764A5B5869A1F062CACE83FD2"
+    },
+    {
+      "shard_id": 144,
+      "records": 500,
+      "bytes": 233394575,
+      "sha256": "9BC7F757A378B8AA00D62E732FDC0F8E66393510A4AD8558B465CC6472CB0633"
+    },
+    {
+      "shard_id": 145,
+      "records": 500,
+      "bytes": 261256774,
+      "sha256": "ED3778B7DFD027873889E6BAEF92FE2D9564707D6C0A9F437C3AD85CF5FF2408"
+    },
+    {
+      "shard_id": 146,
+      "records": 500,
+      "bytes": 264574199,
+      "sha256": "27091B6238BDF949EE609503B845B2DE664006C086DDC209E422C890A04CEB93"
+    },
+    {
+      "shard_id": 147,
+      "records": 500,
+      "bytes": 253843022,
+      "sha256": "A3CE72C6EADC87C51C5E3F42360C44C87A9459A9CB419B13CFD35A61829E9BF8"
+    },
+    {
+      "shard_id": 148,
+      "records": 500,
+      "bytes": 276246520,
+      "sha256": "6B8696DA4F7D980892A566FBB37AEEEC3AF2874C075A62C74CC45EE7BF24F757"
+    },
+    {
+      "shard_id": 149,
+      "records": 500,
+      "bytes": 266626313,
+      "sha256": "D27990DBC0EEDC80E98FF970F739DAA46F70DF684B8917112292EE56A83C6E79"
+    },
+    {
+      "shard_id": 150,
+      "records": 500,
+      "bytes": 245209597,
+      "sha256": "77A7AE1BA3CE3E15B71164C34AEC91FA58C093A5AC4303F670AC96FAE3A9AD4A"
+    },
+    {
+      "shard_id": 151,
+      "records": 500,
+      "bytes": 271047254,
+      "sha256": "8AD4C1E6F81F23255EB65737FF0E8A8AEBE948151C8B2BB8CB378254E2175AA9"
+    },
+    {
+      "shard_id": 152,
+      "records": 500,
+      "bytes": 257801281,
+      "sha256": "B22229632DD824FAAE0531985974C2FA3B7FCFD2F049C62802D025D50D976210"
+    },
+    {
+      "shard_id": 153,
+      "records": 500,
+      "bytes": 269540088,
+      "sha256": "E84BCD52BE95D30FCB467C961B20FA1228B31E89433A62FB6E244EB3B3ED9834"
+    },
+    {
+      "shard_id": 154,
+      "records": 500,
+      "bytes": 232944711,
+      "sha256": "86DDFF55B2069A2107062884FE52AF469A5E840BF0B83B7743EB267227DA61B2"
+    },
+    {
+      "shard_id": 155,
+      "records": 500,
+      "bytes": 249741302,
+      "sha256": "052C36BEF7F77B26B8138EAD2F5A1C6434306D6050DF9C46406BA108C2AC67A3"
+    },
+    {
+      "shard_id": 156,
+      "records": 500,
+      "bytes": 268905270,
+      "sha256": "B7AD54DDCDED0052A3A9F3AA700A8B9C2525F2ECE9FB1BEEC530DC3C32440E22"
+    },
+    {
+      "shard_id": 157,
+      "records": 500,
+      "bytes": 234326004,
+      "sha256": "FD1102E6FED9C5D9F98CBE84E9ADF1EEFB125005F4BC800378D36AFFAE399A30"
+    },
+    {
+      "shard_id": 158,
+      "records": 500,
+      "bytes": 242918136,
+      "sha256": "C176BC323513FEEBFD5ADF957D6A742A67ABAB367463A44886DA6374C5D7726E"
+    },
+    {
+      "shard_id": 159,
+      "records": 500,
+      "bytes": 231719010,
+      "sha256": "E57C680B4B2FB8F31F3E7372045C6614D099802CC7999C2D4DA7F9123C43B32C"
+    },
+    {
+      "shard_id": 160,
+      "records": 500,
+      "bytes": 247481838,
+      "sha256": "0A929DA57F92363E2812CF63B4201CA8189E3D4A5F85B55C3C38F63DC9BCA61B"
+    },
+    {
+      "shard_id": 161,
+      "records": 500,
+      "bytes": 245295546,
+      "sha256": "F331D0FA5EFEFB80518E3777A6C2D44F89C69F57C4D845C373BCC8A6C4A64BAD"
+    },
+    {
+      "shard_id": 162,
+      "records": 500,
+      "bytes": 265833109,
+      "sha256": "B7F842B306D9A2CF307AE071129BE35AAB22FDC21F5D041459FD0E0625DABDE4"
+    },
+    {
+      "shard_id": 163,
+      "records": 500,
+      "bytes": 229903863,
+      "sha256": "20EDD272A5AB2738EF7DB70C9324458BBF2C35AD51C3970688356B2E056EC665"
+    },
+    {
+      "shard_id": 164,
+      "records": 500,
+      "bytes": 256879190,
+      "sha256": "B6122E28459A2F08BB1564958441D97034A54BF9B39DA23B3741510837A96BE4"
+    },
+    {
+      "shard_id": 165,
+      "records": 500,
+      "bytes": 245812512,
+      "sha256": "6B83FC556420902BD93AD5CB012F9E92C1E06BCDBB8BB3025FBBB7635C79246D"
+    },
+    {
+      "shard_id": 166,
+      "records": 500,
+      "bytes": 251581461,
+      "sha256": "058538EA23E91DAFCD5F2F5F2F9A885B4944FACCC8BA729D3D7F7AD33F5ABD23"
+    },
+    {
+      "shard_id": 167,
+      "records": 500,
+      "bytes": 242676990,
+      "sha256": "C5C8CB6C81048BA17B6AF7307FC103B1192B4E7D2A5700BA6E595FEE8FAC71BD"
+    },
+    {
+      "shard_id": 168,
+      "records": 500,
+      "bytes": 255818522,
+      "sha256": "DD633A4203FA6217520C1E9A01929114D4E6C8A511AE4DC4F3A098AAFC2730EB"
+    },
+    {
+      "shard_id": 169,
+      "records": 500,
+      "bytes": 259823353,
+      "sha256": "CB118E2341D99CF61790116258938074AF60459ED3CE3705F26CEFD448F8F117"
+    },
+    {
+      "shard_id": 170,
+      "records": 500,
+      "bytes": 262027352,
+      "sha256": "EF9654287FA749D713C2C29E971EF90C7AAFC0B1DEB35B59A94A903BB59C7623"
+    },
+    {
+      "shard_id": 171,
+      "records": 500,
+      "bytes": 285969473,
+      "sha256": "3BD85A06ADA788B07241E244E2E92A12135544CD125CA4E3D45903DA545CAC78"
+    },
+    {
+      "shard_id": 172,
+      "records": 500,
+      "bytes": 211321272,
+      "sha256": "0B7078674F070A60480287E39DAFB3518944988FF92840BAD24E530340AFDC0B"
+    },
+    {
+      "shard_id": 173,
+      "records": 500,
+      "bytes": 247595924,
+      "sha256": "E492E6435709AB0944432061B7CCF81CFA649706494DBF0A7AC358AFDEB22B64"
+    },
+    {
+      "shard_id": 174,
+      "records": 500,
+      "bytes": 246791082,
+      "sha256": "D75891CD150CBB27EE6FBAFE6CE316DEEE7FF96F0790EC62292861E043AC70A3"
+    },
+    {
+      "shard_id": 175,
+      "records": 500,
+      "bytes": 238953751,
+      "sha256": "38896106C83F89CCCF865E0432D799F2FC5711E60B7F0AAD8D6D72998A59AE7B"
+    },
+    {
+      "shard_id": 176,
+      "records": 500,
+      "bytes": 241103820,
+      "sha256": "82BB8C7FAAD2384FDDA09F4B3DFF8CE1FDB0789259E93D8DE0FCEF533791F0CB"
+    },
+    {
+      "shard_id": 177,
+      "records": 500,
+      "bytes": 229272483,
+      "sha256": "2F67321614FF5A01E760772C8270FB109B35826BBD493F0D1141472898EA29F4"
+    },
+    {
+      "shard_id": 178,
+      "records": 500,
+      "bytes": 245398930,
+      "sha256": "F1505F64948FB1366E0B709A0094F3700E5F08E282FDD9B4252D360DE7BE4611"
+    },
+    {
+      "shard_id": 179,
+      "records": 500,
+      "bytes": 232494347,
+      "sha256": "6A687F73EB315F3415D5DB87F80083565943C416DCD90605146E798971969060"
+    },
+    {
+      "shard_id": 180,
+      "records": 500,
+      "bytes": 243856967,
+      "sha256": "5D9012DB054362737D0713C473821C97362169390FF96D83D4EFDE2AE27C87AB"
+    },
+    {
+      "shard_id": 181,
+      "records": 500,
+      "bytes": 242583622,
+      "sha256": "810543F8E7A6A68B603910A3E059CFD141CDDFE4D912E6D39F977ABA5CF1AF91"
+    },
+    {
+      "shard_id": 182,
+      "records": 500,
+      "bytes": 231600425,
+      "sha256": "6274A1E504F0C0F6060070C411C343ADD2881C65273108F1B018DCE795DF45FE"
+    },
+    {
+      "shard_id": 183,
+      "records": 500,
+      "bytes": 246345717,
+      "sha256": "089FAC749725E27352717ED3A06DB92456ABE21BDE5B143F6C90BFDF3ED99988"
+    },
+    {
+      "shard_id": 184,
+      "records": 500,
+      "bytes": 255713361,
+      "sha256": "0CEC8A7DF23753AB2706A64719214E2FE9AF158D88E6B8531C979CCC4DC80FC9"
+    },
+    {
+      "shard_id": 185,
+      "records": 500,
+      "bytes": 263414528,
+      "sha256": "F2D90F87FB346705F5C309D19D59AFB607278432B721E54D45D558C3D611D672"
+    },
+    {
+      "shard_id": 186,
+      "records": 500,
+      "bytes": 231984566,
+      "sha256": "11D54D24BF8CEFACF4C2EDED552723D769FAC8F154C32462C3B726FDC8ABCB8D"
+    },
+    {
+      "shard_id": 187,
+      "records": 500,
+      "bytes": 225739076,
+      "sha256": "AD46B3991CC114F599C03717E60AF0C13F67E3DE643A402C2C0B3FEBE0614211"
+    },
+    {
+      "shard_id": 188,
+      "records": 500,
+      "bytes": 291747168,
+      "sha256": "E25C806A1C4032850CEFA2385B72FAB80C6B9AFC749CADED755DA71AA35940EF"
+    },
+    {
+      "shard_id": 189,
+      "records": 500,
+      "bytes": 267019205,
+      "sha256": "EECB8C45D1E3D9FA8A8BB355453C43A07013DB88EEAE8D4C5BB68761FE8CA5E9"
+    },
+    {
+      "shard_id": 190,
+      "records": 500,
+      "bytes": 269225290,
+      "sha256": "1F136C095BBFEFF18D9F3358E0C44B8F65D361B8E8FF811C5A9F88771D2405E4"
+    },
+    {
+      "shard_id": 191,
+      "records": 500,
+      "bytes": 238178846,
+      "sha256": "7EBA4A2C8A48DD7D247EB9FEF9B9ABEB7BC010CE851E86EE029E7D8231B8C604"
+    },
+    {
+      "shard_id": 192,
+      "records": 500,
+      "bytes": 237878071,
+      "sha256": "BCC8618098FA905ABCC3ECA690DDCDA4FCE096F2AA35789D8991D1D07D06AA46"
+    },
+    {
+      "shard_id": 193,
+      "records": 500,
+      "bytes": 231978072,
+      "sha256": "621A0D7085F7F2AA78D0FF33D45AE0C7FDAB23236143853178F49530874F03DF"
+    },
+    {
+      "shard_id": 194,
+      "records": 500,
+      "bytes": 237979700,
+      "sha256": "4CB8ACF5536D7EEEDD3DA00613FEEA24A1E92C1F980FE67E09480E985B17539D"
+    },
+    {
+      "shard_id": 195,
+      "records": 500,
+      "bytes": 240273258,
+      "sha256": "5C5CE72AAD127686835476C57BF170CB35A5D645B5095761079E70052CCD164D"
+    },
+    {
+      "shard_id": 196,
+      "records": 500,
+      "bytes": 240350845,
+      "sha256": "E56330E6D0045913398BC07F2CEE336CE4B5A72C7488CCCD022D8F469AEDCA01"
+    },
+    {
+      "shard_id": 197,
+      "records": 500,
+      "bytes": 234322259,
+      "sha256": "B033132B22B8DC3A93599A7BCE516CB6A168D53FE0AF7590863AD16705116022"
+    },
+    {
+      "shard_id": 198,
+      "records": 500,
+      "bytes": 245062675,
+      "sha256": "308801DCC6DB3A584489D6A7E6D78D7A5F5E0CCCA70E6D4DB4F61C87481C9686"
+    },
+    {
+      "shard_id": 199,
+      "records": 500,
+      "bytes": 212791914,
+      "sha256": "6F33086C9197347739DF659BD3AAD322D7CAD5E68D06CECB37165332E9EA2D52"
+    },
+    {
+      "shard_id": 200,
+      "records": 500,
+      "bytes": 269901574,
+      "sha256": "5ADAC2938E8EAE550D20DC9CA986B5D5092714667E05EED63850648974A4B2C7"
+    },
+    {
+      "shard_id": 201,
+      "records": 500,
+      "bytes": 220473699,
+      "sha256": "AA391A1674896ABDB54C2D7D1B3036AE85E566BC3DB44AA68DB986EE07581AC9"
+    },
+    {
+      "shard_id": 202,
+      "records": 500,
+      "bytes": 276660259,
+      "sha256": "1F3F0077D35AAC10A5539D2F764C9F6E831B65B9A15C363EA3FF236D0AF64970"
+    },
+    {
+      "shard_id": 203,
+      "records": 500,
+      "bytes": 246664382,
+      "sha256": "1BF934F14ED924C73FD110B0EA09535A99AF977BA1B35C37B6AC62D764B0311C"
+    },
+    {
+      "shard_id": 204,
+      "records": 500,
+      "bytes": 250195787,
+      "sha256": "11D171C2C54EE903108A2C273A742B8CC921574CC5E52CC095826F7D7CD346AA"
+    },
+    {
+      "shard_id": 205,
+      "records": 500,
+      "bytes": 247590285,
+      "sha256": "C98240375E62ED0B9F06A5A8D4A93F78FA2344351CDEB800DE3238792318FD3E"
+    },
+    {
+      "shard_id": 206,
+      "records": 500,
+      "bytes": 203692758,
+      "sha256": "64E626307FD769EDFE1D9F6DD3947D0C412F26D33C462F6E15391BC8C9A307E6"
+    },
+    {
+      "shard_id": 207,
+      "records": 500,
+      "bytes": 274053809,
+      "sha256": "80AC5932B886EB8F677AEC593ADA792C2F81C9380705E690EA5DC2D1D7DC0B10"
+    },
+    {
+      "shard_id": 208,
+      "records": 500,
+      "bytes": 274346401,
+      "sha256": "501BB367029C503C5F4FEB3E75DD277F86F21CDC1831E33694E75FBD291ED26C"
+    },
+    {
+      "shard_id": 209,
+      "records": 500,
+      "bytes": 231864989,
+      "sha256": "44C8A0FD56C4E741475D4F744B02127238136D02DA6C3D8A580A405E324917A5"
+    },
+    {
+      "shard_id": 210,
+      "records": 500,
+      "bytes": 232541104,
+      "sha256": "8EBBB4B640A949DAAD6F16BC46D7D5833890F1F5397590C814A1FC57E5EC789A"
+    },
+    {
+      "shard_id": 211,
+      "records": 500,
+      "bytes": 238474181,
+      "sha256": "6332FA9C3997C85B0C2B3FDA7F8DF3361CAFD5F58E954D2D41425249B6A45EC2"
+    },
+    {
+      "shard_id": 212,
+      "records": 500,
+      "bytes": 244075637,
+      "sha256": "98815B7466AE655A16820546422809F920F51C3322BB557D7C3C34591320059C"
+    },
+    {
+      "shard_id": 213,
+      "records": 500,
+      "bytes": 279001308,
+      "sha256": "685782B826D190BC00EF249E866FE4200703F67B407FA30D13932AB785EEC597"
+    },
+    {
+      "shard_id": 214,
+      "records": 500,
+      "bytes": 227087646,
+      "sha256": "887D793DFE9DD0CFFB6862624378FEE4785F63EAA635029BF4E1239C507321EA"
+    },
+    {
+      "shard_id": 215,
+      "records": 500,
+      "bytes": 221753940,
+      "sha256": "4B50198C680C7365AAB0C53710A181EA2B6CB763E525FD98E008EF9DB70F6C11"
+    },
+    {
+      "shard_id": 216,
+      "records": 500,
+      "bytes": 246156114,
+      "sha256": "AD636913C9D2FCA1DF0CFCCC6C840E4370FE4C3702238091255BC7FE479E6BF5"
+    },
+    {
+      "shard_id": 217,
+      "records": 333,
+      "bytes": 160243238,
+      "sha256": "3E4DCEAB2A374A2DE094244909FD2FB040A35C95CC278209EEEDB1AFC184619C"
+    }
+  ],
+  "comparison_to_reference": {
+    "reference_input": "G:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-10000.jsonl",
+    "reference_records": 10000,
+    "current_mean_kib": 485.5097111855865,
+    "reference_mean_kib": 331.978321484375,
+    "mean_size_ratio": 1.4624741429341725,
+    "module_coverage": {
+      "mimic_iv_hosp": {
+        "current": 1.0,
+        "reference": 1.0,
+        "delta": 0.0
+      },
+      "mimic_iv_ed": {
+        "current": 0.3688678985234258,
+        "reference": 0.3793,
+        "delta": -0.010432101476574251
+      },
+      "mimic_iv_note": {
+        "current": 0.73762553637224,
+        "reference": 0.6873,
+        "delta": 0.05032553637224002
+      },
+      "mimic_iv_icu": {
+        "current": 0.26569147225565776,
+        "reference": 0.1508,
+        "delta": 0.11489147225565777
+      }
+    }
+  }
+}

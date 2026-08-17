@@ -1,0 +1,2404 @@
+{
+  "audit_schema_version": "1.0.0",
+  "privacy": "aggregate-only; no identifiers, clinical text, or exact timestamps",
+  "jsonl": {
+    "file": "G:\\Projects\\llm_benchmark\\data\\rwd_benchmark_visits.jsonl",
+    "file_bytes": 29391481925,
+    "scan_seconds": 224.712,
+    "visits": 320267,
+    "malformed_json_lines": 0,
+    "duplicate_visit_keys": 0,
+    "unique_subjects": 143047,
+    "subjects_with_multiple_visits": 58443,
+    "visits_from_multi_visit_subjects": 235663,
+    "multi_visit_subject_pct": 40.8558,
+    "top_level_signatures": {
+      "demographics|diagnoses|disposition|identifiers|investigations|narrative|treatments|vitals": 320267
+    },
+    "group_signatures": {
+      "demographics": {
+        "admission_type|age_at_encounter|baseline|home_medications|sex": 320267
+      },
+      "diagnoses": {
+        "ed_diagnoses|other|primary": 320267
+      },
+      "disposition": {
+        "admission_location|brief_hospital_course|discharge_condition|discharge_location|discharge_medications|discharge_record|drg|ed_disposition|icu_stays|primary_service|transfer_path": 320267
+      },
+      "identifiers": {
+        "hadm_id|subject_id": 320267
+      },
+      "investigations": {
+        "cardiology|laboratory|microbiology|radiology|respiratory": 320267
+      },
+      "narrative": {
+        "allergies|chief_complaint|discharge_note_full|history_of_present_illness|medications_on_admission|past_medical_history|physical_exam|social_history": 320267
+      },
+      "treatments": {
+        "hcpcs|medication_administrations|medications|pharmacy_orders|procedures": 320267
+      },
+      "vitals": {
+        "acuity|dbp|heartrate|o2sat|resprate|rhythm|sbp|source|temperature": 170215,
+        "acuity|dbp|heartrate|o2sat|pain|resprate|rhythm|sbp|source|temperature": 150052
+      }
+    },
+    "coverage": {
+      "any_investigation": {
+        "count": 312698,
+        "pct": 97.6367
+      },
+      "any_treatment": {
+        "count": 320156,
+        "pct": 99.9653
+      },
+      "brief_hospital_course": {
+        "count": 280348,
+        "pct": 87.5357
+      },
+      "discharge": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "discharge_condition": {
+        "count": 319846,
+        "pct": 99.8685
+      },
+      "discharge_instructions": {
+        "count": 314462,
+        "pct": 98.1874
+      },
+      "discharge_location": {
+        "count": 274180,
+        "pct": 85.6098
+      },
+      "discharge_medications": {
+        "count": 313883,
+        "pct": 98.0067
+      },
+      "discharge_note_full": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "drg": {
+        "count": 274250,
+        "pct": 85.6317
+      },
+      "ed_diagnoses": {
+        "count": 149575,
+        "pct": 46.7032
+      },
+      "flow_presentation_investigation_diagnosis": {
+        "count": 311523,
+        "pct": 97.2698
+      },
+      "flow_through_discharge": {
+        "count": 311425,
+        "pct": 97.2392
+      },
+      "flow_through_treatment": {
+        "count": 311425,
+        "pct": 97.2392
+      },
+      "flow_with_initial_vitals": {
+        "count": 144743,
+        "pct": 45.1945
+      },
+      "flow_with_pathway": {
+        "count": 311425,
+        "pct": 97.2392
+      },
+      "hcpcs": {
+        "count": 46314,
+        "pct": 14.4611
+      },
+      "icu_stays": {
+        "count": 62886,
+        "pct": 19.6355
+      },
+      "initial_vitals": {
+        "count": 145607,
+        "pct": 45.4643
+      },
+      "laboratory": {
+        "count": 308184,
+        "pct": 96.2272
+      },
+      "medication_administrations": {
+        "count": 153284,
+        "pct": 47.8613
+      },
+      "microbiology": {
+        "count": 195119,
+        "pct": 60.9239
+      },
+      "narrative_allergies": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "narrative_home_medications": {
+        "count": 302027,
+        "pct": 94.3048
+      },
+      "narrative_hpi": {
+        "count": 316605,
+        "pct": 98.8566
+      },
+      "narrative_physical_exam": {
+        "count": 301750,
+        "pct": 94.2183
+      },
+      "narrative_pmh": {
+        "count": 304787,
+        "pct": 95.1665
+      },
+      "narrative_social_history": {
+        "count": 9242,
+        "pct": 2.8857
+      },
+      "pathway": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "pharmacy_orders": {
+        "count": 319712,
+        "pct": 99.8267
+      },
+      "prescriptions": {
+        "count": 319712,
+        "pct": 99.8267
+      },
+      "presentation": {
+        "count": 319083,
+        "pct": 99.6303
+      },
+      "primary_diagnosis": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "primary_service": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "procedures": {
+        "count": 187305,
+        "pct": 58.484
+      },
+      "radiology": {
+        "count": 264265,
+        "pct": 82.514
+      },
+      "structured_home_medications": {
+        "count": 124035,
+        "pct": 38.7286
+      },
+      "transfer_path": {
+        "count": 320267,
+        "pct": 100.0
+      }
+    },
+    "timestamp_coverage": {
+      "hcpcs_visit_with_any_time": {
+        "count": 46314,
+        "pct": 14.4611
+      },
+      "laboratory_visit_with_any_time": {
+        "count": 308184,
+        "pct": 96.2272
+      },
+      "medication_administrations_visit_with_any_time": {
+        "count": 153284,
+        "pct": 47.8613
+      },
+      "microbiology_visit_with_any_time": {
+        "count": 195119,
+        "pct": 60.9239
+      },
+      "pharmacy_orders_visit_with_any_time": {
+        "count": 319712,
+        "pct": 99.8267
+      },
+      "prescriptions_visit_with_any_time": {
+        "count": 319712,
+        "pct": 99.8267
+      },
+      "radiology_visit_with_any_time": {
+        "count": 264265,
+        "pct": 82.514
+      }
+    },
+    "schema_paths": {
+      "demographics": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "demographics.admission_type": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "demographics.age_at_encounter": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "int": 320267
+        }
+      },
+      "demographics.baseline": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "demographics.home_medications": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "array": 320267
+        }
+      },
+      "demographics.home_medications[]._concept_name": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "str": 124035
+        }
+      },
+      "demographics.home_medications[]._event_subtype": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 123396,
+        "nonempty_pct": 38.5291,
+        "types": {
+          "str": 123396,
+          "null": 639
+        }
+      },
+      "demographics.home_medications[]._event_time": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "str": 124035
+        }
+      },
+      "demographics.home_medications[].etcdescription": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 123396,
+        "nonempty_pct": 38.5291,
+        "types": {
+          "str": 123396,
+          "null": 639
+        }
+      },
+      "demographics.home_medications[].gsn": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "str": 124035
+        }
+      },
+      "demographics.home_medications[].name": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "str": 124035
+        }
+      },
+      "demographics.home_medications[].ndc": {
+        "present_count": 124035,
+        "present_pct": 38.7286,
+        "nonempty_count": 124035,
+        "nonempty_pct": 38.7286,
+        "types": {
+          "str": 124035
+        }
+      },
+      "demographics.sex": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "diagnoses": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "diagnoses.ed_diagnoses": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "array": 320267
+        }
+      },
+      "diagnoses.ed_diagnoses[]._concept_name": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[]._event_subtype": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[]._event_time": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[].icd_code": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[].icd_title": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[].icd_version": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.ed_diagnoses[].seq_num": {
+        "present_count": 149575,
+        "present_pct": 46.7032,
+        "nonempty_count": 149575,
+        "nonempty_pct": 46.7032,
+        "types": {
+          "str": 149575
+        }
+      },
+      "diagnoses.other": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 317105,
+        "nonempty_pct": 99.0127,
+        "types": {
+          "array": 320267
+        }
+      },
+      "diagnoses.primary": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "diagnoses.primary.diagnosis_name": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "diagnoses.primary.icd_code": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "diagnoses.primary.icd_version": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "disposition.admission_location": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition.brief_hospital_course": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 280348,
+        "nonempty_pct": 87.5357,
+        "types": {
+          "str": 280348,
+          "null": 39919
+        }
+      },
+      "disposition.discharge_condition": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 319846,
+        "nonempty_pct": 99.8685,
+        "types": {
+          "str": 319852,
+          "null": 415
+        }
+      },
+      "disposition.discharge_location": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 274180,
+        "nonempty_pct": 85.6098,
+        "types": {
+          "str": 274180,
+          "null": 46087
+        }
+      },
+      "disposition.discharge_medications": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 313883,
+        "nonempty_pct": 98.0067,
+        "types": {
+          "str": 313883,
+          "null": 6384
+        }
+      },
+      "disposition.discharge_record": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 314462,
+        "nonempty_pct": 98.1874,
+        "types": {
+          "str": 314467,
+          "null": 5800
+        }
+      },
+      "disposition.drg": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 274250,
+        "nonempty_pct": 85.6317,
+        "types": {
+          "object": 274250,
+          "null": 46017
+        }
+      },
+      "disposition.drg.description": {
+        "present_count": 274250,
+        "present_pct": 85.6317,
+        "nonempty_count": 274250,
+        "nonempty_pct": 85.6317,
+        "types": {
+          "str": 274250
+        }
+      },
+      "disposition.drg.drg_code": {
+        "present_count": 274250,
+        "present_pct": 85.6317,
+        "nonempty_count": 274250,
+        "nonempty_pct": 85.6317,
+        "types": {
+          "str": 274250
+        }
+      },
+      "disposition.drg.drg_mortality": {
+        "present_count": 274250,
+        "present_pct": 85.6317,
+        "nonempty_count": 126619,
+        "nonempty_pct": 39.5355,
+        "types": {
+          "str": 126619,
+          "null": 147631
+        }
+      },
+      "disposition.drg.drg_severity": {
+        "present_count": 274250,
+        "present_pct": 85.6317,
+        "nonempty_count": 126619,
+        "nonempty_pct": 39.5355,
+        "types": {
+          "str": 126619,
+          "null": 147631
+        }
+      },
+      "disposition.drg.drg_type": {
+        "present_count": 274250,
+        "present_pct": 85.6317,
+        "nonempty_count": 274250,
+        "nonempty_pct": 85.6317,
+        "types": {
+          "str": 274250
+        }
+      },
+      "disposition.ed_disposition": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 320267
+        }
+      },
+      "disposition.icu_stays": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 62886,
+        "nonempty_pct": 19.6355,
+        "types": {
+          "array": 320267
+        }
+      },
+      "disposition.icu_stays[].first_careunit": {
+        "present_count": 62886,
+        "present_pct": 19.6355,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 62886
+        }
+      },
+      "disposition.icu_stays[].intime": {
+        "present_count": 62886,
+        "present_pct": 19.6355,
+        "nonempty_count": 62886,
+        "nonempty_pct": 19.6355,
+        "types": {
+          "str": 62886
+        }
+      },
+      "disposition.icu_stays[].last_careunit": {
+        "present_count": 62886,
+        "present_pct": 19.6355,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 62886
+        }
+      },
+      "disposition.icu_stays[].los": {
+        "present_count": 62886,
+        "present_pct": 19.6355,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 62886
+        }
+      },
+      "disposition.icu_stays[].outtime": {
+        "present_count": 62886,
+        "present_pct": 19.6355,
+        "nonempty_count": 62886,
+        "nonempty_pct": 19.6355,
+        "types": {
+          "str": 62886
+        }
+      },
+      "disposition.primary_service": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition.transfer_path": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "array": 320267
+        }
+      },
+      "disposition.transfer_path[].careunit": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition.transfer_path[].eventtype": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition.transfer_path[].intime": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "disposition.transfer_path[].outtime": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "identifiers": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "identifiers.hadm_id": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "identifiers.subject_id": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "investigations": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "investigations.cardiology": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "array": 320267
+        }
+      },
+      "investigations.laboratory": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 308184,
+        "nonempty_pct": 96.2272,
+        "types": {
+          "array": 320267
+        }
+      },
+      "investigations.laboratory[].category": {
+        "present_count": 308184,
+        "present_pct": 96.2272,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 308184
+        }
+      },
+      "investigations.laboratory[].fluid": {
+        "present_count": 308184,
+        "present_pct": 96.2272,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 308184
+        }
+      },
+      "investigations.laboratory[].itemid": {
+        "present_count": 308184,
+        "present_pct": 96.2272,
+        "nonempty_count": 308184,
+        "nonempty_pct": 96.2272,
+        "types": {
+          "str": 308184
+        }
+      },
+      "investigations.laboratory[].label": {
+        "present_count": 308184,
+        "present_pct": 96.2272,
+        "nonempty_count": 308184,
+        "nonempty_pct": 96.2272,
+        "types": {
+          "str": 308184
+        }
+      },
+      "investigations.laboratory[].results": {
+        "present_count": 308184,
+        "present_pct": 96.2272,
+        "nonempty_count": 308184,
+        "nonempty_pct": 96.2272,
+        "types": {
+          "array": 308184
+        }
+      },
+      "investigations.microbiology": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 195119,
+        "nonempty_pct": 60.9239,
+        "types": {
+          "array": 320267
+        }
+      },
+      "investigations.microbiology[].ab_name": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 14211,
+        "nonempty_pct": 4.4372,
+        "types": {
+          "str": 14211,
+          "null": 180908
+        }
+      },
+      "investigations.microbiology[].charttime": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 195119,
+        "nonempty_pct": 60.9239,
+        "types": {
+          "str": 195119
+        }
+      },
+      "investigations.microbiology[].dilution_text": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 13847,
+        "nonempty_pct": 4.3236,
+        "types": {
+          "str": 13847,
+          "null": 181272
+        }
+      },
+      "investigations.microbiology[].dilution_value": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 13727,
+        "nonempty_pct": 4.2861,
+        "types": {
+          "float": 13727,
+          "null": 181392
+        }
+      },
+      "investigations.microbiology[].interpretation": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 14211,
+        "nonempty_pct": 4.4372,
+        "types": {
+          "str": 14211,
+          "null": 180908
+        }
+      },
+      "investigations.microbiology[].isolate_num": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 195119,
+        "nonempty_pct": 60.9239,
+        "types": {
+          "int": 195119
+        }
+      },
+      "investigations.microbiology[].org_name": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 23088,
+        "nonempty_pct": 7.209,
+        "types": {
+          "str": 23088,
+          "null": 172031
+        }
+      },
+      "investigations.microbiology[].spec_type_desc": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 195119,
+        "nonempty_pct": 60.9239,
+        "types": {
+          "str": 195119
+        }
+      },
+      "investigations.microbiology[].test_name": {
+        "present_count": 195119,
+        "present_pct": 60.9239,
+        "nonempty_count": 195119,
+        "nonempty_pct": 60.9239,
+        "types": {
+          "str": 195119
+        }
+      },
+      "investigations.radiology": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 264265,
+        "nonempty_pct": 82.514,
+        "types": {
+          "array": 320267
+        }
+      },
+      "investigations.radiology[].charttime": {
+        "present_count": 264265,
+        "present_pct": 82.514,
+        "nonempty_count": 264265,
+        "nonempty_pct": 82.514,
+        "types": {
+          "str": 264265
+        }
+      },
+      "investigations.radiology[].details": {
+        "present_count": 264265,
+        "present_pct": 82.514,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "array": 264265
+        }
+      },
+      "investigations.radiology[].exam_name": {
+        "present_count": 264265,
+        "present_pct": 82.514,
+        "nonempty_count": 259701,
+        "nonempty_pct": 81.0889,
+        "types": {
+          "str": 264265
+        }
+      },
+      "investigations.radiology[].text": {
+        "present_count": 264265,
+        "present_pct": 82.514,
+        "nonempty_count": 264265,
+        "nonempty_pct": 82.514,
+        "types": {
+          "str": 264265
+        }
+      },
+      "investigations.respiratory": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "array": 320267
+        }
+      },
+      "narrative": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "narrative.allergies": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "narrative.chief_complaint": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 319083,
+        "nonempty_pct": 99.6303,
+        "types": {
+          "str": 320267
+        }
+      },
+      "narrative.discharge_note_full": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "str": 320267
+        }
+      },
+      "narrative.history_of_present_illness": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 316605,
+        "nonempty_pct": 98.8566,
+        "types": {
+          "null": 3659,
+          "str": 316608
+        }
+      },
+      "narrative.medications_on_admission": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 302027,
+        "nonempty_pct": 94.3048,
+        "types": {
+          "str": 302066,
+          "null": 18201
+        }
+      },
+      "narrative.past_medical_history": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 304787,
+        "nonempty_pct": 95.1665,
+        "types": {
+          "str": 304858,
+          "null": 15409
+        }
+      },
+      "narrative.physical_exam": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 301750,
+        "nonempty_pct": 94.2183,
+        "types": {
+          "str": 301756,
+          "null": 18511
+        }
+      },
+      "narrative.social_history": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 9242,
+        "nonempty_pct": 2.8857,
+        "types": {
+          "str": 314394,
+          "null": 5873
+        }
+      },
+      "treatments": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "treatments.hcpcs": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 46314,
+        "nonempty_pct": 14.4611,
+        "types": {
+          "array": 320267
+        }
+      },
+      "treatments.hcpcs[].chartdate": {
+        "present_count": 46314,
+        "present_pct": 14.4611,
+        "nonempty_count": 46314,
+        "nonempty_pct": 14.4611,
+        "types": {
+          "str": 46314
+        }
+      },
+      "treatments.hcpcs[].hcpcs_cd": {
+        "present_count": 46314,
+        "present_pct": 14.4611,
+        "nonempty_count": 46314,
+        "nonempty_pct": 14.4611,
+        "types": {
+          "str": 46314
+        }
+      },
+      "treatments.hcpcs[].short_description": {
+        "present_count": 46314,
+        "present_pct": 14.4611,
+        "nonempty_count": 46314,
+        "nonempty_pct": 14.4611,
+        "types": {
+          "str": 46314
+        }
+      },
+      "treatments.medication_administrations": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 153284,
+        "nonempty_pct": 47.8613,
+        "types": {
+          "array": 320267
+        }
+      },
+      "treatments.medication_administrations[].charttime": {
+        "present_count": 153284,
+        "present_pct": 47.8613,
+        "nonempty_count": 153284,
+        "nonempty_pct": 47.8613,
+        "types": {
+          "str": 153284
+        }
+      },
+      "treatments.medication_administrations[].detail": {
+        "present_count": 153284,
+        "present_pct": 47.8613,
+        "nonempty_count": 0,
+        "nonempty_pct": 0.0,
+        "types": {
+          "null": 153284
+        }
+      },
+      "treatments.medication_administrations[].event_txt": {
+        "present_count": 153284,
+        "present_pct": 47.8613,
+        "nonempty_count": 152373,
+        "nonempty_pct": 47.5769,
+        "types": {
+          "str": 152373,
+          "null": 911
+        }
+      },
+      "treatments.medication_administrations[].medication": {
+        "present_count": 153284,
+        "present_pct": 47.8613,
+        "nonempty_count": 124202,
+        "nonempty_pct": 38.7808,
+        "types": {
+          "str": 124202,
+          "null": 29082
+        }
+      },
+      "treatments.medication_administrations[].scheduletime": {
+        "present_count": 153284,
+        "present_pct": 47.8613,
+        "nonempty_count": 152858,
+        "nonempty_pct": 47.7283,
+        "types": {
+          "str": 152858,
+          "null": 426
+        }
+      },
+      "treatments.medications": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 319712,
+        "nonempty_pct": 99.8267,
+        "types": {
+          "array": 320267
+        }
+      },
+      "treatments.medications[].dose_unit_rx": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319167,
+        "nonempty_pct": 99.6565,
+        "types": {
+          "str": 319167,
+          "null": 545
+        }
+      },
+      "treatments.medications[].dose_val_rx": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319167,
+        "nonempty_pct": 99.6565,
+        "types": {
+          "str": 319167,
+          "null": 545
+        }
+      },
+      "treatments.medications[].doses_per_24_hrs": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 218577,
+        "nonempty_pct": 68.2484,
+        "types": {
+          "null": 101135,
+          "int": 218577
+        }
+      },
+      "treatments.medications[].drug": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319712,
+        "nonempty_pct": 99.8267,
+        "types": {
+          "str": 319712
+        }
+      },
+      "treatments.medications[].form_rx": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 332,
+        "nonempty_pct": 0.1037,
+        "types": {
+          "null": 319380,
+          "str": 332
+        }
+      },
+      "treatments.medications[].prod_strength": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319167,
+        "nonempty_pct": 99.6565,
+        "types": {
+          "str": 319167,
+          "null": 545
+        }
+      },
+      "treatments.medications[].route": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319233,
+        "nonempty_pct": 99.6771,
+        "types": {
+          "str": 319233,
+          "null": 479
+        }
+      },
+      "treatments.medications[].starttime": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319712,
+        "nonempty_pct": 99.8267,
+        "types": {
+          "str": 319712
+        }
+      },
+      "treatments.pharmacy_orders": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 319712,
+        "nonempty_pct": 99.8267,
+        "types": {
+          "array": 320267
+        }
+      },
+      "treatments.pharmacy_orders[].doses_per_24_hrs": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 217916,
+        "nonempty_pct": 68.042,
+        "types": {
+          "null": 101796,
+          "int": 217916
+        }
+      },
+      "treatments.pharmacy_orders[].frequency": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319217,
+        "nonempty_pct": 99.6721,
+        "types": {
+          "str": 319217,
+          "null": 495
+        }
+      },
+      "treatments.pharmacy_orders[].medication": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 296603,
+        "nonempty_pct": 92.6112,
+        "types": {
+          "str": 296603,
+          "null": 23109
+        }
+      },
+      "treatments.pharmacy_orders[].route": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319217,
+        "nonempty_pct": 99.6721,
+        "types": {
+          "str": 319217,
+          "null": 495
+        }
+      },
+      "treatments.pharmacy_orders[].starttime": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319693,
+        "nonempty_pct": 99.8208,
+        "types": {
+          "str": 319693,
+          "null": 19
+        }
+      },
+      "treatments.pharmacy_orders[].status": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319712,
+        "nonempty_pct": 99.8267,
+        "types": {
+          "str": 319712
+        }
+      },
+      "treatments.pharmacy_orders[].stoptime": {
+        "present_count": 319712,
+        "present_pct": 99.8267,
+        "nonempty_count": 319150,
+        "nonempty_pct": 99.6512,
+        "types": {
+          "str": 319150,
+          "null": 562
+        }
+      },
+      "treatments.procedures": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 187305,
+        "nonempty_pct": 58.484,
+        "types": {
+          "array": 320267
+        }
+      },
+      "treatments.procedures[].icd_code": {
+        "present_count": 187305,
+        "present_pct": 58.484,
+        "nonempty_count": 187305,
+        "nonempty_pct": 58.484,
+        "types": {
+          "str": 187305
+        }
+      },
+      "treatments.procedures[].icd_version": {
+        "present_count": 187305,
+        "present_pct": 58.484,
+        "nonempty_count": 187305,
+        "nonempty_pct": 58.484,
+        "types": {
+          "str": 187305
+        }
+      },
+      "treatments.procedures[].procedure_name": {
+        "present_count": 187305,
+        "present_pct": 58.484,
+        "nonempty_count": 187305,
+        "nonempty_pct": 58.484,
+        "types": {
+          "str": 187305
+        }
+      },
+      "vitals": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 320267,
+        "nonempty_pct": 100.0,
+        "types": {
+          "object": 320267
+        }
+      },
+      "vitals.acuity": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 145543,
+        "nonempty_pct": 45.4443,
+        "types": {
+          "int": 145543,
+          "null": 174724
+        }
+      },
+      "vitals.dbp": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 138093,
+        "nonempty_pct": 43.1181,
+        "types": {
+          "float": 138093,
+          "null": 182174
+        }
+      },
+      "vitals.heartrate": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 138709,
+        "nonempty_pct": 43.3104,
+        "types": {
+          "float": 138709,
+          "null": 181558
+        }
+      },
+      "vitals.o2sat": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 137137,
+        "nonempty_pct": 42.8196,
+        "types": {
+          "float": 137137,
+          "null": 183130
+        }
+      },
+      "vitals.pain": {
+        "present_count": 150052,
+        "present_pct": 46.8522,
+        "nonempty_count": 142200,
+        "nonempty_pct": 44.4005,
+        "types": {
+          "str": 142204,
+          "null": 7848
+        }
+      },
+      "vitals.resprate": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 137144,
+        "nonempty_pct": 42.8218,
+        "types": {
+          "float": 137144,
+          "null": 183123
+        }
+      },
+      "vitals.rhythm": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 16136,
+        "nonempty_pct": 5.0383,
+        "types": {
+          "null": 304115,
+          "str": 16152
+        }
+      },
+      "vitals.sbp": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 138431,
+        "nonempty_pct": 43.2236,
+        "types": {
+          "float": 138431,
+          "null": 181836
+        }
+      },
+      "vitals.source": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 145607,
+        "nonempty_pct": 45.4643,
+        "types": {
+          "str": 145607,
+          "null": 174660
+        }
+      },
+      "vitals.temperature": {
+        "present_count": 320267,
+        "present_pct": 100.0,
+        "nonempty_count": 135645,
+        "nonempty_pct": 42.3537,
+        "types": {
+          "float": 135645,
+          "null": 184622
+        }
+      }
+    },
+    "array_length_distributions": {
+      "demographics.home_medications": {
+        "min": 0,
+        "median": 0,
+        "p90": 16,
+        "p99": 31,
+        "max": 106,
+        "mean": 4.6067
+      },
+      "diagnoses.ed_diagnoses": {
+        "min": 0,
+        "median": 0,
+        "p90": 3,
+        "p99": 5,
+        "max": 11,
+        "mean": 0.9257
+      },
+      "diagnoses.other": {
+        "min": 0,
+        "median": 10,
+        "p90": 21,
+        "p99": 34,
+        "max": 56,
+        "mean": 11.636
+      },
+      "disposition.icu_stays": {
+        "min": 0,
+        "median": 0,
+        "p90": 1,
+        "p99": 2,
+        "max": 7,
+        "mean": 0.2163
+      },
+      "disposition.transfer_path": {
+        "min": 2,
+        "median": 3,
+        "p90": 6,
+        "p99": 9,
+        "max": 24,
+        "mean": 3.7898
+      },
+      "investigations.cardiology": {
+        "min": 0,
+        "median": 0,
+        "p90": 0,
+        "p99": 0,
+        "max": 0,
+        "mean": 0.0
+      },
+      "investigations.laboratory": {
+        "min": 0,
+        "median": 50,
+        "p90": 87,
+        "p99": 129,
+        "max": 247,
+        "mean": 51.8234
+      },
+      "investigations.microbiology": {
+        "min": 0,
+        "median": 1,
+        "p90": 15,
+        "p99": 55,
+        "max": 485,
+        "mean": 5.3428
+      },
+      "investigations.radiology": {
+        "min": 0,
+        "median": 2,
+        "p90": 6,
+        "p99": 19,
+        "max": 126,
+        "mean": 2.9435
+      },
+      "investigations.respiratory": {
+        "min": 0,
+        "median": 0,
+        "p90": 0,
+        "p99": 0,
+        "max": 0,
+        "mean": 0.0
+      },
+      "treatments.hcpcs": {
+        "min": 0,
+        "median": 0,
+        "p90": 1,
+        "p99": 3,
+        "max": 15,
+        "mean": 0.2205
+      },
+      "treatments.medication_administrations": {
+        "min": 0,
+        "median": 0,
+        "p90": 196,
+        "p99": 850,
+        "max": 14701,
+        "mean": 73.1049
+      },
+      "treatments.medications": {
+        "min": 0,
+        "median": 29,
+        "p90": 92,
+        "p99": 253,
+        "max": 2156,
+        "mean": 44.3648
+      },
+      "treatments.pharmacy_orders": {
+        "min": 0,
+        "median": 27,
+        "p90": 78,
+        "p99": 205,
+        "max": 1869,
+        "mean": 39.0108
+      },
+      "treatments.procedures": {
+        "min": 0,
+        "median": 1,
+        "p90": 5,
+        "p99": 12,
+        "max": 41,
+        "mean": 1.755
+      }
+    }
+  },
+  "episode_parquet": {
+    "base": "G:\\Projects\\医疗数据集评测-MIMIC\\outputs\\episodes",
+    "scan_seconds": 44.46,
+    "coverage": {
+      "target_episodes": 320267,
+      "has_chief_complaint": {
+        "count": 150045,
+        "pct": 46.85
+      },
+      "has_triage_vitals": {
+        "count": 139456,
+        "pct": 43.5437
+      },
+      "has_serial_vitals": {
+        "count": 145543,
+        "pct": 45.4443
+      },
+      "has_laboratory": {
+        "count": 308184,
+        "pct": 96.2272
+      },
+      "has_microbiology": {
+        "count": 195119,
+        "pct": 60.9239
+      },
+      "has_radiology": {
+        "count": 264267,
+        "pct": 82.5146
+      },
+      "has_orders": {
+        "count": 319402,
+        "pct": 99.7299
+      },
+      "has_prescriptions": {
+        "count": 319712,
+        "pct": 99.8267
+      },
+      "has_medication_administration": {
+        "count": 153284,
+        "pct": 47.8613
+      },
+      "has_procedures": {
+        "count": 230109,
+        "pct": 71.8491
+      },
+      "has_diagnoses": {
+        "count": 320267,
+        "pct": 100.0
+      },
+      "has_disposition": {
+        "count": 150052,
+        "pct": 46.8522
+      },
+      "has_discharge_summary": {
+        "count": 320267,
+        "pct": 100.0
+      }
+    },
+    "event_types": [
+      {
+        "event_type": "diagnosis_code",
+        "event_count": 4046904,
+        "episode_count": 320267,
+        "event_time_count": 0,
+        "available_time_count": 0,
+        "recorded_time_count": 0,
+        "start_time_count": 0,
+        "end_time_count": 0,
+        "episode_pct": 100.0,
+        "event_time_pct": 0.0,
+        "available_time_pct": 0.0,
+        "recorded_time_pct": 0.0
+      },
+      {
+        "event_type": "drg_code",
+        "event_count": 526248,
+        "episode_count": 274250,
+        "event_time_count": 0,
+        "available_time_count": 0,
+        "recorded_time_count": 0,
+        "start_time_count": 0,
+        "end_time_count": 0,
+        "episode_pct": 85.6317,
+        "event_time_pct": 0.0,
+        "available_time_pct": 0.0,
+        "recorded_time_pct": 0.0
+      },
+      {
+        "event_type": "ed_diagnosis_code",
+        "event_count": 296473,
+        "episode_count": 149575,
+        "event_time_count": 296473,
+        "available_time_count": 0,
+        "recorded_time_count": 0,
+        "start_time_count": 296473,
+        "end_time_count": 0,
+        "episode_pct": 46.7032,
+        "event_time_pct": 100.0,
+        "available_time_pct": 0.0,
+        "recorded_time_pct": 0.0
+      },
+      {
+        "event_type": "ed_medication_dispense",
+        "event_count": 774600,
+        "episode_count": 126188,
+        "event_time_count": 774600,
+        "available_time_count": 774600,
+        "recorded_time_count": 774600,
+        "start_time_count": 774600,
+        "end_time_count": 0,
+        "episode_pct": 39.4009,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "ed_triage",
+        "event_count": 150411,
+        "episode_count": 150052,
+        "event_time_count": 150411,
+        "available_time_count": 150411,
+        "recorded_time_count": 150411,
+        "start_time_count": 150411,
+        "end_time_count": 0,
+        "episode_pct": 46.8522,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "ed_vital_signs",
+        "event_count": 724795,
+        "episode_count": 145543,
+        "event_time_count": 724795,
+        "available_time_count": 724795,
+        "recorded_time_count": 724795,
+        "start_time_count": 724795,
+        "end_time_count": 0,
+        "episode_pct": 45.4443,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "hcpcs_event",
+        "event_count": 70617,
+        "episode_count": 46314,
+        "event_time_count": 70617,
+        "available_time_count": 0,
+        "recorded_time_count": 0,
+        "start_time_count": 70617,
+        "end_time_count": 0,
+        "episode_pct": 14.4611,
+        "event_time_pct": 100.0,
+        "available_time_pct": 0.0,
+        "recorded_time_pct": 0.0
+      },
+      {
+        "event_type": "icu_datetime_observation",
+        "event_count": 6740311,
+        "episode_count": 62594,
+        "event_time_count": 6740311,
+        "available_time_count": 6740311,
+        "recorded_time_count": 6740311,
+        "start_time_count": 6740311,
+        "end_time_count": 0,
+        "episode_pct": 19.5443,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "icu_ingredient_input",
+        "event_count": 10991627,
+        "episode_count": 62563,
+        "event_time_count": 10991627,
+        "available_time_count": 10991627,
+        "recorded_time_count": 10991627,
+        "start_time_count": 10991627,
+        "end_time_count": 10991627,
+        "episode_pct": 19.5346,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "icu_input",
+        "event_count": 8485794,
+        "episode_count": 62670,
+        "event_time_count": 8485794,
+        "available_time_count": 8485794,
+        "recorded_time_count": 8485794,
+        "start_time_count": 8485794,
+        "end_time_count": 8485794,
+        "episode_pct": 19.568,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "icu_observation",
+        "event_count": 15971602,
+        "episode_count": 62886,
+        "event_time_count": 15971602,
+        "available_time_count": 15849125,
+        "recorded_time_count": 15849125,
+        "start_time_count": 15971602,
+        "end_time_count": 0,
+        "episode_pct": 19.6355,
+        "event_time_pct": 100.0,
+        "available_time_pct": 99.2332,
+        "recorded_time_pct": 99.2332
+      },
+      {
+        "event_type": "icu_output",
+        "event_count": 4042270,
+        "episode_count": 61477,
+        "event_time_count": 4042270,
+        "available_time_count": 4042270,
+        "recorded_time_count": 4042270,
+        "start_time_count": 4042270,
+        "end_time_count": 0,
+        "episode_pct": 19.1955,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "icu_procedure",
+        "event_count": 662745,
+        "episode_count": 62793,
+        "event_time_count": 662745,
+        "available_time_count": 662745,
+        "recorded_time_count": 662745,
+        "start_time_count": 662745,
+        "end_time_count": 662745,
+        "episode_pct": 19.6065,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "laboratory_panel",
+        "event_count": 6958487,
+        "episode_count": 308184,
+        "event_time_count": 6958487,
+        "available_time_count": 6559456,
+        "recorded_time_count": 6559456,
+        "start_time_count": 6958487,
+        "end_time_count": 6958487,
+        "episode_pct": 96.2272,
+        "event_time_pct": 100.0,
+        "available_time_pct": 94.2655,
+        "recorded_time_pct": 94.2655
+      },
+      {
+        "event_type": "medication_administration",
+        "event_count": 23413074,
+        "episode_count": 153284,
+        "event_time_count": 23413074,
+        "available_time_count": 23413074,
+        "recorded_time_count": 23413074,
+        "start_time_count": 23413074,
+        "end_time_count": 0,
+        "episode_pct": 47.8613,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "medication_reconciliation",
+        "event_count": 1475369,
+        "episode_count": 124035,
+        "event_time_count": 1475369,
+        "available_time_count": 1475369,
+        "recorded_time_count": 1475369,
+        "start_time_count": 1475369,
+        "end_time_count": 0,
+        "episode_pct": 38.7286,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "microbiology_specimen",
+        "event_count": 845031,
+        "episode_count": 195119,
+        "event_time_count": 845031,
+        "available_time_count": 844920,
+        "recorded_time_count": 844920,
+        "start_time_count": 845031,
+        "end_time_count": 845031,
+        "episode_pct": 60.9239,
+        "event_time_pct": 100.0,
+        "available_time_pct": 99.9869,
+        "recorded_time_pct": 99.9869
+      },
+      {
+        "event_type": "pharmacy_order",
+        "event_count": 12493881,
+        "episode_count": 319712,
+        "event_time_count": 12493881,
+        "available_time_count": 12493881,
+        "recorded_time_count": 12493881,
+        "start_time_count": 12477059,
+        "end_time_count": 12430554,
+        "episode_pct": 99.8267,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "prescription",
+        "event_count": 14208596,
+        "episode_count": 319712,
+        "event_time_count": 14191773,
+        "available_time_count": 14191773,
+        "recorded_time_count": 14191773,
+        "start_time_count": 14191773,
+        "end_time_count": 14186780,
+        "episode_pct": 99.8267,
+        "event_time_pct": 99.8816,
+        "available_time_pct": 99.8816,
+        "recorded_time_pct": 99.8816
+      },
+      {
+        "event_type": "procedure_code",
+        "event_count": 562061,
+        "episode_count": 187305,
+        "event_time_count": 562061,
+        "available_time_count": 0,
+        "recorded_time_count": 0,
+        "start_time_count": 562061,
+        "end_time_count": 0,
+        "episode_pct": 58.484,
+        "event_time_pct": 100.0,
+        "available_time_pct": 0.0,
+        "recorded_time_pct": 0.0
+      },
+      {
+        "event_type": "provider_order",
+        "event_count": 35312988,
+        "episode_count": 319402,
+        "event_time_count": 35312988,
+        "available_time_count": 35312988,
+        "recorded_time_count": 35312988,
+        "start_time_count": 35312988,
+        "end_time_count": 0,
+        "episode_pct": 99.7299,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "service_transfer",
+        "event_count": 355019,
+        "episode_count": 320267,
+        "event_time_count": 355019,
+        "available_time_count": 355019,
+        "recorded_time_count": 355019,
+        "start_time_count": 355019,
+        "end_time_count": 0,
+        "episode_pct": 100.0,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      },
+      {
+        "event_type": "transfer",
+        "event_count": 1213742,
+        "episode_count": 320267,
+        "event_time_count": 1213742,
+        "available_time_count": 1213742,
+        "recorded_time_count": 1213742,
+        "start_time_count": 1213742,
+        "end_time_count": 893477,
+        "episode_pct": 100.0,
+        "event_time_pct": 100.0,
+        "available_time_pct": 100.0,
+        "recorded_time_pct": 100.0
+      }
+    ],
+    "timeline_sources": [
+      {
+        "source_table": "mimic-iv-3.1/hosp/diagnoses_icd",
+        "event_count": 4046904,
+        "episode_count": 320267,
+        "episode_pct": 100.0
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/drgcodes",
+        "event_count": 526248,
+        "episode_count": 274250,
+        "episode_pct": 85.6317
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/emar",
+        "event_count": 23413074,
+        "episode_count": 153284,
+        "episode_pct": 47.8613
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/hcpcsevents",
+        "event_count": 70617,
+        "episode_count": 46314,
+        "episode_pct": 14.4611
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/labevents",
+        "event_count": 6958487,
+        "episode_count": 308184,
+        "episode_pct": 96.2272
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/microbiologyevents",
+        "event_count": 845031,
+        "episode_count": 195119,
+        "episode_pct": 60.9239
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/pharmacy",
+        "event_count": 12493881,
+        "episode_count": 319712,
+        "episode_pct": 99.8267
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/poe",
+        "event_count": 35312988,
+        "episode_count": 319402,
+        "episode_pct": 99.7299
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/prescriptions",
+        "event_count": 14208596,
+        "episode_count": 319712,
+        "episode_pct": 99.8267
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/procedures_icd",
+        "event_count": 562061,
+        "episode_count": 187305,
+        "episode_pct": 58.484
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/services",
+        "event_count": 355019,
+        "episode_count": 320267,
+        "episode_pct": 100.0
+      },
+      {
+        "source_table": "mimic-iv-3.1/hosp/transfers",
+        "event_count": 1213742,
+        "episode_count": 320267,
+        "episode_pct": 100.0
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/chartevents",
+        "event_count": 15971602,
+        "episode_count": 62886,
+        "episode_pct": 19.6355
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/datetimeevents",
+        "event_count": 6740311,
+        "episode_count": 62594,
+        "episode_pct": 19.5443
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/ingredientevents",
+        "event_count": 10991627,
+        "episode_count": 62563,
+        "episode_pct": 19.5346
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/inputevents",
+        "event_count": 8485794,
+        "episode_count": 62670,
+        "episode_pct": 19.568
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/outputevents",
+        "event_count": 4042270,
+        "episode_count": 61477,
+        "episode_pct": 19.1955
+      },
+      {
+        "source_table": "mimic-iv-3.1/icu/procedureevents",
+        "event_count": 662745,
+        "episode_count": 62793,
+        "episode_pct": 19.6065
+      },
+      {
+        "source_table": "mimic-iv-ed/ed/diagnosis",
+        "event_count": 296473,
+        "episode_count": 149575,
+        "episode_pct": 46.7032
+      },
+      {
+        "source_table": "mimic-iv-ed/ed/medrecon",
+        "event_count": 1475369,
+        "episode_count": 124035,
+        "episode_pct": 38.7286
+      },
+      {
+        "source_table": "mimic-iv-ed/ed/pyxis",
+        "event_count": 774600,
+        "episode_count": 126188,
+        "episode_pct": 39.4009
+      },
+      {
+        "source_table": "mimic-iv-ed/ed/triage",
+        "event_count": 150411,
+        "episode_count": 150052,
+        "episode_pct": 46.8522
+      },
+      {
+        "source_table": "mimic-iv-ed/ed/vitalsign",
+        "event_count": 724795,
+        "episode_count": 145543,
+        "episode_pct": 45.4443
+      }
+    ],
+    "documents": [
+      {
+        "document_type": "discharge",
+        "source_table": "mimic-iv-note-2.2/note/discharge",
+        "document_count": 320267,
+        "episode_count": 320267,
+        "event_time_count": 320267,
+        "available_time_count": 320267,
+        "recorded_time_count": 320267,
+        "episode_pct": 100.0
+      },
+      {
+        "document_type": "radiology",
+        "source_table": "mimic-iv-note-2.2/note/radiology",
+        "document_count": 1064311,
+        "episode_count": 264267,
+        "event_time_count": 1064311,
+        "available_time_count": 1064311,
+        "recorded_time_count": 1064311,
+        "episode_pct": 82.5146
+      }
+    ],
+    "care_contacts": [
+      {
+        "contact_type": "emergency_department",
+        "contact_count": 150411,
+        "episode_count": 150052,
+        "start_time_count": 150411,
+        "end_time_count": 150411,
+        "episode_pct": 46.8522
+      },
+      {
+        "contact_type": "icu",
+        "contact_count": 69284,
+        "episode_count": 62886,
+        "start_time_count": 69284,
+        "end_time_count": 69284,
+        "episode_pct": 19.6355
+      },
+      {
+        "contact_type": "inpatient",
+        "contact_count": 320267,
+        "episode_count": 320267,
+        "start_time_count": 320267,
+        "end_time_count": 320267,
+        "episode_pct": 100.0
+      },
+      {
+        "contact_type": "transfer",
+        "contact_count": 1213742,
+        "episode_count": 320267,
+        "start_time_count": 1213742,
+        "end_time_count": 893477,
+        "episode_pct": 100.0
+      }
+    ],
+    "longitudinal_observation": {
+      "target_episodes": 320267,
+      "with_later_episode": 216451,
+      "subjects_with_later_episode": 78711,
+      "with_later_episode_pct": 67.5845
+    },
+    "temporal_integrity": [
+      {
+        "event_type": "diagnosis_code",
+        "event_count": 4046904,
+        "before_episode_start": 0,
+        "after_clinical_end": 0,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0,
+        "after_clinical_end_pct": 0.0,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "drg_code",
+        "event_count": 526248,
+        "before_episode_start": 0,
+        "after_clinical_end": 0,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0,
+        "after_clinical_end_pct": 0.0,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "ed_diagnosis_code",
+        "event_count": 296473,
+        "before_episode_start": 0,
+        "after_clinical_end": 18,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0,
+        "after_clinical_end_pct": 0.0061,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "ed_medication_dispense",
+        "event_count": 774600,
+        "before_episode_start": 510,
+        "after_clinical_end": 290,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0658,
+        "after_clinical_end_pct": 0.0374,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "ed_triage",
+        "event_count": 150411,
+        "before_episode_start": 0,
+        "after_clinical_end": 0,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0,
+        "after_clinical_end_pct": 0.0,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "ed_vital_signs",
+        "event_count": 724795,
+        "before_episode_start": 517,
+        "after_clinical_end": 56,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0713,
+        "after_clinical_end_pct": 0.0077,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "hcpcs_event",
+        "event_count": 70617,
+        "before_episode_start": 51735,
+        "after_clinical_end": 1,
+        "available_before_event": 0,
+        "before_episode_start_pct": 73.2614,
+        "after_clinical_end_pct": 0.0014,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "icu_datetime_observation",
+        "event_count": 6740311,
+        "before_episode_start": 801,
+        "after_clinical_end": 12434,
+        "available_before_event": 275242,
+        "before_episode_start_pct": 0.0119,
+        "after_clinical_end_pct": 0.1845,
+        "available_before_event_pct": 4.0835
+      },
+      {
+        "event_type": "icu_ingredient_input",
+        "event_count": 10991627,
+        "before_episode_start": 1298,
+        "after_clinical_end": 24434,
+        "available_before_event": 583811,
+        "before_episode_start_pct": 0.0118,
+        "after_clinical_end_pct": 0.2223,
+        "available_before_event_pct": 5.3114
+      },
+      {
+        "event_type": "icu_input",
+        "event_count": 8485794,
+        "before_episode_start": 837,
+        "after_clinical_end": 19453,
+        "available_before_event": 440249,
+        "before_episode_start_pct": 0.0099,
+        "after_clinical_end_pct": 0.2292,
+        "available_before_event_pct": 5.1881
+      },
+      {
+        "event_type": "icu_observation",
+        "event_count": 15971602,
+        "before_episode_start": 9559,
+        "after_clinical_end": 33126,
+        "available_before_event": 90939,
+        "before_episode_start_pct": 0.0598,
+        "after_clinical_end_pct": 0.2074,
+        "available_before_event_pct": 0.5694
+      },
+      {
+        "event_type": "icu_output",
+        "event_count": 4042270,
+        "before_episode_start": 654,
+        "after_clinical_end": 5709,
+        "available_before_event": 589906,
+        "before_episode_start_pct": 0.0162,
+        "after_clinical_end_pct": 0.1412,
+        "available_before_event_pct": 14.5934
+      },
+      {
+        "event_type": "icu_procedure",
+        "event_count": 662745,
+        "before_episode_start": 412,
+        "after_clinical_end": 1547,
+        "available_before_event": 2941,
+        "before_episode_start_pct": 0.0622,
+        "after_clinical_end_pct": 0.2334,
+        "available_before_event_pct": 0.4438
+      },
+      {
+        "event_type": "laboratory_panel",
+        "event_count": 6958487,
+        "before_episode_start": 58773,
+        "after_clinical_end": 3581,
+        "available_before_event": 52,
+        "before_episode_start_pct": 0.8446,
+        "after_clinical_end_pct": 0.0515,
+        "available_before_event_pct": 0.0007
+      },
+      {
+        "event_type": "medication_administration",
+        "event_count": 23413074,
+        "before_episode_start": 46793,
+        "after_clinical_end": 16781,
+        "available_before_event": 814262,
+        "before_episode_start_pct": 0.1999,
+        "after_clinical_end_pct": 0.0717,
+        "available_before_event_pct": 3.4778
+      },
+      {
+        "event_type": "medication_reconciliation",
+        "event_count": 1475369,
+        "before_episode_start": 21,
+        "after_clinical_end": 9,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.0014,
+        "after_clinical_end_pct": 0.0006,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "microbiology_specimen",
+        "event_count": 845031,
+        "before_episode_start": 355,
+        "after_clinical_end": 299,
+        "available_before_event": 0,
+        "before_episode_start_pct": 0.042,
+        "after_clinical_end_pct": 0.0354,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "pharmacy_order",
+        "event_count": 12493881,
+        "before_episode_start": 296134,
+        "after_clinical_end": 124472,
+        "available_before_event": 11265177,
+        "before_episode_start_pct": 2.3702,
+        "after_clinical_end_pct": 0.9963,
+        "available_before_event_pct": 90.1656
+      },
+      {
+        "event_type": "prescription",
+        "event_count": 14208596,
+        "before_episode_start": 302366,
+        "after_clinical_end": 131400,
+        "available_before_event": 0,
+        "before_episode_start_pct": 2.128,
+        "after_clinical_end_pct": 0.9248,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "procedure_code",
+        "event_count": 562061,
+        "before_episode_start": 194141,
+        "after_clinical_end": 1639,
+        "available_before_event": 0,
+        "before_episode_start_pct": 34.5409,
+        "after_clinical_end_pct": 0.2916,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "provider_order",
+        "event_count": 35312988,
+        "before_episode_start": 875599,
+        "after_clinical_end": 41346,
+        "available_before_event": 0,
+        "before_episode_start_pct": 2.4795,
+        "after_clinical_end_pct": 0.1171,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "service_transfer",
+        "event_count": 355019,
+        "before_episode_start": 21521,
+        "after_clinical_end": 115,
+        "available_before_event": 0,
+        "before_episode_start_pct": 6.0619,
+        "after_clinical_end_pct": 0.0324,
+        "available_before_event_pct": 0.0
+      },
+      {
+        "event_type": "transfer",
+        "event_count": 1213742,
+        "before_episode_start": 89011,
+        "after_clinical_end": 315712,
+        "available_before_event": 0,
+        "before_episode_start_pct": 7.3336,
+        "after_clinical_end_pct": 26.0115,
+        "available_before_event_pct": 0.0
+      }
+    ]
+  }
+}

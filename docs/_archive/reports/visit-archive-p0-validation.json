@@ -1,0 +1,33 @@
+{
+  "file": "visit-archive-sample.jsonl",
+  "sha256": "065E9B33DE60537BED9944EDD2CF8FA702A930B1294C3A731632CD5319A91CFB",
+  "records": 99,
+  "invalid_records": 0,
+  "patient_partition_conflicts": 0,
+  "coverage": {
+    "triage_chief_complaint": 49,
+    "retrospective_chief_complaint": 96,
+    "provider_orders": 99,
+    "provider_order_details": 99,
+    "emar_details": 52,
+    "baseline": 62,
+    "ed_disposition": 49,
+    "icu_metadata": 21,
+    "cardiology": 56,
+    "respiratory": 71
+  },
+  "snapshot_ready": {
+    "investigation_selection": 99,
+    "clinical_diagnosis": 49,
+    "treatment_management": 99,
+    "referral_specialty": 99,
+    "discharge_followup": 99
+  },
+  "snapshot_evidence_refs": {
+    "investigation_selection": 202,
+    "clinical_diagnosis": 3116,
+    "treatment_management": 1856,
+    "referral_specialty": 2421,
+    "discharge_followup": 35401
+  }
+}

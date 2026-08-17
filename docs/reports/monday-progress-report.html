@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>项目进展汇报 · Patient-Journey 临床决策评测集</title>
+<style>
+  :root{
+    --ink:#1e293b;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --bg:#f8fafc;
+    --card:#ffffff;
+    --teal:#0f766e;
+    --teal-dark:#115e59;
+    --teal-soft:#ccfbf1;
+    --green:#166534; --green-bg:#dcfce7;
+    --blue:#1e40af;  --blue-bg:#dbeafe;
+    --amber:#92400e; --amber-bg:#fef3c7;
+    --red:#991b1b;   --red-bg:#fee2e2;
+    --gray:#475569;  --gray-bg:#f1f5f9;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    line-height:1.6; font-size:15px;
+  }
+  .page{max-width:960px; margin:0 auto; padding:32px 20px 64px;}
+
+  /* Header */
+  header.report-head{
+    background:linear-gradient(135deg,#0f766e 0%,#115e59 55%,#134e4a 100%);
+    color:#fff; border-radius:16px; padding:28px 32px; margin-bottom:24px;
+    box-shadow:0 8px 24px rgba(15,118,110,.18);
+  }
+  header.report-head .kicker{
+    font-size:13px; letter-spacing:.14em; text-transform:uppercase;
+    color:#99f6e4; font-weight:600; margin:0 0 8px;
+  }
+  header.report-head h1{margin:0 0 6px; font-size:26px; font-weight:700; letter-spacing:.01em;}
+  header.report-head .sub{margin:0; color:#ccfbf1; font-size:14px;}
+  header.report-head .meta{
+    margin-top:16px; padding-top:14px; border-top:1px solid rgba(255,255,255,.22);
+    display:flex; flex-wrap:wrap; gap:8px 20px; font-size:13px; color:#e6fffb;
+  }
+  header.report-head .meta span b{font-weight:700;}
+
+  /* Executive summary */
+  .summary{
+    background:#fff; border:1px solid var(--line); border-left:5px solid var(--teal);
+    border-radius:12px; padding:20px 24px; margin-bottom:24px;
+  }
+  .summary h2{margin:0 0 10px; font-size:17px; color:var(--teal-dark);}
+  .summary p{margin:0; font-size:15px;}
+  .summary .asks{margin-top:14px; display:flex; flex-wrap:wrap; gap:10px;}
+  .ask{
+    background:var(--teal-soft); color:var(--teal-dark); border:1px solid #99f6e4;
+    border-radius:999px; padding:6px 14px; font-size:13px; font-weight:600;
+  }
+
+  /* Key numbers strip */
+  .kpis{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:24px;}
+  .kpi{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 14px; text-align:center;
+  }
+  .kpi .num{font-size:22px; font-weight:800; color:var(--teal-dark); line-height:1.15;}
+  .kpi .num small{font-size:13px; font-weight:600; color:var(--muted);}
+  .kpi .lab{font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.4;}
+
+  /* Sections */
+  section.block{margin-bottom:28px;}
+  .block > h2{
+    font-size:18px; margin:0 0 4px; color:var(--ink);
+    display:flex; align-items:center; gap:10px;
+  }
+  .block > h2 .tag{
+    font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px;
+    background:var(--gray-bg); color:var(--gray); letter-spacing:.02em;
+  }
+  .block > h2 .tag.ok{background:var(--green-bg); color:var(--green);}
+  .block > h2 .tag.proto{background:var(--amber-bg); color:var(--amber);}
+  .block > h2 .tag.risk{background:var(--red-bg); color:var(--red);}
+  .block > h2 .tag.plan{background:var(--blue-bg); color:var(--blue);}
+  .block > p.lede{margin:6px 0 14px; color:var(--muted); font-size:14px;}
+
+  /* Tables */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  thead th{
+    background:#f1f5f9; color:#334155; text-align:left; font-weight:600;
+    padding:11px 14px; border-bottom:1px solid var(--line); white-space:nowrap;
+  }
+  tbody td{padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#f8fafc;}
+  td.num, th.num{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .mono{font-variant-numeric:tabular-nums; font-weight:600;}
+
+  /* Badges */
+  .badge{display:inline-block; padding:2px 9px; border-radius:999px; font-size:12px; font-weight:700; white-space:nowrap;}
+  .b-ok{background:var(--green-bg); color:var(--green);}
+  .b-proto{background:var(--amber-bg); color:var(--amber);}
+  .b-run{background:var(--blue-bg); color:var(--blue);}
+  .b-risk{background:var(--red-bg); color:var(--red);}
+  .b-todo{background:var(--gray-bg); color:var(--gray);}
+
+  /* Gate cards */
+  .gates{display:grid; gap:12px;}
+  .gate{
+    display:flex; gap:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:16px 18px; align-items:flex-start;
+  }
+  .gate .idx{
+    flex:0 0 auto; width:30px; height:30px; border-radius:8px; background:var(--red-bg);
+    color:var(--red); font-weight:800; display:flex; align-items:center; justify-content:center;
+  }
+  .gate .idx.amber{background:var(--amber-bg); color:var(--amber);}
+  .gate h3{margin:0 0 4px; font-size:15px;}
+  .gate .st{font-size:12.5px; color:var(--muted); margin-bottom:6px;}
+  .gate .st b{color:var(--ink);}
+  .gate p{margin:0; font-size:13.5px; color:#475569;}
+
+  /* Risk note */
+  .risknote{
+    background:var(--red-bg); border:1px solid #fecaca; border-radius:12px;
+    padding:16px 18px; margin-top:16px;
+  }
+  .risknote h3{margin:0 0 6px; font-size:14px; color:var(--red);}
+  .risknote p{margin:0; font-size:13.5px; color:#7f1d1d;}
+
+  /* Plan list */
+  ul.plan{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  ul.plan li{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:14px 18px 14px 16px; display:flex; gap:12px; align-items:flex-start;
+  }
+  ul.plan li .n{
+    flex:0 0 auto; min-width:24px; height:24px; border-radius:6px; background:var(--blue-bg);
+    color:var(--blue); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center;
+  }
+  ul.plan li .t{font-size:14px;}
+  ul.plan li .t b{color:var(--ink);}
+  ul.plan li .t .d{color:var(--muted); font-size:13px;}
+
+  footer{
+    margin-top:36px; padding-top:16px; border-top:1px solid var(--line);
+    font-size:12.5px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  @media (max-width:720px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    header.report-head{padding:22px 20px;}
+    header.report-head h1{font-size:21px;}
+  }
+
+  @media print{
+    body{background:#fff; font-size:12px;}
+    .page{max-width:none; padding:0;}
+    header.report-head{box-shadow:none; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .badge,.gate .idx,.kpi,.ask,ul.plan li .n{ -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    section.block{page-break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============ 头部 ============ -->
+  <header class="report-head">
+    <p class="kicker">Weekly Progress Report · 周报</p>
+    <h1>Patient-Journey 临床决策评测集 · 项目进展汇报</h1>
+    <p class="sub">面向患者单次就诊全流程的五类临床决策评测（检查检验 / 诊断 / 治疗 / 转诊 / 离院随访）</p>
+    <div class="meta">
+      <span>汇报日期：<b>2026-08-17（周一）</b></span>
+      <span>数据基线：<b>MIMIC-IV v3.1 / ED 2.2 / Note 2.2</b></span>
+      <span>状态口径：<b>正式（已验收） vs 原型（未审核）</b></span>
+    </div>
+  </header>
+
+  <!-- ============ 结论先行 ============ -->
+  <div class="summary">
+    <h2>结论先行（30 秒版本）</h2>
+    <p>
+      数据层已从 100 例验收样本推进到 <b>1,000 次住院正式全队列</b>，清洗、标准化、无损聚合全部通过验收；
+      五个维度的<b>探索性原型</b>已跑出初步信号（诊断模型准确率 95.8%、治疗/检查持续调优）。
+      但<b>首个正式评测产物尚未形成</b>——当前唯一关键路径是<b>三道人工质量门禁</b>，需要临床人工审校才能解冻。
+    </p>
+    <div class="asks">
+      <span class="ask">诉求① 排档期：100 条归一化试审 + 文本 NER A/B 双标</span>
+      <span class="ask">诉求② 拍板：协议里待决的临床占位参数</span>
+      <span class="ask">诉求③ 口径：原型数字 ≠ 可发布结论</span>
+    </div>
+  </div>
+
+  <!-- ============ 关键数字 ============ -->
+  <div class="kpis">
+    <div class="kpi"><div class="num">1,000 <small>住院</small></div><div class="lab">正式全队列（964 患者）</div></div>
+    <div class="kpi"><div class="num">757,036 <small>事件</small></div><div class="lab">标准化事件（218 拒绝）</div></div>
+    <div class="kpi"><div class="num">1,422,220 <small>事件</small></div><div class="lab">跨批归一化 · 映射冲突 0</div></div>
+    <div class="kpi"><div class="num">37,790 <small>文档</small></div><div class="lab">文本 NER 全量接口（41,902 分块）</div></div>
+    <div class="kpi"><div class="num">3 <small>道门禁</small></div><div class="lab">未关闭的人工质量门禁</div></div>
+  </div>
+
+  <!-- ============ 板块 2：数据层已完成 ============ -->
+  <section class="block">
+    <h2><span class="tag ok">已完成 · 已验收</span> 数据层：可放心引用</h2>
+    <p class="lede">以下均为带证据锚点的正式结果，已通过完整验收并发布 workflow manifest，可直接对外引用。</p>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:180px;">阶段</th>
+            <th style="width:110px;">状态</th>
+            <th>关键证据（可核验）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>单次住院原始归档</b></td>
+            <td><span class="badge b-ok">已完成</span></td>
+            <td>冠状动脉疾病谱 <span class="mono">108,833</span> 住院 / <span class="mono">46,062</span> 患者 / 50.4 GiB；32 张住院内源表 schema、原生父子键、患者分区验证通过。</td>
+          </tr>
+          <tr>
+            <td><b>字典解码与 POE 解析</b></td>
+            <td><span class="badge b-ok">已完成</span></td>
+            <td>可携带解码 + POE timeline；保留源字段、原生键与可逆追溯关系。</td>
+          </tr>
+          <tr>
+            <td><b>1000 例清洗 + 标准化</b></td>
+            <td><span class="badge b-ok">已验收</span></td>
+            <td>728,199 条源行 → <span class="mono">757,036</span> 事件、<span class="mono">218</span> 拒绝；run ID 与 Parquet 哈希可复现，<span class="mono">can_start_text_ner = true</span>。</td>
+          </tr>
+          <tr>
+            <td><b>无损事件聚合</b></td>
+            <td><span class="badge b-ok">已验收</span></td>
+            <td>1,241,918 源记录 / 43,551 自由文本源记录；processed / raw / traceable 三份 Parquet fail-closed 校验通过。</td>
+          </tr>
+          <tr>
+            <td><b>跨批归一化</b></td>
+            <td><span class="badge b-run">试审中</span></td>
+            <td>1,422,220 条归一化事件、<span class="mono">16,860</span> 唯一 mapping key、映射冲突 <span class="mono">0</span>；100 条人工试审进行中。</td>
+          </tr>
+          <tr>
+            <td><b>文本 NER v2 接口</b></td>
+            <td><span class="badge b-ok">接口验收</span></td>
+            <td>37,790 文档 / 41,902 分块；通用 OpenAI-compatible API、确定性 span grounding、分块与断点续跑均已实现。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 板块：各维度原型 ============ -->
+  <section class="block">
+    <h2><span class="tag proto">未审核 · 原型</span> 五维评测原型：方向性信号，非正式结论</h2>
+    <p class="lede">
+      以下数字全部来自 <b>development + validation</b> 调参、<span class="badge b-proto">unreviewed</span> 模型输出，
+      <b>尚未经过 final_test 盲测与临床冻结</b>，不能作为对外可发布结果。
+    </p>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th class="num">题量</th>
+            <th class="num">gold 稳定性<br>(val rank-1)</th>
+            <th class="num">DeepSeek 准确率</th>
+            <th>状态判断</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>临床诊断</b></td>
+            <td class="num">94</td>
+            <td class="num">70.6%</td>
+            <td class="num mono">95.8% (n=24)</td>
+            <td><span class="badge b-ok">最成熟</span> 高共识教科书题，但样本少</td>
+          </tr>
+          <tr>
+            <td><b>治疗 T3</b></td>
+            <td class="num">55</td>
+            <td class="num">68.4%</td>
+            <td class="num mono">73.1%</td>
+            <td><span class="badge b-ok">稳定</span></td>
+          </tr>
+          <tr>
+            <td><b>治疗 T2</b></td>
+            <td class="num">77</td>
+            <td class="num">66.7%</td>
+            <td class="num mono">87.5%</td>
+            <td><span class="badge b-ok">稳定</span></td>
+          </tr>
+          <tr>
+            <td><b>治疗 T1</b></td>
+            <td class="num">90</td>
+            <td class="num">65.2%</td>
+            <td class="num mono">66.7%</td>
+            <td><span class="badge b-proto">有残余语义错误</span></td>
+          </tr>
+          <tr>
+            <td><b>转诊 / 科室</b></td>
+            <td class="num">115</td>
+            <td class="num">68.75%</td>
+            <td class="num mono">60.6%</td>
+            <td><span class="badge b-risk">短板</span></td>
+          </tr>
+          <tr>
+            <td><b>检查检验</b></td>
+            <td class="num">224</td>
+            <td class="num">77.1%</td>
+            <td class="num mono">53.6%</td>
+            <td><span class="badge b-risk">短板</span> lab / clinical_order 子类待补</td>
+          </tr>
+          <tr>
+            <td><b>离院随访 F1</b></td>
+            <td class="num">骨架</td>
+            <td class="num">—</td>
+            <td class="num">—</td>
+            <td><span class="badge b-todo">早期</span> 出院全文 92% 覆盖，随访时间窗信号稀疏（~5%）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 板块 3：卡点与风险 ============ -->
+  <section class="block">
+    <h2><span class="tag risk">卡点 · 风险</span> 三道人工门禁：唯一的关键路径</h2>
+    <p class="lede">这三处都卡在「人」而非代码，需临床人工审校才能解冻，否则正式评测无法启动。</p>
+    <div class="gates">
+      <div class="gate">
+        <div class="idx">1</div>
+        <div>
+          <h3>跨批归一化 100 条人工试审</h3>
+          <div class="st">当前进度：<b>18 / 100</b>，且已写入决定使用占位 reviewer，需以稳定 reviewer 身份重做</div>
+          <p>这是冻结「检查检验候选目录」前的最后一个上游质量门禁。需记录错误类型、歧义与目录粒度问题（如 General Xray 粒度、Blood tests 拆分、Telemetry 归属）。</p>
+        </div>
+      </div>
+      <div class="gate">
+        <div class="idx">2</div>
+        <div>
+          <h3>文本 NER 人工 A/B 双标 + 裁决</h3>
+          <div class="st">当前进度：<b>0 / 完成</b>（A、B 与裁决日志均为空）</div>
+          <p>需完成 A/B 独立标注、第三人裁决与一致性门禁，才能解锁 evaluation；出院小结需按 post_hoc 支路单独建 event-frame 协议。</p>
+        </div>
+      </div>
+      <div class="gate">
+        <div class="idx">3</div>
+        <div>
+          <h3>检查检验任务协议冻结</h3>
+          <div class="st">当前状态：<b>freeze_ready = false</b>（结构校验通过，科学参数未定）</div>
+          <p>待定：患者划分比例、决策时间窗、候选/条件/比较目录版本、缺失与并列策略、统计与 bootstrap 稳定性阈值。补齐后生成 <span class="mono">protocol-lock.json</span>。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="risknote">
+      <h3>⚠ 必须主动讲清的口径风险</h3>
+      <p>
+        仓库里存在<b>两套进展视角</b>：README 的严谨视角（正式评测产物 split / journey / gold / MCQ <b>均尚未形成</b>）
+        与原型探索视角（五维已有初步数字）。两者都不假，但若不加解释，老板可能把「诊断 95.8%」误当成正式结论。
+        所有模型输出均为 <span class="mono">unreviewed_model_output</span>，<b>不能替代人工 gold，也不等于验证过的实验结果</b>。
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 板块 4：下周计划 ============ -->
+  <section class="block">
+    <h2><span class="tag plan">计划 · 诉求</span> 下周计划与需要的支持</h2>
+    <p class="lede">拿到人工审校后，按如下顺序推进；第一个检查检验任务闭环通过后再逐项扩展，不同时铺开五条线。</p>
+    <ul class="plan">
+      <li>
+        <span class="n">1</span>
+        <span class="t"><b>完成跨批归一化 100 条试审</b>（最高优先级）<br><span class="d">需要：约临床/标注同事排档期，稳定 reviewer 身份逐条裁决。</span></span>
+      </li>
+      <li>
+        <span class="n">2</span>
+        <span class="t"><b>冻结检查检验协议</b><br><span class="d">用试审结果定候选目录，补齐划分比例 / 时间窗 / 统计阈值，验证 freeze_ready = true 后生成 protocol-lock.json。</span></span>
+      </li>
+      <li>
+        <span class="n">3</span>
+        <span class="t"><b>少量 development 患者出首条正式链路</b><br><span class="d">patient split → encounter boundary → decision snapshot，输出 manifest、来源哈希与未来信息泄漏审计。</span></span>
+      </li>
+      <li>
+        <span class="n">4</span>
+        <span class="t"><b>文本 NER calibration 并行推进</b><br><span class="d">完成 A/B 双标 + 第三人裁决 + 一致性门禁后才解锁 evaluation；出院小结单独建 post_hoc 支路。</span></span>
+      </li>
+      <li>
+        <span class="n">5</span>
+        <span class="t"><b>首个检查检验任务闭环到 MCQ</b><br><span class="d">候选生成 → 自动门禁 → 临床审核 → 发布前一次性 final_test 盲测复检。</span></span>
+      </li>
+    </ul>
+  </section>
+
+  <footer>
+    <span>数据来源：MIMIC-IV v3.1 / MIMIC-IV-ED 2.2 / MIMIC-IV-Note 2.2（方法学冻结，后续香港 RWD 本地适配与外部验证）</span>
+    <span>本报告由项目仓库进度自动汇总生成</span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phenotype 进度监控</title>
+<style>
+  :root { --bg:#0f1115; --card:#1a1d24; --line:#2a2f3a; --txt:#e6e9ef; --dim:#8b93a3;
+          --acc:#4f8cff; --ok:#3ddc84; --warn:#ffb454; --err:#ff6b6b; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,"Microsoft YaHei",sans-serif;
+         background:var(--bg); color:var(--txt); padding:20px; }
+  h1 { font-size:18px; margin:0 0 4px; }
+  .sub { color:var(--dim); font-size:12px; margin-bottom:18px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; }
+  .card h2 { font-size:14px; margin:0 0 2px; }
+  .badge { display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px;
+           background:var(--line); color:var(--dim); margin-left:6px; vertical-align:2px; }
+  .badge.running { background:#20304a; color:var(--acc); }
+  .badge.done { background:#17382a; color:var(--ok); }
+  .badge.error { background:#3a1f22; color:var(--err); }
+  .bar { height:10px; background:#10131a; border:1px solid var(--line); border-radius:6px;
+         overflow:hidden; margin:12px 0 8px; }
+  .bar > div { height:100%; width:0%; background:linear-gradient(90deg,var(--acc),var(--ok));
+               transition:width .5s ease; }
+  .kv { display:grid; grid-template-columns:repeat(auto-fit,minmax(90px,1fr)); gap:6px; }
+  .kv div { background:#10131a; border:1px solid var(--line); border-radius:6px; padding:6px 8px; }
+  .kv .k { display:block; font-size:10px; color:var(--dim); }
+  .kv .v { font-size:14px; font-weight:600; }
+  .stage { font-size:12px; color:var(--warn); margin-top:8px; min-height:16px; }
+  .empty { color:var(--dim); font-size:12px; padding:10px 0; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dim); margin-right:6px; }
+  .dot.live { background:var(--ok); animation:pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+  footer { margin-top:16px; color:var(--dim); font-size:11px; }
+</style>
+</head>
+<body>
+  <h1>Phenotype 进度监控</h1>
+  <div class="sub">实时轮询 <code>data/phenotype/progress/*.json</code>（每 2 秒） · <span id="clock"></span></div>
+
+  <div class="grid">
+    <div class="card" id="card-mining">
+      <h2>全量 mining <span class="badge" id="badge-mining">waiting</span></h2>
+      <div class="bar"><div id="bar-mining"></div></div>
+      <div class="kv">
+        <div><span class="k">accepted</span><span class="v" id="m-acc">—</span></div>
+        <div><span class="k">rejected</span><span class="v" id="m-rej">—</span></div>
+        <div><span class="k">耗时</span><span class="v" id="m-elapsed">—</span></div>
+        <div><span class="k">进度</span><span class="v" id="m-pct">—</span></div>
+      </div>
+      <div class="stage" id="m-stage"></div>
+    </div>
+
+    <div class="card" id="card-sign">
+      <h2>sign NER pilot (100 篇) <span class="badge" id="badge-sign">waiting</span></h2>
+      <div class="bar"><div id="bar-sign"></div></div>
+      <div class="kv">
+        <div><span class="k">已完成</span><span class="v" id="s-done">—</span></div>
+        <div><span class="k">有体征</span><span class="v" id="s-with">—</span></div>
+        <div><span class="k">耗时</span><span class="v" id="s-elapsed">—</span></div>
+        <div><span class="k">进度</span><span class="v" id="s-pct">—</span></div>
+      </div>
+      <div class="stage" id="s-stage"></div>
+    </div>
+  </div>
+
+  <footer>提示：若本页通过 file:// 打开，fetch 会被浏览器拦截，请用 serve_progress.py 起的 http 服务访问。</footer>
+
+<script>
+const TASKS = {
+  mining: { url: "progress/mining.json", card: "card-mining", badge: "badge-mining",
+            bar: "bar-mining", acc: "m-acc", rej: "m-rej", el: "m-elapsed",
+            pct: "m-pct", stage: "m-stage" },
+  sign_ner: { url: "progress/sign_ner.json", card: "card-sign", badge: "badge-sign",
+              bar: "bar-sign", done: "s-done", withN: "s-with", el: "s-elapsed",
+              pct: "s-pct", stage: "s-stage" },
+};
+
+function fmtSec(s) {
+  if (s == null) return "—";
+  const m = Math.floor(s / 60), r = Math.round(s % 60);
+  return m > 0 ? `${m}m${r}s` : `${r}s`;
+}
+function setBadge(el, status) {
+  const m = {running:["running","运行中"], done:["done","完成"], error:["error","出错"], waiting:["","等待"]}[status] || ["","等待"];
+  el.className = "badge " + (m[0]||"");
+  el.textContent = m[1];
+}
+function paint(id, d) {
+  const t = TASKS[id];
+  if (!d) {
+    setBadge(document.getElementById(t.badge), "waiting");
+    document.getElementById(t.stage).innerHTML = '<span class="dot"></span>等待首个进度快照…';
+    return;
+  }
+  setBadge(document.getElementById(t.badge), d.status || "running");
+  const pct = (d.n_total > 0 ? Math.round(100 * (d.n_done || 0) / d.n_total) : null);
+  document.getElementById(t.bar).style.width = (pct == null ? 0 : pct) + "%";
+  document.getElementById(t.pct).textContent = pct == null ? "—" : pct + "%";
+  document.getElementById(t.el).textContent = fmtSec(d.elapsed_s);
+
+  if (id === "mining") {
+    document.getElementById(t.acc).textContent = d.n_accepted ?? "—";
+    document.getElementById(t.rej).textContent = d.n_rejected ?? "—";
+    document.getElementById(t.stage).textContent = d.stage || "";
+  } else {
+    document.getElementById(t.done).textContent = d.n_done == null ? "—" : d.n_done + " / " + (d.n_total||"—");
+    document.getElementById(t.withN).textContent = d.n_with_signs ?? "—";
+    const recent = (d.recent||[]).slice(-2).map(r => `${r.hadm_id}:${r.n_signs}个体征`).join(" · ");
+    document.getElementById(t.stage).textContent = recent || "";
+  }
+}
+
+async function poll() {
+  const now = new Date().toLocaleTimeString();
+  document.getElementById("clock").textContent = now;
+  for (const id of Object.keys(TASKS)) {
+    try {
+      const res = await fetch(TASKS[id].url + "?t=" + Date.now(), { cache: "no-store" });
+      if (!res.ok) { paint(id, null); continue; }
+      paint(id, await res.json());
+    } catch (e) { paint(id, null); }
+  }
+}
+
+poll();
+setInterval(poll, 2000);
+</script>
+</body>
+</html>

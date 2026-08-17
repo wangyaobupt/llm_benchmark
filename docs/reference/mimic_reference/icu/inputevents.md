@@ -30,6 +30,7 @@
 | `totalamount` | DOUBLE PRECISION | 可空 | 总量 |
 | `totalamountuom` | VARCHAR(50) | 可空 | 总量单位 |
 | `isopenbag` | SMALLINT | 可空 | 是否开放袋 |
+| `continueinnextdept` | SMALLINT | 可空 | 是否在转入下一科室后继续该输入事件 |
 | `statusdescription` | VARCHAR(30) | 可空 | 状态描述 |
 | `originalamount` | DOUBLE PRECISION | 可空 | 原始药量 |
 | `originalrate` | DOUBLE PRECISION | 可空 | 原始速率 |

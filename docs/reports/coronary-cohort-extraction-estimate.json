@@ -1,0 +1,34 @@
+{
+  "scope": {
+    "all": {"subjects": 223452, "admissions": 546028},
+    "coronary_disease_spectrum": {
+      "criteria": "ICD-9 410-414 / ICD-10 I20-I25",
+      "subjects": 46062,
+      "admissions": 108833,
+      "all_admissions_of_selected_subjects": 168473,
+      "diagnosis_rows": 166211,
+      "primary_diagnosis_admissions": 19819,
+      "secondary_diagnosis_admissions": 103481
+    }
+  },
+  "sample_evidence": {
+    "admissions": 10000,
+    "output_gib": 3.166,
+    "elapsed_seconds": 356.4,
+    "mean_kib_per_admission": 331.98,
+    "coronary_admissions": 1938,
+    "coronary_mean_kib_per_admission": 498.50,
+    "coronary_to_overall_size_ratio": 1.502
+  },
+  "forecast": {
+    "all": {"final_jsonl_gib": 172.9, "disk_peak_gib": 351.8, "minutes_low": 60, "minutes_high": 100},
+    "coronary_disease_spectrum": {"final_jsonl_gib": 51.7, "disk_peak_gib": 105.3, "minutes_low": 20, "minutes_high": 40}
+  },
+  "selection": {
+    "path": "G:/Projects/llm_benchmark/data/cohorts/coronary-disease-spectrum-selection.jsonl",
+    "bytes": 14385256,
+    "sha256": "1E4E2502D28D7018C12FDBEFEFD50E7CEEEE3FB5425B87E79C18B70ADE9845DE",
+    "development_admissions": 21577,
+    "final_test_admissions": 87256
+  }
+}

@@ -1,0 +1,749 @@
+{
+  "generated_at": "2026-08-10T09:57:17",
+  "input": "G:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-10000.jsonl",
+  "input_bytes": 3399458012,
+  "records": 10000,
+  "subjects": 8160,
+  "schema": {
+    "invalid_records": 0,
+    "forbidden_chartevents": 0,
+    "unexpected_top_fields": {}
+  },
+  "line_bytes": {
+    "mean": 339945.8012,
+    "p50": 128961.0,
+    "p90": 743801.6000000011,
+    "p95": 1224089.2999999973,
+    "p99": 3461610.6700000013,
+    "max": 23583962
+  },
+  "cad": {
+    "criteria": "ICD-9 410-414 / ICD-10 I20-I25",
+    "admissions": 1938,
+    "subjects": 1611,
+    "mean_line_bytes": 510468.0531475748,
+    "p50_line_bytes": 215822.0,
+    "p95_line_bytes": 1756284.9499999986
+  },
+  "module_coverage": {
+    "mimic_iv_hosp": 1.0,
+    "mimic_iv_note": 0.6873,
+    "mimic_iv_icu": 0.1508,
+    "mimic_iv_ed": 0.3793
+  },
+  "tables": [
+    {
+      "table": "mimic_iv_hosp.patients",
+      "rows": 10000,
+      "nonempty_admissions": 10000,
+      "coverage": 1.0,
+      "rows_per_admission": 1.0
+    },
+    {
+      "table": "mimic_iv_hosp.admissions",
+      "rows": 10000,
+      "nonempty_admissions": 10000,
+      "coverage": 1.0,
+      "rows_per_admission": 1.0
+    },
+    {
+      "table": "mimic_iv_hosp.transfers",
+      "rows": 36712,
+      "nonempty_admissions": 9999,
+      "coverage": 0.9999,
+      "rows_per_admission": 3.6712
+    },
+    {
+      "table": "mimic_iv_hosp.services",
+      "rows": 10843,
+      "nonempty_admissions": 10000,
+      "coverage": 1.0,
+      "rows_per_admission": 1.0843
+    },
+    {
+      "table": "mimic_iv_hosp.labevents",
+      "rows": 1580399,
+      "nonempty_admissions": 8134,
+      "coverage": 0.8134,
+      "rows_per_admission": 158.0399
+    },
+    {
+      "table": "mimic_iv_hosp.microbiologyevents",
+      "rows": 33833,
+      "nonempty_admissions": 3625,
+      "coverage": 0.3625,
+      "rows_per_admission": 3.3833
+    },
+    {
+      "table": "mimic_iv_hosp.poe",
+      "rows": 963535,
+      "nonempty_admissions": 9858,
+      "coverage": 0.9858,
+      "rows_per_admission": 96.3535
+    },
+    {
+      "table": "mimic_iv_hosp.poe_detail",
+      "rows": 157630,
+      "nonempty_admissions": 9794,
+      "coverage": 0.9794,
+      "rows_per_admission": 15.763
+    },
+    {
+      "table": "mimic_iv_hosp.pharmacy",
+      "rows": 326592,
+      "nonempty_admissions": 8403,
+      "coverage": 0.8403,
+      "rows_per_admission": 32.6592
+    },
+    {
+      "table": "mimic_iv_hosp.prescriptions",
+      "rows": 372592,
+      "nonempty_admissions": 8403,
+      "coverage": 0.8403,
+      "rows_per_admission": 37.2592
+    },
+    {
+      "table": "mimic_iv_hosp.emar",
+      "rows": 769462,
+      "nonempty_admissions": 5381,
+      "coverage": 0.5381,
+      "rows_per_admission": 76.9462
+    },
+    {
+      "table": "mimic_iv_hosp.emar_detail",
+      "rows": 1565496,
+      "nonempty_admissions": 5381,
+      "coverage": 0.5381,
+      "rows_per_admission": 156.5496
+    },
+    {
+      "table": "mimic_iv_hosp.diagnoses_icd",
+      "rows": 115525,
+      "nonempty_admissions": 9990,
+      "coverage": 0.999,
+      "rows_per_admission": 11.5525
+    },
+    {
+      "table": "mimic_iv_hosp.procedures_icd",
+      "rows": 15638,
+      "nonempty_admissions": 5170,
+      "coverage": 0.517,
+      "rows_per_admission": 1.5638
+    },
+    {
+      "table": "mimic_iv_hosp.hcpcsevents",
+      "rows": 3447,
+      "nonempty_admissions": 2733,
+      "coverage": 0.2733,
+      "rows_per_admission": 0.3447
+    },
+    {
+      "table": "mimic_iv_hosp.drgcodes",
+      "rows": 13842,
+      "nonempty_admissions": 7166,
+      "coverage": 0.7166,
+      "rows_per_admission": 1.3842
+    },
+    {
+      "table": "mimic_iv_icu.icustays",
+      "rows": 1686,
+      "nonempty_admissions": 1508,
+      "coverage": 0.1508,
+      "rows_per_admission": 0.1686
+    },
+    {
+      "table": "mimic_iv_icu.datetimeevents",
+      "rows": 190122,
+      "nonempty_admissions": 1497,
+      "coverage": 0.1497,
+      "rows_per_admission": 19.0122
+    },
+    {
+      "table": "mimic_iv_icu.ingredientevents",
+      "rows": 268287,
+      "nonempty_admissions": 1349,
+      "coverage": 0.1349,
+      "rows_per_admission": 26.8287
+    },
+    {
+      "table": "mimic_iv_icu.inputevents",
+      "rows": 204568,
+      "nonempty_admissions": 1350,
+      "coverage": 0.135,
+      "rows_per_admission": 20.4568
+    },
+    {
+      "table": "mimic_iv_icu.outputevents",
+      "rows": 99793,
+      "nonempty_admissions": 1469,
+      "coverage": 0.1469,
+      "rows_per_admission": 9.9793
+    },
+    {
+      "table": "mimic_iv_icu.procedureevents",
+      "rows": 14730,
+      "nonempty_admissions": 1348,
+      "coverage": 0.1348,
+      "rows_per_admission": 1.473
+    },
+    {
+      "table": "mimic_iv_ed.edstays",
+      "rows": 3808,
+      "nonempty_admissions": 3793,
+      "coverage": 0.3793,
+      "rows_per_admission": 0.3808
+    },
+    {
+      "table": "mimic_iv_ed.triage",
+      "rows": 3808,
+      "nonempty_admissions": 3793,
+      "coverage": 0.3793,
+      "rows_per_admission": 0.3808
+    },
+    {
+      "table": "mimic_iv_ed.vitalsign",
+      "rows": 19643,
+      "nonempty_admissions": 3709,
+      "coverage": 0.3709,
+      "rows_per_admission": 1.9643
+    },
+    {
+      "table": "mimic_iv_ed.diagnosis",
+      "rows": 7791,
+      "nonempty_admissions": 3781,
+      "coverage": 0.3781,
+      "rows_per_admission": 0.7791
+    },
+    {
+      "table": "mimic_iv_ed.medrecon",
+      "rows": 34737,
+      "nonempty_admissions": 3024,
+      "coverage": 0.3024,
+      "rows_per_admission": 3.4737
+    },
+    {
+      "table": "mimic_iv_ed.pyxis",
+      "rows": 20660,
+      "nonempty_admissions": 3179,
+      "coverage": 0.3179,
+      "rows_per_admission": 2.066
+    },
+    {
+      "table": "mimic_iv_note.discharge",
+      "rows": 6059,
+      "nonempty_admissions": 6059,
+      "coverage": 0.6059,
+      "rows_per_admission": 0.6059
+    },
+    {
+      "table": "mimic_iv_note.discharge_detail",
+      "rows": 3446,
+      "nonempty_admissions": 3446,
+      "coverage": 0.3446,
+      "rows_per_admission": 0.3446
+    },
+    {
+      "table": "mimic_iv_note.radiology",
+      "rows": 21212,
+      "nonempty_admissions": 5689,
+      "coverage": 0.5689,
+      "rows_per_admission": 2.1212
+    },
+    {
+      "table": "mimic_iv_note.radiology_detail",
+      "rows": 56995,
+      "nonempty_admissions": 5688,
+      "coverage": 0.5688,
+      "rows_per_admission": 5.6995
+    }
+  ],
+  "time_quality": [
+    {
+      "field": "mimic_iv_ed.edstays.intime",
+      "present": 3808,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.edstays.outtime",
+      "present": 3808,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.medrecon.charttime",
+      "present": 34737,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.pyxis.charttime",
+      "present": 20660,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_ed.vitalsign.charttime",
+      "present": 19643,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.admittime",
+      "present": 10000,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.deathtime",
+      "present": 222,
+      "missing": 9778,
+      "missing_rate": 0.9778
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.dischtime",
+      "present": 10000,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.edouttime",
+      "present": 7027,
+      "missing": 2973,
+      "missing_rate": 0.2973
+    },
+    {
+      "field": "mimic_iv_hosp.admissions.edregtime",
+      "present": 7027,
+      "missing": 2973,
+      "missing_rate": 0.2973
+    },
+    {
+      "field": "mimic_iv_hosp.emar.charttime",
+      "present": 769462,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.emar.scheduletime",
+      "present": 768896,
+      "missing": 566,
+      "missing_rate": 0.0007355788849871728
+    },
+    {
+      "field": "mimic_iv_hosp.emar.storetime",
+      "present": 769462,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.hcpcsevents.chartdate",
+      "present": 3447,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.labevents.charttime",
+      "present": 1580399,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.labevents.storetime",
+      "present": 1571662,
+      "missing": 8737,
+      "missing_rate": 0.005528350751930367
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.chartdate",
+      "present": 33833,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.charttime",
+      "present": 33833,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.storedate",
+      "present": 33569,
+      "missing": 264,
+      "missing_rate": 0.007803032542192534
+    },
+    {
+      "field": "mimic_iv_hosp.microbiologyevents.storetime",
+      "present": 33489,
+      "missing": 344,
+      "missing_rate": 0.010167587858008453
+    },
+    {
+      "field": "mimic_iv_hosp.patients.dod",
+      "present": 2617,
+      "missing": 7383,
+      "missing_rate": 0.7383
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.entertime",
+      "present": 326592,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.expirationdate",
+      "present": 472,
+      "missing": 326120,
+      "missing_rate": 0.9985547717029198
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.starttime",
+      "present": 326119,
+      "missing": 473,
+      "missing_rate": 0.0014482902214383697
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.stoptime",
+      "present": 324671,
+      "missing": 1921,
+      "missing_rate": 0.0058819566921418775
+    },
+    {
+      "field": "mimic_iv_hosp.pharmacy.verifiedtime",
+      "present": 326483,
+      "missing": 109,
+      "missing_rate": 0.00033374975504605134
+    },
+    {
+      "field": "mimic_iv_hosp.poe.ordertime",
+      "present": 963535,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.prescriptions.starttime",
+      "present": 372119,
+      "missing": 473,
+      "missing_rate": 0.001269485120453472
+    },
+    {
+      "field": "mimic_iv_hosp.prescriptions.stoptime",
+      "present": 371917,
+      "missing": 675,
+      "missing_rate": 0.0018116331000128827
+    },
+    {
+      "field": "mimic_iv_hosp.procedures_icd.chartdate",
+      "present": 15638,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.services.transfertime",
+      "present": 10843,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.transfers.intime",
+      "present": 36712,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_hosp.transfers.outtime",
+      "present": 26713,
+      "missing": 9999,
+      "missing_rate": 0.2723632599694923
+    },
+    {
+      "field": "mimic_iv_icu.datetimeevents.charttime",
+      "present": 190122,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.datetimeevents.storetime",
+      "present": 190122,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.icustays.intime",
+      "present": 1686,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.icustays.outtime",
+      "present": 1686,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.endtime",
+      "present": 268287,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.starttime",
+      "present": 268287,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.ingredientevents.storetime",
+      "present": 268287,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.endtime",
+      "present": 204568,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.starttime",
+      "present": 204568,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.inputevents.storetime",
+      "present": 204568,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.outputevents.charttime",
+      "present": 99793,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.outputevents.storetime",
+      "present": 99793,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.endtime",
+      "present": 14730,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.starttime",
+      "present": 14730,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_icu.procedureevents.storetime",
+      "present": 14730,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.discharge.charttime",
+      "present": 6059,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.discharge.storetime",
+      "present": 6059,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.radiology.charttime",
+      "present": 21212,
+      "missing": 0,
+      "missing_rate": 0.0
+    },
+    {
+      "field": "mimic_iv_note.radiology.storetime",
+      "present": 21212,
+      "missing": 0,
+      "missing_rate": 0.0
+    }
+  ],
+  "orphan_child_rows": {
+    "poe_detail": 0,
+    "emar_detail": 0,
+    "ed.triage": 0,
+    "ed.vitalsign": 0,
+    "ed.diagnosis": 0,
+    "ed.medrecon": 0,
+    "ed.pyxis": 0,
+    "discharge_detail": 0,
+    "radiology_detail": 0
+  },
+  "largest_admissions": [
+    {
+      "bytes": 23583962,
+      "subject_id": "17299293",
+      "hadm_id": "21067433"
+    },
+    {
+      "bytes": 23310864,
+      "subject_id": "17536222",
+      "hadm_id": "26728411"
+    },
+    {
+      "bytes": 15163510,
+      "subject_id": "18102151",
+      "hadm_id": "28712213"
+    },
+    {
+      "bytes": 12261500,
+      "subject_id": "11830663",
+      "hadm_id": "26201467"
+    },
+    {
+      "bytes": 11969724,
+      "subject_id": "16304286",
+      "hadm_id": "23490839"
+    },
+    {
+      "bytes": 11783819,
+      "subject_id": "10850048",
+      "hadm_id": "22784596"
+    },
+    {
+      "bytes": 11517690,
+      "subject_id": "11491355",
+      "hadm_id": "25397562"
+    },
+    {
+      "bytes": 11243326,
+      "subject_id": "12457358",
+      "hadm_id": "29246116"
+    },
+    {
+      "bytes": 11074193,
+      "subject_id": "14836177",
+      "hadm_id": "28102452"
+    },
+    {
+      "bytes": 10764795,
+      "subject_id": "16294509",
+      "hadm_id": "29057858"
+    },
+    {
+      "bytes": 10719755,
+      "subject_id": "17629414",
+      "hadm_id": "27617072"
+    },
+    {
+      "bytes": 10407307,
+      "subject_id": "14610595",
+      "hadm_id": "21381296"
+    },
+    {
+      "bytes": 9943087,
+      "subject_id": "10138761",
+      "hadm_id": "27536140"
+    },
+    {
+      "bytes": 9325167,
+      "subject_id": "14634306",
+      "hadm_id": "24969636"
+    },
+    {
+      "bytes": 9170132,
+      "subject_id": "16897045",
+      "hadm_id": "24708605"
+    },
+    {
+      "bytes": 9057072,
+      "subject_id": "16130199",
+      "hadm_id": "26785202"
+    },
+    {
+      "bytes": 9049986,
+      "subject_id": "10347675",
+      "hadm_id": "26643356"
+    },
+    {
+      "bytes": 8199465,
+      "subject_id": "19059849",
+      "hadm_id": "22349879"
+    },
+    {
+      "bytes": 8122798,
+      "subject_id": "13270755",
+      "hadm_id": "20412909"
+    },
+    {
+      "bytes": 8122548,
+      "subject_id": "11411781",
+      "hadm_id": "25420493"
+    }
+  ],
+  "shards": [
+    {
+      "shard_id": 0,
+      "records": 1000,
+      "bytes": 328370507,
+      "sha256": "CA340D12C33D5ABE78E0679315029E4CFF3D77AFCF9E8CB7951315D1EB7ED2A9"
+    },
+    {
+      "shard_id": 1,
+      "records": 1000,
+      "bytes": 344293468,
+      "sha256": "28224DA826ECC60249E66503657AD4134BADF7897E70F731FB9527A60647D3E6"
+    },
+    {
+      "shard_id": 2,
+      "records": 1000,
+      "bytes": 398958781,
+      "sha256": "27B3B3D023CA923CA4F8884401A9D8C66C891A9CA93D49336E4C42382402F589"
+    },
+    {
+      "shard_id": 3,
+      "records": 1000,
+      "bytes": 316087783,
+      "sha256": "C6A38064AE389CD73B957F578BD0686EBFA13AA3A199957F47D6CDC234FAF304"
+    },
+    {
+      "shard_id": 4,
+      "records": 1000,
+      "bytes": 321885160,
+      "sha256": "8E9D088077A9F5B826EC170603C57C939476D0D1F097D3A27F53650E08DC01B1"
+    },
+    {
+      "shard_id": 5,
+      "records": 1000,
+      "bytes": 340501034,
+      "sha256": "F9AC21D9F72746A757084BEC43BBAAA7262708F8F464AED47B73F5D501D547A9"
+    },
+    {
+      "shard_id": 6,
+      "records": 1000,
+      "bytes": 343703378,
+      "sha256": "576A767F8572143428DD3A635E6A07FF815814DF1A05B55947BD84C438F1B264"
+    },
+    {
+      "shard_id": 7,
+      "records": 1000,
+      "bytes": 316613806,
+      "sha256": "0B4BFAF968FFC201F6187A18219C64C2C650AFF5250518FD055781DE8AEB3316"
+    },
+    {
+      "shard_id": 8,
+      "records": 1000,
+      "bytes": 347257965,
+      "sha256": "A73536BB72412BADFC7BD46D03237424B74782BB879EDC231C5C5A2D7EF1A600"
+    },
+    {
+      "shard_id": 9,
+      "records": 1000,
+      "bytes": 341786130,
+      "sha256": "26F388FE4E6B0CBDBC768FA1DB018C72A5F68E2520E42FBBCE5B2A08CFD33DCC"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "schema": {
+    "name": "mimic-poe-timeline-quality-report",
+    "version": "2.0.0"
+  },
+  "input": "D:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-coronary-sample-100.jsonl",
+  "admissions": 100,
+  "events": 12773,
+  "action_counts": {
+    "create": 10138,
+    "change": 1388,
+    "discontinue": 1246,
+    "uninterpreted": 1
+  },
+  "category_counts": {
+    "Medications": 5590,
+    "Lab": 2277,
+    "General Care": 1995,
+    "ADT orders": 663,
+    "IV therapy": 587,
+    "Nutrition": 462,
+    "Radiology": 415,
+    "Consults": 215,
+    "Respiratory": 174,
+    "Blood Bank": 152,
+    "Cardiology": 142,
+    "Critical Care": 37,
+    "TPN": 31,
+    "Hemodialysis": 23,
+    "Neurology": 10
+  },
+  "content_specificity_counts": {
+    "entity_specific": 4773,
+    "subtype_only": 3629,
+    "category_only": 3248,
+    "attribute_enriched": 1123
+  },
+  "quality_flag_counts": {
+    "category_only_no_specific_order_content": 3248,
+    "change_without_observable_delta": 876,
+    "ambiguous_medication_pairing": 76,
+    "nonreciprocal_predecessor_link": 10,
+    "unresolved_predecessor": 6,
+    "predecessor_category_mismatch": 2,
+    "successor_category_mismatch": 2,
+    "official_transaction_semantics_unresolved": 1
+  },
+  "detail_field_counts": {
+    "Route": 431,
+    "Admit category": 345,
+    "Admit to": 250,
+    "Tubes & Drains type": 158,
+    "Discharge Planning": 139,
+    "Discharge When": 131,
+    "Code status": 74,
+    "Transfer to": 55,
+    "Level of Urgency": 39,
+    "Consult Status": 26,
+    "Consult Status Time": 26,
+    "Indication": 14
+  },
+  "detail_documentation_status_counts": {
+    "documented_v2_2": 1257,
+    "observed_extension": 431
+  },
+  "unmapped_detail_field_counts": {},
+  "events_with_poe_detail": 1293,
+  "events_with_linked_prescriptions": 4050,
+  "events_with_linked_pharmacy": 4050,
+  "events_with_predecessor": 2634,
+  "change_events_with_observable_delta": 512,
+  "rates": {
+    "poe_detail_coverage": 0.10122915524935411,
+    "linked_prescription_coverage": 0.31707508024739683,
+    "linked_pharmacy_enrichment_coverage": 0.31707508024739683,
+    "specific_content_coverage": 0.7457136146559149,
+    "resolved_predecessor_rate": 0.9977220956719818,
+    "observable_delta_rate_among_changes": 0.3688760806916426,
+    "detail_field_mapping_coverage": 1.0
+  }
+}
