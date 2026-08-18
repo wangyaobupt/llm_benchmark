@@ -1,0 +1,31 @@
+{
+  "project_mode": "exploratory-only",
+  "official_final_test_enabled": false,
+  "official_gold_increment_enabled": false,
+  "rehearsal_mode_enabled": true,
+  "formal_source": "G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization/normalized_events.parquet",
+  "formal_source_subject_count": 20136,
+  "legacy_split_subject_count": 20136,
+  "previous_exposure_none": 0,
+  "blocking_reasons": [
+    "SPLIT_NO_UNEXPOSED_FORMAL_SUBJECTS",
+    "FORMAL_EXPOSURE_POPULATION_UNRESOLVED",
+    "NEW_VALIDATION_AND_FINAL_TEST_SUBJECTS_UNRESOLVED"
+  ],
+  "allowed_outputs": [
+    "engineering_contract_tests",
+    "synthetic_final_test_rehearsal",
+    "exploratory_unreviewed_reports"
+  ],
+  "forbidden_outputs": [
+    "official_final_test_metrics",
+    "clinical_best_decision_gold",
+    "approved_formal_question_count"
+  ],
+  "reactivation_requirements": [
+    "new_subjects_outside_legacy_split",
+    "subject_level_mutually_exclusive_split",
+    "frozen_protocol_lock",
+    "proven_previous_exposure_none_for_final_test"
+  ]
+}
