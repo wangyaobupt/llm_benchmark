@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-18T17:10:19+00:00",
+  "updated_at": "2026-08-18T17:11:30+00:00",
   "current_stage": "AUTOMATION",
   "overall_status": "failed",
   "stages": {
@@ -60,23 +60,23 @@
     },
     "E1": {
       "status": "completed",
-      "message": "E1 全量审计完成：27336811 行、20136 主体；order/result 候选覆盖与 unresolved/post_hoc/time 门禁已固化，正式 final-test 关闭",
-      "updated_at": "2026-08-18T16:58:05+00:00"
+      "message": "探索性 E1 完成；official final-test=false",
+      "updated_at": "2026-08-18T17:11:19+00:00"
     },
     "E2": {
       "status": "completed",
-      "message": "E2 已拆分 order/category、normalized result、order+result confirmation 三类 Gold 候选；订单映射/生命周期门禁与结果语义已固化，正式 gold 关闭",
-      "updated_at": "2026-08-18T17:00:39+00:00"
+      "message": "探索性 E2 完成；official final-test=false",
+      "updated_at": "2026-08-18T17:11:19+00:00"
     },
     "E3": {
       "status": "completed",
-      "message": "E3 24h encounter-level 覆盖/唯一性审计完成：order 99.25%但 Inactive/多答案，result 88.09%但唯一答案 1.24%；无 availability 泄漏，imaging 唯一率为退化单概念",
-      "updated_at": "2026-08-18T17:04:30+00:00"
+      "message": "探索性 E3 完成；official final-test=false",
+      "updated_at": "2026-08-18T17:11:20+00:00"
     },
     "E4": {
       "status": "completed",
-      "message": "E4 fail-closed 方法可评估性审计完成：当前无高覆盖、非退化、高唯一性 EHR Gold；frequency/Lift/TF-IDF/BM25 仅允许候选生成，不报告 Recall/MRR/NDCG",
-      "updated_at": "2026-08-18T17:06:05+00:00"
+      "message": "探索性 E4 完成；official final-test=false",
+      "updated_at": "2026-08-18T17:11:20+00:00"
     },
     "E5": {
       "status": "completed",
@@ -85,16 +85,56 @@
     },
     "HK_RWD": {
       "status": "pending",
-      "message": "未发现香港 RWD 数据路径；等待新数据后按 E5 Gold 迁移规范重新执行 E1–E4",
-      "updated_at": "2026-08-18T17:08:22+00:00"
+      "message": "样本 smoke 已验证 E1-E4 工作流；正式香港 RWD 尚未发现，等待新数据后按迁移规范运行",
+      "updated_at": "2026-08-18T17:11:30+00:00"
     },
     "AUTOMATION": {
       "status": "completed",
-      "message": "已提供 E1-E4 一键探索性工作流：新 RWD 到位后自动更新 HTML 并生成 run manifest，不执行 official final-test、不做 Git 操作",
-      "updated_at": "2026-08-18T17:10:19+00:00"
+      "message": "E1-E4 一键探索性工作流已通过样本端到端 smoke；official final-test=false",
+      "updated_at": "2026-08-18T17:11:30+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T17:11:30+00:00",
+      "message": "AUTOMATION: E1-E4 一键探索性工作流已通过样本端到端 smoke；official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:30+00:00",
+      "message": "HK_RWD: 样本 smoke 已验证 E1-E4 工作流；正式香港 RWD 尚未发现，等待新数据后按迁移规范运行"
+    },
+    {
+      "at": "2026-08-18T17:11:20+00:00",
+      "message": "E4: 探索性 E4 完成；official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:20+00:00",
+      "message": "E4: 探索性工作流运行中：E4，official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:20+00:00",
+      "message": "E3: 探索性 E3 完成；official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:19+00:00",
+      "message": "E3: 探索性工作流运行中：E3，official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:19+00:00",
+      "message": "E2: 探索性 E2 完成；official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:19+00:00",
+      "message": "E2: 探索性工作流运行中：E2，official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:19+00:00",
+      "message": "E1: 探索性 E1 完成；official final-test=false"
+    },
+    {
+      "at": "2026-08-18T17:11:18+00:00",
+      "message": "E1: 探索性工作流运行中：E1，official final-test=false"
+    },
     {
       "at": "2026-08-18T17:10:19+00:00",
       "message": "AUTOMATION: 已提供 E1-E4 一键探索性工作流：新 RWD 到位后自动更新 HTML 并生成 run manifest，不执行 official final-test、不做 Git 操作"
@@ -174,10 +214,6 @@
     {
       "at": "2026-08-18T16:21:57+00:00",
       "message": "W1: W1 按指定规范化事件源审计：20136/20136 主体已在旧 split，previous_exposure=none 为 0；禁止冻结新 validation/final-test，未生成 protocol lock"
-    },
-    {
-      "at": "2026-08-18T16:13:47+00:00",
-      "message": "W0: 旧 V2/phenotype 产物已失效，治理门禁与审计 manifest 已建立；W0 验收 51/51 通过"
     }
   ],
   "project_mode": "exploratory-only",
