@@ -68,8 +68,10 @@ def write_state(state: dict[str, Any]) -> None:
     tmp = STATE.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     os.replace(tmp, STATE)
-    if not HTML.exists():
-        HTML.write_text(HTML_TEMPLATE, encoding="utf-8")
+    # Keep the checked-in dashboard synchronized with the template. The
+    # template uses doubled braces only to remain readable inside this Python
+    # source; the browser must receive ordinary CSS/JavaScript braces.
+    HTML.write_text(HTML_TEMPLATE.replace("{{", "{").replace("}}", "}"), encoding="utf-8")
 
 
 def load_state() -> dict[str, Any]:

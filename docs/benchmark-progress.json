@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T17:11:30+00:00",
-  "current_stage": "AUTOMATION",
+  "updated_at": "2026-08-18T17:12:32+00:00",
+  "current_stage": "HK_RWD",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -86,7 +86,7 @@
     "HK_RWD": {
       "status": "pending",
       "message": "样本 smoke 已验证 E1-E4 工作流；正式香港 RWD 尚未发现，等待新数据后按迁移规范运行",
-      "updated_at": "2026-08-18T17:11:30+00:00"
+      "updated_at": "2026-08-18T17:12:32+00:00"
     },
     "AUTOMATION": {
       "status": "completed",
@@ -95,6 +95,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T17:12:32+00:00",
+      "message": "HK_RWD: 样本 smoke 已验证 E1-E4 工作流；正式香港 RWD 尚未发现，等待新数据后按迁移规范运行"
+    },
     {
       "at": "2026-08-18T17:11:30+00:00",
       "message": "AUTOMATION: E1-E4 一键探索性工作流已通过样本端到端 smoke；official final-test=false"
@@ -210,10 +214,6 @@
     {
       "at": "2026-08-18T16:26:40+00:00",
       "message": "W2: W2 encounter_clock 与 source_grouping 合同实现，离线 31 项测试通过；正式产物仍受 W1 lock 阻断"
-    },
-    {
-      "at": "2026-08-18T16:21:57+00:00",
-      "message": "W1: W1 按指定规范化事件源审计：20136/20136 主体已在旧 split，previous_exposure=none 为 0；禁止冻结新 validation/final-test，未生成 protocol lock"
     }
   ],
   "project_mode": "exploratory-only",
