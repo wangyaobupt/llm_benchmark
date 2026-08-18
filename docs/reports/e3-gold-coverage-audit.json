@@ -1,0 +1,79 @@
+{
+  "audit_schema": "exploratory-gold-coverage-audit/1.0.0",
+  "boundary_available_time_missing": true,
+  "boundary_encounters": 39036,
+  "boundary_subjects": 20136,
+  "definitions": {
+    "mapped_imaging_order": {
+      "boundary_encounters": 39036,
+      "coverage_rate": 0.6801157905523106,
+      "discontinued_rows": 0,
+      "eligible_encounters": 26549,
+      "eligible_rows": 39784,
+      "inactive_rows": 39771,
+      "missing_candidate_key_rows": 0,
+      "multi_candidate_encounters": 0,
+      "partially_resolved_rows": 0,
+      "time_leakage_rows": 0,
+      "unique_candidate_encounters": 26549,
+      "unique_candidate_rate_among_eligible": 1.0,
+      "unknown_available_time_rows": 0,
+      "zero_candidate_encounters": 12487
+    },
+    "normalized_result": {
+      "boundary_encounters": 39036,
+      "coverage_rate": 0.8809048058202684,
+      "discontinued_rows": 0,
+      "eligible_encounters": 34387,
+      "eligible_rows": 1754301,
+      "inactive_rows": 0,
+      "missing_candidate_key_rows": 0,
+      "multi_candidate_encounters": 33960,
+      "partially_resolved_rows": 0,
+      "time_leakage_rows": 0,
+      "unique_candidate_encounters": 427,
+      "unique_candidate_rate_among_eligible": 0.012417483351266467,
+      "unknown_available_time_rows": 0,
+      "zero_candidate_encounters": 4649
+    },
+    "order_create_active_only": {
+      "boundary_encounters": 39036,
+      "coverage_rate": 0.0011783994261707143,
+      "discontinued_rows": 0,
+      "eligible_encounters": 46,
+      "eligible_rows": 867,
+      "inactive_rows": 0,
+      "missing_candidate_key_rows": 229,
+      "multi_candidate_encounters": 45,
+      "partially_resolved_rows": 0,
+      "time_leakage_rows": 0,
+      "unique_candidate_encounters": 1,
+      "unique_candidate_rate_among_eligible": 0.021739130434782608,
+      "unknown_available_time_rows": 0,
+      "zero_candidate_encounters": 38990
+    },
+    "order_create_any_status": {
+      "boundary_encounters": 39036,
+      "coverage_rate": 0.992519725381699,
+      "discontinued_rows": 0,
+      "eligible_encounters": 38744,
+      "eligible_rows": 1916855,
+      "inactive_rows": 1915988,
+      "missing_candidate_key_rows": 746409,
+      "multi_candidate_encounters": 38493,
+      "partially_resolved_rows": 0,
+      "time_leakage_rows": 0,
+      "unique_candidate_encounters": 169,
+      "unique_candidate_rate_among_eligible": 0.004361965723724964,
+      "unknown_available_time_rows": 0,
+      "zero_candidate_encounters": 292
+    }
+  },
+  "formal_final_test": {
+    "enabled": false,
+    "reason": "exploratory_only_source_audit"
+  },
+  "index_definition": "earliest patient_transferred status ED/admit event_time per encounter",
+  "source_root": "G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization",
+  "target_window_hours": 24
+}
