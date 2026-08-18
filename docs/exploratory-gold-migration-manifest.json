@@ -1,0 +1,61 @@
+{
+  "manifest_schema": "exploratory-gold-migration/1.0.0",
+  "current_source_decision": "NO_CURRENT_EHR_GOLD_MEETS_GATE",
+  "current_source_is_exploratory_only": true,
+  "primary_behavioral_gold": {
+    "id": "observed_order_selection",
+    "claim": "same-class investigation order actually recorded after index time",
+    "required_fields": [
+      "subject_id",
+      "encounter_or_journey_id",
+      "order_id",
+      "order_occurrence_time",
+      "order_available_time",
+      "order_lifecycle_status",
+      "normalized_investigation_id",
+      "comparison_class"
+    ],
+    "mandatory_gates": [
+      "source_event",
+      "order_time_resolved",
+      "availability_time_resolved",
+      "valid_order_lifecycle",
+      "frozen_concept_mapping",
+      "target_after_index",
+      "no_target_evidence_overlap",
+      "zero_or_multi_candidate_refusal"
+    ]
+  },
+  "secondary_sensitivity_gold": {
+    "id": "order_with_result_confirmation",
+    "claim": "an eligible order with a later linked result in the target window",
+    "additional_required_fields": [
+      "result_id",
+      "result_occurrence_time",
+      "result_available_time",
+      "order_result_grouping_key"
+    ],
+    "restriction": "must not be renamed to observed order gold"
+  },
+  "separate_normative_gold": {
+    "id": "clinical_best_decision",
+    "source": "guideline_and_expert_adjudication",
+    "restriction": "never inferred from EHR frequency or observed behavior"
+  },
+  "migration_procedure": [
+    "run source schema and coverage audit",
+    "freeze source-specific terminology mapping and lifecycle semantics",
+    "build encounter clock and decision documents",
+    "run target/evidence overlap and zero/multi-candidate audit",
+    "pre-register coverage and uniqueness gates before looking at final-test",
+    "run exploratory method comparison only after a valid behavioral gold exists",
+    "freeze protocol and subject split before official final-test"
+  ],
+  "forbidden_migration": [
+    "copy current MIMIC candidate labels into Hong Kong RWD",
+    "copy current sample-level gold",
+    "treat result rows as order rows",
+    "use current source's Inactive semantics without re-audit",
+    "use final-test to repair mapping or choose thresholds"
+  ]
+}

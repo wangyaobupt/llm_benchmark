@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T17:06:05+00:00",
-  "current_stage": "E4",
+  "updated_at": "2026-08-18T17:07:11+00:00",
+  "current_stage": "E5",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -77,9 +77,18 @@
       "status": "completed",
       "message": "E4 fail-closed 方法可评估性审计完成：当前无高覆盖、非退化、高唯一性 EHR Gold；frequency/Lift/TF-IDF/BM25 仅允许候选生成，不报告 Recall/MRR/NDCG",
       "updated_at": "2026-08-18T17:06:05+00:00"
+    },
+    "E5": {
+      "status": "completed",
+      "message": "E5 已固化 Gold 迁移规范：香港 RWD primary=observed_order_selection，secondary=order_with_result_confirmation，clinical_best_decision 独立专家审核；当前 MIMIC 仅 exploratory-only",
+      "updated_at": "2026-08-18T17:07:11+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T17:07:11+00:00",
+      "message": "E5: E5 已固化 Gold 迁移规范：香港 RWD primary=observed_order_selection，secondary=order_with_result_confirmation，clinical_best_decision 独立专家审核；当前 MIMIC 仅 exploratory-only"
+    },
     {
       "at": "2026-08-18T17:06:05+00:00",
       "message": "E4: E4 fail-closed 方法可评估性审计完成：当前无高覆盖、非退化、高唯一性 EHR Gold；frequency/Lift/TF-IDF/BM25 仅允许候选生成，不报告 Recall/MRR/NDCG"
