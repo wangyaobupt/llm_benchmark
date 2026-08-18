@@ -1,0 +1,2483 @@
+{
+  "audit_schema": "exploratory-gold-definition-audit/1.0.0",
+  "candidate_definitions": {
+    "normalized_result_observation": {
+      "answer_granularity": "normalized result/test concept",
+      "include": "event_kind in laboratory_resulted/microbiology_resulted/imaging_reported; mapped; resolved time; source_event",
+      "known_blockers": [
+        "result is not an order and cannot be used as a behavioral order gold",
+        "result availability must not enter pre-index evidence"
+      ]
+    },
+    "observed_order_category": {
+      "answer_granularity": "category only unless source label is clinically reviewed",
+      "include": "event_kind in clinical_ordered/laboratory_ordered/imaging_ordered; source_event; resolved time",
+      "known_blockers": [
+        "clinical_ordered and laboratory_ordered have no normalized concept in E1",
+        "lifecycle cancellation must be excluded"
+      ]
+    },
+    "order_with_result_confirmation": {
+      "answer_granularity": "requires stable order-result grouping key not yet proven by this audit",
+      "include": "an eligible order linked to a later same-group result within target window",
+      "known_blockers": [
+        "must not invent specimen_received_time",
+        "requires source grouping and target/evidence overlap audit"
+      ]
+    }
+  },
+  "dimensions": {
+    "clinical_ordered.entity_type": [
+      {
+        "rows": 2297818,
+        "value": "medication_order_category"
+      },
+      {
+        "rows": 1717818,
+        "value": "clinical_order"
+      }
+    ],
+    "clinical_ordered.evidence_phase": [
+      {
+        "rows": 4015636,
+        "value": "source_event"
+      }
+    ],
+    "clinical_ordered.lifecycle_action": [
+      {
+        "rows": 3055877,
+        "value": "create"
+      },
+      {
+        "rows": 514296,
+        "value": "change"
+      },
+      {
+        "rows": 444756,
+        "value": "discontinue"
+      },
+      {
+        "rows": 707,
+        "value": "uninterpreted"
+      }
+    ],
+    "clinical_ordered.normalization_status": [
+      {
+        "rows": 4015636,
+        "value": "unresolved"
+      }
+    ],
+    "clinical_ordered.source_table": [
+      {
+        "rows": 4015636,
+        "value": "hosp.poe_timeline"
+      }
+    ],
+    "clinical_ordered.status": [
+      {
+        "rows": 4013005,
+        "value": "Inactive"
+      },
+      {
+        "rows": 2631,
+        "value": "Active"
+      }
+    ],
+    "clinical_ordered.time_resolution_status": [
+      {
+        "rows": 4015636,
+        "value": "resolved"
+      }
+    ],
+    "clinical_ordered.unit_normalization_status": [
+      {
+        "rows": 4015636,
+        "value": "not_applicable"
+      }
+    ],
+    "imaging_ordered.entity_type": [
+      {
+        "rows": 179223,
+        "value": "imaging_study"
+      }
+    ],
+    "imaging_ordered.evidence_phase": [
+      {
+        "rows": 179223,
+        "value": "source_event"
+      }
+    ],
+    "imaging_ordered.lifecycle_action": [
+      {
+        "rows": 160028,
+        "value": "create"
+      },
+      {
+        "rows": 12902,
+        "value": "discontinue"
+      },
+      {
+        "rows": 6293,
+        "value": "change"
+      }
+    ],
+    "imaging_ordered.normalization_status": [
+      {
+        "rows": 94628,
+        "value": "mapped"
+      },
+      {
+        "rows": 84595,
+        "value": "unresolved"
+      }
+    ],
+    "imaging_ordered.source_table": [
+      {
+        "rows": 179223,
+        "value": "hosp.poe_timeline"
+      }
+    ],
+    "imaging_ordered.status": [
+      {
+        "rows": 178790,
+        "value": "Inactive"
+      },
+      {
+        "rows": 433,
+        "value": "Active"
+      }
+    ],
+    "imaging_ordered.time_resolution_status": [
+      {
+        "rows": 179223,
+        "value": "resolved"
+      }
+    ],
+    "imaging_ordered.unit_normalization_status": [
+      {
+        "rows": 179223,
+        "value": "not_applicable"
+      }
+    ],
+    "imaging_reported.entity_type": [
+      {
+        "rows": 138399,
+        "value": "imaging_report"
+      }
+    ],
+    "imaging_reported.evidence_phase": [
+      {
+        "rows": 138399,
+        "value": "source_event"
+      }
+    ],
+    "imaging_reported.lifecycle_action": [
+      {
+        "rows": 138399,
+        "value": "<NULL>"
+      }
+    ],
+    "imaging_reported.normalization_status": [
+      {
+        "rows": 138399,
+        "value": "unresolved"
+      }
+    ],
+    "imaging_reported.source_table": [
+      {
+        "rows": 138399,
+        "value": "note.radiology"
+      }
+    ],
+    "imaging_reported.status": [
+      {
+        "rows": 138399,
+        "value": "<NULL>"
+      }
+    ],
+    "imaging_reported.time_resolution_status": [
+      {
+        "rows": 138399,
+        "value": "resolved"
+      }
+    ],
+    "imaging_reported.unit_normalization_status": [
+      {
+        "rows": 138399,
+        "value": "not_applicable"
+      }
+    ],
+    "laboratory_ordered.entity_type": [
+      {
+        "rows": 969587,
+        "value": "laboratory_test"
+      }
+    ],
+    "laboratory_ordered.evidence_phase": [
+      {
+        "rows": 969587,
+        "value": "source_event"
+      }
+    ],
+    "laboratory_ordered.lifecycle_action": [
+      {
+        "rows": 862091,
+        "value": "create"
+      },
+      {
+        "rows": 81701,
+        "value": "change"
+      },
+      {
+        "rows": 25795,
+        "value": "discontinue"
+      }
+    ],
+    "laboratory_ordered.normalization_status": [
+      {
+        "rows": 969587,
+        "value": "unresolved"
+      }
+    ],
+    "laboratory_ordered.source_table": [
+      {
+        "rows": 969587,
+        "value": "hosp.poe_timeline"
+      }
+    ],
+    "laboratory_ordered.status": [
+      {
+        "rows": 966600,
+        "value": "Inactive"
+      },
+      {
+        "rows": 2987,
+        "value": "Active"
+      }
+    ],
+    "laboratory_ordered.time_resolution_status": [
+      {
+        "rows": 969587,
+        "value": "resolved"
+      }
+    ],
+    "laboratory_ordered.unit_normalization_status": [
+      {
+        "rows": 969587,
+        "value": "not_applicable"
+      }
+    ],
+    "laboratory_resulted.entity_type": [
+      {
+        "rows": 8237891,
+        "value": "laboratory_test"
+      }
+    ],
+    "laboratory_resulted.evidence_phase": [
+      {
+        "rows": 8237891,
+        "value": "source_event"
+      }
+    ],
+    "laboratory_resulted.lifecycle_action": [
+      {
+        "rows": 8237891,
+        "value": "<NULL>"
+      }
+    ],
+    "laboratory_resulted.normalization_status": [
+      {
+        "rows": 8237891,
+        "value": "mapped"
+      }
+    ],
+    "laboratory_resulted.source_table": [
+      {
+        "rows": 8237891,
+        "value": "hosp.labevents"
+      }
+    ],
+    "laboratory_resulted.status": [
+      {
+        "rows": 8237891,
+        "value": "<NULL>"
+      }
+    ],
+    "laboratory_resulted.time_resolution_status": [
+      {
+        "rows": 8193986,
+        "value": "resolved"
+      },
+      {
+        "rows": 43905,
+        "value": "partially_resolved"
+      }
+    ],
+    "laboratory_resulted.unit_normalization_status": [
+      {
+        "rows": 7106610,
+        "value": "mapped"
+      },
+      {
+        "rows": 1129642,
+        "value": "not_applicable"
+      },
+      {
+        "rows": 1639,
+        "value": "unresolved"
+      }
+    ],
+    "microbiology_resulted.entity_type": [
+      {
+        "rows": 153622,
+        "value": "microbiology_test"
+      }
+    ],
+    "microbiology_resulted.evidence_phase": [
+      {
+        "rows": 153622,
+        "value": "source_event"
+      }
+    ],
+    "microbiology_resulted.lifecycle_action": [
+      {
+        "rows": 153622,
+        "value": "<NULL>"
+      }
+    ],
+    "microbiology_resulted.normalization_status": [
+      {
+        "rows": 153622,
+        "value": "mapped"
+      }
+    ],
+    "microbiology_resulted.source_table": [
+      {
+        "rows": 153622,
+        "value": "hosp.microbiologyevents"
+      }
+    ],
+    "microbiology_resulted.status": [
+      {
+        "rows": 153622,
+        "value": "<NULL>"
+      }
+    ],
+    "microbiology_resulted.time_resolution_status": [
+      {
+        "rows": 152446,
+        "value": "resolved"
+      },
+      {
+        "rows": 1176,
+        "value": "partially_resolved"
+      }
+    ],
+    "microbiology_resulted.unit_normalization_status": [
+      {
+        "rows": 153622,
+        "value": "not_applicable"
+      }
+    ]
+  },
+  "formal_final_test": {
+    "enabled": false,
+    "reason": "exploratory_only_source_audit"
+  },
+  "source_root": "G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization",
+  "source_row_count": 27336811,
+  "target_kind_counts": {
+    "clinical_ordered": 4015636,
+    "imaging_ordered": 179223,
+    "imaging_reported": 138399,
+    "laboratory_ordered": 969587,
+    "laboratory_resulted": 8237891,
+    "microbiology_resulted": 153622
+  },
+  "top_concepts": {
+    "imaging_ordered": [
+      {
+        "rows": 94628,
+        "value": "investigation:general_xray"
+      }
+    ],
+    "laboratory_resulted": [
+      {
+        "rows": 274789,
+        "value": "lab:50971"
+      },
+      {
+        "rows": 273597,
+        "value": "lab:50983"
+      },
+      {
+        "rows": 272008,
+        "value": "lab:50902"
+      },
+      {
+        "rows": 268670,
+        "value": "lab:50912"
+      },
+      {
+        "rows": 267764,
+        "value": "lab:51006"
+      },
+      {
+        "rows": 266349,
+        "value": "lab:50882"
+      },
+      {
+        "rows": 266080,
+        "value": "lab:50868"
+      },
+      {
+        "rows": 262760,
+        "value": "lab:50931"
+      },
+      {
+        "rows": 249593,
+        "value": "lab:50960"
+      },
+      {
+        "rows": 248492,
+        "value": "lab:51221"
+      },
+      {
+        "rows": 240651,
+        "value": "lab:51265"
+      },
+      {
+        "rows": 240085,
+        "value": "lab:51222"
+      },
+      {
+        "rows": 237793,
+        "value": "lab:51301"
+      },
+      {
+        "rows": 237510,
+        "value": "lab:51249"
+      },
+      {
+        "rows": 237501,
+        "value": "lab:51248"
+      },
+      {
+        "rows": 237501,
+        "value": "lab:51250"
+      },
+      {
+        "rows": 237501,
+        "value": "lab:51277"
+      },
+      {
+        "rows": 237501,
+        "value": "lab:51279"
+      },
+      {
+        "rows": 236700,
+        "value": "lab:50970"
+      },
+      {
+        "rows": 235801,
+        "value": "lab:50893"
+      },
+      {
+        "rows": 162103,
+        "value": "lab:51678"
+      },
+      {
+        "rows": 162100,
+        "value": "lab:50934"
+      },
+      {
+        "rows": 162100,
+        "value": "lab:50947"
+      },
+      {
+        "rows": 156936,
+        "value": "lab:52172"
+      },
+      {
+        "rows": 149740,
+        "value": "lab:51275"
+      },
+      {
+        "rows": 133316,
+        "value": "lab:51237"
+      },
+      {
+        "rows": 133316,
+        "value": "lab:51274"
+      },
+      {
+        "rows": 76173,
+        "value": "lab:52033"
+      },
+      {
+        "rows": 67229,
+        "value": "lab:50820"
+      },
+      {
+        "rows": 61083,
+        "value": "lab:50821"
+      },
+      {
+        "rows": 61049,
+        "value": "lab:50802"
+      },
+      {
+        "rows": 61045,
+        "value": "lab:50804"
+      },
+      {
+        "rows": 61038,
+        "value": "lab:50818"
+      },
+      {
+        "rows": 57345,
+        "value": "lab:50885"
+      },
+      {
+        "rows": 57034,
+        "value": "lab:50861"
+      },
+      {
+        "rows": 57023,
+        "value": "lab:50878"
+      },
+      {
+        "rows": 56015,
+        "value": "lab:50863"
+      },
+      {
+        "rows": 53886,
+        "value": "lab:50813"
+      },
+      {
+        "rows": 50359,
+        "value": "lab:51003"
+      },
+      {
+        "rows": 38488,
+        "value": "lab:50911"
+      },
+      {
+        "rows": 31453,
+        "value": "lab:51146"
+      },
+      {
+        "rows": 31453,
+        "value": "lab:51200"
+      },
+      {
+        "rows": 31453,
+        "value": "lab:51244"
+      },
+      {
+        "rows": 31453,
+        "value": "lab:51254"
+      },
+      {
+        "rows": 31453,
+        "value": "lab:51256"
+      },
+      {
+        "rows": 31249,
+        "value": "lab:50808"
+      },
+      {
+        "rows": 30574,
+        "value": "lab:50954"
+      },
+      {
+        "rows": 27419,
+        "value": "lab:50862"
+      },
+      {
+        "rows": 24829,
+        "value": "lab:50910"
+      },
+      {
+        "rows": 23674,
+        "value": "lab:50817"
+      },
+      {
+        "rows": 23033,
+        "value": "lab:50920"
+      },
+      {
+        "rows": 21150,
+        "value": "lab:52075"
+      },
+      {
+        "rows": 21148,
+        "value": "lab:52073"
+      },
+      {
+        "rows": 21141,
+        "value": "lab:51133"
+      },
+      {
+        "rows": 21141,
+        "value": "lab:52069"
+      },
+      {
+        "rows": 21141,
+        "value": "lab:52074"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51464"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51466"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51478"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51484"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51486"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51487"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51491"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51492"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51498"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51506"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51508"
+      },
+      {
+        "rows": 20719,
+        "value": "lab:51514"
+      },
+      {
+        "rows": 19373,
+        "value": "lab:50822"
+      },
+      {
+        "rows": 17590,
+        "value": "lab:50809"
+      },
+      {
+        "rows": 16775,
+        "value": "lab:51463"
+      },
+      {
+        "rows": 16775,
+        "value": "lab:51476"
+      },
+      {
+        "rows": 16775,
+        "value": "lab:51493"
+      },
+      {
+        "rows": 16775,
+        "value": "lab:51516"
+      },
+      {
+        "rows": 16775,
+        "value": "lab:51519"
+      },
+      {
+        "rows": 16603,
+        "value": "lab:51087"
+      },
+      {
+        "rows": 14811,
+        "value": "lab:50812"
+      },
+      {
+        "rows": 14303,
+        "value": "lab:52135"
+      },
+      {
+        "rows": 13473,
+        "value": "lab:50825"
+      },
+      {
+        "rows": 12947,
+        "value": "lab:51009"
+      },
+      {
+        "rows": 12306,
+        "value": "lab:51512"
+      },
+      {
+        "rows": 11973,
+        "value": "lab:51266"
+      },
+      {
+        "rows": 10349,
+        "value": "lab:51267"
+      },
+      {
+        "rows": 10314,
+        "value": "lab:51137"
+      },
+      {
+        "rows": 10076,
+        "value": "lab:51246"
+      },
+      {
+        "rows": 10005,
+        "value": "lab:51268"
+      },
+      {
+        "rows": 9910,
+        "value": "lab:51233"
+      },
+      {
+        "rows": 9889,
+        "value": "lab:51252"
+      },
+      {
+        "rows": 9297,
+        "value": "lab:50811"
+      },
+      {
+        "rows": 9296,
+        "value": "lab:50810"
+      },
+      {
+        "rows": 8582,
+        "value": "lab:51144"
+      },
+      {
+        "rows": 8525,
+        "value": "lab:50824"
+      },
+      {
+        "rows": 8429,
+        "value": "lab:51251"
+      },
+      {
+        "rows": 8352,
+        "value": "lab:51255"
+      },
+      {
+        "rows": 8278,
+        "value": "lab:51143"
+      },
+      {
+        "rows": 8277,
+        "value": "lab:51214"
+      },
+      {
+        "rows": 7191,
+        "value": "lab:50816"
+      },
+      {
+        "rows": 7172,
+        "value": "lab:51082"
+      },
+      {
+        "rows": 7100,
+        "value": "lab:51100"
+      },
+      {
+        "rows": 6700,
+        "value": "lab:50956"
+      }
+    ],
+    "microbiology_resulted": [
+      {
+        "rows": 35291,
+        "value": "microbiology:90201"
+      },
+      {
+        "rows": 30921,
+        "value": "microbiology:90039"
+      },
+      {
+        "rows": 16075,
+        "value": "microbiology:90055"
+      },
+      {
+        "rows": 10802,
+        "value": "microbiology:90270"
+      },
+      {
+        "rows": 7467,
+        "value": "microbiology:90046"
+      },
+      {
+        "rows": 6621,
+        "value": "microbiology:90189"
+      },
+      {
+        "rows": 6361,
+        "value": "microbiology:90268"
+      },
+      {
+        "rows": 5373,
+        "value": "microbiology:90272"
+      },
+      {
+        "rows": 4148,
+        "value": "microbiology:90221"
+      },
+      {
+        "rows": 4024,
+        "value": "microbiology:90245"
+      },
+      {
+        "rows": 2197,
+        "value": "microbiology:90269"
+      },
+      {
+        "rows": 1736,
+        "value": "microbiology:90240"
+      },
+      {
+        "rows": 1645,
+        "value": "microbiology:90246"
+      },
+      {
+        "rows": 1514,
+        "value": "microbiology:90128"
+      },
+      {
+        "rows": 1356,
+        "value": "microbiology:90198"
+      },
+      {
+        "rows": 1077,
+        "value": "microbiology:90203"
+      },
+      {
+        "rows": 1048,
+        "value": "microbiology:90267"
+      },
+      {
+        "rows": 1045,
+        "value": "microbiology:90243"
+      },
+      {
+        "rows": 1025,
+        "value": "microbiology:90214"
+      },
+      {
+        "rows": 1016,
+        "value": "microbiology:90105"
+      },
+      {
+        "rows": 974,
+        "value": "microbiology:90250"
+      },
+      {
+        "rows": 883,
+        "value": "microbiology:90204"
+      },
+      {
+        "rows": 777,
+        "value": "microbiology:90235"
+      },
+      {
+        "rows": 606,
+        "value": "microbiology:90248"
+      },
+      {
+        "rows": 566,
+        "value": "microbiology:90241"
+      },
+      {
+        "rows": 560,
+        "value": "microbiology:90205"
+      },
+      {
+        "rows": 481,
+        "value": "microbiology:90059"
+      },
+      {
+        "rows": 472,
+        "value": "microbiology:90087"
+      },
+      {
+        "rows": 432,
+        "value": "microbiology:90199"
+      },
+      {
+        "rows": 395,
+        "value": "microbiology:90086"
+      },
+      {
+        "rows": 363,
+        "value": "microbiology:90083"
+      },
+      {
+        "rows": 338,
+        "value": "microbiology:90192"
+      },
+      {
+        "rows": 318,
+        "value": "microbiology:90265"
+      },
+      {
+        "rows": 313,
+        "value": "microbiology:90115"
+      },
+      {
+        "rows": 312,
+        "value": "microbiology:90264"
+      },
+      {
+        "rows": 289,
+        "value": "microbiology:90119"
+      },
+      {
+        "rows": 247,
+        "value": "microbiology:90160"
+      },
+      {
+        "rows": 241,
+        "value": "microbiology:90249"
+      },
+      {
+        "rows": 199,
+        "value": "microbiology:90143"
+      },
+      {
+        "rows": 192,
+        "value": "microbiology:90101"
+      },
+      {
+        "rows": 192,
+        "value": "microbiology:90135"
+      },
+      {
+        "rows": 192,
+        "value": "microbiology:90134"
+      },
+      {
+        "rows": 186,
+        "value": "microbiology:90212"
+      },
+      {
+        "rows": 180,
+        "value": "microbiology:90099"
+      },
+      {
+        "rows": 178,
+        "value": "microbiology:90252"
+      },
+      {
+        "rows": 168,
+        "value": "microbiology:90136"
+      },
+      {
+        "rows": 154,
+        "value": "microbiology:90142"
+      },
+      {
+        "rows": 150,
+        "value": "microbiology:90156"
+      },
+      {
+        "rows": 150,
+        "value": "microbiology:90168"
+      },
+      {
+        "rows": 144,
+        "value": "microbiology:90121"
+      },
+      {
+        "rows": 141,
+        "value": "microbiology:90123"
+      },
+      {
+        "rows": 135,
+        "value": "microbiology:90053"
+      },
+      {
+        "rows": 128,
+        "value": "microbiology:90106"
+      },
+      {
+        "rows": 121,
+        "value": "microbiology:90222"
+      },
+      {
+        "rows": 120,
+        "value": "microbiology:90228"
+      },
+      {
+        "rows": 120,
+        "value": "microbiology:90229"
+      },
+      {
+        "rows": 103,
+        "value": "microbiology:90132"
+      },
+      {
+        "rows": 99,
+        "value": "microbiology:90213"
+      },
+      {
+        "rows": 95,
+        "value": "microbiology:90175"
+      },
+      {
+        "rows": 86,
+        "value": "microbiology:90233"
+      },
+      {
+        "rows": 78,
+        "value": "microbiology:90232"
+      },
+      {
+        "rows": 77,
+        "value": "microbiology:90177"
+      },
+      {
+        "rows": 70,
+        "value": "microbiology:90256"
+      },
+      {
+        "rows": 69,
+        "value": "microbiology:90116"
+      },
+      {
+        "rows": 66,
+        "value": "microbiology:90188"
+      },
+      {
+        "rows": 54,
+        "value": "microbiology:90104"
+      },
+      {
+        "rows": 53,
+        "value": "microbiology:90107"
+      },
+      {
+        "rows": 46,
+        "value": "microbiology:90096"
+      },
+      {
+        "rows": 42,
+        "value": "microbiology:90150"
+      },
+      {
+        "rows": 39,
+        "value": "microbiology:90226"
+      },
+      {
+        "rows": 39,
+        "value": "microbiology:90095"
+      },
+      {
+        "rows": 38,
+        "value": "microbiology:90144"
+      },
+      {
+        "rows": 33,
+        "value": "microbiology:90130"
+      },
+      {
+        "rows": 31,
+        "value": "microbiology:90091"
+      },
+      {
+        "rows": 28,
+        "value": "microbiology:90230"
+      },
+      {
+        "rows": 24,
+        "value": "microbiology:90133"
+      },
+      {
+        "rows": 20,
+        "value": "microbiology:90126"
+      },
+      {
+        "rows": 18,
+        "value": "microbiology:90191"
+      },
+      {
+        "rows": 18,
+        "value": "microbiology:90127"
+      },
+      {
+        "rows": 18,
+        "value": "microbiology:90254"
+      },
+      {
+        "rows": 18,
+        "value": "microbiology:90129"
+      },
+      {
+        "rows": 14,
+        "value": "microbiology:90042"
+      },
+      {
+        "rows": 12,
+        "value": "microbiology:90186"
+      },
+      {
+        "rows": 12,
+        "value": "microbiology:90180"
+      },
+      {
+        "rows": 12,
+        "value": "microbiology:90227"
+      },
+      {
+        "rows": 11,
+        "value": "microbiology:90185"
+      },
+      {
+        "rows": 11,
+        "value": "microbiology:90178"
+      },
+      {
+        "rows": 11,
+        "value": "microbiology:90164"
+      },
+      {
+        "rows": 10,
+        "value": "microbiology:90167"
+      },
+      {
+        "rows": 9,
+        "value": "microbiology:90137"
+      },
+      {
+        "rows": 9,
+        "value": "microbiology:90113"
+      },
+      {
+        "rows": 8,
+        "value": "microbiology:90111"
+      },
+      {
+        "rows": 7,
+        "value": "microbiology:90207"
+      },
+      {
+        "rows": 7,
+        "value": "microbiology:90050"
+      },
+      {
+        "rows": 7,
+        "value": "microbiology:90140"
+      },
+      {
+        "rows": 6,
+        "value": "microbiology:90131"
+      },
+      {
+        "rows": 6,
+        "value": "microbiology:90231"
+      },
+      {
+        "rows": 5,
+        "value": "microbiology:90151"
+      },
+      {
+        "rows": 5,
+        "value": "microbiology:90179"
+      },
+      {
+        "rows": 5,
+        "value": "microbiology:90208"
+      }
+    ]
+  },
+  "top_labels": {
+    "clinical_ordered": [
+      {
+        "rows": 1122016,
+        "value": "<NULL>"
+      },
+      {
+        "rows": 231941,
+        "value": "Other"
+      },
+      {
+        "rows": 149606,
+        "value": "Telemetry"
+      },
+      {
+        "rows": 128837,
+        "value": "Diet Order"
+      },
+      {
+        "rows": 111694,
+        "value": "Discharge"
+      },
+      {
+        "rows": 111458,
+        "value": "Vitals/Monitoring"
+      },
+      {
+        "rows": 107872,
+        "value": "Admit"
+      },
+      {
+        "rows": 88969,
+        "value": "IV access"
+      },
+      {
+        "rows": 83499,
+        "value": "Activity"
+      },
+      {
+        "rows": 79978,
+        "value": "Tubes/Drains"
+      },
+      {
+        "rows": 61452,
+        "value": "Sodium Chloride 0.9%  Flush"
+      },
+      {
+        "rows": 54376,
+        "value": "Furosemide"
+      },
+      {
+        "rows": 45465,
+        "value": "IV fluids"
+      },
+      {
+        "rows": 40192,
+        "value": "Metoprolol Tartrate"
+      },
+      {
+        "rows": 39485,
+        "value": "Blood tests"
+      },
+      {
+        "rows": 39306,
+        "value": "Code status"
+      },
+      {
+        "rows": 38330,
+        "value": "NPO/Diet for Procedure"
+      },
+      {
+        "rows": 33620,
+        "value": "Aspirin"
+      },
+      {
+        "rows": 31981,
+        "value": "Sodium Chloride 0.9%"
+      },
+      {
+        "rows": 31551,
+        "value": "Acetaminophen"
+      },
+      {
+        "rows": 28468,
+        "value": "Heparin"
+      },
+      {
+        "rows": 27973,
+        "value": "Physical Therapy"
+      },
+      {
+        "rows": 27048,
+        "value": "Mechanical Ventilation"
+      },
+      {
+        "rows": 26859,
+        "value": "ECG"
+      },
+      {
+        "rows": 25211,
+        "value": "Discharge Followup Appointment"
+      },
+      {
+        "rows": 24745,
+        "value": "Restraints"
+      },
+      {
+        "rows": 23390,
+        "value": "Warfarin"
+      },
+      {
+        "rows": 23358,
+        "value": "Insulin"
+      },
+      {
+        "rows": 23264,
+        "value": "Transfer"
+      },
+      {
+        "rows": 22151,
+        "value": "Atorvastatin"
+      },
+      {
+        "rows": 21760,
+        "value": "Echo"
+      },
+      {
+        "rows": 21749,
+        "value": "Senna"
+      },
+      {
+        "rows": 21271,
+        "value": "Dextrose 50%"
+      },
+      {
+        "rows": 19618,
+        "value": "Docusate Sodium"
+      },
+      {
+        "rows": 18698,
+        "value": "Glucagon"
+      },
+      {
+        "rows": 17861,
+        "value": "Lactated Ringers"
+      },
+      {
+        "rows": 17126,
+        "value": "Therapeutic devices/DVT/Prophylaxis"
+      },
+      {
+        "rows": 16460,
+        "value": "Red Cell Product Order"
+      },
+      {
+        "rows": 16348,
+        "value": "Glucose Gel"
+      },
+      {
+        "rows": 15793,
+        "value": "HYDROmorphone (Dilaudid)"
+      },
+      {
+        "rows": 15791,
+        "value": "Metoprolol Succinate XL"
+      },
+      {
+        "rows": 15394,
+        "value": "Oxygen Therapy"
+      },
+      {
+        "rows": 15228,
+        "value": "Potassium Chloride"
+      },
+      {
+        "rows": 14344,
+        "value": "Lisinopril"
+      },
+      {
+        "rows": 14108,
+        "value": "Ondansetron"
+      },
+      {
+        "rows": 13947,
+        "value": "IV access request"
+      },
+      {
+        "rows": 13149,
+        "value": "Polyethylene Glycol"
+      },
+      {
+        "rows": 12931,
+        "value": "Tubefeeding Order"
+      },
+      {
+        "rows": 11735,
+        "value": "0.9% Sodium Chloride"
+      },
+      {
+        "rows": 11484,
+        "value": "Omeprazole"
+      },
+      {
+        "rows": 11391,
+        "value": "Hemodialysis"
+      },
+      {
+        "rows": 11190,
+        "value": "Precautions"
+      },
+      {
+        "rows": 10616,
+        "value": "Clopidogrel"
+      },
+      {
+        "rows": 10105,
+        "value": "Torsemide"
+      },
+      {
+        "rows": 10006,
+        "value": "Albuterol 0.083% Neb Soln"
+      },
+      {
+        "rows": 9802,
+        "value": "Nutrition consult"
+      },
+      {
+        "rows": 9753,
+        "value": "Influenza Vaccine Quadrivalent"
+      },
+      {
+        "rows": 9437,
+        "value": "Wound Care"
+      },
+      {
+        "rows": 8990,
+        "value": "Heparin Flush (10 units/ml)"
+      },
+      {
+        "rows": 8905,
+        "value": "Gabapentin"
+      },
+      {
+        "rows": 8671,
+        "value": "Social Work"
+      },
+      {
+        "rows": 8445,
+        "value": "Vitamin D"
+      },
+      {
+        "rows": 8440,
+        "value": "Pantoprazole"
+      },
+      {
+        "rows": 8322,
+        "value": "Bisacodyl"
+      },
+      {
+        "rows": 8314,
+        "value": "OxycoDONE (Immediate Release)"
+      },
+      {
+        "rows": 8304,
+        "value": "Levothyroxine Sodium"
+      },
+      {
+        "rows": 8147,
+        "value": "PredniSONE"
+      },
+      {
+        "rows": 8054,
+        "value": "Morphine Sulfate"
+      },
+      {
+        "rows": 7722,
+        "value": "Lorazepam"
+      },
+      {
+        "rows": 7574,
+        "value": "LORazepam"
+      },
+      {
+        "rows": 7439,
+        "value": "OxyCODONE (Immediate Release)"
+      },
+      {
+        "rows": 6796,
+        "value": "HydrALAZINE"
+      },
+      {
+        "rows": 6757,
+        "value": "Isosorbide Mononitrate (Extended Release)"
+      },
+      {
+        "rows": 6745,
+        "value": "Neutra-Phos"
+      },
+      {
+        "rows": 6702,
+        "value": "TraZODone"
+      },
+      {
+        "rows": 6559,
+        "value": "Multivitamins"
+      },
+      {
+        "rows": 6138,
+        "value": "Postop"
+      },
+      {
+        "rows": 6088,
+        "value": "Carvedilol"
+      },
+      {
+        "rows": 6087,
+        "value": "Heparin Dwell (1000 Units/mL)"
+      },
+      {
+        "rows": 6076,
+        "value": "Acetaminophen IV"
+      },
+      {
+        "rows": 6065,
+        "value": "Occupational Therapy"
+      },
+      {
+        "rows": 5989,
+        "value": "Speech/Swallowing"
+      },
+      {
+        "rows": 5933,
+        "value": "Ipratropium-Albuterol Neb"
+      },
+      {
+        "rows": 5704,
+        "value": "Lidocaine 1%"
+      },
+      {
+        "rows": 5601,
+        "value": "PO fluid restriction"
+      },
+      {
+        "rows": 5484,
+        "value": "Magnesium Oxide"
+      },
+      {
+        "rows": 5446,
+        "value": "HydrALAzine"
+      },
+      {
+        "rows": 5336,
+        "value": "Calcium Carbonate"
+      },
+      {
+        "rows": 5319,
+        "value": "D5 1/2NS"
+      },
+      {
+        "rows": 5218,
+        "value": "Nitroglycerin SL"
+      },
+      {
+        "rows": 5188,
+        "value": "Lidocaine 5% Patch"
+      },
+      {
+        "rows": 5178,
+        "value": "amLODIPine"
+      },
+      {
+        "rows": 5176,
+        "value": "Tamsulosin"
+      },
+      {
+        "rows": 5152,
+        "value": "Amiodarone"
+      },
+      {
+        "rows": 5130,
+        "value": "Losartan Potassium"
+      },
+      {
+        "rows": 5013,
+        "value": "Albuterol Inhaler"
+      },
+      {
+        "rows": 4951,
+        "value": "Labetalol"
+      },
+      {
+        "rows": 4942,
+        "value": "Ipratropium Bromide Neb"
+      },
+      {
+        "rows": 4938,
+        "value": "Simvastatin"
+      },
+      {
+        "rows": 4913,
+        "value": "QUEtiapine Fumarate"
+      }
+    ],
+    "imaging_ordered": [
+      {
+        "rows": 94628,
+        "value": "General radiography"
+      },
+      {
+        "rows": 40383,
+        "value": "CT Scan"
+      },
+      {
+        "rows": 11610,
+        "value": "MRI"
+      },
+      {
+        "rows": 10808,
+        "value": "Ultrasound"
+      },
+      {
+        "rows": 9036,
+        "value": "Noninvasive Vascular"
+      },
+      {
+        "rows": 5948,
+        "value": "Interventional Radiology"
+      },
+      {
+        "rows": 4815,
+        "value": "Nuclear Med"
+      },
+      {
+        "rows": 1306,
+        "value": "Angio"
+      },
+      {
+        "rows": 337,
+        "value": "Cross-Sectional Interventional Radiology"
+      },
+      {
+        "rows": 280,
+        "value": "Interventional Neuro"
+      },
+      {
+        "rows": 72,
+        "value": "<NULL>"
+      }
+    ],
+    "imaging_reported": [
+      {
+        "rows": 137463,
+        "value": "RR"
+      },
+      {
+        "rows": 936,
+        "value": "AR"
+      }
+    ],
+    "laboratory_ordered": [
+      {
+        "rows": 969560,
+        "value": "<NULL>"
+      },
+      {
+        "rows": 27,
+        "value": "CSF"
+      }
+    ],
+    "laboratory_resulted": [
+      {
+        "rows": 301069,
+        "value": "Glucose"
+      },
+      {
+        "rows": 274789,
+        "value": "Potassium"
+      },
+      {
+        "rows": 273597,
+        "value": "Sodium"
+      },
+      {
+        "rows": 272008,
+        "value": "Chloride"
+      },
+      {
+        "rows": 268670,
+        "value": "Creatinine"
+      },
+      {
+        "rows": 267764,
+        "value": "Urea Nitrogen"
+      },
+      {
+        "rows": 266349,
+        "value": "Bicarbonate"
+      },
+      {
+        "rows": 266080,
+        "value": "Anion Gap"
+      },
+      {
+        "rows": 249593,
+        "value": "Magnesium"
+      },
+      {
+        "rows": 249382,
+        "value": "Hemoglobin"
+      },
+      {
+        "rows": 248495,
+        "value": "Hematocrit"
+      },
+      {
+        "rows": 240651,
+        "value": "Platelet Count"
+      },
+      {
+        "rows": 237793,
+        "value": "White Blood Cells"
+      },
+      {
+        "rows": 237510,
+        "value": "MCHC"
+      },
+      {
+        "rows": 237501,
+        "value": "MCH"
+      },
+      {
+        "rows": 237501,
+        "value": "MCV"
+      },
+      {
+        "rows": 237501,
+        "value": "RDW"
+      },
+      {
+        "rows": 237501,
+        "value": "Red Blood Cells"
+      },
+      {
+        "rows": 236700,
+        "value": "Phosphate"
+      },
+      {
+        "rows": 235801,
+        "value": "Calcium, Total"
+      },
+      {
+        "rows": 162103,
+        "value": "L"
+      },
+      {
+        "rows": 162100,
+        "value": "H"
+      },
+      {
+        "rows": 162100,
+        "value": "I"
+      },
+      {
+        "rows": 156936,
+        "value": "RDW-SD"
+      },
+      {
+        "rows": 149740,
+        "value": "PTT"
+      },
+      {
+        "rows": 133316,
+        "value": "INR(PT)"
+      },
+      {
+        "rows": 133316,
+        "value": "PT"
+      },
+      {
+        "rows": 88760,
+        "value": "pH"
+      },
+      {
+        "rows": 76173,
+        "value": "Specimen Type"
+      },
+      {
+        "rows": 61083,
+        "value": "pO2"
+      },
+      {
+        "rows": 61049,
+        "value": "Base Excess"
+      },
+      {
+        "rows": 61045,
+        "value": "Calculated Total CO2"
+      },
+      {
+        "rows": 61038,
+        "value": "pCO2"
+      },
+      {
+        "rows": 57345,
+        "value": "Bilirubin, Total"
+      },
+      {
+        "rows": 57034,
+        "value": "Alanine Aminotransferase (ALT)"
+      },
+      {
+        "rows": 57023,
+        "value": "Asparate Aminotransferase (AST)"
+      },
+      {
+        "rows": 56015,
+        "value": "Alkaline Phosphatase"
+      },
+      {
+        "rows": 53886,
+        "value": "Lactate"
+      },
+      {
+        "rows": 50359,
+        "value": "Troponin T"
+      },
+      {
+        "rows": 38488,
+        "value": "Creatine Kinase, MB Isoenzyme"
+      },
+      {
+        "rows": 33656,
+        "value": "Lymphocytes"
+      },
+      {
+        "rows": 32892,
+        "value": "Monocytes"
+      },
+      {
+        "rows": 32436,
+        "value": "Eosinophils"
+      },
+      {
+        "rows": 31556,
+        "value": "Basophils"
+      },
+      {
+        "rows": 31453,
+        "value": "Neutrophils"
+      },
+      {
+        "rows": 31249,
+        "value": "Free Calcium"
+      },
+      {
+        "rows": 30574,
+        "value": "Lactate Dehydrogenase (LD)"
+      },
+      {
+        "rows": 27419,
+        "value": "Albumin"
+      },
+      {
+        "rows": 24829,
+        "value": "Creatine Kinase (CK)"
+      },
+      {
+        "rows": 23674,
+        "value": "Oxygen Saturation"
+      },
+      {
+        "rows": 23235,
+        "value": "Estimated GFR (MDRD equation)"
+      },
+      {
+        "rows": 21314,
+        "value": "Absolute Lymphocyte Count"
+      },
+      {
+        "rows": 21150,
+        "value": "Absolute Neutrophil Count"
+      },
+      {
+        "rows": 21148,
+        "value": "Absolute Eosinophil Count"
+      },
+      {
+        "rows": 21141,
+        "value": "Absolute Basophil Count"
+      },
+      {
+        "rows": 21141,
+        "value": "Absolute Monocyte Count"
+      },
+      {
+        "rows": 20719,
+        "value": "Bilirubin"
+      },
+      {
+        "rows": 20719,
+        "value": "Blood"
+      },
+      {
+        "rows": 20719,
+        "value": "Ketone"
+      },
+      {
+        "rows": 20719,
+        "value": "Leukocytes"
+      },
+      {
+        "rows": 20719,
+        "value": "Nitrite"
+      },
+      {
+        "rows": 20719,
+        "value": "Protein"
+      },
+      {
+        "rows": 20719,
+        "value": "Specific Gravity"
+      },
+      {
+        "rows": 20719,
+        "value": "Urine Appearance"
+      },
+      {
+        "rows": 20719,
+        "value": "Urine Color"
+      },
+      {
+        "rows": 20719,
+        "value": "Urobilinogen"
+      },
+      {
+        "rows": 19373,
+        "value": "Potassium, Whole Blood"
+      },
+      {
+        "rows": 16775,
+        "value": "Bacteria"
+      },
+      {
+        "rows": 16775,
+        "value": "Epithelial Cells"
+      },
+      {
+        "rows": 16775,
+        "value": "RBC"
+      },
+      {
+        "rows": 16775,
+        "value": "WBC"
+      },
+      {
+        "rows": 16775,
+        "value": "Yeast"
+      },
+      {
+        "rows": 16603,
+        "value": "Length of Urine Collection"
+      },
+      {
+        "rows": 14811,
+        "value": "Intubated"
+      },
+      {
+        "rows": 14303,
+        "value": "Immature Granulocytes"
+      },
+      {
+        "rows": 13473,
+        "value": "Temperature"
+      },
+      {
+        "rows": 12947,
+        "value": "Vancomycin"
+      },
+      {
+        "rows": 12306,
+        "value": "Urine Mucous"
+      },
+      {
+        "rows": 11973,
+        "value": "Platelet Smear"
+      },
+      {
+        "rows": 10349,
+        "value": "Poikilocytosis"
+      },
+      {
+        "rows": 10314,
+        "value": "Anisocytosis"
+      },
+      {
+        "rows": 10076,
+        "value": "Macrocytes"
+      },
+      {
+        "rows": 10005,
+        "value": "Polychromasia"
+      },
+      {
+        "rows": 9910,
+        "value": "Hypochromia"
+      },
+      {
+        "rows": 9889,
+        "value": "Microcytes"
+      },
+      {
+        "rows": 9296,
+        "value": "Hematocrit, Calculated"
+      },
+      {
+        "rows": 8667,
+        "value": "Bands"
+      },
+      {
+        "rows": 8525,
+        "value": "Sodium, Whole Blood"
+      },
+      {
+        "rows": 8437,
+        "value": "Metamyelocytes"
+      },
+      {
+        "rows": 8373,
+        "value": "Atypical Lymphocytes"
+      },
+      {
+        "rows": 8355,
+        "value": "Myelocytes"
+      },
+      {
+        "rows": 8277,
+        "value": "Fibrinogen, Functional"
+      },
+      {
+        "rows": 7191,
+        "value": "Oxygen"
+      },
+      {
+        "rows": 7172,
+        "value": "Creatinine, Urine"
+      },
+      {
+        "rows": 7100,
+        "value": "Sodium, Urine"
+      },
+      {
+        "rows": 6700,
+        "value": "Lipase"
+      },
+      {
+        "rows": 6690,
+        "value": "Hyaline Casts"
+      },
+      {
+        "rows": 6482,
+        "value": "Thyroid Stimulating Hormone"
+      },
+      {
+        "rows": 6242,
+        "value": "PEEP"
+      },
+      {
+        "rows": 6171,
+        "value": "tacroFK"
+      }
+    ],
+    "microbiology_resulted": [
+      {
+        "rows": 35291,
+        "value": "Blood Culture, Routine"
+      },
+      {
+        "rows": 30921,
+        "value": "URINE CULTURE"
+      },
+      {
+        "rows": 16075,
+        "value": "RESPIRATORY CULTURE"
+      },
+      {
+        "rows": 10802,
+        "value": "GRAM STAIN"
+      },
+      {
+        "rows": 7467,
+        "value": "WOUND CULTURE"
+      },
+      {
+        "rows": 6621,
+        "value": "MRSA SCREEN"
+      },
+      {
+        "rows": 6361,
+        "value": "FLUID CULTURE"
+      },
+      {
+        "rows": 5373,
+        "value": "TISSUE"
+      },
+      {
+        "rows": 4148,
+        "value": "C. difficile PCR"
+      },
+      {
+        "rows": 4024,
+        "value": "ANAEROBIC CULTURE"
+      },
+      {
+        "rows": 2197,
+        "value": "FUNGAL CULTURE"
+      },
+      {
+        "rows": 1736,
+        "value": "ACID FAST CULTURE"
+      },
+      {
+        "rows": 1645,
+        "value": "ACID FAST SMEAR"
+      },
+      {
+        "rows": 1514,
+        "value": "Legionella Urinary Antigen"
+      },
+      {
+        "rows": 1356,
+        "value": "Staph aureus Screen"
+      },
+      {
+        "rows": 1077,
+        "value": "Aerobic Bottle Gram Stain"
+      },
+      {
+        "rows": 1048,
+        "value": "FECAL CULTURE"
+      },
+      {
+        "rows": 1045,
+        "value": "CAMPYLOBACTER CULTURE"
+      },
+      {
+        "rows": 1025,
+        "value": "Respiratory Viral Culture"
+      },
+      {
+        "rows": 1016,
+        "value": "Respiratory Viral Antigen Screen"
+      },
+      {
+        "rows": 974,
+        "value": "OVA + PARASITES"
+      },
+      {
+        "rows": 883,
+        "value": "Anaerobic Bottle Gram Stain"
+      },
+      {
+        "rows": 777,
+        "value": "REFLEX URINE CULTURE"
+      },
+      {
+        "rows": 606,
+        "value": "RAPID PLASMA REAGIN TEST"
+      },
+      {
+        "rows": 566,
+        "value": "POTASSIUM HYDROXIDE PREPARATION"
+      },
+      {
+        "rows": 560,
+        "value": "Fluid Culture in Bottles"
+      },
+      {
+        "rows": 481,
+        "value": "LEGIONELLA CULTURE"
+      },
+      {
+        "rows": 472,
+        "value": "FECAL CULTURE - R/O E.COLI 0157:H7"
+      },
+      {
+        "rows": 432,
+        "value": "Immunofluorescent test for Pneumocystis jirovecii (carinii)"
+      },
+      {
+        "rows": 395,
+        "value": "FECAL CULTURE - R/O YERSINIA"
+      },
+      {
+        "rows": 363,
+        "value": "FECAL CULTURE - R/O VIBRIO"
+      },
+      {
+        "rows": 338,
+        "value": "CMV Viral Load"
+      },
+      {
+        "rows": 318,
+        "value": "BLOOD/FUNGAL CULTURE"
+      },
+      {
+        "rows": 313,
+        "value": "R/O VANCOMYCIN RESISTANT ENTEROCOCCUS"
+      },
+      {
+        "rows": 312,
+        "value": "BLOOD/AFB CULTURE"
+      },
+      {
+        "rows": 289,
+        "value": "HELICOBACTER PYLORI ANTIBODY TEST"
+      },
+      {
+        "rows": 247,
+        "value": "Cryptosporidium/Giardia (DFA)"
+      },
+      {
+        "rows": 241,
+        "value": "CRYPTOCOCCAL ANTIGEN"
+      },
+      {
+        "rows": 199,
+        "value": "CMV IgG ANTIBODY"
+      },
+      {
+        "rows": 192,
+        "value": "EPSTEIN-BARR VIRUS VCA-IgG AB"
+      },
+      {
+        "rows": 192,
+        "value": "EPSTEIN-BARR VIRUS EBNA IgG AB"
+      },
+      {
+        "rows": 192,
+        "value": "EPSTEIN-BARR VIRUS VCA-IgM AB"
+      },
+      {
+        "rows": 186,
+        "value": "CLOSTRIDIUM DIFFICILE TOXIN A & B TEST"
+      },
+      {
+        "rows": 180,
+        "value": "NOCARDIA CULTURE"
+      },
+      {
+        "rows": 178,
+        "value": "VIRAL CULTURE"
+      },
+      {
+        "rows": 168,
+        "value": "CMV IgM ANTIBODY"
+      },
+      {
+        "rows": 155,
+        "value": "VIRAL CULTURE: R/O CYTOMEGALOVIRUS"
+      },
+      {
+        "rows": 150,
+        "value": "DIRECT INFLUENZA A ANTIGEN TEST"
+      },
+      {
+        "rows": 150,
+        "value": "DIRECT INFLUENZA B ANTIGEN TEST"
+      },
+      {
+        "rows": 144,
+        "value": "CYCLOSPORA STAIN"
+      },
+      {
+        "rows": 141,
+        "value": "HCV VIRAL LOAD"
+      },
+      {
+        "rows": 135,
+        "value": "CYTOMEGALOVIRUS EARLY ANTIGEN TEST (SHELL VIAL METHOD)"
+      },
+      {
+        "rows": 128,
+        "value": "MICROSPORIDIA STAIN"
+      },
+      {
+        "rows": 121,
+        "value": "MTB Direct Amplification"
+      },
+      {
+        "rows": 120,
+        "value": "Lyme IgG"
+      },
+      {
+        "rows": 120,
+        "value": "Lyme IgM"
+      },
+      {
+        "rows": 103,
+        "value": "LYME SEROLOGY"
+      },
+      {
+        "rows": 99,
+        "value": "Enterovirus Culture"
+      },
+      {
+        "rows": 95,
+        "value": "HIV-1 Viral Load/Ultrasensitive"
+      },
+      {
+        "rows": 86,
+        "value": "C. difficile Toxin antigen assay"
+      },
+      {
+        "rows": 78,
+        "value": "Staph aureus Preop PCR"
+      },
+      {
+        "rows": 77,
+        "value": "HBV Viral Load"
+      },
+      {
+        "rows": 70,
+        "value": "VIRAL CULTURE: R/O HERPES SIMPLEX VIRUS"
+      },
+      {
+        "rows": 69,
+        "value": "Chlamydia trachomatis, Nucleic Acid Probe, with Amplification"
+      },
+      {
+        "rows": 66,
+        "value": "NEISSERIA GONORRHOEAE (GC), NUCLEIC ACID PROBE, WITH AMPLIFICATION"
+      },
+      {
+        "rows": 54,
+        "value": "Direct Antigen Test for Herpes Simplex Virus Types 1 & 2"
+      },
+      {
+        "rows": 53,
+        "value": "Respiratory Virus Identification"
+      },
+      {
+        "rows": 46,
+        "value": "DIRECT ANTIGEN TEST FOR VARICELLA-ZOSTER VIRUS"
+      },
+      {
+        "rows": 42,
+        "value": "MOLECULAR CYTOGENETICS - DNA PROBE"
+      },
+      {
+        "rows": 39,
+        "value": "RPR w/check for Prozone"
+      },
+      {
+        "rows": 39,
+        "value": "VARICELLA-ZOSTER CULTURE"
+      },
+      {
+        "rows": 38,
+        "value": "TOXOPLASMA IgG ANTIBODY"
+      },
+      {
+        "rows": 33,
+        "value": "R/O Beta Strep Group A"
+      },
+      {
+        "rows": 31,
+        "value": "VARICELLA-ZOSTER IgG SEROLOGY"
+      },
+      {
+        "rows": 28,
+        "value": "Stool Hold Request"
+      },
+      {
+        "rows": 24,
+        "value": "MONOSPOT"
+      },
+      {
+        "rows": 20,
+        "value": "TOXOPLASMA IgM ANTIBODY"
+      },
+      {
+        "rows": 18,
+        "value": "MUMPS IgG ANTIBODY"
+      },
+      {
+        "rows": 18,
+        "value": "RUBEOLA ANTIBODY, IgG"
+      },
+      {
+        "rows": 18,
+        "value": "RUBELLA IgG SEROLOGY"
+      },
+      {
+        "rows": 18,
+        "value": "ASO Screen"
+      },
+      {
+        "rows": 14,
+        "value": "TREPONEMAL ANTIBODY TEST"
+      },
+      {
+        "rows": 12,
+        "value": "YEAST VAGINITIS CULTURE"
+      },
+      {
+        "rows": 12,
+        "value": "O&P MACROSCOPIC EXAM - WORM"
+      },
+      {
+        "rows": 12,
+        "value": "Sonication culture, prosthetic joint"
+      },
+      {
+        "rows": 11,
+        "value": "SMEAR FOR BACTERIAL VAGINOSIS"
+      },
+      {
+        "rows": 11,
+        "value": "FUNGAL CULTURE (HAIR/SKIN/NAILS)"
+      },
+      {
+        "rows": 11,
+        "value": "INTERPHASE FISH ANALYSIS, 100-300 CELLS"
+      },
+      {
+        "rows": 10,
+        "value": "ISOLATE FOR MIC"
+      },
+      {
+        "rows": 9,
+        "value": "QUANTITATIVE RPR"
+      },
+      {
+        "rows": 9,
+        "value": "URINE-GRAM STAIN - UNSPUN"
+      },
+      {
+        "rows": 8,
+        "value": "CHROMOSOME ANALYSIS-BONE MARROW"
+      },
+      {
+        "rows": 7,
+        "value": "Stem Cell Aer/Ana Culture"
+      },
+      {
+        "rows": 7,
+        "value": "GRAM STAIN- R/O THRUSH"
+      },
+      {
+        "rows": 7,
+        "value": "QUANTITATIVE CRYPTOCOCCAL ANTIGEN"
+      },
+      {
+        "rows": 6,
+        "value": "ASO TITER"
+      },
+      {
+        "rows": 6,
+        "value": "Swab - R/O Yeast - IC"
+      },
+      {
+        "rows": 5,
+        "value": "Tissue Culture-Bone Marrow"
+      },
+      {
+        "rows": 5,
+        "value": "POTASSIUM HYDROXIDE PREPARATION (HAIR/SKIN/NAILS)"
+      },
+      {
+        "rows": 5,
+        "value": "Myco-F Bottle Gram Stain"
+      }
+    ]
+  }
+}

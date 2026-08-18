@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:58:05+00:00",
-  "current_stage": "E1",
+  "updated_at": "2026-08-18T17:00:39+00:00",
+  "current_stage": "E2",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -62,9 +62,18 @@
       "status": "completed",
       "message": "E1 全量审计完成：27336811 行、20136 主体；order/result 候选覆盖与 unresolved/post_hoc/time 门禁已固化，正式 final-test 关闭",
       "updated_at": "2026-08-18T16:58:05+00:00"
+    },
+    "E2": {
+      "status": "completed",
+      "message": "E2 已拆分 order/category、normalized result、order+result confirmation 三类 Gold 候选；订单映射/生命周期门禁与结果语义已固化，正式 gold 关闭",
+      "updated_at": "2026-08-18T17:00:39+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T17:00:39+00:00",
+      "message": "E2: E2 已拆分 order/category、normalized result、order+result confirmation 三类 Gold 候选；订单映射/生命周期门禁与结果语义已固化，正式 gold 关闭"
+    },
     {
       "at": "2026-08-18T16:58:05+00:00",
       "message": "E1: E1 全量审计完成：27336811 行、20136 主体；order/result 候选覆盖与 unresolved/post_hoc/time 门禁已固化，正式 final-test 关闭"
