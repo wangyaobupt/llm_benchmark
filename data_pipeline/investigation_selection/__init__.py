@@ -7,6 +7,7 @@ from .decision_documents import DecisionDocumentResult, build_decision_documents
 from .retrieval import RetrievalContractError, RetrievalIndex, RetrievalQueryResult, eligible_features
 from .ranking import ContingencyTable, RankingContractError, benjamini_hochberg, contingency, statistics, subject_bootstrap_units
 from .cohort import CohortContractError, DiagnosisMapping, audit_domains, map_diagnosis, select_domains
+from .question_release import QuestionReleaseError, QuestionValidation, build_candidate_question, release_gold, review_record, validate_question
 
 __all__ = [
     "EncounterClockResult",
@@ -32,4 +33,10 @@ __all__ = [
     "audit_domains",
     "map_diagnosis",
     "select_domains",
+    "QuestionReleaseError",
+    "QuestionValidation",
+    "build_candidate_question",
+    "release_gold",
+    "review_record",
+    "validate_question",
 ]

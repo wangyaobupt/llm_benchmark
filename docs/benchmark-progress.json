@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:38:22+00:00",
-  "current_stage": "W8",
+  "updated_at": "2026-08-18T16:40:50+00:00",
+  "current_stage": "W9",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -49,9 +49,9 @@
       "updated_at": "2026-08-18T16:38:22+00:00"
     },
     "W9": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W9 题目生成、白名单 evidence、独立/临床审核与 gold 门禁契约已通过 4 项测试；未生成正式题目或 gold，仍受 W1 阻塞",
+      "updated_at": "2026-08-18T16:40:50+00:00"
     },
     "W10": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:40:50+00:00",
+      "message": "W9: W9 题目生成、白名单 evidence、独立/临床审核与 gold 门禁契约已通过 4 项测试；未生成正式题目或 gold，仍受 W1 阻塞"
+    },
     {
       "at": "2026-08-18T16:38:22+00:00",
       "message": "W8: W8 七域诊断映射、覆盖审计与机械选择契约已通过 4 项测试；正式域审计待 W1 独立主体解冻"
