@@ -1,0 +1,1030 @@
+{
+  "audit_schema": "exploratory-normalization-source-audit/1.0.0",
+  "counts": {
+    "entity_type": [
+      {
+        "rows": 9237146,
+        "value": "medication"
+      },
+      {
+        "rows": 9207478,
+        "value": "laboratory_test"
+      },
+      {
+        "rows": 2297818,
+        "value": "medication_order_category"
+      },
+      {
+        "rows": 1912813,
+        "value": "icu_item"
+      },
+      {
+        "rows": 1717818,
+        "value": "clinical_order"
+      },
+      {
+        "rows": 1308475,
+        "value": "vital_sign"
+      },
+      {
+        "rows": 864382,
+        "value": "coded_clinical_concept"
+      },
+      {
+        "rows": 179223,
+        "value": "imaging_study"
+      },
+      {
+        "rows": 161956,
+        "value": "care_unit"
+      },
+      {
+        "rows": 153622,
+        "value": "microbiology_test"
+      },
+      {
+        "rows": 138399,
+        "value": "imaging_report"
+      },
+      {
+        "rows": 44531,
+        "value": "clinical_service"
+      },
+      {
+        "rows": 39093,
+        "value": "symptom"
+      },
+      {
+        "rows": 38077,
+        "value": "triage_acuity"
+      },
+      {
+        "rows": 35980,
+        "value": "clinical_document"
+      }
+    ],
+    "event_kind": [
+      {
+        "rows": 8237891,
+        "value": "laboratory_resulted"
+      },
+      {
+        "rows": 4015636,
+        "value": "clinical_ordered"
+      },
+      {
+        "rows": 3344038,
+        "value": "medication_administered"
+      },
+      {
+        "rows": 1980139,
+        "value": "medication_ordered"
+      },
+      {
+        "rows": 1734763,
+        "value": "medication_order_status_recorded"
+      },
+      {
+        "rows": 1308475,
+        "value": "vital_measured"
+      },
+      {
+        "rows": 1279978,
+        "value": "input_administered"
+      },
+      {
+        "rows": 969587,
+        "value": "laboratory_ordered"
+      },
+      {
+        "rows": 794482,
+        "value": "condition_recorded_post_hoc"
+      },
+      {
+        "rows": 774853,
+        "value": "medication_administration_documented"
+      },
+      {
+        "rows": 681219,
+        "value": "medication_not_administered"
+      },
+      {
+        "rows": 537885,
+        "value": "output_measured"
+      },
+      {
+        "rows": 514328,
+        "value": "medication_reconciled"
+      },
+      {
+        "rows": 207806,
+        "value": "medication_dispensed"
+      },
+      {
+        "rows": 179223,
+        "value": "imaging_ordered"
+      },
+      {
+        "rows": 161956,
+        "value": "patient_transferred"
+      },
+      {
+        "rows": 153622,
+        "value": "microbiology_resulted"
+      },
+      {
+        "rows": 138399,
+        "value": "imaging_reported"
+      },
+      {
+        "rows": 94950,
+        "value": "procedure_performed"
+      },
+      {
+        "rows": 69900,
+        "value": "procedure_recorded_post_hoc"
+      },
+      {
+        "rows": 44531,
+        "value": "service_changed"
+      },
+      {
+        "rows": 39093,
+        "value": "symptom_reported"
+      },
+      {
+        "rows": 38077,
+        "value": "triage_acuity_recorded"
+      },
+      {
+        "rows": 35980,
+        "value": "document_recorded"
+      }
+    ],
+    "evidence_phase": [
+      {
+        "rows": 26436449,
+        "value": "source_event"
+      },
+      {
+        "rows": 900362,
+        "value": "post_hoc"
+      }
+    ],
+    "lifecycle_action": [
+      {
+        "rows": 20192226,
+        "value": "<NULL>"
+      },
+      {
+        "rows": 6058135,
+        "value": "create"
+      },
+      {
+        "rows": 602290,
+        "value": "change"
+      },
+      {
+        "rows": 483453,
+        "value": "discontinue"
+      },
+      {
+        "rows": 707,
+        "value": "uninterpreted"
+      }
+    ],
+    "normalization_status": [
+      {
+        "rows": 15100571,
+        "value": "mapped"
+      },
+      {
+        "rows": 12236240,
+        "value": "unresolved"
+      }
+    ],
+    "source_module": [
+      {
+        "rows": 23058635,
+        "value": "mimic_iv_hosp"
+      },
+      {
+        "rows": 2190984,
+        "value": "mimic_iv_ed"
+      },
+      {
+        "rows": 1912813,
+        "value": "mimic_iv_icu"
+      },
+      {
+        "rows": 174379,
+        "value": "mimic_iv_note"
+      }
+    ],
+    "source_table": [
+      {
+        "rows": 8237891,
+        "value": "hosp.labevents"
+      },
+      {
+        "rows": 5164446,
+        "value": "hosp.poe_timeline"
+      },
+      {
+        "rows": 4800110,
+        "value": "hosp.emar"
+      },
+      {
+        "rows": 1980139,
+        "value": "hosp.prescriptions"
+      },
+      {
+        "rows": 1734763,
+        "value": "hosp.pharmacy"
+      },
+      {
+        "rows": 1279978,
+        "value": "icu.inputevents"
+      },
+      {
+        "rows": 1093658,
+        "value": "ed.vitalsign"
+      },
+      {
+        "rows": 711277,
+        "value": "hosp.diagnoses_icd"
+      },
+      {
+        "rows": 537885,
+        "value": "icu.outputevents"
+      },
+      {
+        "rows": 514328,
+        "value": "ed.medrecon"
+      },
+      {
+        "rows": 291987,
+        "value": "ed.triage"
+      },
+      {
+        "rows": 207806,
+        "value": "ed.pyxis"
+      },
+      {
+        "rows": 161956,
+        "value": "hosp.transfers"
+      },
+      {
+        "rows": 153622,
+        "value": "hosp.microbiologyevents"
+      },
+      {
+        "rows": 138399,
+        "value": "note.radiology"
+      },
+      {
+        "rows": 94950,
+        "value": "icu.procedureevents"
+      },
+      {
+        "rows": 83205,
+        "value": "ed.diagnosis"
+      },
+      {
+        "rows": 61320,
+        "value": "hosp.procedures_icd"
+      },
+      {
+        "rows": 44531,
+        "value": "hosp.services"
+      },
+      {
+        "rows": 35980,
+        "value": "note.discharge"
+      },
+      {
+        "rows": 8580,
+        "value": "hosp.hcpcsevents"
+      }
+    ],
+    "status": [
+      {
+        "rows": 14137610,
+        "value": "<NULL>"
+      },
+      {
+        "rows": 5158395,
+        "value": "Inactive"
+      },
+      {
+        "rows": 3213423,
+        "value": "Administered"
+      },
+      {
+        "rows": 890087,
+        "value": "FinishedRunning"
+      },
+      {
+        "rows": 728643,
+        "value": "Discontinued via patient discharge"
+      },
+      {
+        "rows": 642504,
+        "value": "Discontinued"
+      },
+      {
+        "rows": 390811,
+        "value": "Flushed"
+      },
+      {
+        "rows": 367159,
+        "value": "ChangeDose/Rate"
+      },
+      {
+        "rows": 365656,
+        "value": "Not Given"
+      },
+      {
+        "rows": 197949,
+        "value": "Confirmed"
+      },
+      {
+        "rows": 188568,
+        "value": "Expired"
+      },
+      {
+        "rows": 174361,
+        "value": "Inactive (Due to a change order)"
+      },
+      {
+        "rows": 148530,
+        "value": "Not Flushed"
+      },
+      {
+        "rows": 128679,
+        "value": "Not Given per Sliding Scale"
+      },
+      {
+        "rows": 112845,
+        "value": "Stopped"
+      },
+      {
+        "rows": 72560,
+        "value": "Started"
+      },
+      {
+        "rows": 50632,
+        "value": "Paused"
+      },
+      {
+        "rows": 44789,
+        "value": "transfer"
+      },
+      {
+        "rows": 39094,
+        "value": "ED"
+      },
+      {
+        "rows": 39037,
+        "value": "admit"
+      },
+      {
+        "rows": 39036,
+        "value": "discharge"
+      },
+      {
+        "rows": 34492,
+        "value": "Assessed"
+      },
+      {
+        "rows": 23754,
+        "value": "Delayed Administered"
+      },
+      {
+        "rows": 22487,
+        "value": "Applied"
+      },
+      {
+        "rows": 19492,
+        "value": "Removed"
+      },
+      {
+        "rows": 18834,
+        "value": "Hold Dose"
+      },
+      {
+        "rows": 15614,
+        "value": "Stopped - Unscheduled"
+      },
+      {
+        "rows": 6675,
+        "value": "Active"
+      },
+      {
+        "rows": 6566,
+        "value": "Restarted"
+      },
+      {
+        "rows": 6366,
+        "value": "Not Applied"
+      },
+      {
+        "rows": 6150,
+        "value": "Infusion Reconciliation"
+      },
+      {
+        "rows": 5925,
+        "value": "in Other Location"
+      },
+      {
+        "rows": 5480,
+        "value": "Administered Bolus from IV Drip"
+      },
+      {
+        "rows": 5159,
+        "value": "Not Confirmed"
+      },
+      {
+        "rows": 4588,
+        "value": "Stopped in Other Location"
+      },
+      {
+        "rows": 3975,
+        "value": "Not Started"
+      },
+      {
+        "rows": 3822,
+        "value": "Stopped As Directed"
+      },
+      {
+        "rows": 3641,
+        "value": "Administered in Other Location"
+      },
+      {
+        "rows": 2789,
+        "value": "Not Stopped"
+      },
+      {
+        "rows": 2000,
+        "value": "Delayed"
+      },
+      {
+        "rows": 1517,
+        "value": "Removed Existing / Applied New"
+      },
+      {
+        "rows": 910,
+        "value": "Flushed in Other Location"
+      },
+      {
+        "rows": 850,
+        "value": "Partial Administered"
+      },
+      {
+        "rows": 757,
+        "value": "Started in Other Location"
+      },
+      {
+        "rows": 624,
+        "value": "Not Removed"
+      },
+      {
+        "rows": 610,
+        "value": "Delayed Started"
+      },
+      {
+        "rows": 556,
+        "value": "Not Assessed"
+      },
+      {
+        "rows": 508,
+        "value": "Delayed Flushed"
+      },
+      {
+        "rows": 436,
+        "value": "Delayed Confirmed"
+      },
+      {
+        "rows": 396,
+        "value": "Bolus"
+      },
+      {
+        "rows": 268,
+        "value": "Confirmed in Other Location"
+      },
+      {
+        "rows": 250,
+        "value": "Rate Change"
+      },
+      {
+        "rows": 228,
+        "value": "Stopped - Unscheduled in Other Location"
+      },
+      {
+        "rows": 110,
+        "value": "Infusion Reconciliation Not Done"
+      },
+      {
+        "rows": 108,
+        "value": "Applied in Other Location"
+      },
+      {
+        "rows": 84,
+        "value": "Delayed Stopped"
+      },
+      {
+        "rows": 63,
+        "value": "Delayed Removed"
+      },
+      {
+        "rows": 61,
+        "value": "H"
+      },
+      {
+        "rows": 54,
+        "value": "Assessed in Other Location"
+      },
+      {
+        "rows": 43,
+        "value": "Read"
+      },
+      {
+        "rows": 34,
+        "value": "Documented in O.R. Holding"
+      },
+      {
+        "rows": 25,
+        "value": "Removed in Other Location"
+      },
+      {
+        "rows": 25,
+        "value": "Not Started per Sliding Scale"
+      },
+      {
+        "rows": 24,
+        "value": "Delayed Not Applied"
+      },
+      {
+        "rows": 22,
+        "value": "Not Stopped per Sliding Scale"
+      },
+      {
+        "rows": 20,
+        "value": "Delayed Assessed"
+      },
+      {
+        "rows": 8,
+        "value": "Delayed Not Flushed"
+      },
+      {
+        "rows": 6,
+        "value": "Removed Existing / Applied New in Other Location"
+      },
+      {
+        "rows": 6,
+        "value": "TPN Rate Not Changed"
+      },
+      {
+        "rows": 5,
+        "value": "Delayed Not Removed"
+      },
+      {
+        "rows": 5,
+        "value": "Delayed Not Confirmed"
+      },
+      {
+        "rows": 4,
+        "value": "Delayed Restarted"
+      },
+      {
+        "rows": 4,
+        "value": "Not Read"
+      },
+      {
+        "rows": 3,
+        "value": "Delayed Applied"
+      },
+      {
+        "rows": 3,
+        "value": "Removed - Unscheduled"
+      },
+      {
+        "rows": 2,
+        "value": "U"
+      },
+      {
+        "rows": 2,
+        "value": "Delayed Not Started"
+      },
+      {
+        "rows": 1,
+        "value": "Infusion Reconciliation in Other Location"
+      },
+      {
+        "rows": 1,
+        "value": "Restarted in Other Location"
+      },
+      {
+        "rows": 1,
+        "value": "Read in Other Location"
+      }
+    ],
+    "time_resolution_status": [
+      {
+        "rows": 24131528,
+        "value": "resolved"
+      },
+      {
+        "rows": 2092729,
+        "value": "partially_resolved"
+      },
+      {
+        "rows": 1112554,
+        "value": "unresolved"
+      }
+    ],
+    "unit_normalization_status": [
+      {
+        "rows": 17248140,
+        "value": "not_applicable"
+      },
+      {
+        "rows": 9985916,
+        "value": "mapped"
+      },
+      {
+        "rows": 102755,
+        "value": "unresolved"
+      }
+    ]
+  },
+  "event_kind_metrics": {
+    "clinical_ordered": {
+      "available_before_or_at_event_rows": 4015636,
+      "available_time_rows": 4015636,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 4015636,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 4015636,
+      "rows": 4015636,
+      "source_event_rows": 4015636,
+      "subject_ids": 20065
+    },
+    "condition_recorded_post_hoc": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 0,
+      "mapped_rows": 794482,
+      "post_hoc_rows": 794482,
+      "resolved_time_rows": 0,
+      "rows": 794482,
+      "source_event_rows": 0,
+      "subject_ids": 0
+    },
+    "document_recorded": {
+      "available_before_or_at_event_rows": 207,
+      "available_time_rows": 35980,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 35980,
+      "mapped_rows": 35980,
+      "post_hoc_rows": 35980,
+      "resolved_time_rows": 35980,
+      "rows": 35980,
+      "source_event_rows": 0,
+      "subject_ids": 0
+    },
+    "imaging_ordered": {
+      "available_before_or_at_event_rows": 179223,
+      "available_time_rows": 179223,
+      "concept_ids": 1,
+      "concept_rows": 94628,
+      "event_time_rows": 179223,
+      "mapped_rows": 94628,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 179223,
+      "rows": 179223,
+      "source_event_rows": 179223,
+      "subject_ids": 18424
+    },
+    "imaging_reported": {
+      "available_before_or_at_event_rows": 52,
+      "available_time_rows": 138399,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 138399,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 138399,
+      "rows": 138399,
+      "source_event_rows": 138399,
+      "subject_ids": 18492
+    },
+    "input_administered": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 1279978,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 1279978,
+      "mapped_rows": 1279978,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 1279978,
+      "rows": 1279978,
+      "source_event_rows": 1279978,
+      "subject_ids": 0
+    },
+    "laboratory_ordered": {
+      "available_before_or_at_event_rows": 969587,
+      "available_time_rows": 969587,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 969587,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 969587,
+      "rows": 969587,
+      "source_event_rows": 969587,
+      "subject_ids": 19967
+    },
+    "laboratory_resulted": {
+      "available_before_or_at_event_rows": 17932,
+      "available_time_rows": 8193986,
+      "concept_ids": 756,
+      "concept_rows": 8237891,
+      "event_time_rows": 8237891,
+      "mapped_rows": 8237891,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 8193986,
+      "rows": 8237891,
+      "source_event_rows": 8237891,
+      "subject_ids": 19031
+    },
+    "medication_administered": {
+      "available_before_or_at_event_rows": 1357098,
+      "available_time_rows": 3344038,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 3344038,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 3344038,
+      "rows": 3344038,
+      "source_event_rows": 3344038,
+      "subject_ids": 0
+    },
+    "medication_administration_documented": {
+      "available_before_or_at_event_rows": 424208,
+      "available_time_rows": 774853,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 774853,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 774853,
+      "rows": 774853,
+      "source_event_rows": 774853,
+      "subject_ids": 0
+    },
+    "medication_dispensed": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 207806,
+      "mapped_rows": 201079,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 207806,
+      "source_event_rows": 207806,
+      "subject_ids": 0
+    },
+    "medication_not_administered": {
+      "available_before_or_at_event_rows": 234397,
+      "available_time_rows": 681219,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 681219,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 681219,
+      "rows": 681219,
+      "source_event_rows": 681219,
+      "subject_ids": 0
+    },
+    "medication_order_status_recorded": {
+      "available_before_or_at_event_rows": 1734763,
+      "available_time_rows": 1734763,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 1734763,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 1734763,
+      "rows": 1734763,
+      "source_event_rows": 1734763,
+      "subject_ids": 0
+    },
+    "medication_ordered": {
+      "available_before_or_at_event_rows": 1954054,
+      "available_time_rows": 1954054,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 1954054,
+      "mapped_rows": 1738124,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 1954054,
+      "rows": 1980139,
+      "source_event_rows": 1980139,
+      "subject_ids": 0
+    },
+    "medication_reconciled": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 514328,
+      "mapped_rows": 511965,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 514328,
+      "source_event_rows": 514328,
+      "subject_ids": 0
+    },
+    "microbiology_resulted": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 152446,
+      "concept_ids": 113,
+      "concept_rows": 153622,
+      "event_time_rows": 153622,
+      "mapped_rows": 153622,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 152446,
+      "rows": 153622,
+      "source_event_rows": 153622,
+      "subject_ids": 11599
+    },
+    "output_measured": {
+      "available_before_or_at_event_rows": 125208,
+      "available_time_rows": 537885,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 537885,
+      "mapped_rows": 537885,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 537885,
+      "rows": 537885,
+      "source_event_rows": 537885,
+      "subject_ids": 0
+    },
+    "patient_transferred": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 161956,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 161956,
+      "source_event_rows": 161956,
+      "subject_ids": 0
+    },
+    "procedure_performed": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 94950,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 94950,
+      "mapped_rows": 94950,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 94950,
+      "rows": 94950,
+      "source_event_rows": 94950,
+      "subject_ids": 0
+    },
+    "procedure_recorded_post_hoc": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 69900,
+      "mapped_rows": 69900,
+      "post_hoc_rows": 69900,
+      "resolved_time_rows": 0,
+      "rows": 69900,
+      "source_event_rows": 0,
+      "subject_ids": 0
+    },
+    "service_changed": {
+      "available_before_or_at_event_rows": 44531,
+      "available_time_rows": 44531,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 44531,
+      "mapped_rows": 0,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 44531,
+      "rows": 44531,
+      "source_event_rows": 44531,
+      "subject_ids": 0
+    },
+    "symptom_reported": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 0,
+      "mapped_rows": 3535,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 39093,
+      "source_event_rows": 39093,
+      "subject_ids": 0
+    },
+    "triage_acuity_recorded": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 0,
+      "mapped_rows": 38077,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 38077,
+      "source_event_rows": 38077,
+      "subject_ids": 0
+    },
+    "vital_measured": {
+      "available_before_or_at_event_rows": 0,
+      "available_time_rows": 0,
+      "concept_ids": 0,
+      "concept_rows": 0,
+      "event_time_rows": 1093658,
+      "mapped_rows": 1308475,
+      "post_hoc_rows": 0,
+      "resolved_time_rows": 0,
+      "rows": 1308475,
+      "source_event_rows": 1308475,
+      "subject_ids": 0
+    }
+  },
+  "formal_final_test": {
+    "enabled": false,
+    "reason": "exploratory_only_source_audit"
+  },
+  "row_count": 27336811,
+  "source_manifest": {
+    "counts": {
+      "events": 27336811,
+      "mapping_rows": 53840,
+      "review_queue_rows": 15316
+    },
+    "inputs": {
+      "cleaned_events": "cleaned_events.parquet",
+      "cleaned_events_sha256": "805277e3ba6ce40b1c4fbcd0351ef7b0988716c95e9f21b54afb51e468314bfd",
+      "term_inventory": "term_inventory.parquet",
+      "term_inventory_sha256": "785d1d172818874d9e455c6655429a69c109d2c862cd41c5939e5d5547be18f8"
+    },
+    "mapping_version": "event-terminology/1.1.0",
+    "normalization_status_counts": {
+      "mapped": 15100571,
+      "unresolved": 12236240
+    },
+    "output_sha256": {
+      "normalization_mappings.parquet": "98b03c4e1bd048dd6877cabb3e4349b54a83185642be856d3e6557871e017df6",
+      "normalization_review_queue.parquet": "7c12583655cdf2cb4b67a3ebc25bcd94db83bc5598b416df4c103322675adc11",
+      "normalized_events.parquet": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf"
+    },
+    "run_id": "b99943d63eab2540b96339f1",
+    "schema": {
+      "name": "normalization_run_manifest",
+      "version": "1.0.0"
+    },
+    "unit_normalization_status_counts": {
+      "mapped": 9985916,
+      "not_applicable": 17248140,
+      "unresolved": 102755
+    }
+  },
+  "source_root": "G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization",
+  "source_sha256": "69f29e310a53c980857dd8159b1f2e4cedfa823719754e116935d7d2751bb7cf",
+  "target_kind_groups": {
+    "order_kinds": [
+      "clinical_ordered",
+      "imaging_ordered",
+      "laboratory_ordered"
+    ],
+    "result_kinds": [
+      "imaging_reported",
+      "laboratory_resulted",
+      "microbiology_resulted"
+    ]
+  },
+  "unique_encounters": 88785,
+  "unique_hadm": 39036,
+  "unique_subjects": 20136
+}

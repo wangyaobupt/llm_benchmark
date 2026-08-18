@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:46:21+00:00",
-  "current_stage": "W10",
+  "updated_at": "2026-08-18T16:58:05+00:00",
+  "current_stage": "E1",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -57,9 +57,22 @@
       "status": "completed",
       "message": "W10 rehearsal 已验证；项目模式 exploratory-only，official final-test 禁止，仅允许 fixture rehearsal",
       "updated_at": "2026-08-18T16:46:21+00:00"
+    },
+    "E1": {
+      "status": "completed",
+      "message": "E1 全量审计完成：27336811 行、20136 主体；order/result 候选覆盖与 unresolved/post_hoc/time 门禁已固化，正式 final-test 关闭",
+      "updated_at": "2026-08-18T16:58:05+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:58:05+00:00",
+      "message": "E1: E1 全量审计完成：27336811 行、20136 主体；order/result 候选覆盖与 unresolved/post_hoc/time 门禁已固化，正式 final-test 关闭"
+    },
+    {
+      "at": "2026-08-18T16:52:55+00:00",
+      "message": "E1: 已读取 normalization manifest/schema；开始分批统计事件、主体、就诊、生命周期、时间与映射覆盖"
+    },
     {
       "at": "2026-08-18T16:46:21+00:00",
       "message": "W10: W10 rehearsal 已验证；项目模式 exploratory-only，official final-test 禁止，仅允许 fixture rehearsal"
