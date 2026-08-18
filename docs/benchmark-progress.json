@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-08-18T16:13:47+00:00",
-  "current_stage": "W0",
-  "overall_status": "running",
+  "updated_at": "2026-08-18T16:26:40+00:00",
+  "current_stage": "W2",
+  "overall_status": "failed",
   "stages": {
     "W0": {
       "status": "completed",
@@ -9,14 +9,14 @@
       "updated_at": "2026-08-18T16:13:47+00:00"
     },
     "W1": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "failed",
+      "message": "W1 按指定规范化事件源审计：20136/20136 主体已在旧 split，previous_exposure=none 为 0；禁止冻结新 validation/final-test，未生成 protocol lock",
+      "updated_at": "2026-08-18T16:21:57+00:00"
     },
     "W2": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W2 encounter_clock 与 source_grouping 合同实现，离线 31 项测试通过；正式产物仍受 W1 lock 阻断",
+      "updated_at": "2026-08-18T16:26:40+00:00"
     },
     "W3": {
       "status": "pending",
@@ -60,6 +60,14 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:26:40+00:00",
+      "message": "W2: W2 encounter_clock 与 source_grouping 合同实现，离线 31 项测试通过；正式产物仍受 W1 lock 阻断"
+    },
+    {
+      "at": "2026-08-18T16:21:57+00:00",
+      "message": "W1: W1 按指定规范化事件源审计：20136/20136 主体已在旧 split，previous_exposure=none 为 0；禁止冻结新 validation/final-test，未生成 protocol lock"
+    },
     {
       "at": "2026-08-18T16:13:47+00:00",
       "message": "W0: 旧 V2/phenotype 产物已失效，治理门禁与审计 manifest 已建立；W0 验收 51/51 通过"
