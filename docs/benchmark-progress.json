@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:35:08+00:00",
-  "current_stage": "W6",
+  "updated_at": "2026-08-18T16:36:49+00:00",
+  "current_stage": "W7",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -39,9 +39,9 @@
       "updated_at": "2026-08-18T16:35:08+00:00"
     },
     "W7": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W7 整数 2x2 统计、零目标分母、subject bootstrap 与 BH family 契约已通过 4 项测试；正式规则统计仍受 W1 阻塞",
+      "updated_at": "2026-08-18T16:36:49+00:00"
     },
     "W8": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:36:49+00:00",
+      "message": "W7: W7 整数 2x2 统计、零目标分母、subject bootstrap 与 BH family 契约已通过 4 项测试；正式规则统计仍受 W1 阻塞"
+    },
     {
       "at": "2026-08-18T16:35:08+00:00",
       "message": "W6: W6 development-only 检索契约已通过 5 项测试，含四配置、同主体排除、OOV/拒绝审计；正式实验未运行，仍受 W1 split 决策阻塞"

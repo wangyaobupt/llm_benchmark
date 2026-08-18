@@ -5,6 +5,7 @@ from .source_grouping import GroupingResult, attach_source_groups
 from .snapshot_adapter import SnapshotAdapter, normalize_discharge_ner_records
 from .decision_documents import DecisionDocumentResult, build_decision_documents
 from .retrieval import RetrievalContractError, RetrievalIndex, RetrievalQueryResult, eligible_features
+from .ranking import ContingencyTable, RankingContractError, benjamini_hochberg, contingency, statistics, subject_bootstrap_units
 
 __all__ = [
     "EncounterClockResult",
@@ -19,4 +20,10 @@ __all__ = [
     "RetrievalIndex",
     "RetrievalQueryResult",
     "eligible_features",
+    "ContingencyTable",
+    "RankingContractError",
+    "benjamini_hochberg",
+    "contingency",
+    "statistics",
+    "subject_bootstrap_units",
 ]
