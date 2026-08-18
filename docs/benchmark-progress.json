@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:36:49+00:00",
-  "current_stage": "W7",
+  "updated_at": "2026-08-18T16:38:22+00:00",
+  "current_stage": "W8",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -44,9 +44,9 @@
       "updated_at": "2026-08-18T16:36:49+00:00"
     },
     "W8": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W8 七域诊断映射、覆盖审计与机械选择契约已通过 4 项测试；正式域审计待 W1 独立主体解冻",
+      "updated_at": "2026-08-18T16:38:22+00:00"
     },
     "W9": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:38:22+00:00",
+      "message": "W8: W8 七域诊断映射、覆盖审计与机械选择契约已通过 4 项测试；正式域审计待 W1 独立主体解冻"
+    },
     {
       "at": "2026-08-18T16:36:49+00:00",
       "message": "W7: W7 整数 2x2 统计、零目标分母、subject bootstrap 与 BH family 契约已通过 4 项测试；正式规则统计仍受 W1 阻塞"

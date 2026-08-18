@@ -6,6 +6,7 @@ from .snapshot_adapter import SnapshotAdapter, normalize_discharge_ner_records
 from .decision_documents import DecisionDocumentResult, build_decision_documents
 from .retrieval import RetrievalContractError, RetrievalIndex, RetrievalQueryResult, eligible_features
 from .ranking import ContingencyTable, RankingContractError, benjamini_hochberg, contingency, statistics, subject_bootstrap_units
+from .cohort import CohortContractError, DiagnosisMapping, audit_domains, map_diagnosis, select_domains
 
 __all__ = [
     "EncounterClockResult",
@@ -26,4 +27,9 @@ __all__ = [
     "contingency",
     "statistics",
     "subject_bootstrap_units",
+    "CohortContractError",
+    "DiagnosisMapping",
+    "audit_domains",
+    "map_diagnosis",
+    "select_domains",
 ]
