@@ -1,574 +1,886 @@
-# Benchmark 高频医嘱偏倚、诊断扩展与 phenotype 重构实施计划
+# Benchmark 检查选择金标准重建实施计划
 
-> 状态：待用户确认后实施
+> 文档状态：已确认，待按工作包实施
 >
-> 审阅日期：2026-08-18
+> 复核日期：2026-08-18
 >
-> 范围：项目实际进度复核、`BenchMark-进展梳理.md` 核验、`data_pipeline`/`phenotype` 当前状态审阅、高频医嘱偏倚解决方案、多诊断扩展方案。本文不把任何现有候选题称为正式 gold。
+> 适用范围：MIMIC-IV 冠心病现有数据、后续多诊断扩展、香港 RWD 项目级医嘱数据
+>
+> 当前 gold：`0`；现有候选均为 `exploratory_unreviewed`
+>
+> 硬约束：旧 `data_pipeline/phenotype` 代码与“8 类 phenotype 特征”设计全部弃用，不从中复制逻辑。
 
-## 1. 结论先行
+## 0. 执行结论
 
-当前最先要解决的不是 TF-IDF，也不是立刻增加诊断数据，而是让 V2 的时间、划分和目标语义重新可信。现有 134 道 formal 候选题不应继续进入人工审核；它们需要标记为失效并在修复后重新生成。
+先重建“在什么时点、当时能看到什么、预测什么检查”的数据合同，再处理高频常规检查遮蔽和诊断单一化。执行顺序固定为：
 
-原因有五个：
+1. 失效旧 V2 候选并冻结任务语义；
+2. 补齐到诊、入院、医嘱、采样、结果可见和文档签署的统一时间轴；
+3. 从正式 snapshot 构建 `decision_document`；
+4. 建立检查/检验的 order、specimen、result 三类 episode；
+5. 在 development 内比较 frequency、lift、TF-IDF/BM25 和收缩 log-RR；
+6. 按来源、检查类别、时间窗、频率层分别验证；
+7. 扩展多诊断数据后重新生成规则与题目；
+8. 临床审核通过前，gold 始终保持为 0。
 
-1. `phenotype` 没有使用项目已经实现的正式 snapshot 可见性合同；它只比较 `event_time`，没有读取 `available_time`。
-2. 出院 ICD 诊断和出院小结体格检查被直接加入预测点前条件，构成后验信息泄漏。
-3. sidecar 没有按 split 过滤。当前名为 development 的特征表实际混入 184 个 validation、176 个 final_test 住院；其中 346 个非 development 住院进入条件组合表，并改变规则挖掘分母。
-4. V2 没有冻结 target window；化验答案使用全住院 `laboratory_resulted`，不是项目级开单事件，任务语义从“下一步开什么”漂移为“住院期间最终得到过什么结果”。
-5. 条件组合默认每次住院最多 500 个，但 23,127 个有条件组合的住院中有 11,747 个（50.79%）触顶；截断顺序由 feature ID 排序决定，没有截断报告，条件空间不是所声明的完整 Apriori 空间。
+两条不可绕过的源数据事实：
 
-TF-IDF 的方向有价值，但“TF-IDF 可以单独解决当前问题”不成立。V2 已按
+- MIMIC 普通检验没有独立 `specimen_received_time`。`labevents.charttime` 只能叫“标本采集时间代理”，`labevents.storetime` 是结果在实验室系统可见的时间，二者都不能冒充“实验室收到样本时间”。
+- MIMIC 的 POE Lab 绝大多数只有泛化 `Lab` 类别，不能从 `labevents.itemid` 或时间邻近关系伪造项目级医嘱。具体检验 order gold 必须来自具有 `order_id + item_id + order_time` 的 RWD；MIMIC 只保留 `generic_lab_order` 或明确命名的 `result_availability_proxy`。
 
-\[
-\operatorname{lift}(X,Y)=\frac{P(Y\mid X)}{P(Y)}
-\]
+## 1. 当前项目实际进度复核
 
-排序。对二元就诊文档而言，IDF 近似 `-log P(Y)`；`log P(Y|X) + IDF(Y)` 与 `log lift` 只差平滑和常数。因此在现有 lift 上再乘一次 IDF 会重复惩罚高频项，并放大罕见噪声。TF-IDF 应用于：
+### 1.1 已完成、部分完成与不可使用产物
 
-- 预测点前患者/就诊表示；
-- 相似病例检索；
-- 候选召回及消融对照。
-
-最终规则排名应以时间安全的目标事件为基础，使用带支持度收缩的条件 log-RR/lift、独立 validation 稳定性和临床审核，而不是让 IDF 直接成为 gold。
-
-## 2. 审阅范围与证据
-
-### 2.1 文档扫描
-
-全库共识别 206 份 Markdown 文档：
-
-| 分组 | 数量 | 审阅方式 |
-|---|---:|---|
-| `docs/` 当前文档 | 55 | 结构/状态全量扫描，任务相关文档全文交叉核验 |
-| `data_pipeline/` | 22 | README、契约和 phenotype 文档全文核验 |
-| `docs/reference/` | 48 | 作为 MIMIC 字段语义索引，按涉及来源定向核验 |
-| `docs/_archive/` | 5 | 仅用于识别历史口径，不作为当前事实源 |
-| `rwd_pipeline/` | 4 | 按仓库约束视为历史交接材料 |
-| `tasks/` | 5 | V1 现状、结果和 gold 语义全文核验 |
-| `versions/` | 4 | V1 冻结说明与 V2 当前主线全文核验 |
-| `docs/P-2026-LLMBenchwork/` | 8 | 全目录扫描，研究方案和进度文档重点核验 |
-| 根目录及其他 | 55 | 项目入口、规范、配置提示和方法文档扫描 |
-
-### 2.2 代码与产物证据
-
-重点核验了：
-
-- `data_pipeline/phenotype/*.py`；
-- `versions/v2-llm-stem/mcq/{mining,catalog,conditions,pipeline,generation,review}.py`；
-- `evaluation_pipeline/snapshot/`；
-- `config/investigation-selection/protocol.yaml`；
-- phenotype manifest、特征/条件 Parquet、规则 JSONL、134 题生成摘要；
-- 冠心病全量 EDA、检查瓶颈指标和 V1 split/validation/final-test 摘要。
-
-现有测试结果：
-
-- phenotype + V2 wiring：22 passed；
-- snapshot visibility + boundary adapter：19 passed。
-
-这两个结果合在一起说明：正式 snapshot 层已经能 fail-closed 处理 `available_time`、未知时间、post-hoc 和 split，但 phenotype 没有复用它；现有 phenotype 测试反而把“未知时间默认可用”和“post-hoc ICD 可作既往史”固化为预期行为，因此测试全绿不能证明科学合同成立。
-
-## 3. 当前项目实际进度
-
-| 层级 | 实际状态 | 可以声称什么 | 不能声称什么 |
+| 层级 | 实际状态 | 可继续复用 | 不可继续声称或使用 |
 |---|---|---|---|
-| 冠心病原始归档 | 已完成 | 108,833 次住院、46,062 名患者的冠状动脉疾病谱原始归档已建立 | 不能说是全诊断 MIMIC 队列 |
-| 三模块事件批 | 已完成工程验收 | 39,036 次住院、20,136 名患者；27,336,811 条 normalized events；workflow manifest 已发布 | 15,316 条归一化复核仍 pending，不能说临床语义已全部审核 |
-| event aggregation | 仅 1,000 例验收 | 聚合合同和三份产物已通过样本验收 | 全部 39,036 例尚未聚合 |
-| 文本 NER | 工程接口和未审核模型输出已存在 | 可做方法开发和错误分析 | 人工 A/B 双标和裁决为 0，不能作为正式特征或 gold |
-| V1 五维原型 | 探索性闭环、已冻结为历史基线 | 221 道 validation rank-1 探索题；final_test 曾使用一次 | 不是临床冻结 gold；随访没有 MCQ gold |
-| 正式协议/split/journey/snapshot | 工程合同部分完成 | governance、subject split、boundary、snapshot 有合成测试 | `protocol-lock.json`、正式 split、真实 boundary/snapshot 均不存在 |
-| V2 phenotype | 已运行，但结果不合格 | 能证明代码路径可运行并生成 352,063 行特征和 7,974,494 条组合 | 不能说 development 隔离、时间安全或可用于正式审核 |
-| V2 规则与题目 | 134 道候选、gold=0 | 生成/程序校验/队列导出链路可运行 | 候选受上游泄漏和语义漂移影响，不能继续审核或发布 |
+| 冠心病原始归档 | 已完成 | 108,833 次住院、46,062 名患者的疾病谱归档与源表抽取方式 | 不能代表多诊断 MIMIC 队列 |
+| 三模块事件批 | 工程运行完成 | 39,036 次住院、20,136 名患者、27,336,811 条规范事件；lineage、manifest、事件 schema 和 transformer | 归一化人工复核未完成，不能称临床语义全部冻结 |
+| event aggregation | 1,000 例验收 | lossless aggregation 合同与样本测试 | 尚未完成 39,036 住院全量聚合 |
+| protocol/split/journey/snapshot | 合同和合成测试已存在 | `evaluation_pipeline/journey`、`evaluation_pipeline/snapshot` 的 fail-closed 代码 | 正式 protocol lock、真实 split、真实 boundary/snapshot 产物尚不存在 |
+| 文本 NER | 工程接口与未审核输出存在 | 可作为开发输入和错误分析材料 | 人工双标与裁决为 0，不可作为 formal 特征或 gold |
+| V1 | 冻结历史基线 | 用于说明模板题和高先验偏倚 | 不作为新管线输入；随访没有 MCQ gold |
+| 旧 phenotype | 已运行但科学合同不合格 | 无 | 全部代码、8 类设计、特征表、条件表均不采用 |
+| 旧 V2 | 134 道未审核候选 | 仅保留审计记录 | 全部失效，不送审、不发布、不作为新统计基线 |
 
-### 3.1 phenotype 实际产物
+### 1.2 现有 event 层的准确边界
 
-`phenotype_manifest_development.json` 声称输入为 12,082 名 development 患者、23,626 次住院；实际特征表有 23,986 个不同 `hadm_id`。各类特征为：
+现有 `clinical_event/1.2.0` 已经提供：
 
-| 类型 | 行数 | 覆盖住院 | 唯一特征 |
-|---|---:|---:|---:|
-| age_band | 23,626 | 23,626 | 4 |
-| sex | 23,626 | 23,626 | 2 |
-| symptom | 29,983 | 22,687 | 2,310 |
-| physiologic_flag | 28,126 | 17,000 | 9 |
-| medication | 61,822 | 7,623 | 32 |
-| past_condition | 167,868 | 23,658 | 7,882 |
-| sign | 17,012 | 894 | 7,565 |
-| absent | 0 | 0 | 0 |
+- `event_time`、`source_available_time`、`available_time`、`recorded_time`；
+- `source_concept_id`、`concept_id`、`preferred_name`、`normalization_status`；
+- 数值、单位及异常标记归一化；
+- `source_table`、`raw_row_ref`、supporting refs；
+- `time_policy_id`、`time_resolution_reasons`、`evidence_phase`、`quality_flags`；
+- unresolved 项进入 review queue 的 fail-closed 机制。
 
-非 development 的 360 个住院只来自 `past_condition` 和 `sign` sidecar：validation 184、final_test 176。条件组合表中仍有 346 个非 development 住院、142,658 行组合。
+因此本计划不重做 event schema 或 transformer。只补两个已验证的缺口：
 
-当前 1,584 条 formal accepted 规则全部属于 imaging；其中 1,102 条含 post-hoc `past_condition`。去重后 738 条、收敛后 165 条，最终生成 134 道候选、31 次生成失败、人工批准 0、gold 0。
+1. `labevents.specimen_id`/`micro_specimen_id` 尚未在规范事件中提供可稳定聚合的分组键；
+2. `edstays.intime`、`admissions.edregtime/admittime` 属于 encounter context，现有 `encounter_manifest.parquet` 只有处理计数，没有临床时钟。
 
-## 4. `BenchMark-进展梳理.md` 核验
+三个使用边界：
 
-根目录文件和 `docs/P-2026-LLMBenchwork/BenchMark_当前进度梳理.md` 不是同一份内容；后者只多了格式调整、`TF·IDF` Todo 和一个 troponin 示例，并没有补齐实际 V2 进展。两份并存会继续造成事实源分裂。
+- `labevents.charttime` 的官方限定是“通常为标本采集时间”，故工程语义是 `specimen_collection_time_proxy`，不能无条件写成精确抽血时刻；
+- ED 主诉可完成概念归一化并保留原始行定位，但如果 occurrence/availability 时间均未知，就不能直接进入小时级前瞻 snapshot；
+- 药物 `normalization_status=unresolved` 继续进入复核队列，不用 `source_label` 猜 concept，也不进入需要冻结 concept 的 formal 条件空间。
 
-| 原内容 | 判断 | 证据与修订方向 |
-|---|---|---|
-| 项目目标是 patient-journey 五维 MCQ | 基本正确 | 需补充行为 gold 与规范 gold 的边界，以及随访维当前无 MCQ gold |
-| 数据源为 MIMIC-IV/HOSP、ED、Note | 正确 | ICU 是可选内容，不是筛选必需条件 |
-| 五站式数据路径 | 结构基本正确 | phenotype 站目前不能标为合格完成 |
-| clean 层“字典解码具体检查、检验项目” | 部分错误 | 结果项目可解码，但 `laboratory_ordered` 99.99% 没有项目级内容；不能说 POE 已恢复具体检验开单 |
-| normalized events 是“归一化完成” | 表述过强 | 工程运行完成，但 12,236,240 条 normalization unresolved、15,316 个 review keys 待人工复核 |
-| phenotype 已形成决策时刻快照 | 错误 | 没有使用正式 snapshot；忽略 `available_time`，并摄入 post-hoc 特征 |
-| phenotype 为 8 类特征 | 设计层正确、实际产物不完整 | 实际只有 7 类有数据，`absent` 为 0；sign 和 past_condition 来源不合格 |
-| development 的 655 道题来自 23,626 住院 | 错误/过时 | V1 当前 development 为 224，validation rank-1 稳定题 84；V2 为 1,584 规则→165→134 候选，不能合并成 655 |
-| “数据集以 ICU 单病种为主” | 错误 | 当前是冠心病谱队列，要求 HOSP+ED+Note，ICU 不参与筛选；问题是单疾病谱，不是 ICU-only |
-| 高频 CXR/Telemetry/BMP 遮蔽判别检查 | 方向正确但需分层 | BMP/CBC 在结果代理中的覆盖约 91%；不同 class 和时间窗必须分别统计，不能把跨机构“几乎人人做”当固定事实 |
-| V2 规则组合 | 缺失 | 应补充 formal 1,584→738→165→134、gold=0，以及本次发现的失效原因 |
-
-建议后续只保留一个当前进展事实源：根目录 `README.md` 负责简要状态，本文件负责问题与实施计划；`BenchMark-进展梳理.md` 在实施阶段改为引用两者，不继续手工复制整套数字。
-
-## 5. 文献调研结论复核
-
-### 5.1 可以保留的结论
-
-1. **高频常规项会让普通精度和频率排名偏向平庸建议。** OrderRex 使用初始就诊信息预测随后医嘱，relative-risk 方法把 inverse-frequency weighted recall 从 4% 提高到 16%，并明确区分“预测最常见事件”和“推荐更有信息量事件”。
-2. **时间窗是方法的一部分，不是实现细节。** OrderRex 使用前 4 小时项目作为 query、后续 24 小时新医嘱作为 validation target；这比当前“首个检查前条件 + 全住院目标”更接近可审计任务。
-3. **TF-IDF/IPF 适合患者表示和相似病例检索。** 罕见病患者检索和 EHR 表示工作支持降低常见概念权重。
-4. **只做逆频率不足以控制罕见偶然共现。** PSR 工作在 1,621 万次就诊上将 TF-IDF 的 NDCG@10 0.799 提高到 0.906，支持加入特异性与可靠性；但它是知识图谱关系排序，不是临床最佳检查 gold。
-
-### 5.2 需要降级的结论
-
-| 调研中的说法 | 修订 |
-|---|---|
-| “TF-IDF 可以很好解决当前问题” | 改为“TF-IDF 可解决表示/召回中的高频支配，但不能修复时间污染、缺失开单项目、行为≠规范以及稀有噪声” |
-| “PSR 已证明适合本项目” | PSR 只证明在另一种关系排序任务上优于 TF-IDF；本项目必须做配对消融和临床盲评 |
-| PLOS 2024 的 order-frequency–inverse-patient-frequency 直接支持医嘱 gold | 该研究用于 ED 返院风险建模，是间接方法证据，不是检查选择排名证据 |
-| “尚无统一框架，因此构成创新” | 当前检索不是正式系统综述；在完成数据库检索、去重、纳排和引用核验前不能作为论文 novelty 声明 |
-
-### 5.3 最可靠的种子证据
-
-- [OrderRex（JAMIA 2016）](https://pubmed.ncbi.nlm.nih.gov/26198303/)
-- [PSR 医疗知识图谱关系排序（Artificial Intelligence in Medicine 2020）](https://pubmed.ncbi.nlm.nih.gov/32143785/)
-- [Order frequency–inverse patient frequency 的 EHR 应用（PLOS Digital Health 2024）](https://doi.org/10.1371/journal.pdig.0000606)
-- [罕见病患者 TF-IDF 相似检索（Journal of Biomedical Informatics 2017）](https://doi.org/10.1016/j.jbi.2017.07.016)
-
-## 6. phenotype/data pipeline 代码审阅
-
-### 6.1 P0：会污染规则、split 或未来信息边界
-
-#### P0-1：没有使用 `available_time`
-
-- `run_phenotype.EVENT_COLS` 未读取 `source_available_time`、`available_time`、时间质量状态和 reason flags。
-- `temporal_gate.gate_events` 只做 `event_time < index_time`。
-- 正式 `evaluation_pipeline.snapshot.visibility` 要求 event time 与 available time 都存在且均不晚于 index；未知时间会产生 `SNAPSHOT_TIME_UNKNOWN`。
-
-影响：晚入库结果、未知可用时间的生命体征/用药核对和其他记录可能被当成预测点前证据。
-
-#### P0-2：未知时间被默认当成可用
-
-`is_available` 明确把无 `event_time` 的 source event 当作已知的 presenting state。现有 39,093 条 `symptom_reported` 的 event/available time 均为空，项目其他审计文档已经规定“ED chief complaint 可用时间未知，不使用 ED 入科时间替代”。两套政策互相冲突。
-
-影响：规则可以运行，但无法证明题干信息在目标医嘱前真实可见。
-
-#### P0-3：post-hoc ICD 作为既往史
-
-`run_phenotype.build` 刻意向 `extract_past_condition_icd` 传入未门禁事件；后者读取 `condition_recorded_post_hoc` 并用关键词判断慢病。MIMIC `diagnoses_icd` 是出院编码，缺少可靠 POA 语义；“慢病名”不等于“预测点前已知既往史”。
-
-影响：最终诊断可通过 `past_condition` 间接进入题干条件。1,584 条规则中 1,102 条使用该类特征。
-
-#### P0-4：出院小结体格检查作为预测点前 sign
-
-`sign_ner` 从 discharge summary 中抽取 Physical Exam、Admission Exam、Exam on Discharge；输出没有 assertion/time/source section/模型审核状态，只保留短语。随后 `run_phenotype` 不经时间门禁直接拼入特征。
-
-影响：住院后或出院时体征、治疗后状态可能被当作初始表现；`unreviewed_model_output` 被用于 formal 规则。
-
-#### P0-5：split sidecar 污染
-
-`signs` 和 `past_condition_ner` 只按路径读取，不与 development `hadm_id/subject_id` 做 inner join，也不验证 sidecar 的 split/输入哈希。实际混入 184 个 validation、176 个 final_test 住院。
-
-影响：346 个非 development 住院进入条件空间；`mine_rules` 用条件表的 distinct hadm 作为 `n_total`，因此直接改变 baseline probability、lift、FDR 和支持度剪枝。当前 legacy final_test 不能再作为 V2 的正式盲测集。
-
-#### P0-6：目标事件和时间窗未冻结
-
-- 协议中的 observation/target window 仍为 `null`。
-- index 是每次住院“任意三类检查医嘱的最早时间”，不是按 decision node/target episode 构建。
-- imaging/clinical 使用整次住院所有 eligible orders；laboratory 使用整次住院所有 `laboratory_resulted`。
-
-影响：任务不是 next-order prediction，也不是冻结时间窗内的 order-set concordance；重复监测、住院后复查和 ICU 检验均进入答案。
-
-### 6.2 P1：会显著改变候选空间、统计量或可复现性
-
-#### P1-1：条件空间静默截断
-
-`enumerate_conditions` 默认每个住院最多输出 500 个组合。50.79% 的住院触顶；程序既不报告被截断数量，也不保证按临床信息量选择组合。
-
-影响：哈希/类型排序较早的组合获得系统性优势，后续组合不是“支持度不足”，而是从未参与检验。
-
-#### P1-2：统计分母只统计已有候选的条件住院
-
-`n_x` 从 `cond INNER JOIN order_frame` 后计算。一个条件存在但目标窗内没有该 comparison class 候选的住院不会进入 `n_x`。
-
-影响：`P(Y|X)`、Wilson lower bound 和 bootstrap stability 被向上偏置。正确分母应是全部 eligible condition decision documents；没有候选是零事件，不是删除样本。
-
-#### P1-3：bootstrap 单位错误
-
-协议要求 `bootstrap_unit: subject_id`，当前 `_bootstrap_stability` 按 `hadm_id` 列表重采样；`conditions` 也没有 subject_id。
-
-影响：同一患者多次住院被当作独立样本，稳定性和置信度可能偏高。
-
-#### P1-4：化验结果代理开单
-
-`laboratory_ordered` 99.99% 没有项目名，当前代码改用 `laboratory_resulted` panel。这个做法可支持“结果可见性/住院中做过什么”的行为研究，但不能支持“医生下一步开哪个具体检验”的 gold。
-
-影响：TF-IDF 无法修复源数据缺少 order→result 链接的事实；必须拆分任务语义。
-
-#### P1-5：产物合同不足
-
-- phenotype manifest 不记录 feature/condition 输出哈希；
-- 输出直接写入目标路径，不是原子发布；
-- mining 的 formal/exploratory 共用同一输出文件，后跑可覆盖先跑；
-- rule 输出缺少独立 run manifest、threshold hash、condition hash；
-- dedup/converge 也没有输入输出哈希和算法版本。
-
-影响：文档中的 20,904、1,584、738、165 无法仅靠现存 manifest 完整追溯。
-
-### 6.3 P2：维护性和验证盲区
-
-- 多个脚本硬编码 `D:`/`G:` 绝对路径，无法由统一配置驱动。
-- 时间用字符串比较，不验证格式一致性。
-- 生成和自动审题使用同一 client/model，只是 prompt 不同，“独立自动审题”表述应降级。
-- phenotype 测试没有覆盖 available-time 晚于 index、sidecar split 混入、post-hoc sign/ICD 拒绝、500 组合截断、subject-level bootstrap、target-window 外事件。
-- `Case_Spider.md` 与当前 MIMIC 管线无关，含内网地址和硬编码用户标识，不应留在当前研究证据目录。
-
-## 7. 问题一解决方案：高频常规医嘱遮蔽
-
-### 7.1 先冻结研究单位
-
-建议把一个统计文档定义为一个 `decision_document`，而不是整次住院：
+### 1.3 旧 V2 实际链路必须补入进展文档
 
 ```text
-subject_id
-hadm_id
-decision_node_id
-index_time
-observation_window
-target_window
-pre_index_feature_ids
-target_order_episode_ids
-comparison_class
-split_role
-cohort_strata
-lineage
+1,584 条 formal accepted 规则
+  → 738 条去重规则
+  → 165 条收敛规则
+  → 134 道候选题
+  → 0 道人工批准 gold
 ```
 
-主实验起点可参考 OrderRex：前 4 小时 observation、随后 24 小时 target；但该值只能作为 development sensitivity grid 的候选，最终值必须写入冻结协议，不能因为题量变化而调整。
+1,584 条规则全部属于 imaging，其中 1,102 条含出院 ICD 派生的 post-hoc `past_condition`。该链还混入 validation/final-test sidecar，并使用未冻结的全住院目标窗口，因此 134 道题必须整体失效，不能只删除明显泄漏题。
 
-### 7.2 先做 order episode，再做频率
+### 1.4 `BenchMark-进展梳理.md` 修订清单
 
-1. 合并同一 POE 生命周期链的 New/Change/Cancel/Discontinue。
-2. 排除取消、未执行、纯物流、饮食、转运等不属于 investigation 的动作。
-3. 同一候选在短时间内的重复开立折叠为一个 burst/order episode。
-4. panel 与 component 双层保留，不让 BMP/CBC 各成分重复放大频率。
-5. primary TF 使用二元 `0/1`；`1+log(count)` 只作为重复强度消融，不作为主方案。
-
-### 7.3 三类答案必须拆开
-
-| 轨道 | 可用来源 | 可声称语义 |
+| 现有表述 | 复核结论 | 必须改成 |
 |---|---|---|
-| imaging order | `imaging_ordered` 项目/模态 | 目标窗内观察到的新影像医嘱 |
-| clinical order | 有明确 content specificity 的 `clinical_ordered` | 目标窗内观察到的新临床检查/监护医嘱 |
-| laboratory result proxy | `laboratory_resulted` | 目标窗内首次变为可见的检验结果/检验 panel，不称“开单选择” |
+| clean 层已字典解码具体检查、检验项目 | 部分错误 | 检验结果 `labevents.itemid → d_labitems` 可到 analyte 级；POE Lab 没有项目键，不能解码具体开单 |
+| normalized events 已“归一化完成” | 过强 | 工程转换完成；12,236,240 条 unresolved、15,316 个 review keys 仍需冻结 |
+| phenotype 已形成预测点快照 | 错误 | 旧 phenotype 未使用正式 snapshot，忽略 `available_time` 并摄入 post-hoc 内容 |
+| phenotype 为 8 类特征 | 不再采用 | 删除此设计；新输入按“可见临床事实合同”组织，不预设 8 类 |
+| 当前是 ICU 单病种 | 错误 | 当前是冠心病谱 HOSP+ED+Note 队列，ICU 不是入选必要条件 |
+| BMP/CBC 几乎人人做 | 只在特定口径成立 | 必须按数据源、candidate class、index、目标窗和分母分别报告 |
+| V2 题目进展 | 缺失 | 补入 1,584→738→165→134、gold=0 和整体失效原因 |
 
-具体 laboratory order gold 在 MIMIC 中缺少项目级开单和 order→result 链接。根本解决办法是：在具有项目级开单键的香港 RWD 上构建 order track；MIMIC 的 result proxy 单独报告，不混入同一个排行榜。
+W0 中，根目录进展文档只保留当前状态摘要并链接本计划；不得继续复制另一套数字形成双事实源。
 
-### 7.4 TF-IDF 的正确位置
+### 1.5 全库扫描与代码复核证据
 
-对 development 决策文档拟合：
+本次扫描快照共识别 206 份 Markdown，覆盖 `docs/`、`data_pipeline/`、`tests/`、`versions/`、`mcq_generation/`、调研目录和历史交接目录；`rwd_pipeline/` 仅作为历史材料，不作为当前实现依据。代码重点逐项核对 event contracts/transformers、journey/snapshot、旧 phenotype、V2 catalog/mining/generation/review 和 investigation protocol。
+
+旧 phenotype/V2 的可复现问题包括：
+
+| 问题 | 实际证据 | 对统计的影响 |
+|---|---|---|
+| split sidecar 未过滤 | 特征表比 manifest 多 360 个住院：validation 184、final-test 176；346 个进入条件组合 | 改变 development 分母、lift 和 FDR |
+| post-hoc ICD | 1,584 条旧 accepted 规则中 1,102 条使用出院 ICD 派生条件 | 目标后诊断进入题干 |
+| discharge sign | 出院小结 Physical/Admission/Discharge Exam 未保留实体时间与审核状态 | 住院后状态可能成为早期特征 |
+| available time 未使用 | 私有门禁只比较 `event_time`，未知时间还可默认可用 | 晚入库结果和未知主诉可能泄漏 |
+| 组合静默截断 | 23,127 个有组合住院中 11,747 个触及每住院 500 cap | 条件空间受 feature ID 顺序控制 |
+| 分母 inner join | 没有同类 target 的条件文档不进入 `n_x` | 条件概率、Lift、Wilson 指标向上偏 |
+| bootstrap 单位错误 | 协议要求 subject，代码按 `hadm_id` 重采样 | 多次住院被当作独立个体 |
+| 目标窗未冻结 | laboratory 用全住院 result，其他类用全住院 order | “下一步选择”漂移为“最终做过” |
+| Lab order 不具项目名 | 969,587 条 laboratory order 中 969,558 条只有 category，另 27 条仅 subtype、2 条 attribute-enriched | MIMIC 无法建立项目级 lab order gold |
+| normalization pending | 12,236,240 条事件 unresolved，15,316 个 review keys 待审核 | 工程转换完成不等于临床概念冻结 |
+
+已有测试“全绿”只证明旧代码按自己的预期运行，不能抵消错误科学合同。新测试必须让上述注入场景 fail-closed。
+
+### 1.6 文献证据的使用边界
+
+- [OrderRex（JAMIA 2016）](https://pubmed.ncbi.nlm.nih.gov/26198303/) 支持把就诊早期信息与后续医嘱分窗，并用相对风险降低纯高频预测偏倚；它不直接证明本项目的窗口或 gold。
+- [医疗知识图谱 PSR（Artificial Intelligence in Medicine 2020）](https://pubmed.ncbi.nlm.nih.gov/32143785/) 说明特异性与可靠性结合可优于单纯 TF-IDF；它不是检查选择的临床验证。
+- [Order frequency–inverse patient frequency（PLOS Digital Health 2024）](https://doi.org/10.1371/journal.pdig.0000606) 支持 EHR 表示中的逆患者频率；其任务是风险建模，不是检查 order gold。
+- [罕见病患者 TF-IDF 检索（Journal of Biomedical Informatics 2017）](https://doi.org/10.1016/j.jbi.2017.07.016) 支持将 TF-IDF 用于患者相似检索。
+
+因此 TF-IDF 在本项目中是待配对验证的召回方法，不是由文献直接确立的最终排名或 gold 生成规则。
+
+## 2. 术语和研究对象
+
+### 2.1 `decision_document` 不是“整次住院”
+
+一个 `decision_document` 表示一次明确决策时点的统计样本：在某患者、某次就诊、某个 `index_time`，只取当时真实可见的信息作为 query，并把冻结目标窗内同类检查 episode 作为 target。
+
+```text
+ED 到诊 00:00
+  ├─ 02:10 影像决策文档：输入为 02:10 前可见事实，目标为该时点影像 order set
+  ├─ 03:40 临床检查文档：输入为 03:40 前可见事实，目标为该时点临床 order set
+  └─ 固定窗检验代理文档：输入 [00:00,04:00)，目标为 [04:00,28:00) 首次可见结果 bundle
+```
+
+整次住院前后状态会变化；把它作为一个文档会把目标后的信息和重复监测混到同一袋中。新设计使每条规则都能回答“当时已知什么、随后发生什么”。
+
+### 2.2 “二元就诊文档”的准确含义
+
+“二元”不是把内容压缩成两个字段，而是候选在一个 `decision_document` 中的词频只取 `0/1`：出现一次或多次均为 1，未出现为 0。这样 RBC 重复测 8 次不会得到 8 倍权重。重复次数可作为 `1+log(count)` 消融，但不进入主分析。panel 与 component 分开统计，不能把 CBC、RBC、Hemoglobin、Hematocrit 同时当成四个独立开单。
+
+### 2.3 “放大罕见噪声”不只指一次性检查
+
+罕见噪声指 `df`、患者数或共同支持很低，却因偶然共现获得很高 IDF/lift 的候选。只出现一次是极端情形，出现 2–20 次也可能是噪声。门禁同时使用 development `document_frequency`、独立患者数、共同患者数、收缩 log-RR、subject-level bootstrap、validation 稳定性和临床审核。单次项目一定拒绝；但“不是一次”不等于可靠。
+
+### 2.4 “归一化”要完成什么
+
+归一化不是把项目粗暴合并，而是保留原始事实并建立稳定概念层：
+
+```text
+source_label / source_concept_id（原始事实）
+  → component concept（RBC、Hemoglobin、Creatinine）
+  → panel membership（CBC、BMP；版本化临床目录）
+  → comparison class（血液学、代谢、影像模态等）
+```
+
+四类任务是：字典解码、同义词统一、component/panel 层级建模、单位和值统一。`RBC → CBC` 只能表达 membership，不能把 RBC 改名为 CBC，也不能仅看到 RBC 就断言完整 CBC。禁止从泛化 POE Lab 猜项目、从时间邻近猜 order-result 链接、把不完整 component 集合标为完整 panel、用未审核 LLM 输出冻结概念。
+
+## 3. 统一临床时间轴
+
+### 3.1 时间轴对象
+
+```text
+ED 实际进入/登记 → 医院入院 → 临床事实发生 → 医嘱创建
+→ 标本采集 → 标本接收（仅源系统真实提供时） → 检查/检验执行
+→ 部分/完整结果可见 → 文档完成/签署 → 医院出院
+```
+
+规范事件继续保留现有四类时间及其 policy/reasons；新增的是 encounter clock 和 specimen grouping，不另建重复事件体系。
+
+### 3.2 到诊、登记和入院
+
+| 中文语义 | MIMIC 来源 | 原始 JSON | 当前 Parquet | 新合同用途 |
+|---|---|---|---|---|
+| 进入急诊 | `edstays.intime` | `mimic_iv_ed.edstays[].intime` | 不在 normalized events；encounter manifest 也不保存 | `ed_arrival_time`，ED-linked 任务首选 origin |
+| 离开急诊 | `edstays.outtime` | `mimic_iv_ed.edstays[].outtime` | 同上 | `ed_departure_time` |
+| 急诊登记 | `admissions.edregtime` | `mimic_iv_hosp.admissions[].edregtime` | 同上 | `ed_registration_time`，独立交叉审计 |
+| 急诊离科 | `admissions.edouttime` | `mimic_iv_hosp.admissions[].edouttime` | 同上 | ADT 来源离科时间 |
+| 医院入院 | `admissions.admittime` | `mimic_iv_hosp.admissions[].admittime` | boundary 单独消费 | `hospital_admit_time`；非 ED 住院 origin |
+| 医院出院 | `admissions.dischtime` | `mimic_iv_hosp.admissions[].dischtime` | boundary 单独消费 | encounter end，不进入前瞻输入 |
+
+官方依据：[ED `edstays`](https://mimic.mit.edu/docs/iv/modules/ed/edstays.html)、[HOSP `admissions`](https://mimic.mit.edu/docs/iv/modules/hosp/admissions.html)。
+
+锚点规则：ED-linked 任务优先 `edstays.intime`；`edregtime` 独立保留，不与其无条件 `coalesce`；只有登记时间时 origin 类型写 `ed_registration`；非 ED 住院任务使用 `admittime`；多 ED stay、时序倒置或冲突超过冻结阈值时正式样本 fail-closed 排除。
+
+W2 新建 `encounter_clock.parquet`。现有 `encounter_manifest.parquet` 继续只做行数/事件数审计，不承担临床边界语义。
+
+### 3.3 医嘱、检验和文档时间
+
+| 对象 | 源字段 | 官方语义 | 新用途 | 禁止解释 |
+|---|---|---|---|---|
+| POE 医嘱 | `poe.ordertime` | provider order was made | `order_created_time` | 执行、采样、接收或结果时间 |
+| 普通检验标本 | `labevents.specimen_id` | 同一标本分组键 | specimen/result bundle | 不能从 ID 推断时间 |
+| 普通检验 | `labevents.charttime` | charted；通常为采集时间 | `specimen_collection_time_proxy` | 接收时间或精确 order time |
+| 普通检验 | `labevents.storetime` | 结果在实验室系统可见 | component `result_available_time` | 接收、采集或开单时间 |
+| 微生物 | `microbiologyevents.charttime` | 官方示例支持采样时间 | `specimen_collection_time` | 接收或结果可见 |
+| 微生物 | `microbiologyevents.storetime` | 最后已知更新时间 | `microbiology_last_update_time` | 首次 interim result |
+| 放射报告 | `radiology.charttime/storetime` | charted / 通常完成签署 | 内容时间 / 保守可见代理 | 影像开单或执行时间 |
+| 出院小结 | `discharge.storetime` | 通常完成签署入库 | 回顾性 NER；post_hoc | 早期 snapshot 输入 |
+
+官方依据：[POE](https://mimic.mit.edu/docs/iv/modules/hosp/poe.html)、[`labevents`](https://mimic.mit.edu/docs/iv/modules/hosp/labevents.html)、[`microbiologyevents`](https://mimic.mit.edu/docs/iv/modules/hosp/microbiologyevents.html)、[radiology](https://mimic.mit.edu/docs/iv/modules/note/radiology.html)、[discharge](https://mimic.mit.edu/docs/iv/modules/note/discharge.html)。
+
+### 3.4 “采用化验单收到样本时间”的落地规则
+
+- **香港 RWD**：若字典明确提供 `specimen_received_time`，原值进入生命周期合同。若研究目标是“医生开了什么”，gold 仍使用真实 `order_time`；接收时间不能替代医生决策时间。
+- **MIMIC-IV**：`specimen_received_time=null`、`specimen_received_time_status=source_insufficient`；普通检验保留采集代理 `charttime` 和结果可见 `storetime`。
+- **全部来源**：不得用二者中点、同一 specimen 最早时间、最近 POE 或模型推断补造接收时间。
+
+### 3.5 可见性规则
+
+进入 query 的每条事件必须同时满足：
+
+```text
+event_time < index_time
+AND available_time <= index_time
+AND evidence_phase not in {post_hoc, administrative_end}
+AND split_role permitted
+AND source/time semantics allowed by frozen policy
+```
+
+目标 order 本身不进入同一时点的 query；已有事实允许 `available_time == index_time`。未知 occurrence/availability 在没有明确结构性先后证据时拒绝。date-only 时间不能假装为当天 00:00。
+
+## 4. 检查与检验 episode 合同
+
+### 4.1 三类对象不能混用
+
+| track | 目标对象 | MIMIC 可支持的声明 | 主时间 |
+|---|---|---|---|
+| `imaging_order` | 可识别影像 order episode | 观察到的下一组影像医嘱 | `poe.ordertime` |
+| `clinical_order` | 可识别临床检查/监护 order episode | 观察到的下一组同类医嘱 | `poe.ordertime` |
+| `generic_lab_order` | 类别级 Lab POE | 随后创建泛化 Lab 医嘱 | `poe.ordertime` |
+| `lab_result_proxy` | specimen 下 component/panel bundle | 目标窗内结果首次/完整可见 | `storetime`；发生代理另存 `charttime` |
+| `rwd_lab_order` | RWD 项目级检验 order episode | 具体下一项检验开单 | RWD `order_time` |
+
+不同 track 单独建目录、分母、频率层和排行榜，不生成跨 track 选择题。
+
+### 4.2 component、panel 与 CBC/BMP
+
+正式目录同时保留 `candidate_level=component|panel`、`panel_completeness=complete|partial|extra_components|unknown`、`panel_definition_version` 和实际 component 集合。同一 `specimen_id` 内聚合；panel 主分析计一次，components 另行报告，二者不进入同一竞争集合。
+
+当前手写 RBC→CBC 占位映射作废。W4 经官方项目字典、共现审计和临床冻结后生成目录。普通检验 bundle 输出：
+
+- `first_component_available_time=min(component.storetime)`；
+- `all_required_components_available_time=max(required component.storetime)`，仅 complete panel 有值。
+
+主 panel 结果代理使用完整 panel 可见时间；partial panel 只进入 component 分析。
+
+### 4.3 对现有 event 合同的最小增量
+
+不改变已有四类时间和归一化字段。只在不丢失原始 lineage 的前提下增加：
+
+| 字段 | 约束 | 用途 |
+|---|---|---|
+| `source_group_type` | nullable：`lab_specimen`、`microbiology_specimen`、`poe_order`、`report` | 分组语义 |
+| `source_group_id` | 稳定去标识 hash | 跨 component 构建 episode |
+| `source_group_id_status` | `observed|derived|unavailable` | 区分真实源键与派生键 |
+| `time_semantics` | 版本化枚举；与现有 `time_policy_id` 一一对应 | 明确 `event_time` 的源语义 |
+
+这四个字段作为现有 `clinical_event` 的顶层最小增量，统一更新 JSON/Arrow schema、transformer、audit 和 schema version。原因是 episode 构建必须按 specimen/order 高效分组并做非空、唯一性和来源一致性校验；藏入自由 JSON 会削弱合同。禁止建立与现有 event 平行的第二套事件文件，也不改动已有时间、概念和值字段的含义。
+
+## 5. `decision_document` 数据合同
+
+### 5.1 四个正式产物
+
+1. `decision_documents.parquet`：一行一个决策；
+2. `decision_evidence.parquet`：`decision_id ↔ event_id`；
+3. `decision_targets.parquet`：`decision_id ↔ episode_id ↔ candidate_id`；
+4. `decision_manifest.json`：schema、协议、输入输出 hash、计数和 Git commit。
+
+### 5.2 决策主表
+
+| 字段 | 中文语义 | 来源 | 缺失门禁 |
+|---|---|---|---|
+| `schema_version` | 合同版本 | 常量 | 拒绝 |
+| `decision_id` | 稳定决策 ID | protocol+journey+node+class hash | 重复拒绝 |
+| `subject_ref` | 去标识患者引用 | split manifest | 不输出原 ID |
+| `admission_ref` | 去标识住院引用 | boundary manifest | 未匹配拒绝 |
+| `journey_id` | 旅程 ID | boundary manifest | 未认证拒绝 |
+| `split_role` | 数据角色 | split manifest | 跨 split 拒绝 |
+| `encounter_origin_type/time` | ED 到诊/登记或入院起点 | encounter clock | 未声明/冲突拒绝 |
+| `hospital_admit_time` | 医院入院 | admissions | 可空但要有状态 |
+| `index_policy_id` | 节点策略 | protocol | 拒绝 |
+| `index_event_id/index_time` | 触发事件与截断时间 | order episode 或固定窗 | 与策略不符拒绝 |
+| `query_window_start/end` | 输入窗口 | protocol | 非法区间拒绝 |
+| `target_window_start/end` | 目标窗口 | protocol | 非法区间拒绝 |
+| `candidate_class` | 同类比较空间 | versioned catalog | 未知拒绝 |
+| `target_semantics` | order/result proxy | track | 混轨拒绝 |
+| `zero_candidate_observed` | 目标为零 | targets 计数 | 必须保留作分母 |
+| `eligibility_status` | eligible/excluded | validator | formal 只读 eligible |
+| `exclusion_reason_codes` | 机械原因码 | validator | excluded 必须非空 |
+| `snapshot_sha256` | 可见证据 hash | evidence canonical hash | 拒绝 |
+| `protocol_lock_sha256` | 协议 hash | protocol lock | 不匹配拒绝 |
+| `subject_split_manifest_sha256` | split hash | split manifest | 不匹配拒绝 |
+| `boundary_manifest_sha256` | boundary hash | boundary manifest | 不匹配拒绝 |
+| `source_input_sha256` | 事件输入 hash | workflow manifest | 不匹配拒绝 |
+
+### 5.3 证据表与目标表
+
+`decision_evidence.parquet` 至少包含 `decision_id,event_id,feature_concept_id,event_time,available_time,visibility_policy_id,evidence_role`。
+
+`decision_targets.parquet` 至少包含 `decision_id,episode_id,candidate_id,candidate_level,target_occurrence_time,target_available_time,target_semantics,is_primary_target`。
+
+### 5.4 原始 JSON → 现有 Parquet → 新合同
+
+| 内容 | 原始 JSON | 当前规范 Parquet | 新合同 |
+|---|---|---|---|
+| ED 到诊 | `mimic_iv_ed.edstays[].intime` | 未进入 normalized events | encounter clock → origin |
+| 医院入院 | `mimic_iv_hosp.admissions[].admittime` | boundary 单独消费 | encounter clock |
+| 项目医嘱 | `poe[].ordertime/order_type/order_subtype/poe_id` 或 `poe_timeline` | `*_ordered` 有 event/available time | order episode → index/target |
+| 泛化 Lab | 同上，仅 `order_type=Lab` | `laboratory_ordered` + category-only flag | 仅 generic lab order |
+| 普通检验 | `labevents[].specimen_id/itemid/charttime/storetime` | 有时间与 analyte，缺 specimen 分组 | specimen/component/panel episode |
+| 微生物 | `microbiologyevents[].micro_specimen_id/charttime/storetime` | 有规范事件 | microbiology episode |
+| 放射报告 | `radiology[].charttime/storetime` | note/report event | 报告证据，不代替 order |
+| 出院小结 | `discharge[].charttime/storetime/text` | post-hoc note/NER | 回顾性 NER，不进 query |
+
+当前仓库没有上述 decision 产物，W5 才会正式生成。
+
+### 5.5 合成端到端示例
+
+```text
+edstays.intime                    2100-01-01 08:00  → encounter_origin_time
+poe imaging ordertime             2100-01-01 09:10  → target order episode / index_time
+labevents specimen 77 charttime   2100-01-01 08:35  → specimen_collection_time_proxy
+labevents specimen 77 storetime   2100-01-01 09:25  → result_available_time
+```
+
+09:10 的影像 order 文档不能看到 09:25 才可见的检验结果，即使其采集代理时间是 08:35。若为 CBC result-proxy 文档，先根据冻结 panel 目录判断 complete/partial，再使用相应可见时间；`specimen_received_time` 为空。
+
+## 6. 两个核心问题的统计解决方案
+
+### 6.1 Lift 为什么没有解决 CBC/BMP 支配
+
+旧流程存在四个结构问题：分母删除零目标文档；全住院结果冒充开单；panel/components/重复测量放大频率；所有 class 和时间窗混合解释。此外，若 CBC 基线覆盖为 0.9133，其 lift 上限约为 `1/0.9133=1.095`，固定 `min_lift=1.2` 会在数学上排除它，却不真正解决候选空间。
+
+主方案是先修复研究单位和候选层级，再将 TF-IDF 用于召回、收缩 log-RR 用于规则排名。
+
+### 6.2 TF-IDF 的职责边界
 
 \[
 idf(y)=\log\frac{N+1}{df(y)+1}+1
 \]
 
-其中 `df(y)` 是包含候选 y 的 decision document 数，不是原始事件行数。IDF 只能读取 development，validation/final_test 不参与词表、df、阈值或截断。
+`N` 是全部 eligible decision documents，包括零目标文档；`df(y)` 是含候选 y 的文档数，不是事件行数。词表与 IDF 只从 development 拟合。
 
-实现两条可比较路径：
+配对比较 `frequency`、修正分母后的 `lift`、`tfidf_retrieval`、`bm25_retrieval` 和主路径 `shrunk_log_rr`。TF-IDF 不与 Lift 直接相乘。
 
-1. **规则路径（主路径）**：直接用时间安全的 condition→candidate 计数计算收缩 log-RR/lift。
-2. **检索路径（TF-IDF 路径）**：用预测点前 feature TF-IDF 向量检索相似 development decision documents，再聚合它们的 target orders。
-
-TF-IDF 不与 lift 机械相乘。若做 hybrid，只允许把“检索得到的局部证据”和“全局收缩 RR”作为两个校准特征，由 validation 决定权重；不得把 final_test 用于权重选择。
-
-### 7.5 可靠性收缩
-
-主统计量建议为：
+### 6.3 收缩与验证
 
 \[
 \widehat{\log RR}_{shrunk}
-=
-\frac{n_{xy}}{n_{xy}+\lambda}
+=\frac{n_{xy}}{n_{xy}+\lambda}
 \log\left(
 \frac{(n_{xy}+\alpha)/(n_x+2\alpha)}{(n_y+\alpha)/(N+2\alpha)}
 \right)
 \]
 
-其中：
+`n_x` 必须包含条件出现但目标为零的 eligible 文档；bootstrap 单位是 `subject_ref`；FDR family 在看结果前由 `condition × candidate_class` 机械枚举；validation 只验证冻结规则；final_test 完全隔离。
 
-- `N`：全部 eligible development decision documents；
-- `n_x`：出现条件 X 的全部文档，包括没有候选的文档；
-- `n_y`：出现候选 Y 的文档；
-- `n_xy`：X/Y 共现文档；
-- `alpha/lambda`：只在 development+validation 确定并冻结。
+### 6.4 CBC/BMP 约 91% 如何处理
 
-当前统一 `min_smoothed_probability=0.60` 不适合长尾特异项，应改成按 comparison class 预注册的支持度、置信下界、收缩 RR 和稳定性组合。改变门槛的目标是对齐构念，不是增加题量。
-
-### 7.6 评价矩阵
-
-| 维度 | 指标 |
-|---|---|
-| 高频遮蔽 | rank-frequency Spearman、HighFreqOccupancy@K、head/mid/tail Recall@K |
-| 长尾发现 | inverse-frequency weighted recall、macro Recall@K、frequency-stratified NDCG |
-| 罕见噪声 | 最低支持度、经验贝叶斯后验下界、置换负对照的假阳性率 |
-| 时间有效性 | target-window 外事件摄入数必须为 0；post-hoc/unknown-time 摄入数必须为 0 |
-| 稳定性 | patient-level bootstrap、development→validation rank concordance、规则 Jaccard |
-| 临床价值 | 高频/中频/低频分层盲评、诊断/筛查目的、唯一答案、可行动性 |
-
-必须增加两个反事实测试：
-
-- 把同一个常规医嘱复制 10 次，二元 episode 排名不得改变；
-- 加入一个只出现 1 次的随机候选，不能因 IDF 极高进入 Top-K。
-
-## 8. 问题二解决方案：诊断单一化与数据扩展
-
-### 8.1 不直接“随机再抽一批”
-
-目标不是让诊断名称更多，而是让检查决策分布更丰富。应先在源 `diagnoses_icd` 上做只读诊断覆盖审计，再根据“新增候选覆盖 + 与 CAD 检查分布差异”选择队列。
-
-对每个诊断家族 g 计算：
-
-- 患者数、住院数、主诊断/次诊断比例；
-- HOSP/ED/Note/POE/可用时间覆盖；
-- 时间安全 target order episode 的候选分布；
-- 与 CAD 分布的 Jensen-Shannon divergence；
-- 新增候选覆盖数；
-- head/mid/tail 分布；
-- 可构造 decision document 的比例。
-
-选择 Pareto 前沿，而不是按疾病知名度手工挑选。
-
-### 8.2 建议候选临床谱系
-
-以下仅作为审计分层起点，最终 code set 应使用带来源和版本的 ICD-9/10→CCSR/临床家族映射，并经临床复核：
-
-- 神经血管/神经急症：扩大 CT/MRI、血管成像、凝血和代谢检查；
-- 呼吸/肺部：扩大 CXR、CT、血气、微生物检查；
-- 感染/脓毒症：扩大培养、乳酸、炎症和器官功能检查；
-- 腹部/消化：扩大超声、腹部 CT、肝胆胰检验；
-- 肾脏/代谢：扩大电解质、尿液、酸碱和肾功能检查；
-- 创伤/骨科：扩大部位影像和术前检查；
-- CAD 保留为对照谱系。
-
-### 8.3 分层选择算法
-
-1. 建立 multi-label 诊断家族标签；诊断只用于 cohort sampling/stratified reporting，不进入预测快照。
-2. 使用 `subject_id` 先划分角色，再在角色内抽取住院；同一患者跨多个诊断也只能属于一个 split。
-3. 每个住院保留多标签用于分析，但抽样时分配一个 canonical stratum，避免重复计数。canonical stratum 的规则必须预注册，例如主诊断家族优先、无主诊断时按固定临床优先级。
-4. 样本量不写死为“每病种一样多”。对每组使用：
-
-\[
-N_g \ge \left\lceil \frac{n_{tail,min}}{\widehat p_{tail,g}} \right\rceil
-\]
-
-确保目标长尾候选在 development 和 validation 都达到最低患者级支持度。
-5. 保存两套统计视图：
-   - natural-prevalence view：保持真实分布，用于全局 IDF、校准和总体结果；
-   - stratified audit view：各谱系有足够样本，用于 macro 指标和临床审阅。
-6. 任何平衡抽样都保存 sampling weight；不能用平衡样本的频率冒充真实患病率或真实开单概率。
-
-### 8.4 抽取实现方向
-
-当前 `mimic_raw_archive/cohort.py` 把 CAD 规则硬编码为 ICD-9 410–414 / ICD-10 I20–I25。实施时应改成配置驱动的 cohort registry：
+现有约 91% 是“冠心病、全住院、result proxy”口径，不是跨机构事实。正式报告按下列组合分别计算：
 
 ```text
-config/cohorts/diagnosis-strata.yaml
-schemas/diagnosis-strata.schema.json
-data_pipeline/mimic_raw_archive/cohort.py
+data_source × diagnosis_stratum × candidate_track × candidate_class
+× candidate_level × observation_window × target_window × split_role
 ```
 
-每个 selection manifest 至少记录：
+每个单元报告 `N、df、subject_count、prevalence、first/complete availability、head/mid/tail`。CBC/BMP 不删除，而是 panel 主分析计一次、components 分析另报、同类比较、同时报告 micro 与 macro/head-mid-tail recall，并用低频召回增益和 validation 稳定性评估 TF-IDF。
 
-- code set 版本和哈希；
-- source `diagnoses_icd` 哈希；
-- subject/hadm；
-- multi-label strata 和 canonical stratum；
-- split role；
-- inclusion/exclusion reason；
-- sampling weight；
-- HOSP/ED/Note/POE 覆盖；
-- 生成代码 Git commit。
+旧 index 下 4h/24h/48h 结果覆盖（BMP 4.13/76.37/90.15，CBC 3.96/75.03/89.59）只作审计；新 decision 文档后全部重算。
 
-超过 50 MB 的抽取产物继续留在数据目录并写入 `.gitignore`；只提交配置、schema、代码、测试和小型 manifest 摘要。
+### 6.5 诊断单一化
 
-## 9. 实施工作包与依赖顺序
+不随机补诊断，也不预设等量。执行规则：
 
-### W0：停止错误链路继续扩散
+1. 全源统计诊断 family 的患者/住院数、ED/Note 覆盖、项目级 order 覆盖；
+2. 计算各 family 相对冠心病的 candidate 分布 Jensen–Shannon divergence 与 top-k 重叠；
+3. 预注册感染/脓毒症、呼吸、心衰、神经、肾脏/电解质、消化/肝胆、血液/肿瘤七个候选域；
+4. 仅 `subjects≥2,000` 且关键源与时间合同通过门禁的域进入；
+5. 选分布差异最大且质量合格的至少四个域；
+6. 按 subject 抽样，单域最多为最小域 2 倍；同一患者不得跨 split；
+7. 先报告分域指标，再决定 pooled benchmark。
 
-操作：
+若某域不合格，明确排除并记录原因，不静默换成另一个诊断。
 
-- 将现有 134 题标记为 `invalidated_upstream_temporal_and_split_leakage`；
-- 暂停人工审核和任何模型评测；
-- legacy final_test 明确降级，不能再作为 V2 正式 blind final test；
-- 增加运行前 guard：检测 sidecar split、post-hoc 特征或未知时间即失败。
+## 7. 新实现边界与目录
 
-完成条件：旧产物不能被 gold exporter 或审核入口读取。
+新代码建立在合格 upstream event、boundary 和 snapshot 之后，不放进旧 phenotype：
 
-### W1：冻结构念、decision document 和时间窗
+```text
+data_pipeline/investigation_selection/
+  __init__.py
+  __main__.py
+  contracts.py                 # Arrow/JSON schema 与 reason codes
+  time_semantics.py            # 来源时间白名单和 encounter clock
+  snapshot_adapter.py          # 唯一的正式 snapshot 接口
+  episodes.py                  # order/specimen/result episode
+  candidate_catalog.py         # component/panel/class 目录
+  decision_documents.py        # 三张 decision Parquet
+  text_entities.py             # 审核后、时间安全的 NER 适配
+  retrieval.py                 # binary TF-IDF/BM25
+  ranking.py                   # frequency/lift/shrunk log-RR/FDR
+  cohort.py                    # 多诊断审计与抽样
+  validation.py                # split/time/statistics/clinical gates
+  io.py                        # 原子发布与 manifest/hash
+  schemas/
+    encounter-clock.schema.json
+    investigation-episode.schema.json
+    decision-document.schema.json
 
-操作：
+config/investigation-selection/
+  protocol.yaml
+  time-semantics.yaml
+  candidate-catalog.yaml
+  panel-definitions.yaml
+  diagnosis-strata.yaml
+  feature-whitelist.yaml
 
-- 决定 imaging/clinical order 与 laboratory result proxy 的独立语义；
-- 冻结 observation/target windows、并列 order-burst、取消/变更策略；
-- 补齐 `protocol.yaml` 的 null 和 unresolved decisions；
-- 规定 ED triage 未知时间的政策：没有正式结构先后证据就排除，不能静默假定可见。
+tests/investigation_selection/
+  test_time_semantics.py
+  test_encounter_clock.py
+  test_snapshot_adapter.py
+  test_episodes.py
+  test_candidate_catalog.py
+  test_decision_documents.py
+  test_retrieval.py
+  test_ranking.py
+  test_cohort.py
+  test_validation.py
+```
 
-完成条件：protocol validate 显示 `freeze_ready=true`，生成 `protocol-lock.json`。
+可复用依赖仅限：
 
-### W2：复用正式 snapshot，删除 phenotype 私有时间政策
+- `data_pipeline/event_pipeline` 已验证的 event 转换、时间字段、归一化和 lineage；
+- `evaluation_pipeline/journey` 的 split-bound boundary 认证；
+- `evaluation_pipeline/snapshot` 的 occurrence + availability + phase + split 可见性；
+- 现有原始归档 manifest 与 source catalog。
 
-操作：
+明确不导入 `data_pipeline.phenotype`，不读取旧 phenotype/condition/rule/question 产物。
 
-- phenotype 不再自行实现 `is_available`；
-- 从 encounter boundary + normalized events 生成真实 decision nodes/snapshot；
-- 强制 event time、available time、phase、split、field whitelist 和 source hash；
-- sidecar 必须带 subject/hadm/split/source time/review status，并在进入 feature frame 前 inner join。
+## 8. 环境、版本和运行规则
 
-完成条件：真实 development 小样本的 post-hoc、unknown-time、validation/final-test 事件摄入均为 0。
+所有命令从仓库根目录执行，使用项目 `uv` 环境：
 
-### W3：重建可信特征层
+```powershell
+uv sync
+uv run python -m pytest tests/investigation_selection -q -p no:cacheprovider
+```
 
-操作：
+若执行中出现真实缺失的模块：
 
-- demographics 保留；
-- symptoms 只接收通过时间政策的来源；
-- vitals 使用 available-time 合同；
-- medication reconciliation 只有结构性/时间证据成立才进入；
-- 移除出院 ICD 既往史代理；既往史只用预测点前已记录来源；
-- 移除 discharge-summary sign；改用预测点前文书或不启用 sign；
-- 取消静默 500 cap，改为支持度优先的两阶段 Apriori，并报告每级候选/剪枝数。
+```powershell
+uv add --dev <test-only-package>
+uv add <runtime-package>
+```
 
-完成条件：feature manifest 中的 unique hadm 与 development eligible hadm 完全一致，输出含哈希并原子发布。
+安装后必须更新 `pyproject.toml`/`uv.lock`，运行 import smoke test 和相关 pytest；不得改用系统 Python、Anaconda 或未锁定的 `pip install`。大于 50 MB 的生成数据不进 Git。每个完整工作包验证通过后形成一个本地 commit，不 push；commit 同时记录“改了什么”和“为什么”。
 
-### W4：建立 investigation order episode
+## 9. W0—W10 可直接执行工作包
 
-操作：
+### W0：失效旧 V2 与统一事实源
 
-- POE lifecycle 合并、burst collapsing、panel/component 双层表示；
-- target window 过滤；
-- imaging/clinical/lab-result 三轨分开；
-- 输出可追溯 decision-document/episode 表。
+**目标**：阻止不合格候选继续流转，并让项目状态只有一个口径。
 
-完成条件：复制重复医嘱不改变 episode 计数；target-window 外事件为 0。
+**前置输入**：本计划、旧 phenotype manifest、V2 rule/dedup/converged/question summaries、根目录和调研目录进展文档。
 
-### W5：实现频率偏倚配对实验
+**执行步骤**：
 
-固定同一数据、同一候选集、同一 split，比较：
+1. 建立旧产物审计清单，记录路径、hash、行数和失效原因；不删除历史证据；
+2. 给旧 134 候选的发布/审核入口加 fail-closed 状态 `invalidated_upstream_contract`；
+3. 禁止旧 phenotype entrypoint 生成 formal 产物；调用时显式报错并指向新模块；
+4. `BenchMark-进展梳理.md` 补入 1,584→738→165→134、gold=0；
+5. README 只保留状态摘要并链接本计划，删除重复数字；
+6. 搜索全库 `formal accepted`、`134`、`8 类`、`phenotype`，逐项判断是否需加历史限定；
+7. 生成 `legacy-invalidation-manifest.json`，包含输入 hash、原因码和 Git commit。
 
-1. conditional probability；
-2. TF-IDF retrieval；
-3. raw lift/log-RR；
-4. shrunken log-RR；
-5. TF-IDF retrieval + shrunken log-RR rerank。
+**产物**：失效 manifest、唯一进展事实源、旧入口拒绝门禁与测试。
 
-完成条件：预注册指标全部输出；不能只选择对题量最有利的方法。
+**测试**：
 
-### W6：诊断覆盖审计和多谱系抽取
+```powershell
+uv run python -m pytest tests -q -p no:cacheprovider -k "legacy or phenotype or v2"
+```
 
-操作：
+**验收**：任何旧候选不能进入审核/发布；gold 计数为 0；审计清单可复现旧数字；无历史文件被当作新输入。
 
-- 在源诊断表上先做只读全量 profile；
-- 用支持度、模块覆盖、JSD 和新增候选覆盖选择谱系；
-- 生成配置驱动 selection manifest；
-- patient-first split 后抽取、清洗、标准化和聚合新数据。
+**依赖**：无。后续 W1–W10 均依赖 W0。
 
-完成条件：每个谱系满足患者级支持门槛，且新增候选覆盖相对 CAD 有可测增益。
+### W1：冻结研究构念、时间窗和协议
 
-### W7：重跑、validation 和人工审核
+**目标**：填完 `config/investigation-selection/protocol.yaml` 的所有影响科学结论的 `null`。
 
-操作：
+**执行步骤**：
 
-- 只在 development 拟合 IDF、词表和统计参数；
-- validation 做 patient-level 稳定性和阈值选择；
-- 分 head/mid/tail、comparison class、诊断谱系抽取盲评样本；
-- 人工审核通过后再生成新的 formal 候选队列。
+1. 拆分五个 track：`imaging_order`、`clinical_order`、`generic_lab_order`、`lab_result_proxy`、`rwd_lab_order`；
+2. 冻结两个主任务：
+   - order decision：只纳入 origin 后 24 小时内的 order node；`index_time=order_set.ordertime`，query 为 `[max(origin,index-4h),index)`，target 为从 index 开始 15 分钟 burst 内的同 class order set；
+   - MIMIC 固定窗 result proxy：query 为 origin 后前 4 小时，target 为随后 24 小时首次完整可见 result episode；
+3. 冻结敏感性窗：query 2/4/8 小时、target 12/24/48 小时，order burst 5/15/30 分钟；只有 query 4 小时、target 24 小时、burst 15 分钟为主结果；
+4. 冻结 tie：同一 class 同一 burst 可多标签；MCQ 只在统计规则产生唯一优势候选时生成；
+5. 冻结 missing/zero/refusal：缺时间拒绝、零候选保留作分母、无稳定唯一答案则拒绝生成题；
+6. subject split 固定为 development/validation/final-test=`70/15/15`，使用带项目 secret 的 subject hash 确定分桶；legacy final_test 不作为新 formal final test；
+7. 初始 formal 阈值固定为 condition≥50 subjects、candidate≥30 subjects、joint≥10 subjects、BH-FDR `q≤0.05`、1,000 次 subject bootstrap、方向稳定率≥0.80；validation 中 support<20 subjects 的规则标为 inconclusive，不降阈值救题；
+8. 生成 `protocol-lock.json`，绑定 dependency lock 和所有输入 manifest hash；
+9. 增加所有 unresolved decision 非空、hash 可复核、改后 lock 失效的测试。
 
-完成条件：所有题目可追溯到 protocol lock、split、decision snapshot、target episode、规则统计和人工决定。
+**产物**：完成的 protocol、time semantics、feature whitelist、protocol lock。
 
-### W8：重建正式 final test 和文档事实源
+**测试**：
 
-操作：
+```powershell
+uv run python -m pytest tests -q -p no:cacheprovider -k "protocol or governance or split"
+```
 
-- 从未参与前述开发的患者池生成新的受保护 formal final-test split；
-- 更新 README、进展梳理、方法学、冻结清单；
-- 删除重复/过时数字，历史口径移入 archive 并标注来源。
+**验收**：科学配置不存在 `null`；修改任一科学参数会使 lock 验证失败；final-test 信息不能被 development 进程读取。
 
-完成条件：final-test 的原始行、统计、缺失率和失败日志在开发阶段均不可见。
+**依赖**：W0。
 
-## 10. 文件级改动地图
+### W2：补齐 encounter clock 与 specimen 分组
 
-| 文件/模块 | 计划改动 | 为什么 | 对用户的影响 |
+**目标**：在复用现有 event 的前提下补齐建立 episode/decision 所必需的两个字段域。
+
+**执行步骤**：
+
+1. 对 `admissions`、`edstays` 建覆盖率、一对多、倒置和差值分布审计；
+2. 实现 `encounter_clock.parquet`：`journey_id/admission_ref/ed_stay_ref/origin_type/origin_time/ed_arrival/ed_registration/ed_departure/hospital_admit/hospital_discharge/source refs/status/reasons`；
+3. 对 `intime` 与 `edregtime` 不做静默合并，按 W1 阈值标记 `consistent|conflict|ambiguous|source_missing`；
+4. 将 `specimen_id`、`micro_specimen_id`、`poe_id` 转成稳定 `source_group_id`；hash salt/key 只记引用位置，不进数据；
+5. 优先在现有 `value_structured_json` 中无损加入 grouping；基准证明查询/一致性不足时才升级 event schema；
+6. 若升级 schema，同步修改 JSON Schema、Arrow Schema、laboratory/microbiology/order transformers、quality audit 和 manifest version；
+7. 全量重跑规范事件，禁止原地覆盖旧成功输出；用 run manifest 选择新有效版本；
+8. 比较重跑前后除新增字段外的事件数、event_id、时间、概念和值，必须零非预期差异。
+
+**产物**：`encounter_clock.parquet`、clock manifest、带稳定 group 的规范事件、差异报告。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/test_encounter_boundaries.py tests/test_event_pipeline.py tests/investigation_selection/test_encounter_clock.py tests/investigation_selection/test_time_semantics.py -q -p no:cacheprovider
+```
+
+**验收**：每个 formal journey 有唯一可解释 origin 或明确排除；普通检验 group 可回聚到同一 specimen；不得出现伪造接收时间；非新增字段差异为 0。
+
+**依赖**：W1。
+
+### W3：正式 snapshot 与 discharge NER
+
+**目标**：仅由可见事实构建 query，同时完成出院文本实体抽取但阻断后验泄漏。
+
+**执行步骤**：
+
+1. `snapshot_adapter.py` 只调用 `evaluation_pipeline.snapshot`，不复制时间比较；
+2. 给每个 track 建 event-kind/field whitelist；未经映射、未知时间、post-hoc、administrative-end 和错误 split 均拒绝；
+3. 对 ED 主诉时间未知建立覆盖报告；不得用 ED arrival 自动回填 triage occurrence/availability；
+4. discharge NER 输出 mention、canonical concept、assertion、section、experiencer、temporal relation、document chart/store time、model/prompt version、review status；
+5. 出院实体 phase 固定 `post_hoc`，只用于回顾性标签、错误分析和临床审阅辅助；
+6. 若同一实体有独立预测点前来源，只把该独立事件放入 snapshot，不因 discharge 提及提升其可见性；
+7. 建人工 A/B 双标与裁决样本，按实体类型/否定/时间/section 分层；
+8. 未达到冻结 precision/recall 和一致性门槛前，NER 输出不得进入 formal 条件空间。
+
+**产物**：snapshot adapter、可见性审计、discharge NER Parquet、annotation guideline、review manifest。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/test_snapshot_visibility.py tests/test_boundary_snapshot.py tests/investigation_selection/test_snapshot_adapter.py -q -p no:cacheprovider
+```
+
+**验收**：晚可用结果、出院 ICD/小结、未知时间主诉、错误 split 注入均为 0 泄漏；NER 每个实体可追到文本 span 和文档时间。
+
+**依赖**：W2。
+
+### W4：构建 order/specimen/result episode 与候选目录
+
+**目标**：从规范事件生成不重复、语义单一的 target 单元。
+
+**执行步骤**：
+
+1. POE 以 `poe_id` 生命周期合并 New/Change/Cancel/Discontinue；
+2. 排除取消、纯物流、饮食、转运和非 investigation 动作，保留 reason；
+3. 同候选短时间重复创建按 W1 burst 窗合并，同一时点同 class 形成 order set；
+4. category-only Lab 只生成 `generic_lab_order`；禁止与结果强连；
+5. labevents 按 `source_group_id` 构建 component bundle；保留每个 component 的 chart/store time；
+6. 从官方字典和共现数据产生 panel 候选定义，临床复核后冻结 `panel-definitions.yaml`；
+7. complete/partial/extra/unknown 机械判定，输出 first/complete availability；
+8. component/panel/category 分层建立 candidate ID，不跨层竞争；
+9. 对每个 source×track×class×window 输出覆盖、重复折叠率和排除率；
+10. 用 synthetic CBC、partial CBC、BMP、重复 POE、取消医嘱和 storetime 缺失建立回归 fixtures。
+
+**产物**：`investigation_episodes.parquet`、candidate catalog、panel definitions、episode manifest/audit。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/investigation_selection/test_episodes.py tests/investigation_selection/test_candidate_catalog.py -q -p no:cacheprovider
+```
+
+**验收**：同一 episode 不重复计数；RBC 不被改名成 CBC；partial CBC 不进入 complete panel；POE Lab 无伪造项目；时间与 source refs 可回溯。
+
+**依赖**：W2、W3。
+
+### W5：生成 `decision_document`
+
+**目标**：建立统计、检索和题目生成的唯一样本单位。
+
+**执行步骤**：
+
+1. 从 protocol、encounter clock 和 episodes 枚举所有潜在 decision node；
+2. 对每个 node 调用正式 snapshot，得到 query evidence；
+3. 按 track/class/target window 连接 targets；
+4. 保留合格但无 target 的 `zero_candidate_observed=true` 文档；
+5. 输出主表、evidence 表、targets 表；
+6. 校验同一 decision 的 evidence 均在时间与 split 门禁内；
+7. 校验 target 不反向进入 evidence；
+8. canonical 排序后生成 snapshot、表文件、protocol/split/boundary/input hashes；
+9. 输出 exclusion table，按 reason code 报告每个阶段损失；
+10. 生成 20 个可人工阅读的端到端 trace（去标识引用、原始字段、事件、episode、snapshot、decision）。
+
+**产物**：三张 decision Parquet、manifest、exclusions、trace report。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/investigation_selection/test_decision_documents.py tests/test_boundary_snapshot.py -q -p no:cacheprovider
+```
+
+**验收**：document ID 唯一；零目标文档未丢失；无 target/evidence 重叠泄漏；三表 row-count/hash 可互相核对；重复运行逐字节稳定。
+
+**依赖**：W1、W3、W4。
+
+### W6：TF-IDF/BM25 候选召回实验
+
+**目标**：验证逆文档频率是否提高低频但稳定项目的可检出性，而不是默认其有效。
+
+**执行步骤**：
+
+1. 只在 development decision evidence 构建 binary query features；
+2. 过滤 unresolved、post-hoc、身份字段和未冻结 NER 实体；
+3. 按 track/class/window 分别拟合 vocabulary、df、IDF；
+4. 实现 frequency、binary TF-IDF、log-count TF-IDF、BM25 四个检索配置；
+5. 对 validation query 只检索 development 文档，按相似度聚合 target 候选；
+6. 同患者文档从其自身邻居集合排除，防止患者记忆；
+7. 保存每次预测的邻居、相似度、候选贡献和拒绝原因；
+8. 报告 Recall@k、MRR、NDCG、macro recall、head/mid/tail recall 和 rare-stable recall；
+9. 罕见随机标签、打乱 target、重复行注入作为负对照；
+10. 只在 validation 选择检索配置，final-test 不读。
+
+**产物**：retrieval index manifest、逐预测 evidence、配对实验报告。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/investigation_selection/test_retrieval.py -q -p no:cacheprovider
+```
+
+**验收**：IDF 不含 validation/final-test；重复行不改变 binary TF-IDF；单次罕见项不能越过门禁；低频增益提供 paired bootstrap CI，而非只报均值。
+
+**依赖**：W5。
+
+### W7：规则统计、Lift 对照与收缩排名
+
+**目标**：修复旧 Lift 分母和支持度问题，并建立可稳定验证的主规则路径。
+
+**执行步骤**：
+
+1. 从 eligible development documents 枚举 condition；不再使用每住院 500 个静默 cap；
+2. 采用两阶段 Apriori：先按预注册 marginal support 剪枝，再机械枚举 FDR family；
+3. `n_x` 从全部含条件文档计算，target 为零仍进入；
+4. 同时计算 frequency、probability、lift、log-RR、shrunk log-RR、Wilson interval 与 p-value；
+5. BH-FDR 的 family 定义、过滤顺序和候选全集写入 manifest；
+6. 按 subject bootstrap，输出方向稳定率、top-rank 稳定率和置信区间；
+7. 在 validation 上机械判断 validated/failed/inconclusive；
+8. 比较旧 Lift、新 Lift、收缩 RR 与 retrieval 路径，禁止事后选最漂亮指标；
+9. head/mid/tail、track、class、time window、diagnosis 分层报告；
+10. 每条保留规则输出完整 2×2 计数和可复算统计量。
+
+**产物**：rule table、FDR manifest、bootstrap/validation reports、method comparison。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/investigation_selection/test_ranking.py tests/investigation_selection/test_validation.py -q -p no:cacheprovider
+```
+
+**验收**：人工构造零目标文档能改变分母；subject 重复住院不被当独立 bootstrap 单位；罕见偶然共现经收缩后不能通过；每个统计量可从计数复算。
+
+**依赖**：W5、W6。
+
+### W8：多诊断审计与增量抽取
+
+**目标**：扩展检查分布真正不同的临床域，降低冠心病单一谱系造成的答案单一化。
+
+**执行步骤**：
+
+1. 只读取全源诊断索引和源表覆盖元数据，不先读取 final-test 内容；
+2. 将 ICD 映射到版本化 diagnosis family，保留原 code 和映射状态；
+3. 对七个预注册域计算规模、ED/HOSP/Note/POE/lab 覆盖和时间可构建率；
+4. 在 development 候选池计算 candidate 分布差异和 top-k 重叠；
+5. 按 6.5 的机械规则选择至少四个域，输出入选/排除 reason；
+6. subject-level 去重后抽取，单域不超过最小域 2 倍；
+7. 复用现有 raw archive → event pipeline，不另写诊断专属清洗脚本；
+8. 对新增数据运行 W2–W5 全部合同；
+9. 比较新增前后 candidate entropy、class coverage、tail coverage 和规则多样性；
+10. 若 pooled 与 domain-stratified 结论方向冲突，正式结果以分域为主并报告异质性。
+
+**产物**：diagnosis coverage audit、选择 manifest、新增 raw/event/decision manifests、多样性报告。
+
+**测试**：
+
+```powershell
+uv run python -m pytest tests/investigation_selection/test_cohort.py tests/test_event_pipeline.py -q -p no:cacheprovider
+```
+
+**验收**：至少四个域通过全部时间/来源门禁，否则本工作包明确失败；无患者跨 split；选择规则可由 manifest 重放；新增域产生可量化的候选分布差异。
+
+**依赖**：W2–W5；可与 W6/W7 方法实现并行，但合并统计须等 W8 完成。
+
+### W9：重建规则、题目与人工审核
+
+**目标**：只从冻结的新规则生成候选，并区分行为 gold 与规范 gold。
+
+**执行步骤**：
+
+1. 只读取 W7 validated rule IDs 和对应 decision lineage；
+2. 候选题按单一 track/class 构造，答案不能跨层级或跨语义；
+3. 题干只使用 `decision_evidence` 白名单字段；不允许模型补充患者事实；
+4. LLM 只负责语言表达，不选择统计答案；
+5. 程序校验时间、split、唯一答案、选项同类、lineage 和 hash；
+6. 独立 reviewer 使用不同审查过程，自动 reviewer 不称“独立临床审核”；
+7. 临床审核至少记录：事实正确性、时间可见性、比较类合理性、行为/规范边界、答案唯一性；
+8. `pattern_rule_concordance` 只能称“RWD 中同类最可能选择”；
+9. `clinical_best_decision` 必须由指南与专家裁决另建 normative gold；
+10. 全部门禁通过后才从 gold=0 增加批准数。
+
+**产物**：候选题、程序验证、独立复核、临床审核表、freeze manifest。
+
+**测试**：
+
+```powershell
+uv run python -m pytest versions/v2-llm-stem/tests tests/investigation_selection -q -p no:cacheprovider
+```
+
+**验收**：旧规则 ID 为 0；每题可追到 decision/rule/protocol；任何来源/时间/语义不一致都拒绝；未签字题不进入 gold。
+
+**依赖**：W7、W8。
+
+### W10：独立验证、final test 与发布
+
+**目标**：完成可复现的盲测和发布门禁。
+
+**执行步骤**：
+
+1. 冻结代码 commit、uv lock、protocol、catalog、panel、diagnosis、feature whitelist 和全部 hashes；
+2. 独立验证脚本从原始 manifest 重算关键计数、时间门禁和统计量；
+3. 在未参与开发的新 formal final-test subject 上单次运行；
+4. final-test 只输出预注册总体/分层指标，不回流调参；
+5. 报告 failure/inconclusive，不删除难例；
+6. 生成 data card、model/method card、clinical review record 和 reproducibility commands；
+7. 检查大文件 `.gitignore`，路径和生成方式写入项目记忆文档（若该文档存在）；
+8. 全库扫描是否仍有把 proxy 称 order gold、把行为称临床最佳、把旧 134 称 formal 的文本；
+9. 运行完整离线测试；
+10. 本地 commit，不 push。
+
+**测试**：
+
+```powershell
+uv sync --locked
+uv run python -m pytest tests versions/v2-llm-stem/tests -q -p no:cacheprovider
+```
+
+**验收**：环境可由 `uv.lock` 重建；final-test 单次运行且无调参回写；全部 artifact hash 可复核；临床未批准内容不进入 gold；文档声明与产物一致。
+
+**依赖**：W0–W9。
+
+## 10. 固定 reason codes
+
+原因码先于运行结果冻结；每个排除样本必须至少有一个码，且不得用自由文本替代：
+
+| 范围 | reason code | 含义 |
+|---|---|---|
+| encounter | `ENCOUNTER_ORIGIN_MISSING` | 没有任务所需 origin |
+| encounter | `ENCOUNTER_ORIGIN_AMBIGUOUS` | 一对多或冲突无法唯一判断 |
+| encounter | `ENCOUNTER_TIME_INVERTED` | arrival/admit/discharge 时序倒置 |
+| event | `EVENT_OCCURRENCE_TIME_UNKNOWN` | occurrence 不可判定 |
+| event | `EVENT_AVAILABLE_TIME_UNKNOWN` | availability 不可判定 |
+| event | `EVENT_POST_HOC_FORBIDDEN` | 后验来源禁止进入 query |
+| event | `EVENT_NORMALIZATION_UNRESOLVED` | formal 条件需要 concept 但尚未冻结 |
+| specimen | `SPECIMEN_RECEIVED_TIME_SOURCE_INSUFFICIENT` | 数据源不提供接收时间；不是一般缺失 |
+| specimen | `SPECIMEN_GROUP_MISSING` | 需要 bundle 但没有分组键 |
+| panel | `PANEL_DEFINITION_UNREVIEWED` | panel 目录未临床冻结 |
+| panel | `PANEL_INCOMPLETE` | required components 不全 |
+| order | `ORDER_CONTENT_CATEGORY_ONLY` | 只能识别泛化类别 |
+| order | `ORDER_CANCELLED_OR_INACTIVE` | 生命周期不构成有效 target |
+| decision | `DECISION_TARGET_WINDOW_INVALID` | 窗口缺失、倒置或越界 |
+| decision | `DECISION_TARGET_EVIDENCE_OVERLAP` | target 泄漏进 query |
+| decision | `DECISION_SPLIT_FORBIDDEN` | 来源不属于允许 split |
+| statistics | `CANDIDATE_SUPPORT_INSUFFICIENT` | 预注册支持度未达标 |
+| statistics | `VALIDATION_DIRECTION_REVERSED` | validation 方向反转 |
+| statistics | `VALIDATION_INCONCLUSIVE` | 无法得出冻结判断 |
+| release | `CLINICAL_REVIEW_REQUIRED` | 尚未完成人工临床审批 |
+
+`source_insufficient` 与普通 null 分开：前者说明官方源表根本没有该语义字段，后者才是源字段存在但该行缺值。两者不得互换。
+
+## 11. 总体验收矩阵
+
+| 验收域 | 必须通过的测试 | 阻断发布的条件 | 证据产物 |
 |---|---|---|---|
-| `config/investigation-selection/protocol.yaml` | 冻结窗口、语义、并列/缺失政策 | 当前 null 导致任务不可定义 | 每道题的“何时、预测什么”一致 |
-| `evaluation_pipeline/snapshot/` | 提取可复用 visibility/decision-node 接口 | 避免 phenotype 另建弱门禁 | post-hoc 和晚可用信息被统一阻断 |
-| `data_pipeline/phenotype/temporal_gate.py` | 删除私有宽松政策或变成正式 snapshot adapter | 当前忽略 available_time | 预测点证据可审计 |
-| `data_pipeline/phenotype/run_phenotype.py` | sidecar role/hash 校验、原子发布、完整 manifest | 当前混入 val/test 且输出无哈希 | development 真正隔离 |
-| `data_pipeline/phenotype/past_condition.py` | 移除出院 ICD 预测特征用途 | 后验编码不是既往史时点证据 | 减少诊断泄漏 |
-| `data_pipeline/phenotype/sign_ner.py` | 限定预测点前来源并保留时间/审核状态 | 当前读 discharge summary | 体征不再含出院状态 |
-| `data_pipeline/phenotype/condition_space.py` | 两阶段 Apriori、取消静默 cap、输出剪枝审计 | 50.79% 住院触顶 | 条件组合不再受哈希顺序支配 |
-| `versions/v2-llm-stem/mcq/mining.py` | 正确分母、subject bootstrap、时间窗目标、收缩 RR/实验接口 | 当前统计偏置 | 低频特异项与高频常规项公平比较 |
-| `versions/v2-llm-stem/mcq/catalog.py` | 三轨候选和 episode 粒度 | lab result 与 order 混轨 | 题目语义清晰 |
-| `data_pipeline/mimic_raw_archive/cohort.py` | 配置驱动诊断谱系 | 当前只支持硬编码 CAD | 可重复扩展多诊断数据 |
-| `tests/test_phenotype.py` | 改写时间和 post-hoc 预期 | 当前测试认可泄漏 | 测试能阻断错误而非固化错误 |
-| 新增 regression fixtures | split 污染、available-time、target-window、cap、重复医嘱 | 覆盖当前盲区 | 后续 LLM 修改不能复发同类问题 |
-| `README.md` / `BenchMark-进展梳理.md` | 更新实际状态和唯一事实源 | 当前版本漂移 | 项目进度不再互相矛盾 |
+| 环境 | `uv sync --locked` 和 import smoke | 使用非项目 Python 或 lock 漂移 | `uv.lock`、测试日志 |
+| 旧产物 | 审核/发布入口拒绝旧 ID | 任一旧 134 候选进入新链 | invalidation manifest |
+| split | subject 唯一角色、sidecar 注入拒绝 | development 读到 val/test | split audit |
+| encounter | origin 唯一、时序合法、来源可追溯 | 静默合并 arrival/registration/admit | encounter clock audit |
+| 时间 | occurrence + availability + phase 均通过 | 晚可见、未知时间或 post-hoc 进入 query | visibility audit |
+| lab 时间 | chart/store/received 三语义分离 | 伪造 `specimen_received_time` | time semantics registry |
+| grouping | specimen/order group 稳定且可回聚 | component 无法回到真实 group | schema/audit report |
+| episode | lifecycle、burst、panel 层级正确 | 取消 order、partial panel 误计 | episode manifest |
+| decision | 三表一致、零目标保留、无 target 泄漏 | 文档粒度退回整次住院 | decision manifest |
+| normalization | 原始标签保留、mapping 可追溯 | unresolved 被模型猜补 | mapping/review manifest |
+| NER | span/assertion/section/time/review 可追溯 | discharge 实体进入前瞻 query | NER review report |
+| retrieval | development-only IDF、患者自邻居排除 | val/test 参与词表或权重选择 | retrieval manifest |
+| statistics | 正确分母、subject bootstrap、FDR 可复算 | 零目标被删或按 hadm bootstrap | rule/FDR manifest |
+| 高频分层 | class/window/domain/head-tail 分报 | 只报全住院总体覆盖 | stratified metrics |
+| 多诊断 | 至少四域通过数据与时间门禁 | 随机补数或患者跨 split | cohort manifest |
+| 题目 | 同类选项、唯一统计答案、lineage 完整 | LLM 自选答案或补事实 | question validation |
+| 临床 | 双重程序/独立/人工门禁 | 未签字题计为 gold | review freeze record |
+| 复现 | 同输入重复运行 hash 相同 | 原地覆盖成功产物 | run manifest |
 
-## 11. 验收门禁
+## 12. 工作包依赖与里程碑
 
-实施完成必须同时满足：
+```text
+W0 旧产物失效
+ └─ W1 协议冻结
+     ├─ W2 时钟与分组
+     │   ├─ W3 snapshot + NER
+     │   └─ W4 episodes/catalog
+     │       └─ W5 decision documents
+     │           ├─ W6 TF-IDF/BM25
+     │           └─ W7 规则统计
+     └────────────── W8 多诊断抽取（复跑 W2–W5）
+                         └─ W9 新规则与题目
+                             └─ W10 盲测与发布
+```
 
-### 数据与划分
+| 里程碑 | 完成条件 | 此时允许声称 |
+|---|---|---|
+| M1：合同可信 | W0–W2 | 源时间和 encounter origin 可审计；不能声称已有题 |
+| M2：样本可信 | W3–W5 | 已建立时间安全 decision documents；不能声称方法有效 |
+| M3：方法可信 | W6–W7 | 已完成 development/validation 配对实验；不能声称临床最佳 |
+| M4：谱系扩展 | W8 | 至少四个合格诊断域进入相同合同 |
+| M5：候选可审 | W9 | 通过程序门禁的行为一致性候选可送临床审核 |
+| M6：正式冻结 | W10 | 仅人工批准项可计 gold，报告盲测结果 |
 
-- 任一 development 产物中的 subject/hadm 均属于 development；
-- validation/final-test sidecar 注入测试必须 fail-closed；
-- 同一患者不能跨 split；
-- IDF、词表、候选目录、阈值不读取 validation/final-test。
+## 13. 对用户已提出问题的落实索引
 
-### 时间
+| 问题/要求 | 本计划的确定处理 |
+|---|---|
+| 环境统一用 uv，缺包就安装 | 第 8 节；只用 `uv sync/uv add/uv run` |
+| event 中有哪些时间字段 | 1.2、3.3；已有四类时间、policy/reasons/phase，另补源语义 |
+| Lift 效果仍被 CBC 类项目占据 | 6.1–6.4、W6–W7；修分母/层级/窗口，TF-IDF 召回 + 收缩 RR |
+| 二元就诊文档是什么 | 2.1–2.2；一次决策一个文档，候选 TF 为 0/1 |
+| 放大罕见噪声是否指只做一次 | 2.3；一次是极端，不是完整定义 |
+| phenotype 代码都不采用 | 0、1.1、7、W0；代码和 8 类设计全部弃用 |
+| 归一化怎么进行 | 2.4、W4；解码、同义词、component/panel、单位，全部可追溯 |
+| discharge 文本 NER | W3；抽 mention/assertion/section/time，但 phase 固定 post_hoc |
+| 字典没有项目级内容 | 0、1.4、4.1；结果可到 analyte，POE Lab 仍仅类别级；RWD 补 order gold |
+| 8 类特征不采用 | 1.1、1.4、7；新输入用可见事实白名单，不预设特征类 |
+| CBC/BMP 91% 如何解决 | 4.2、6.4；panel/component 分层及多维口径分别统计 |
+| V2 规则组合缺失是什么 | 1.3、W0；进展文档漏了 1,584→738→165→134 和失效原因 |
+| decision_document 是什么/能否映射 | 2.1、5、W5；三张 Parquet + manifest 的逐字段合同 |
+| 检验时间采用收到样本时间 | 3.4；RWD 有真实字段才用，MIMIC 明确 source insufficient |
+| 到诊/入院及实际可见时间 | 3.2–3.5；arrival、registration、admit 分开，query 用 occurrence+availability |
 
-- 每个可见事件同时满足 occurrence/availability/phase 政策；
-- post-hoc 和 administrative-end 进入前瞻特征数为 0；
-- 未知时间没有显式结构先后规则时一律拒绝；
-- 目标事件全部落在冻结 target window。
+## 14. 完成定义
 
-### 统计
+本计划不是在“代码能跑”时完成，而是在以下条件同时满足时完成：
 
-- `n_x` 包含没有候选的 eligible documents；
-- bootstrap unit 为 subject；
-- FDR family 在看结果前机械枚举；
-- head/mid/tail 指标和总体指标同时报告；
-- 罕见单次噪声不能通过支持度/收缩门禁。
-
-### 产物
-
-- manifest 包含 schema/version、protocol/split/input/output hash、参数、计数和 Git commit；
-- 原子发布，不覆盖已有成功产物；
-- formal/exploratory 使用不同 run directory，由 manifest 标识，不靠文件名版本号管理；
-- 超过 50 MB 的数据产物不进入 Git。
-
-### 临床与发布
-
-- 行为一致性不能表述为临床最佳决策；
-- laboratory result proxy 不能表述为 order selection；
-- 自动审题不能替代独立临床审核；
-- gold 仍保持 0，直到程序、独立复核和人工审批全部通过。
-
-## 12. 需要用户确认的实施决策
-
-1. 是否同意暂停并失效现有 134 道 V2 候选，修复后重新生成。
-2. 是否同意把 MIMIC laboratory 拆为 `result-availability proxy`，不再称具体检验开单 gold；具体 order gold 留给具有项目级开单键的香港 RWD。
-3. 是否同意 TF-IDF 作为候选召回/相似病例路径，最终规则以收缩 log-RR/lift + validation + 临床审核决定。
-4. 是否同意 legacy final_test 不再用于 V2 正式测试，协议冻结后从未参与开发的患者池建立新的 formal final test。
-5. 是否同意多诊断扩展先做全源诊断覆盖与检查分布差异审计，再决定实际谱系和抽取规模，不直接随机平衡抽样。
-
-确认后按 W0→W8 顺序实施；每个完整工作包单独验证，但一次完整任务形成一个本地 Git commit，未经明确指令不 push。
+1. 旧 phenotype/V2 产物无法进入新链；
+2. 每个决策的 origin、index、query、target、可见 evidence 和 target episode 都可追溯；
+3. MIMIC 未拥有的检验接收时间没有被创造；
+4. MIMIC lab proxy 与 RWD lab order gold 分轨；
+5. TF-IDF 相对频率/Lift 的增益经过配对、分层和 validation 检验；
+6. CBC/BMP 没有被删除，也没有因 component/重复行被多重计数；
+7. 至少四个检查分布不同的诊断域通过相同数据合同；
+8. final-test 未参与任何词表、阈值、目录、prompt 或方法选择；
+9. 所有 formal 题经过程序、独立复核和临床审批；
+10. gold 数量只统计人工批准项，未批准时保持 0。
