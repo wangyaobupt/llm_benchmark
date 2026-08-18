@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:29:57+00:00",
-  "current_stage": "W4",
+  "updated_at": "2026-08-18T16:32:41+00:00",
+  "current_stage": "W5",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -29,9 +29,9 @@
       "updated_at": "2026-08-18T16:29:57+00:00"
     },
     "W5": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W5 决策文档、证据/目标隔离与零候选保留契约已通过 9 项测试；正式产物仍受 W1 主体暴露与 split 决策阻塞",
+      "updated_at": "2026-08-18T16:32:41+00:00"
     },
     "W6": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:32:41+00:00",
+      "message": "W5: W5 决策文档、证据/目标隔离与零候选保留契约已通过 9 项测试；正式产物仍受 W1 主体暴露与 split 决策阻塞"
+    },
     {
       "at": "2026-08-18T16:29:57+00:00",
       "message": "W4: W4 episode/catalog 合同实现，8 项专项测试通过；正式 panel/catalog 仍受 W1 lock 阻断"
