@@ -2,11 +2,13 @@
 
 from .encounter_clock import EncounterClockResult, build_encounter_clock
 from .source_grouping import GroupingResult, attach_source_groups
+from .snapshot_adapter import SnapshotAdapter, normalize_discharge_ner_records
 
 __all__ = [
     "EncounterClockResult",
     "GroupingResult",
     "attach_source_groups",
     "build_encounter_clock",
+    "SnapshotAdapter",
+    "normalize_discharge_ner_records",
 ]
-

@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:26:40+00:00",
-  "current_stage": "W2",
+  "updated_at": "2026-08-18T16:28:12+00:00",
+  "current_stage": "W3",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -19,9 +19,9 @@
       "updated_at": "2026-08-18T16:26:40+00:00"
     },
     "W3": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W3 snapshot adapter 与 discharge NER post_hoc 边界实现，21 项测试通过；正式输出仍受 W1 lock 阻断",
+      "updated_at": "2026-08-18T16:28:12+00:00"
     },
     "W4": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:28:12+00:00",
+      "message": "W3: W3 snapshot adapter 与 discharge NER post_hoc 边界实现，21 项测试通过；正式输出仍受 W1 lock 阻断"
+    },
     {
       "at": "2026-08-18T16:26:40+00:00",
       "message": "W2: W2 encounter_clock 与 source_grouping 合同实现，离线 31 项测试通过；正式产物仍受 W1 lock 阻断"
