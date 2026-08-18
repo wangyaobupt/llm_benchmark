@@ -1,0 +1,105 @@
+{
+  "audit_schema": "exploratory-method-feasibility-audit/1.0.0",
+  "conclusion": "NO_CURRENT_EHR_GOLD_MEETS_GATE",
+  "gold_candidates": [
+    {
+      "coverage_rate": 0.6801157905523106,
+      "definition": "mapped_imaging_order",
+      "degenerate_candidate_space": true,
+      "gold_suitable_under_preregistered_gate": false,
+      "missing_candidate_key_rows": 0,
+      "reason": "NO_UNIQUE_NON_DEGENERATE_GOLD",
+      "time_leakage_rows": 0,
+      "unique_candidate_rate": 1.0,
+      "unknown_available_time_rows": 0
+    },
+    {
+      "coverage_rate": 0.8809048058202684,
+      "definition": "normalized_result",
+      "degenerate_candidate_space": false,
+      "gold_suitable_under_preregistered_gate": false,
+      "missing_candidate_key_rows": 0,
+      "reason": "NO_UNIQUE_NON_DEGENERATE_GOLD",
+      "time_leakage_rows": 0,
+      "unique_candidate_rate": 0.012417483351266467,
+      "unknown_available_time_rows": 0
+    },
+    {
+      "coverage_rate": 0.0011783994261707143,
+      "definition": "order_create_active_only",
+      "degenerate_candidate_space": false,
+      "gold_suitable_under_preregistered_gate": false,
+      "missing_candidate_key_rows": 229,
+      "reason": "NO_UNIQUE_NON_DEGENERATE_GOLD",
+      "time_leakage_rows": 0,
+      "unique_candidate_rate": 0.021739130434782608,
+      "unknown_available_time_rows": 0
+    },
+    {
+      "coverage_rate": 0.992519725381699,
+      "definition": "order_create_any_status",
+      "degenerate_candidate_space": false,
+      "gold_suitable_under_preregistered_gate": false,
+      "missing_candidate_key_rows": 746409,
+      "reason": "NO_UNIQUE_NON_DEGENERATE_GOLD",
+      "time_leakage_rows": 0,
+      "unique_candidate_rate": 0.004361965723724964,
+      "unknown_available_time_rows": 0
+    }
+  ],
+  "gold_gate": {
+    "coverage_minimum": 0.5,
+    "formal_final_test": false,
+    "missing_candidate_key_allowed": false,
+    "time_leakage_allowed": false,
+    "unique_answer_minimum": 0.5
+  },
+  "inputs": {
+    "e2_sha256": "82cc00afd0f262956400391ba3fea06c7f399085e54ea528025b2cec06d763e0",
+    "e3_sha256": "93693b5f5b7e98e5d2ad8be6ff4737ea1f101be842fa895551724f60cff8236a",
+    "source_root": "G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization"
+  },
+  "method_status": [
+    {
+      "candidate_generation_allowed": true,
+      "final_answer_ranking_allowed": false,
+      "method": "frequency",
+      "reason": "NO_VALID_UNIQUE_EHR_GOLD",
+      "recall_mrr_ndcg_estimable": false
+    },
+    {
+      "candidate_generation_allowed": true,
+      "final_answer_ranking_allowed": false,
+      "method": "lift",
+      "reason": "NO_VALID_UNIQUE_EHR_GOLD",
+      "recall_mrr_ndcg_estimable": false
+    },
+    {
+      "candidate_generation_allowed": true,
+      "final_answer_ranking_allowed": false,
+      "method": "shrunk_log_rr",
+      "reason": "NO_VALID_UNIQUE_EHR_GOLD",
+      "recall_mrr_ndcg_estimable": false
+    },
+    {
+      "candidate_generation_allowed": true,
+      "final_answer_ranking_allowed": false,
+      "method": "binary_tfidf",
+      "reason": "NO_VALID_UNIQUE_EHR_GOLD",
+      "recall_mrr_ndcg_estimable": false
+    },
+    {
+      "candidate_generation_allowed": true,
+      "final_answer_ranking_allowed": false,
+      "method": "bm25",
+      "reason": "NO_VALID_UNIQUE_EHR_GOLD",
+      "recall_mrr_ndcg_estimable": false
+    }
+  ],
+  "next_data_requirements": [
+    "freeze source-specific order concept mapping or reviewed source labels",
+    "define valid lifecycle semantics for order target",
+    "retain zero/multi-candidate refusals",
+    "re-run decision-level target/evidence audit on replacement RWD"
+  ]
+}
