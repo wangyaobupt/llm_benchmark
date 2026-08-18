@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:32:41+00:00",
-  "current_stage": "W5",
+  "updated_at": "2026-08-18T16:35:08+00:00",
+  "current_stage": "W6",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -34,9 +34,9 @@
       "updated_at": "2026-08-18T16:32:41+00:00"
     },
     "W6": {
-      "status": "pending",
-      "message": "等待开始",
-      "updated_at": null
+      "status": "completed",
+      "message": "W6 development-only 检索契约已通过 5 项测试，含四配置、同主体排除、OOV/拒绝审计；正式实验未运行，仍受 W1 split 决策阻塞",
+      "updated_at": "2026-08-18T16:35:08+00:00"
     },
     "W7": {
       "status": "pending",
@@ -60,6 +60,10 @@
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:35:08+00:00",
+      "message": "W6: W6 development-only 检索契约已通过 5 项测试，含四配置、同主体排除、OOV/拒绝审计；正式实验未运行，仍受 W1 split 决策阻塞"
+    },
     {
       "at": "2026-08-18T16:32:41+00:00",
       "message": "W5: W5 决策文档、证据/目标隔离与零候选保留契约已通过 9 项测试；正式产物仍受 W1 主体暴露与 split 决策阻塞"
