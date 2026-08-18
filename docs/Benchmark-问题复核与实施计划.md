@@ -2,9 +2,9 @@
 
 > 文档状态：已确认，待按工作包实施
 >
-> 复核日期：2026-08-18
+> 最近修订：2026-08-19
 >
-> 适用范围：MIMIC-IV 冠心病现有数据、后续多诊断扩展、香港 RWD 项目级医嘱数据
+> 本轮适用范围：MIMIC-IV 冠心病现有数据及 MIMIC-IV 多诊断扩展
 >
 > 当前 gold：`0`；现有候选均为 `exploratory_unreviewed`
 >
@@ -26,7 +26,18 @@
 两条不可绕过的源数据事实：
 
 - MIMIC 普通检验没有独立 `specimen_received_time`。`labevents.charttime` 只能叫“标本采集时间代理”，`labevents.storetime` 是结果在实验室系统可见的时间，二者都不能冒充“实验室收到样本时间”。
-- MIMIC 的 POE Lab 绝大多数只有泛化 `Lab` 类别，不能从 `labevents.itemid` 或时间邻近关系伪造项目级医嘱。具体检验 order gold 必须来自具有 `order_id + item_id + order_time` 的 RWD；MIMIC 只保留 `generic_lab_order` 或明确命名的 `result_availability_proxy`。
+- MIMIC 的 POE Lab 绝大多数只有泛化 `Lab` 类别，不能从 `labevents.itemid` 或时间邻近关系伪造项目级医嘱。本轮只构建 `generic_lab_order` 和明确命名的 `result_availability_proxy`，不接入香港 RWD，也不声称获得项目级检验 order gold。
+
+### 0.1 已确认并冻结的执行决策
+
+| 决策 | 冻结结果 | 对代码和产物的直接影响 |
+|---|---|---|
+| 旧 134 道候选 | 整体失效 | W0 建失效 manifest；审核、发布和新统计入口必须拒绝旧 candidate/rule IDs |
+| 旧 final-test | 不再作为新 V2 正式盲测集 | subjects 固定为 `engineering_audit_only`；新 final-test 只能来自 exposure registry 中从未使用的 subjects |
+| 香港 RWD | 本轮不纳入 | 不读取其数据/字典，不实现 connector，不把 RWD 覆盖或字段作为 W0–W10 验收条件 |
+| 本轮数据源 | 仅 MIMIC-IV | Lab 只分 `generic_lab_order` 与 `lab_result_proxy`；项目级 Lab order gold 保持 unavailable |
+
+这些决策已由用户确认，不在 W1 再次讨论，也不能因候选数量不足而回退。未来若单独启动香港 RWD 工作，必须另建协议、source contract 和计划，不修改本轮冻结语义。
 
 ## 1. 当前项目实际进度复核
 
@@ -201,11 +212,12 @@ W2 新建 `encounter_clock.parquet`。现有 `encounter_manifest.parquet` 继续
 
 官方依据：[POE](https://mimic.mit.edu/docs/iv/modules/hosp/poe.html)、[`labevents`](https://mimic.mit.edu/docs/iv/modules/hosp/labevents.html)、[`microbiologyevents`](https://mimic.mit.edu/docs/iv/modules/hosp/microbiologyevents.html)、[radiology](https://mimic.mit.edu/docs/iv/modules/note/radiology.html)、[discharge](https://mimic.mit.edu/docs/iv/modules/note/discharge.html)。
 
-### 3.4 “采用化验单收到样本时间”的落地规则
+### 3.4 “采用化验单收到样本时间”的本轮落地规则
 
-- **香港 RWD**：若字典明确提供 `specimen_received_time`，原值进入生命周期合同。若研究目标是“医生开了什么”，gold 仍使用真实 `order_time`；接收时间不能替代医生决策时间。
-- **MIMIC-IV**：`specimen_received_time=null`、`specimen_received_time_status=source_insufficient`；普通检验保留采集代理 `charttime` 和结果可见 `storetime`。
-- **全部来源**：不得用二者中点、同一 specimen 最早时间、最近 POE 或模型推断补造接收时间。
+- 本轮仅处理 MIMIC-IV：`specimen_received_time=null`、`specimen_received_time_status=source_insufficient`；普通检验保留采集代理 `charttime` 和结果可见 `storetime`。
+- 不读取香港 RWD，也不为其预留会参与当前运行的空 connector、配置项或验收分支。
+- 不得用二者中点、同一 specimen 最早时间、最近 POE 或模型推断补造接收时间。
+- “收到样本时间”需求记录为未来独立数据源项目的前置 source-contract 要求，不改变本轮 MIMIC 语义。
 
 ### 3.5 可见性规则
 
@@ -231,7 +243,6 @@ AND source/time semantics allowed by frozen policy
 | `clinical_order` | 可识别临床检查/监护 order episode | 观察到的下一组同类医嘱 | `poe.ordertime` |
 | `generic_lab_order` | 类别级 Lab POE | 随后创建泛化 Lab 医嘱 | `poe.ordertime` |
 | `lab_result_proxy` | specimen 下 component/panel bundle | 目标窗内结果首次/完整可见 | `storetime`；发生代理另存 `charttime` |
-| `rwd_lab_order` | RWD 项目级检验 order episode | 具体下一项检验开单 | RWD `order_time` |
 
 不同 track 单独建目录、分母、频率层和排行榜，不生成跨 track 选择题。
 
@@ -393,7 +404,9 @@ data_pipeline/investigation_selection/
   __init__.py
   __main__.py
   contracts.py                 # Arrow/JSON schema 与 reason codes
-  time_semantics.py            # 来源时间白名单和 encounter clock
+  exposure_registry.py         # 历史使用登记与新 formal role 门禁
+  time_semantics.py            # 来源时间白名单与语义解析
+  encounter_clock.py           # ED/住院 origin 与冲突审计
   snapshot_adapter.py          # 唯一的正式 snapshot 接口
   episodes.py                  # order/specimen/result episode
   candidate_catalog.py         # component/panel/class 目录
@@ -418,6 +431,7 @@ config/investigation-selection/
   feature-whitelist.yaml
 
 tests/investigation_selection/
+  test_exposure_registry.py
   test_time_semantics.py
   test_encounter_clock.py
   test_snapshot_adapter.py
@@ -438,6 +452,263 @@ tests/investigation_selection/
 - 现有原始归档 manifest 与 source catalog。
 
 明确不导入 `data_pipeline.phenotype`，不读取旧 phenotype/condition/rule/question 产物。
+
+### 7.1 模块公开接口
+
+每个模块只暴露一个主操作和明确的数据类；下游不得绕过接口直接拼 Parquet：
+
+```python
+# contracts.py
+@dataclass(frozen=True)
+class InvestigationProtocol: ...
+
+def load_and_validate_protocol(path: Path) -> InvestigationProtocol: ...
+
+# encounter_clock.py
+def build_encounter_clock(
+    admissions: pa.Table,
+    ed_stays: pa.Table,
+    boundary_manifest: Mapping[str, object],
+    protocol: InvestigationProtocol,
+) -> ClockBuildResult: ...
+
+# exposure_registry.py
+def build_exposure_registry(
+    legacy_manifests: Sequence[Mapping[str, object]],
+    candidate_subjects: pa.Table,
+    split_policy: SplitPolicy,
+) -> ExposureRegistryResult: ...
+
+# episodes.py
+def build_investigation_episodes(
+    events: pa.Table,
+    catalog: CandidateCatalog,
+    panel_definitions: PanelDefinitions,
+    protocol: InvestigationProtocol,
+) -> EpisodeBuildResult: ...
+
+# decision_documents.py
+def build_decision_documents(
+    events: pa.Table,
+    clocks: pa.Table,
+    episodes: pa.Table,
+    snapshot_policy: SnapshotPolicy,
+    protocol: InvestigationProtocol,
+) -> DecisionBuildResult: ...
+
+# retrieval.py
+def fit_retriever(
+    documents: DecisionCorpus,
+    config: RetrievalConfig,
+) -> FittedRetriever: ...
+
+# ranking.py
+def mine_and_validate_rules(
+    development: DecisionCorpus,
+    validation: DecisionCorpus,
+    config: RankingConfig,
+) -> RuleMiningResult: ...
+```
+
+所有 `*BuildResult` 至少包含 `table(s)`、`exclusions`、`metrics`、`manifest_payload`；遇到合同错误抛出领域异常并终止，不返回空表伪装成功。公开函数只接受已验证对象，不接受任意字典参数。
+
+### 7.2 配置装载和 fail-closed 顺序
+
+`contracts.py` 按固定顺序验证：
+
+1. YAML 只允许 schema 中声明的键，未知键报错；
+2. 所有 scientific fields 非空，枚举值与版本匹配；
+3. 主窗口、敏感性窗口和 burst 均为正且时序合法；
+4. 四个 MIMIC track 的 target semantics 与允许 source/event kind 一一对应；
+5. split 比例为 70/15/15 且总和精确为 1；
+6. threshold、bootstrap、FDR 参数满足类型和范围；
+7. candidate/panel/feature/time 配置 hash 与 protocol lock 一致；
+8. 输入 manifest 的 schema version、Git commit、文件 hash 全部匹配后才读取数据行。
+
+配置使用 frozen dataclass；canonical JSON 采用 UTF-8、key 排序、无 NaN，SHA-256 由 canonical bytes 计算。运行期不允许用 CLI 参数覆盖 scientific fields；CLI 只传输入、输出和已冻结配置路径。
+
+### 7.3 encounter clock 算法
+
+`build_encounter_clock` 按下列确定性步骤执行：
+
+```text
+validate boundary manifest and split lineage
+→ normalize ID type without changing value
+→ one-to-one join admission_ref/hadm_id
+→ enumerate linked ED stays
+→ validate each [intime, outtime] and [admittime, dischtime]
+→ choose origin by frozen task rule
+→ retain ed_arrival, ed_registration and hospital_admit separately
+→ emit eligible row or exclusion reason
+→ canonical sort by journey_id
+```
+
+关键实现约束：
+
+- 不使用 `fill_null`/`coalesce` 混合 `intime`、`edregtime`、`admittime`；
+- 多个 ED stay 不能按“最早一个”自动解决，必须通过正式 linkage 唯一化，否则 `ENCOUNTER_ORIGIN_AMBIGUOUS`；
+- 比较时间前统一解析为 naive MIMIC datetime，输出统一 ISO 秒精度，同时保留 source precision；
+- ID 和时间不从自由文本解析；
+- clock 输出与 boundary manifest 的 `journey_id` 集合做双向 anti-join，任何未解释差异阻断发布。
+
+### 7.4 episode 算法
+
+#### Order episode
+
+```text
+filter allowed ordered event kinds
+→ group by stable source_group_id/poe_id
+→ order lifecycle by ordertime + deterministic source row key
+→ fold New/Change/Cancel/Discontinue state machine
+→ reject terminal cancelled/inactive episodes
+→ map specific content to candidate_id
+→ category-only Lab maps only to generic_lab_order
+→ deduplicate same candidate within 15-minute burst
+→ group same class/burst into order_set_id
+```
+
+状态机必须有显式 transition table。未知 transaction、循环 predecessor/successor、同一 group 跨患者/住院或时间倒置均拒绝；不得取“最后一行看起来有效”作为结果。
+
+#### Result episode
+
+```text
+filter laboratory_resulted
+→ require observed lab_specimen source_group_id
+→ group components by journey + specimen group
+→ preserve every component charttime/storetime/value
+→ map components through frozen catalog
+→ compare observed component set with each panel definition
+→ classify complete/partial/extra/unknown
+→ calculate first and complete availability
+→ emit component episodes and eligible complete panel episodes separately
+```
+
+同一 specimen 内一个 analyte 多行时按 `itemid + charttime + storetime + source_row_id` 保留测量事实；是否属于重复结果由明确规则处理，不能简单 `drop_duplicates(candidate_id)`。panel 匹配使用集合包含关系和版本化 required/optional components，不用名称字符串包含判断。
+
+### 7.5 decision document 算法
+
+```text
+enumerate eligible decision nodes from episode table
+→ bind journey clock and split role
+→ derive query/target bounds from protocol
+→ call formal snapshot once per unique (journey, index_time, policy)
+→ project only whitelisted evidence fields
+→ attach same-class target episodes in frozen window
+→ retain zero-target eligible documents
+→ validate no target/evidence overlap
+→ generate stable decision_id and three normalized tables
+→ hash canonical evidence/target membership
+```
+
+性能上先按唯一 `(journey_id,index_time,snapshot_policy_id)` 缓存 snapshot，再展开 candidate class，避免同一时点重复扫描 2,700 万事件。缓存键必须包含 input manifest hash；缓存内容仅是确定性中间结果，不能绕过验证。
+
+三表写出前执行：
+
+- 主表 `decision_id` 唯一；
+- evidence/targets 的 `decision_id` 全部存在于主表；
+- eligible 文档的 snapshot hash 非空；
+- excluded 文档不得出现在 formal evidence/targets；
+- `max(evidence.available_time) <= index_time`；
+- order target 的 `target_occurrence_time >= index_time`；
+- result proxy target 的完整可见时间位于冻结窗口；
+- 每个 split 的 subject 集合两两不交。
+
+### 7.6 检索与统计实现重点
+
+#### Binary TF-IDF/BM25
+
+用稀疏 CSR 矩阵表示 `decision_id × feature_concept_id`。主 TF 为 binary：同一文档重复实体只置 1。训练对象提供 `fit(development)`、`transform(validation)`，禁止 `fit_transform` 跨 split。
+
+```text
+development evidence → vocabulary/df/idf → frozen index
+validation evidence → transform with frozen vocabulary
+→ remove same subject neighbours
+→ cosine/BM25 top-k
+→ aggregate neighbour targets with similarity weights
+→ emit candidate contribution trace
+```
+
+OOV 特征忽略但计入审计；没有任何可用特征或邻居时返回明确 refusal reason，不回退为全局高频榜。检索 index manifest 记录 vocabulary hash、document order hash、IDF 数组 hash 和库版本。
+
+#### 规则计数与收缩
+
+计数以 `decision_id` 二元集合完成，不在事件行上 group count：
+
+```text
+eligible development documents N
+condition document set X
+candidate document set Y within same class/track/window
+n_x=|X|, n_y=|Y|, n_xy=|X∩Y|
+→ preregistered marginal filters
+→ full family hypothesis tests
+→ BH-FDR
+→ shrunk log-RR ranking
+→ subject bootstrap stability
+→ frozen validation evaluation
+```
+
+使用整数 2×2 表作为事实源，所有浮点指标由它现场计算。FDR 前只允许 W1 列出的结构和边际支持过滤；不得用 joint support、lift 或 p-value 预筛后再声称对完整 family 做 BH。bootstrap 先抽 subject，再带入该 subject 的全部 documents。
+
+### 7.7 CLI 与原子发布
+
+统一入口：
+
+```powershell
+uv run python -m data_pipeline.investigation_selection validate-config --protocol config/investigation-selection/protocol.yaml
+uv run python -m data_pipeline.investigation_selection build-exposure-registry --run-config <path>
+uv run python -m data_pipeline.investigation_selection build-clock --run-config <path>
+uv run python -m data_pipeline.investigation_selection build-episodes --run-config <path>
+uv run python -m data_pipeline.investigation_selection build-decisions --run-config <path>
+uv run python -m data_pipeline.investigation_selection fit-retrieval --run-config <path>
+uv run python -m data_pipeline.investigation_selection mine-rules --run-config <path>
+uv run python -m data_pipeline.investigation_selection audit-cohort --run-config <path>
+uv run python -m data_pipeline.investigation_selection validate-run --run-dir <path>
+```
+
+每个命令先验证配置和输入 hash，在目标父目录创建同卷临时目录，完成写入、重新读取、schema/row-count/hash 审计后原子 rename 为由 `protocol_sha + input_sha` 决定的 run 目录。目标已存在且 hash 相同则明确报告 already-published；不同则报冲突并停止，不覆盖、不自动改名。
+
+manifest 最少记录：command、schema versions、protocol/split/boundary/input/output hashes、Git commit、`uv.lock` hash、参数、开始/结束时间、输入输出计数、排除原因计数和验证状态。时间戳只作运行审计，不用作文件版本号。
+
+### 7.8 全量数据性能与确定性
+
+27,336,811 条事件不能默认整体载入 pandas。实现约束：
+
+- 用 `pyarrow.dataset.Scanner` 做列裁剪和 predicate pushdown，只读当前阶段所需列；
+- encounter/episode/decision 中间计算按稳定 `journey_id` bucket 分区，bucket 数写入 runtime config，不改变科学结果；
+- 聚合状态只保存当前分区所需 group，不构建全量 Python `list[dict]`；
+- Parquet schema 和 row-group size 由 `contracts.py` 固定，禁止由推断类型写出；
+- 多线程结果在写出前按稳定键排序；线程数变化不得改变行、ID、hash 或浮点统计；
+- 计数先用整数、浮点使用固定公式和排序，FDR 对同 p-value 使用 candidate ID 次级排序；
+- 每阶段记录 peak RSS、扫描行数、过滤行数、分区耗时和异常分区；性能指标不参与临床筛选；
+- 开发测试使用最小合成 fixture，另设 1,000 例 integration 和全量 release 三层；样本通过不能替代全量验收。
+
+建议内存上限通过 runtime config 明确设置。超限时命令失败并指出阶段/bucket，不自动采样、不减少候选、不改变窗口。
+
+### 7.9 代码级回归用例
+
+实现每个模块前先增加最小失败 fixture，随后编码至通过。至少覆盖：
+
+| fixture | 输入构造 | 必须断言 |
+|---|---|---|
+| exposure 污染 | 旧 validation/final subject 注入候选池 | role 固定 audit，不能进入新 val/final |
+| ED 双时钟 | `intime != edregtime` | 两字段均保留，origin 来源明确，无 coalesce |
+| ED 一对多 | 一个 hadm 对多个无法唯一链接 stay | encounter 被排除并给 ambiguous reason |
+| 晚可见 Lab | charttime<index<storetime | 结果不进入 evidence |
+| 无 specimen receipt | MIMIC lab 行 | received time 为 null 且状态为 source insufficient |
+| order lifecycle | New→Change→Cancel | 不生成有效 target episode |
+| 泛化 Lab POE | 只有 order_type=Lab | 只生成 generic candidate，不出现 analyte |
+| complete CBC | 同 specimen 包含冻结 required components | 生成一个 complete panel 和各 component episode |
+| partial CBC | 缺一个 required component | 不生成 complete CBC target |
+| component 延迟 | 同 specimen storetime 不同 | first/complete availability 分别等于 min/max required |
+| target 泄漏 | target event 同时被送入 snapshot | 构建失败而非静默删除 |
+| 零目标文档 | 合格 query 无同类 target | 主表保留、targets 为 0、进入 N/n_x |
+| 跨 split IDF | validation-only feature | vocabulary/IDF 中不存在 |
+| 同患者近邻 | query 与 development 含同 subject | 自患者邻居全部排除 |
+| 罕见偶然项 | joint=1 且 lift 极高 | support/收缩门禁拒绝 |
+| 多住院 bootstrap | 同 subject 有多个 documents | 一次抽中/排除时整组同行 |
+| 线程确定性 | threads=1 与 4 | 排序后表内容和 hash 完全相同 |
+
+集成 fixture 使用真实 schema 的合成数据，不复制受限临床数据进 Git。全量运行失败时先增加能复现根因的最小 fixture，再修代码；不得只对坏分区加跳过名单。
 
 ## 8. 环境、版本和运行规则
 
@@ -469,11 +740,12 @@ uv add <runtime-package>
 
 1. 建立旧产物审计清单，记录路径、hash、行数和失效原因；不删除历史证据；
 2. 给旧 134 候选的发布/审核入口加 fail-closed 状态 `invalidated_upstream_contract`；
-3. 禁止旧 phenotype entrypoint 生成 formal 产物；调用时显式报错并指向新模块；
-4. `BenchMark-进展梳理.md` 补入 1,584→738→165→134、gold=0；
-5. README 只保留状态摘要并链接本计划，删除重复数字；
-6. 搜索全库 `formal accepted`、`134`、`8 类`、`phenotype`，逐项判断是否需加历史限定；
-7. 生成 `legacy-invalidation-manifest.json`，包含输入 hash、原因码和 Git commit。
+3. 将旧 final-test manifest 标记为 `legacy_holdout_not_formal_final_test`，任何新 split loader 读到其 ID 均拒绝；
+4. 禁止旧 phenotype entrypoint 生成 formal 产物；调用时显式报错并指向新模块；
+5. `BenchMark-进展梳理.md` 补入 1,584→738→165→134、gold=0；
+6. README 只保留状态摘要并链接本计划，删除重复数字；
+7. 搜索全库 `formal accepted`、`134`、`8 类`、`phenotype`、`legacy final_test`，逐项增加历史限定或入口门禁；
+8. 生成 `legacy-invalidation-manifest.json`，包含旧 candidate/rule/split IDs、输入 hash、原因码和 Git commit。
 
 **产物**：失效 manifest、唯一进展事实源、旧入口拒绝门禁与测试。
 
@@ -483,7 +755,7 @@ uv add <runtime-package>
 uv run python -m pytest tests -q -p no:cacheprovider -k "legacy or phenotype or v2"
 ```
 
-**验收**：任何旧候选不能进入审核/发布；gold 计数为 0；审计清单可复现旧数字；无历史文件被当作新输入。
+**验收**：任何旧候选不能进入审核/发布；旧 final-test subject 不能被注册为新 formal final-test；gold 计数为 0；审计清单可复现旧数字；无历史文件被当作新输入。
 
 **依赖**：无。后续 W1–W10 均依赖 W0。
 
@@ -493,19 +765,20 @@ uv run python -m pytest tests -q -p no:cacheprovider -k "legacy or phenotype or 
 
 **执行步骤**：
 
-1. 拆分五个 track：`imaging_order`、`clinical_order`、`generic_lab_order`、`lab_result_proxy`、`rwd_lab_order`；
+1. 本轮冻结四个 MIMIC track：`imaging_order`、`clinical_order`、`generic_lab_order`、`lab_result_proxy`；协议 schema 对其他来源 fail-closed，不保留未实现的 RWD track；
 2. 冻结两个主任务：
    - order decision：只纳入 origin 后 24 小时内的 order node；`index_time=order_set.ordertime`，query 为 `[max(origin,index-4h),index)`，target 为从 index 开始 15 分钟 burst 内的同 class order set；
    - MIMIC 固定窗 result proxy：query 为 origin 后前 4 小时，target 为随后 24 小时首次完整可见 result episode；
 3. 冻结敏感性窗：query 2/4/8 小时、target 12/24/48 小时，order burst 5/15/30 分钟；只有 query 4 小时、target 24 小时、burst 15 分钟为主结果；
 4. 冻结 tie：同一 class 同一 burst 可多标签；MCQ 只在统计规则产生唯一优势候选时生成；
 5. 冻结 missing/zero/refusal：缺时间拒绝、零候选保留作分母、无稳定唯一答案则拒绝生成题；
-6. subject split 固定为 development/validation/final-test=`70/15/15`，使用带项目 secret 的 subject hash 确定分桶；legacy final_test 不作为新 formal final test；
-7. 初始 formal 阈值固定为 condition≥50 subjects、candidate≥30 subjects、joint≥10 subjects、BH-FDR `q≤0.05`、1,000 次 subject bootstrap、方向稳定率≥0.80；validation 中 support<20 subjects 的规则标为 inconclusive，不降阈值救题；
-8. 生成 `protocol-lock.json`，绑定 dependency lock 和所有输入 manifest hash；
-9. 增加所有 unresolved decision 非空、hash 可复核、改后 lock 失效的测试。
+6. 先构建 `subject_exposure_registry.parquet`：旧 development 保持 development；被 sidecar 污染的旧 validation 与已查看的旧 final-test 固定为 `engineering_audit_only`；从未进入特征、规则、调参、审核或结果查看的 subjects 才能补入 validation/final-test；
+7. 对可用 formal subjects 以 70/15/15 为目标比例、带项目 secret 的 subject hash 确定新增分桶；已有 development 不改角色，新 final-test 只能来自 `previous_exposure=none`，若人数不足则协议冻结失败，不挪用旧 holdout；
+8. 初始 formal 阈值固定为 condition≥50 subjects、candidate≥30 subjects、joint≥10 subjects、BH-FDR `q≤0.05`、1,000 次 subject bootstrap、方向稳定率≥0.80；validation 中 support<20 subjects 的规则标为 inconclusive，不降阈值救题；
+9. 生成 `protocol-lock.json`，绑定 dependency lock 和所有输入 manifest hash；
+10. 增加所有 unresolved decision 非空、exposure role 不可升级、hash 可复核、改后 lock 失效的测试。
 
-**产物**：完成的 protocol、time semantics、feature whitelist、protocol lock。
+**产物**：完成的 protocol、time semantics、feature whitelist、`subject_exposure_registry.parquet`、新 split manifest、protocol lock。
 
 **测试**：
 
@@ -513,7 +786,7 @@ uv run python -m pytest tests -q -p no:cacheprovider -k "legacy or phenotype or 
 uv run python -m pytest tests -q -p no:cacheprovider -k "protocol or governance or split"
 ```
 
-**验收**：科学配置不存在 `null`；修改任一科学参数会使 lock 验证失败；final-test 信息不能被 development 进程读取。
+**验收**：科学配置不存在 `null`；修改任一科学参数会使 lock 验证失败；旧 validation/final-test 均不能升级为新 formal role；新 final-test subjects 的 exposure 必须全部为 none；final-test 信息不能被 development 进程读取。
 
 **依赖**：W0。
 
@@ -729,7 +1002,7 @@ uv run python -m pytest tests/investigation_selection/test_cohort.py tests/test_
 5. 程序校验时间、split、唯一答案、选项同类、lineage 和 hash；
 6. 独立 reviewer 使用不同审查过程，自动 reviewer 不称“独立临床审核”；
 7. 临床审核至少记录：事实正确性、时间可见性、比较类合理性、行为/规范边界、答案唯一性；
-8. `pattern_rule_concordance` 只能称“RWD 中同类最可能选择”；
+8. `pattern_rule_concordance` 只能称“MIMIC 观察数据中同类最可能选择”；
 9. `clinical_best_decision` 必须由指南与专家裁决另建 normative gold；
 10. 全部门禁通过后才从 gold=0 增加批准数。
 
@@ -854,6 +1127,9 @@ W0 旧产物失效
 
 | 问题/要求 | 本计划的确定处理 |
 |---|---|
+| 旧 134 道候选 | 0.1、W0；整体失效，审核/发布/统计入口按 ID 拒绝 |
+| 旧 final-test | 0.1、W0–W1；仅作 engineering audit，相关 subjects 不进入新 formal roles |
+| 香港 RWD | 0.1、3.4；本轮不读取、不实现 connector、不作为验收条件 |
 | 环境统一用 uv，缺包就安装 | 第 8 节；只用 `uv sync/uv add/uv run` |
 | event 中有哪些时间字段 | 1.2、3.3；已有四类时间、policy/reasons/phase，另补源语义 |
 | Lift 效果仍被 CBC 类项目占据 | 6.1–6.4、W6–W7；修分母/层级/窗口，TF-IDF 召回 + 收缩 RR |
@@ -862,12 +1138,12 @@ W0 旧产物失效
 | phenotype 代码都不采用 | 0、1.1、7、W0；代码和 8 类设计全部弃用 |
 | 归一化怎么进行 | 2.4、W4；解码、同义词、component/panel、单位，全部可追溯 |
 | discharge 文本 NER | W3；抽 mention/assertion/section/time，但 phase 固定 post_hoc |
-| 字典没有项目级内容 | 0、1.4、4.1；结果可到 analyte，POE Lab 仍仅类别级；RWD 补 order gold |
+| 字典没有项目级内容 | 0、1.4、4.1；结果可到 analyte，POE Lab 仍仅类别级；本轮不构建具体 Lab order gold |
 | 8 类特征不采用 | 1.1、1.4、7；新输入用可见事实白名单，不预设特征类 |
 | CBC/BMP 91% 如何解决 | 4.2、6.4；panel/component 分层及多维口径分别统计 |
 | V2 规则组合缺失是什么 | 1.3、W0；进展文档漏了 1,584→738→165→134 和失效原因 |
 | decision_document 是什么/能否映射 | 2.1、5、W5；三张 Parquet + manifest 的逐字段合同 |
-| 检验时间采用收到样本时间 | 3.4；RWD 有真实字段才用，MIMIC 明确 source insufficient |
+| 检验时间采用收到样本时间 | 3.4；本轮 MIMIC 明确 source insufficient，不推断、不接入 RWD |
 | 到诊/入院及实际可见时间 | 3.2–3.5；arrival、registration、admit 分开，query 用 occurrence+availability |
 
 ## 14. 完成定义
@@ -877,7 +1153,7 @@ W0 旧产物失效
 1. 旧 phenotype/V2 产物无法进入新链；
 2. 每个决策的 origin、index、query、target、可见 evidence 和 target episode 都可追溯；
 3. MIMIC 未拥有的检验接收时间没有被创造；
-4. MIMIC lab proxy 与 RWD lab order gold 分轨；
+4. MIMIC generic Lab order 与 result proxy 分轨，项目级 Lab order gold 明确 unavailable；
 5. TF-IDF 相对频率/Lift 的增益经过配对、分层和 validation 检验；
 6. CBC/BMP 没有被删除，也没有因 component/重复行被多重计数；
 7. 至少四个检查分布不同的诊断域通过相同数据合同；
