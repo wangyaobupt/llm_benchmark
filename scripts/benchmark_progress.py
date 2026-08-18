@@ -21,6 +21,9 @@ DEFAULT_STATE: dict[str, Any] = {
     "updated_at": None,
     "current_stage": "W0",
     "overall_status": "running",
+    "project_mode": "exploratory-only",
+    "official_final_test_enabled": False,
+    "rehearsal_mode_enabled": True,
     "stages": {
         f"W{i}": {"status": "pending", "message": "等待开始", "updated_at": None}
         for i in range(11)
@@ -43,7 +46,9 @@ async function render() {{
   const app=document.getElementById('app');
   try {{
     const r=await fetch('benchmark-progress.json?ts='+Date.now(),{{cache:'no-store'}}); const s=await r.json();
-    let h='<div class="card"><div class="head"><b>当前阶段：'+s.current_stage+'</b><span class="status '+s.overall_status+'">'+s.overall_status+'</span></div><small>更新时间：'+(s.updated_at||'—')+'</small></div>';
+    let modeText=s.project_mode||'未声明';
+    let gateText=(s.official_final_test_enabled===false?'禁止 official final-test；仅允许 rehearsal':'official final-test 可用');
+    let h='<div class="card"><div class="head"><b>当前阶段：'+s.current_stage+'</b><span class="status '+s.overall_status+'">'+s.overall_status+'</span></div><div>项目模式：<strong>'+modeText+'</strong></div><div>'+gateText+'</div><small>更新时间：'+(s.updated_at||'—')+'</small></div>';
     for (const [id,v] of Object.entries(s.stages)) h+='<div class="card"><div class="head"><span class="stage">'+id+'</span><span class="status '+v.status+'">'+v.status+'</span></div><div>'+v.message+'</div><small>'+(v.updated_at||'—')+'</small></div>';
     if(s.recent_events?.length) h+='<div class="card"><b>最近事件</b><pre>'+s.recent_events.map(e=>e.at+'  '+e.message).join('\\n')+'</pre></div>';
     app.innerHTML=h;
@@ -75,6 +80,9 @@ def load_state() -> dict[str, Any]:
 
 def update(stage: str, status: str, message: str) -> None:
     state = load_state()
+    state.setdefault("project_mode", "exploratory-only")
+    state.setdefault("official_final_test_enabled", False)
+    state.setdefault("rehearsal_mode_enabled", True)
     timestamp = now()
     state["current_stage"] = stage
     state["stages"].setdefault(stage, {})
@@ -118,4 +126,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

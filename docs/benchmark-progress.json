@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T16:45:12+00:00",
-  "current_stage": "W1",
+  "updated_at": "2026-08-18T16:46:21+00:00",
+  "current_stage": "W10",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -55,11 +55,15 @@
     },
     "W10": {
       "status": "completed",
-      "message": "W10 发布前门禁与 final-test rehearsal 已完成：.venv 演练通过，official_final_test=false、gold_mutated=false；正式 final-test 仍待新主体与冻结协议",
-      "updated_at": "2026-08-18T16:43:52+00:00"
+      "message": "W10 rehearsal 已验证；项目模式 exploratory-only，official final-test 禁止，仅允许 fixture rehearsal",
+      "updated_at": "2026-08-18T16:46:21+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T16:46:21+00:00",
+      "message": "W10: W10 rehearsal 已验证；项目模式 exploratory-only，official final-test 禁止，仅允许 fixture rehearsal"
+    },
     {
       "at": "2026-08-18T16:45:12+00:00",
       "message": "W1: 项目已明确降级 exploratory-only：20136/20136 主体在旧 split，previous_exposure=none 为 0；仅允许 synthetic rehearsal，official final-test 与 formal gold 禁止"
@@ -108,5 +112,8 @@
       "at": "2026-08-18T16:13:47+00:00",
       "message": "W0: 旧 V2/phenotype 产物已失效，治理门禁与审计 manifest 已建立；W0 验收 51/51 通过"
     }
-  ]
+  ],
+  "project_mode": "exploratory-only",
+  "official_final_test_enabled": false,
+  "rehearsal_mode_enabled": true
 }
