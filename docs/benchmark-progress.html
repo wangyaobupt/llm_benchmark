@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta http-equiv="refresh" content="5">
+<title>Benchmark W0–W10 执行进度</title>
+<style>body{{font-family:system-ui,sans-serif;margin:2rem;max-width:1100px;background:#f5f7fb;color:#172033}}
+.card{{background:white;border-radius:12px;padding:1rem 1.2rem;margin:.7rem 0;box-shadow:0 2px 12px #17203318}}
+.head{{display:flex;justify-content:space-between;align-items:center}} .stage{{font-weight:700;font-size:1.1rem}}
+.status{{padding:.2rem .6rem;border-radius:999px;background:#e7edf7}} .completed{{background:#d9f5df;color:#176b2c}}
+.in_progress,.running{{background:#fff0c2;color:#7a5200}} .failed{{background:#ffdcdc;color:#9b2020}}
+small{{color:#65718a}} pre{{white-space:pre-wrap}}</style></head>
+<body><h1>Benchmark W0–W10 执行进度</h1><div id="app">读取状态中…</div>
+<script>
+async function render() {{
+  const app=document.getElementById('app');
+  try {{
+    const r=await fetch('benchmark-progress.json?ts='+Date.now(),{{cache:'no-store'}}); const s=await r.json();
+    let h='<div class="card"><div class="head"><b>当前阶段：'+s.current_stage+'</b><span class="status '+s.overall_status+'">'+s.overall_status+'</span></div><small>更新时间：'+(s.updated_at||'—')+'</small></div>';
+    for (const [id,v] of Object.entries(s.stages)) h+='<div class="card"><div class="head"><span class="stage">'+id+'</span><span class="status '+v.status+'">'+v.status+'</span></div><div>'+v.message+'</div><small>'+(v.updated_at||'—')+'</small></div>';
+    if(s.recent_events?.length) h+='<div class="card"><b>最近事件</b><pre>'+s.recent_events.map(e=>e.at+'  '+e.message).join('\n')+'</pre></div>';
+    app.innerHTML=h;
+  }} catch(e) {{ app.innerHTML='<div class="card">无法读取状态。请在项目根目录运行 <code>python scripts/benchmark_progress.py serve</code> 后打开本页。</div>'; }}
+}}
+render();
+</script></body></html>

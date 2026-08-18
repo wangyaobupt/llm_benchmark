@@ -1,0 +1,68 @@
+{
+  "updated_at": "2026-08-18T16:13:47+00:00",
+  "current_stage": "W0",
+  "overall_status": "running",
+  "stages": {
+    "W0": {
+      "status": "completed",
+      "message": "旧 V2/phenotype 产物已失效，治理门禁与审计 manifest 已建立；W0 验收 51/51 通过",
+      "updated_at": "2026-08-18T16:13:47+00:00"
+    },
+    "W1": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W2": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W3": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W4": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W5": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W6": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W7": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W8": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W9": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    },
+    "W10": {
+      "status": "pending",
+      "message": "等待开始",
+      "updated_at": null
+    }
+  },
+  "recent_events": [
+    {
+      "at": "2026-08-18T16:13:47+00:00",
+      "message": "W0: 旧 V2/phenotype 产物已失效，治理门禁与审计 manifest 已建立；W0 验收 51/51 通过"
+    }
+  ]
+}

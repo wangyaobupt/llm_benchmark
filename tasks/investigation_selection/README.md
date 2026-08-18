@@ -2,7 +2,7 @@
 
 本目录集中管理「检查检验选择」这一评测任务的全部代码与产物：从 MIMIC 全量数据里**确定性**地算出"给定主诉，最该做哪个检查"的题目与 gold，并做独立患者验证和模型评测。
 
-> 状态：**探索性草案**。gold 语义、划分比例、词表、阈值均为占位值，待临床审核后冻结。final_test 已盲测一次（rank-1 69.3% / top-3 88.6%，140/295 checked），此后仅保留为发布前一次性复检，不再用于开发调参。DeepSeek 评测（validated rank-1）48.4%。
+> 状态：**历史探索性产物，整体失效**。本目录的规则、题目、split 和 final-test 均不得作为新 W0–W10 管线输入。旧 final-test 仅允许 `engineering_audit_only` 审计；不得升级为 formal final-test。当前 gold=0，失效原因和 ID 清单见 [`docs/legacy-invalidation-manifest.json`](../../docs/legacy-invalidation-manifest.json)，新合同见 [`docs/Benchmark-问题复核与实施计划.md`](../../docs/Benchmark-问题复核与实施计划.md)。
 
 ## 目录结构
 
