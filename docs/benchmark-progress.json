@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T17:08:22+00:00",
-  "current_stage": "HK_RWD",
+  "updated_at": "2026-08-18T17:10:19+00:00",
+  "current_stage": "AUTOMATION",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -87,9 +87,18 @@
       "status": "pending",
       "message": "未发现香港 RWD 数据路径；等待新数据后按 E5 Gold 迁移规范重新执行 E1–E4",
       "updated_at": "2026-08-18T17:08:22+00:00"
+    },
+    "AUTOMATION": {
+      "status": "completed",
+      "message": "已提供 E1-E4 一键探索性工作流：新 RWD 到位后自动更新 HTML 并生成 run manifest，不执行 official final-test、不做 Git 操作",
+      "updated_at": "2026-08-18T17:10:19+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-18T17:10:19+00:00",
+      "message": "AUTOMATION: 已提供 E1-E4 一键探索性工作流：新 RWD 到位后自动更新 HTML 并生成 run manifest，不执行 official final-test、不做 Git 操作"
+    },
     {
       "at": "2026-08-18T17:08:22+00:00",
       "message": "HK_RWD: 未发现香港 RWD 数据路径；等待新数据后按 E5 Gold 迁移规范重新执行 E1–E4"
