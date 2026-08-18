@@ -1,0 +1,23 @@
+schema_version: investigation-selection-visible-facts/1.0.0
+allowed_event_fields:
+  - event_kind
+  - entity_type
+  - source_concept_id
+  - concept_id
+  - preferred_name
+  - source_label
+  - assertion
+  - event_time
+  - available_time
+  - evidence_phase
+  - normalization_status
+  - source_table
+forbidden_event_fields:
+  - subject_id
+  - hadm_id
+  - discharge_diagnosis
+  - discharge_summary_text
+  - target_episode_id
+  - final_test_derived_statistic
+post_hoc_never_visible: true
+unknown_time_policy: reject

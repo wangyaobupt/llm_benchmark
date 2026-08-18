@@ -1,0 +1,22 @@
+schema_version: investigation-selection-track-catalog/1.0.0
+tracks:
+  - track_id: imaging_order
+    source_tables: [hosp.poe]
+    target_semantics: order_created_time
+    candidate_level: modality
+  - track_id: clinical_order
+    source_tables: [hosp.poe]
+    target_semantics: order_created_time
+    candidate_level: named_order_class
+  - track_id: generic_lab_order
+    source_tables: [hosp.poe]
+    target_semantics: order_created_time
+    candidate_level: generic_category
+  - track_id: lab_result_proxy
+    source_tables: [hosp.labevents, hosp.microbiologyevents]
+    target_semantics: result_available_time_proxy
+    candidate_level: component_or_panel
+forbidden_sources:
+  - hong_kong_rwd
+  - inferred_lab_order_from_result
+  - inferred_specimen_received_time

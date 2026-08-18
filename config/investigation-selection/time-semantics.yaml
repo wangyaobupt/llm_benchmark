@@ -1,0 +1,23 @@
+schema_version: investigation-selection-time-semantics/1.0.0
+primary:
+  order_decision:
+    observation_window_minutes: 240
+    target_window_minutes: 1440
+    order_burst_minutes: 15
+  result_proxy:
+    observation_window_minutes: 240
+    target_window_minutes: 1440
+sensitivity:
+  observation_window_minutes: [120, 240, 480]
+  target_window_minutes: [720, 1440, 2880]
+  order_burst_minutes: [5, 15, 30]
+field_semantics:
+  ed_arrival_time: edstays.intime
+  ed_registration_time: admissions.edregtime
+  hospital_admit_time: admissions.admittime
+  order_created_time: poe.ordertime
+  specimen_collection_time_proxy: labevents.charttime
+  result_available_time: labevents.storetime
+  microbiology_specimen_collection_time: microbiologyevents.charttime
+  microbiology_last_update_time: microbiologyevents.storetime
+  specimen_received_time: unavailable_in_mimic_iv

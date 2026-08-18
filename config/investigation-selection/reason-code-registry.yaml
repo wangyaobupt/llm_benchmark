@@ -16,6 +16,9 @@ codes:
   - code: SPLIT_INPUT_DRIFT
     stage: split
     description: The input subject universe differs from the frozen source hash.
+  - code: SPLIT_NO_UNEXPOSED_FORMAL_SUBJECTS
+    stage: split
+    description: No subject with previous_exposure=none is available for new formal validation or final-test roles.
   - code: SNAPSHOT_NOT_YET_OCCURRED
     stage: snapshot
     description: Event time is later than the decision index time.

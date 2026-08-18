@@ -40,8 +40,8 @@ class EvaluationProtocolTest(unittest.TestCase):
         report = validate_protocol_bundle(self._bundle())
         self.assertTrue(report["valid"])
         self.assertFalse(report["freeze_ready"])
-        self.assertIn("formal_subject_split_ratios", report["freeze_blockers"])
-        self.assertTrue(any("target_window" in item for item in report["freeze_blockers"]))
+        self.assertIn("formal_exposure_population", report["freeze_blockers"])
+        self.assertIn("new_validation_and_final_test_subjects", report["freeze_blockers"])
 
     def test_lock_refuses_unresolved_draft(self) -> None:
         with self.assertRaises(ProtocolBundleError):

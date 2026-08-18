@@ -28,6 +28,7 @@ __pycache__/
 .env
 .env.*
 !.env.example
+.local/
 
 # Editor settings
 .vscode/

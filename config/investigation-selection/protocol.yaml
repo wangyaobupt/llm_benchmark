@@ -1,19 +1,22 @@
 schema_version: investigation-selection-protocol/1.0.0
 protocol_id: mimic-investigation-selection-pattern-rule-concordance
-protocol_version: 0.1.0
+protocol_version: 1.0.0
 protocol_status: draft
 scientific_protocol:
   benchmark_track: pattern_rule_concordance
   construct_registry:
-    - construct_type: individual_next_event
-      gold_field: observed_target_event_ids
-      claim_boundary: Observed next action for one encounter; not a population rule or clinical recommendation.
-    - construct_type: pattern_rule_concordance
-      gold_field: rule_answer_candidate_id
-      claim_boundary: Most likely same-class investigation selected in frozen development RWD.
-    - construct_type: clinical_best_decision
-      gold_field: normative_answer_candidate_id
-      claim_boundary: Guideline and expert-adjudicated best decision; not inferred from observed MIMIC behavior.
+  - construct_type: individual_next_event
+    gold_field: observed_target_event_ids
+    claim_boundary: Observed next action for one encounter; not a population rule
+      or clinical recommendation.
+  - construct_type: pattern_rule_concordance
+    gold_field: rule_answer_candidate_id
+    claim_boundary: Most likely same-class investigation selected in frozen development
+      RWD.
+  - construct_type: clinical_best_decision
+    gold_field: normative_answer_candidate_id
+    claim_boundary: Guideline and expert-adjudicated best decision; not inferred from
+      observed MIMIC behavior.
   patient_journey_scope:
     linked_pre_admission_ed: include_native_hadm_handoff
     standalone_ed: exclude_first_release
@@ -23,59 +26,62 @@ scientific_protocol:
   subject_split:
     group_field: subject_id
     ratios:
-      development: null
-      validation: null
-      final_test: null
+      development: 0.7
+      validation: 0.15
+      final_test: 0.15
     engineering_audit_policy: separate_non_formal_partition
     legacy_partition_policy: legacy_holdout_candidate_not_formal_final_test
   task_definition:
     task_id: investigation_selection
     index_time_policy: before_target_order_creation
     observation_window:
-      start_minutes_before_index: null
+      start_minutes_before_index: -240
       end_minutes_before_index: 0
     target_window:
       start_minutes_after_index: 0
-      end_minutes_after_index: null
+      end_minutes_after_index: 1440
     answer_semantics: most_likely_selected_in_development_rwd
-    tie_policy: null
-    missing_policy: null
-    zero_denominator_policy: null
-    refusal_policy: null
+    tie_policy: reject_item
+    missing_policy: inconclusive
+    zero_denominator_policy: inconclusive
+    refusal_policy: allowed_when_no_eligible_candidate
   hypothesis_space:
-    condition_generator_ref: null
-    candidate_catalog_ref: null
-    comparison_class_catalog_ref: null
+    condition_generator_ref: investigation-selection/visible-facts/1.0.0
+    candidate_catalog_ref: investigation-selection/track-catalog/1.0.0
+    comparison_class_catalog_ref: investigation-selection/comparison-classes/1.0.0
     fdr_family_definition: condition_by_comparison_class
     pre_fdr_allowed_filters:
-      - structural_eligibility
-      - temporal_eligibility
-      - independent_orderability
-      - comparison_class_membership
-      - preregistered_marginal_support
+    - structural_eligibility
+    - temporal_eligibility
+    - independent_orderability
+    - comparison_class_membership
+    - preregistered_marginal_support
     pre_fdr_forbidden_filters:
-      - joint_support
-      - conditional_probability
-      - lift
-      - psr
-      - p_value
-      - probability_gap
-      - score_ratio
+    - joint_support
+    - conditional_probability
+    - lift
+    - psr
+    - p_value
+    - probability_gap
+    - score_ratio
   statistical_policy:
     fdr_method: benjamini_hochberg
-    fdr_q: null
-    minimum_condition_support: null
-    minimum_candidate_support: null
-    minimum_joint_support_post_fdr: null
-    wilson_lower_bound_minimum: null
-    probability_gap_minimum: null
-    score_ratio_minimum: null
+    fdr_q: 0.05
+    minimum_condition_support: 50
+    minimum_candidate_support: 30
+    minimum_joint_support_post_fdr: 10
+    wilson_lower_bound_minimum: 0.35
+    probability_gap_minimum: 0.15
+    score_ratio_minimum: 1.25
     psr_role: ranking_and_ablation_only
   validation_policy:
-    statuses: [validated, failed, inconclusive]
+    statuses:
+    - validated
+    - failed
+    - inconclusive
     bootstrap_unit: subject_id
-    bootstrap_replicates: null
-    stability_minimum: null
+    bootstrap_replicates: 1000
+    stability_minimum: 0.8
     missing_reason_code: VALIDATION_MISSING_CANDIDATE
     zero_denominator_reason_code: VALIDATION_ZERO_DENOMINATOR
     tie_reason_code: VALIDATION_TIE
@@ -83,23 +89,24 @@ scientific_protocol:
     inconclusive_reason_code: VALIDATION_INCONCLUSIVE
   final_test_information_isolation:
     forbidden_inputs:
-      - raw_final_test_rows
-      - final_test_derived_statistics
-      - final_test_failure_logs
-      - final_test_candidate_missingness
+    - raw_final_test_rows
+    - final_test_derived_statistics
+    - final_test_failure_logs
+    - final_test_candidate_missingness
     violation_reason_code: FINAL_TEST_INFORMATION_FORBIDDEN
 runtime_configuration:
   threads: 4
-  cache_directory: null
+  cache_directory: data/derived/investigation_selection/cache
 audit_metadata:
-  source_git_commit: null
-  dependency_lock_sha256: null
-  input_manifest_sha256: {}
+  source_git_commit: 05cb878a70dc489d6168470d45d4652ee07fa0e8
+  dependency_lock_sha256: b3829dfabffe5fdde5a98f3dc1e971dcadf800ab53bdb0bebdc5fba9a44e348e
+  input_manifest_sha256:
+    docs/legacy-invalidation-manifest.json: d1ce50bc89f42d43b2275d15f5dff89cf1f19bc1118f093b70ecdfbeab9eb2a3
+    tasks/investigation_selection/output/split/split_manifest.json: 454fb2cf4895f6c31f5cc96f459212bda90db6f72e825deb450be47c3f0f94f4
+    config/investigation-selection/track-catalog.yaml: 268f34f9356e85403a57f20d0c6285e7b1c207dc9f71c13a8d457aab37feaa21
+    config/investigation-selection/time-semantics.yaml: 071970a5d1f8c97463567b2bd605eedfdf285ece0dc16fc095ea33d0bf552596
+    config/investigation-selection/feature-whitelist.yaml: 2b2869d8c9b276ef3b73f3e45b074edc1a67928755682b62076cf3a123abba6f
+    config/investigation-selection/source-manifests.yaml: 813331f6d7315bd00f5117fe568fc35d1918da31e2e1326fa82177f749166266
 unresolved_decisions:
-  - formal_subject_split_ratios
-  - observation_and_target_windows
-  - candidate_and_condition_catalog_versions
-  - tie_missing_zero_denominator_and_refusal_policies
-  - development_statistical_thresholds
-  - validation_bootstrap_and_stability_thresholds
-  - source_commit_dependency_and_input_hashes
+- formal_exposure_population
+- new_validation_and_final_test_subjects

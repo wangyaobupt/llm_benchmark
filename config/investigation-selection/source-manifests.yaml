@@ -1,0 +1,7 @@
+schema_version: investigation-selection-source-manifests/1.0.0
+sources:
+  legacy_split_manifest: tasks/investigation_selection/output/split/split_manifest.json
+  legacy_invalidation_manifest: docs/legacy-invalidation-manifest.json
+  formal_subject_source:
+    path: G:/Projects/llm_benchmark/data/derived/coronary_all_three_modules_full/event_pipeline/normalization/normalized_events.parquet
+    source_scope: MIMIC-IV normalized events; only this source may define the current formal subject universe
