@@ -16,6 +16,9 @@ tasks/*/output/
 # Data directory (patient-level data, never committed)
 data/
 
+# Locally extracted MIMIC patient-level example (regenerable, never committed)
+docs/reports/hadm-28234402-normalized-events.json
+
 # Licensed MIMIC dictionaries bundled locally with the portable cleaner
 data_pipeline/clean_clinical_archive/dictionaries/
 

@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-08-18T17:12:32+00:00",
-  "current_stage": "HK_RWD",
+  "updated_at": "2026-08-19T00:54:10+00:00",
+  "current_stage": "EXTRACT_HADM",
   "overall_status": "failed",
   "stages": {
     "W0": {
@@ -92,9 +92,18 @@
       "status": "completed",
       "message": "E1-E4 一键探索性工作流已通过样本端到端 smoke；official final-test=false",
       "updated_at": "2026-08-18T17:11:30+00:00"
+    },
+    "EXTRACT_HADM": {
+      "status": "completed",
+      "message": "已抽取 hadm=28234402 全部 835 条 normalized events（47 字段），JSON 完整性与 source hash 校验通过",
+      "updated_at": "2026-08-19T00:54:10+00:00"
     }
   },
   "recent_events": [
+    {
+      "at": "2026-08-19T00:54:10+00:00",
+      "message": "EXTRACT_HADM: 已抽取 hadm=28234402 全部 835 条 normalized events（47 字段），JSON 完整性与 source hash 校验通过"
+    },
     {
       "at": "2026-08-18T17:12:32+00:00",
       "message": "HK_RWD: 样本 smoke 已验证 E1-E4 工作流；正式香港 RWD 尚未发现，等待新数据后按迁移规范运行"
@@ -210,10 +219,6 @@
     {
       "at": "2026-08-18T16:28:12+00:00",
       "message": "W3: W3 snapshot adapter 与 discharge NER post_hoc 边界实现，21 项测试通过；正式输出仍受 W1 lock 阻断"
-    },
-    {
-      "at": "2026-08-18T16:26:40+00:00",
-      "message": "W2: W2 encounter_clock 与 source_grouping 合同实现，离线 31 项测试通过；正式产物仍受 W1 lock 阻断"
     }
   ],
   "project_mode": "exploratory-only",
