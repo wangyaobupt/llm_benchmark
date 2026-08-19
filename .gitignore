@@ -12,6 +12,13 @@ mimic/
 # Benchmark task generated artifacts (MIMIC-derived question text, gold,
 # validation/eval results, split manifest) — regenerable, never committed
 tasks/*/output/
+
+# V1 / V2 generated results stay local (code snapshots hashed, not stored)
+versions/**/artifacts/
+versions/**/src/
+versions/**/unclustered/
+versions/**/output/
+versions/v1-template-stem/presentation.html
 versions/v2-llm-stem/mcq-test-*/
 
 # Data directory (patient-level data, never committed)

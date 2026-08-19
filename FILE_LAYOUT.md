@@ -2,7 +2,7 @@
 
 Canonical spec (Chinese, wins on conflict): [`文件保存规范.md`](文件保存规范.md)
 
-Old copy at `docs/文件保存规范.md` is a redirect only. Agents and humans must follow the root spec for every new file.
+Agents and humans must follow the root spec for every new file. Do not keep a second copy under `docs/`.
 
 ## Status of trees
 
