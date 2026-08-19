@@ -1,6 +1,7 @@
-"""MIMIC-IV RWD clinical benchmark pipeline.
+"""Historical Hong Kong RWD CSV pipeline. Out of scope this round.
 
-Three-stage processing: extraction -> cleaning -> standardization.
+Do not treat this package as an active implementation or as input to the
+MIMIC investigation-selection rebuild.
 """
 
 __version__ = "1.0.0"

@@ -36,16 +36,22 @@ class EvaluationProtocolTest(unittest.TestCase):
     def _frozen_bundle(self) -> dict:
         return frozen_protocol_bundle(ROOT, self.addCleanup)
 
-    def test_repository_protocol_is_valid_draft_and_not_freeze_ready(self) -> None:
+    def test_repository_protocol_is_valid_and_freeze_ready(self) -> None:
         report = validate_protocol_bundle(self._bundle())
         self.assertTrue(report["valid"])
-        self.assertFalse(report["freeze_ready"])
-        self.assertIn("formal_exposure_population", report["freeze_blockers"])
-        self.assertIn("new_validation_and_final_test_subjects", report["freeze_blockers"])
+        self.assertEqual(report["protocol_status"], "frozen")
+        self.assertEqual(report["freeze_blockers"], [])
+        self.assertTrue(report["freeze_ready"])
+        contract = self._bundle()["protocol"]["scientific_protocol"]["decision_contract"]
+        self.assertEqual(contract["decision_semantics"], "conditional_order_choice")
 
     def test_lock_refuses_unresolved_draft(self) -> None:
+        bundle = self._bundle()
+        bundle["protocol"] = copy.deepcopy(bundle["protocol"])
+        bundle["protocol"]["protocol_status"] = "draft"
+        bundle["protocol"]["unresolved_decisions"] = ["formal_exposure_population"]
         with self.assertRaises(ProtocolBundleError):
-            build_protocol_lock(self._bundle())
+            build_protocol_lock(bundle)
 
     def test_frozen_protocol_requires_complete_audit_metadata(self) -> None:
         bundle = self._frozen_bundle()

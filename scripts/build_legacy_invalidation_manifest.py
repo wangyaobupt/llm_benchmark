@@ -20,10 +20,10 @@ LEGACY_FILES = [
     ROOT / "data/phenotype/generation_formal_v2/questions_candidates.jsonl",
     ROOT / "data/phenotype/generation_formal_v2/questions_reviewed.jsonl",
     ROOT / "data/phenotype/generation_formal_v2/questions_gold.jsonl",
-    ROOT / "tasks/investigation_selection/output/split/subject_split.parquet",
-    ROOT / "tasks/investigation_selection/output/split/split_manifest.json",
-    ROOT / "tasks/investigation_selection/output/development/run_manifest.json",
-    ROOT / "tasks/investigation_selection/output/validated/validated_manifest.json",
+    ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/split/subject_split.parquet",
+    ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/split/split_manifest.json",
+    ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/development/run_manifest.json",
+    ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/validated/validated_manifest.json",
 ]
 
 
@@ -99,7 +99,7 @@ def build() -> dict[str, Any]:
     question_ids = sorted(
         {value for item in artifacts for value in item.get("question_ids", [])}
     )
-    split_path = ROOT / "tasks/investigation_selection/output/split/subject_split.parquet"
+    split_path = ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/split/subject_split.parquet"
     split_artifacts = []
     if split_path.is_file():
         split_artifacts.append(

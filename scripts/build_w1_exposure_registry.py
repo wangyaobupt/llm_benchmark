@@ -21,7 +21,7 @@ from evaluation_pipeline.subject_split.contract import build_subject_split
 
 OUT = ROOT / "data/derived/investigation_selection/w1"
 SECRET_PATH = ROOT / ".local/subject_ref_secret.bin"
-OLD_SPLIT = ROOT / "tasks/investigation_selection/output/split/subject_split.parquet"
+OLD_SPLIT = ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/split/subject_split.parquet"
 FORMAL_EVENTS = Path(
     r"G:\Projects\llm_benchmark\data\derived\coronary_all_three_modules_full"
     r"\event_pipeline\normalization\normalized_events.parquet"

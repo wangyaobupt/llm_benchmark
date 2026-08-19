@@ -13,3 +13,7 @@
 | `docs/reports/visit-archive-p0-validation.md` / `.json` | 派生 visit archive（`parquet_to_jsonl` 路线）验证报告，该路线已废止 |
 | `docs/reports/visit-archive-expanded-validation.json` | 同上（1,000 episode 扩展验证指标） |
 | `docs/reports/mimic-poe-timeline-sample-100-metrics.json` | 与 `mimic-poe-timeline-sample-metrics.json` 内容逐字节相同（已比对确认），且 `mimic-poe-timeline-sample-analysis.md` 引用的是非 sample-100 版本 |
+| `docs/_archive/Case_Spider.md` | 与本仓库无关的旧笔记 |
+| `docs/_archive/20260817_周工作回顾.md` | 周报快照 |
+| `docs/_archive/chat-dumps/` | 对话草稿（文件名即首句） |
+| `docs/_archive/early-visit-specs/` | 2026-08-07 visit 级 JSONL 抽取规范，已被 event pipeline 取代 |

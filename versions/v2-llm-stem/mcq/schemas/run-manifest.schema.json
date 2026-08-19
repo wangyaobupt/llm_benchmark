@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcq-run-manifest/1.0.0",
+  "title": "RunManifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "pipeline_version", "run_profile", "stages",
+    "input", "thresholds", "generator_model", "reviewer_model",
+    "prompt_version", "counts"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "pipeline_version": { "type": "string" },
+    "run_profile": { "enum": ["formal", "exploratory"] },
+    "stages": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["status"],
+        "properties": {
+          "status": { "enum": ["initialized", "running", "completed", "failed"] },
+          "started_at": { "type": ["string", "null"] },
+          "completed_at": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["events_sha256", "split_sha256", "split_role"],
+      "properties": {
+        "events_sha256": { "type": "string", "minLength": 1 },
+        "split_sha256": { "type": "string", "minLength": 1 },
+        "split_role": { "type": "string" }
+      }
+    },
+    "thresholds": { "type": "object" },
+    "generator_model": { "type": "string" },
+    "reviewer_model": { "type": "string" },
+    "prompt_version": { "type": "string" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n_admissions", "n_conditions", "n_rules_accepted", "n_rules_rejected",
+        "n_candidates", "n_reviewed", "n_gold"
+      ],
+      "properties": {
+        "n_admissions": { "type": "integer", "minimum": 0 },
+        "n_conditions": { "type": "integer", "minimum": 0 },
+        "n_rules_accepted": { "type": "integer", "minimum": 0 },
+        "n_rules_rejected": { "type": "integer", "minimum": 0 },
+        "n_candidates": { "type": "integer", "minimum": 0 },
+        "n_reviewed": { "type": "integer", "minimum": 0 },
+        "n_gold": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

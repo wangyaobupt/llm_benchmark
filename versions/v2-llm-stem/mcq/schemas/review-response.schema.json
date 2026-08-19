@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcq-review-response/1.0.0",
+  "title": "ReviewResponse",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "question_id",
+    "is_investigation_selection", "uses_rwd_prediction_semantics",
+    "single_best_answer", "clinically_plausible", "safe_priority",
+    "no_answer_leakage", "options_same_granularity", "statistically_supported",
+    "synthetic_case", "english_quality", "recommendation", "concise_reason"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "question_id": { "type": "string", "pattern": "^iq_[0-9a-f]{24}$" },
+    "is_investigation_selection": { "type": "boolean" },
+    "uses_rwd_prediction_semantics": { "type": "boolean" },
+    "single_best_answer": { "type": "boolean" },
+    "clinically_plausible": { "type": "boolean" },
+    "safe_priority": { "type": "boolean" },
+    "no_answer_leakage": { "type": "boolean" },
+    "options_same_granularity": { "type": "boolean" },
+    "statistically_supported": { "type": "boolean" },
+    "synthetic_case": { "type": "boolean" },
+    "english_quality": { "type": "boolean" },
+    "recommendation": { "enum": ["accept", "reject", "revise"] },
+    "concise_reason": { "type": "string", "minLength": 1 }
+  }
+}

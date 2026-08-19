@@ -7,6 +7,9 @@ primary:
   result_proxy:
     observation_window_minutes: 240
     target_window_minutes: 1440
+    index_time: query_window_end
+    occurrence_time_field: charttime
+    target_time_field: storetime
 sensitivity:
   observation_window_minutes: [120, 240, 480]
   target_window_minutes: [720, 1440, 2880]

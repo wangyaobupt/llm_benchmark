@@ -1,0 +1,21 @@
+{
+  "schema_version": "investigation-selection-catalog-lock/1.0.0",
+  "purpose": "Hash lock for investigation catalog inputs (eligibility, panel counting, track catalog, time semantics, protocol). Rebuild if those files change. Not a patient-level data lock.",
+  "status": "scientific_frozen",
+  "clinical_review": "protocol_adjudicated_not_dual_reviewed",
+  "decision_semantics": "conditional_order_choice",
+  "lab_result_proxy_target_time_field": "storetime",
+  "lab_result_proxy_occurrence_time_field": "charttime",
+  "panel_main_analysis_count": "once_per_panel",
+  "panel_complete_time": "max_required_component_storetime",
+  "eligibility_status": "protocol_frozen",
+  "panel_definition_status": "counting_policy_frozen_clinical_panels_unreviewed",
+  "source_sha256": {
+    "config/investigation-selection/investigation-order-eligibility.yaml": "a933ff6a7c2ad0cbe66e1c6afb76a322038df75a260b84f3677059eb0340342c",
+    "config/investigation-selection/panel-definitions.yaml": "75ffc782e930f4f6e81d6b8078b79e643b679ccdb8728efac729feec71d4c713",
+    "config/investigation-selection/track-catalog.yaml": "baf0e2ffa486243d31072aac2834b38fd3943343d1f07c3e86789fa9e0c9a6ab",
+    "config/investigation-selection/time-semantics.yaml": "e126c7ebc8c883f25ea902683ac3e805ccf65f35e71d1ae3a52528d838b6233e",
+    "config/investigation-selection/protocol.yaml": "5ddee2be81fdc855b9fd01eda5ec357fb08ede9a1a72179c7640705b873c1e5a"
+  },
+  "catalog_lock_sha256": "7d3bf657288b1cc64b572a45777753b62a5cb43988540ead27f43c64295b3c0c"
+}

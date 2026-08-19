@@ -1,20 +1,21 @@
 # docs 文档索引
 
-本目录存放项目的设计文档、报告、参考资料与操作手册。**当前进展与整体计划以根目录 [`README.md`](../README.md) 为准**，本索引只负责导航 `docs/` 内的文档。
+本目录存放项目的设计文档、报告、参考资料与操作手册。**当前进展与整体计划以根目录 [`README.md`](../README.md) 为准**，本索引只负责导航 `docs/` 内的文档。当前状态摘要只有一份：[`BenchMark-进展梳理.md`](../BenchMark-进展梳理.md)。
 
-目录归类规则见 [`文件保存规范.md`](文件保存规范.md)。
+目录归类规则见根目录 [`文件保存规范.md`](../文件保存规范.md)（英文跳转 [`FILE_LAYOUT.md`](../FILE_LAYOUT.md)）。`docs/文件保存规范.md` 只是跳转，不要在这里维护第二份正文。
 
 ## 目录导航
 
 | 子目录 | 内容 |
 |---|---|
 | [`design/`](#design-方法学与设计) | 方法学、构建方案、字段映射、标注协议 |
+| [`plans/`](#plans-执行计划) | 执行合同与闸门 |
 | [`reports/`](#reports-分析报告与数据清单) | 分析报告、仪表盘、数据清单、验收与评测结果 |
 | [`reference/`](#reference-参考资料) | MIMIC 官方字段文档、表 schema 速查 |
 | [`guides/`](#guides-运行手册) | 运行手册、操作 runbook |
 | [`methods/`](#methods-方法协议) | 方法/任务协议 |
-| [`normalization-review/`](#review-人工审阅指南) | 跨批归一化人工审阅操作指南 |
-| [`text-ner-review/`](#review-人工审阅指南) | Text NER 人工校准操作说明 |
+| [`literature/`](#literature-文献) | 文献检索与综述 |
+| [`review/`](#review-人工审阅指南) | 人工审阅操作说明 |
 | [`_archive/`](_archive/README.md) | 已废止、过时或重复的文件 |
 
 ---
@@ -24,19 +25,16 @@
 | 文件 | 内容 |
 |---|---|
 | `MIMIC评测数据集构建方法学.md` | 评测数据集构建方法学全文（数据来源、聚合、清洗、标准化、出题设计） |
-| `patient-journey-benchmark-technical-roadmap.md` | Patient-Journey benchmark 详细技术路线图 |
-| `mimic-admission-raw-jsonl-schema.md` | 单次住院原始归档 JSONL schema（字段、连接规则、边界） |
-| `mimic-admission-raw-field-dictionary.md` | 单次住院原始归档逐字段数据字典（自动对账生成） |
-| `raw-archive-cleaning-standardization.md` | 原始归档后的清洗与标准化流程 |
-| `data-layer-processing-patterns.md` | 数据层处理模式（代码级说明） |
-| `mimic-dictionary-lookup.md` | MIMIC-IV 编码解析字典 |
-| `mimic-multimodal-benchmark-guide.md` | MIMIC 多模态数据与 benchmark 建设指南 |
-| `investigation-selection-gold-method.md` | 检查检验选择任务 gold 构建方法（探索性草案） |
+| `技术路线图.md` | Patient-Journey benchmark 详细技术路线图 |
+| `MIMIC 单次住院原始归档 JSONL schema.md` | 单次住院原始归档 JSONL schema（字段、连接规则、边界） |
+| `MIMIC 单次住院原始归档逐字段数据字典.md` | 单次住院原始归档逐字段数据字典 |
+| `原始住院归档后的清洗与标准化流程.md` | 原始归档后的清洗与标准化流程 |
+| `MIMIC 多模态数据指南.md` | MIMIC 多模态数据与 benchmark 建设指南 |
 | `text-ner-methodology.md` | Text NER 方法学设计 |
-| `text-ner-model-interface.md` | Text NER 全量抽取模型接口 |
 | `text-ner-entity-annotation-protocol.md` | 文本 NER 实体与显式关系标注协议 |
-| `clinical_episode_aggregation_plan.md` | Episode 多系统聚合实施方案（归档路线参考） |
-| `episode_field_mapping.md` | Episode 聚合输出字段映射（归档路线参考） |
+| `MIMIC-IV Episode 聚合输出字段映射文档.md` | Episode 聚合输出字段映射（归档路线参考） |
+| `一次住院信息分层与时点检查读法.md` | 一次住院分层与时点检查怎么读 |
+| `一次住院从原始表到挖掘表的处理流程.md` | 从原始表到挖掘表的逐步对照 |
 
 ## reports/ — 分析报告与数据清单
 
@@ -108,25 +106,43 @@
 | `mimic-iv-3.1-text-field-inventory.md` | MIMIC-IV 3.1 文本字段清单 |
 | `mimic_reference/` | MIMIC 官方表文档（`cxr/`、`ecg/`、`ed/`、`hosp/`、`icu/`、`note/`，逐表 schema + 字段说明） |
 
+## plans/ — 执行计划
+
+| 文件 | 内容 |
+|---|---|
+| `20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md` | 检查选择重建执行合同（W0–W10 闸门） |
+| `20260819_Benchmark-问题复核与实施计划.md` | 母版计划 |
+| `20260819_数据层时点检查提取与完整执行清单.md` | 数据层时点检查执行清单 |
+
 ## guides/ — 运行手册
 
 | 文件 | 内容 |
 |---|---|
 | `text-ner-runbook.md` | Text NER v1 API 配置与运行手册 |
 | `text-ner-v2-runbook.md` | Text NER v2 运行手册（干净重做版） |
+| `项目进展与数据层代码解读.md` | 数据层代码与产物读法 |
 
 ## methods/ — 方法协议
 
 | 文件 | 内容 |
 |---|---|
 | `investigation-selection-protocol.md` | 检查检验选择任务协议（单一规范源、锁定语义、停止条件） |
+| `数据划分.md` | 患者级划分规则 |
+| `统计方式.md` | 统计口径 |
+
+## literature/ — 文献
+
+| 文件 | 内容 |
+|---|---|
+| `high-baseline-orders-masking-literature-review.md` | 高基线常规医嘱掩盖高特异性检查 |
+| `研究问题1_*.md` | 研究问题 1 检索与方案笔记 |
 
 ## review/ — 人工审阅指南
 
 | 文件 | 内容 |
 |---|---|
-| `normalization-review/README.md` | 跨批归一化人工审阅操作指南（100 条试审流程与验收） |
-| `text-ner-review/README.md` | Text NER 人工校准操作说明（A/B 双标 + 裁决流程） |
+| `review/normalization-review.md` | 跨批归一化人工审阅操作指南（100 条试审流程与验收） |
+| `review/text-ner-review.md` | Text NER 人工校准操作说明（A/B 双标 + 裁决流程） |
 
 ---
 

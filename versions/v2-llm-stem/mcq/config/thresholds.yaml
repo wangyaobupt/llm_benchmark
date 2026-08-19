@@ -1,0 +1,46 @@
+# v2 MCQ rule-mining thresholds (design doc §7.3).
+#
+# Two profiles are preregistered:
+#   formal       — the design doc's strict defaults; only this profile may export gold.
+#   exploratory  — looser development values (marked exploratory_unreviewed; gold export blocked).
+#
+# A threshold may NOT be loosened ad hoc at run time to inflate question counts.
+
+schema_version: mcq-thresholds/1.0.0
+
+profiles:
+  formal:
+    rank_by: lift
+    min_x_support: 5
+    min_xy_support: 4
+    min_smoothed_probability: 0.60
+    min_lift: 1.20
+    min_wilson_lower: 0.35
+    max_fdr_q: 0.05
+    min_bootstrap_stability: 0.80
+    min_probability_gap: 0.15
+    min_lift_gap: 1.0
+    min_score_ratio: 1.25
+    bootstrap_iterations: 200
+    random_seed: 20260720
+    min_conditions: 2
+    max_conditions: 4
+
+  exploratory:
+    # Looser development values, mirroring the v1 exploratory parameters where
+    # the construct overlaps. Placeholder — not frozen, never gold-eligible.
+    rank_by: lift
+    min_x_support: 10
+    min_xy_support: 4
+    min_smoothed_probability: 0.05
+    min_lift: 1.0
+    min_wilson_lower: 0.02
+    max_fdr_q: 0.10
+    min_bootstrap_stability: 0.50
+    min_probability_gap: 0.10
+    min_lift_gap: 0.5
+    min_score_ratio: 1.25
+    bootstrap_iterations: 200
+    random_seed: 20260720
+    min_conditions: 1
+    max_conditions: 4

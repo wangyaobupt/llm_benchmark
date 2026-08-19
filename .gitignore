@@ -12,13 +12,14 @@ mimic/
 # Benchmark task generated artifacts (MIMIC-derived question text, gold,
 # validation/eval results, split manifest) — regenerable, never committed
 tasks/*/output/
+versions/v2-llm-stem/mcq-test-*/
 
 # Data directory (patient-level data, never committed)
 data/
+!data/README.md
 
-# Locally extracted MIMIC patient-level example (regenerable, never committed)
-docs/reports/hadm-28234402-normalized-events.json
-docs/reports/hadm-26691544-aggregated-complete.json
+# Locally extracted MIMIC patient-level examples (regenerable, never committed)
+docs/reports/hadm-*.json
 
 # Licensed MIMIC dictionaries bundled locally with the portable cleaner
 data_pipeline/clean_clinical_archive/dictionaries/
@@ -27,6 +28,12 @@ data_pipeline/clean_clinical_archive/dictionaries/
 __pycache__/
 *.py[cod]
 .test-tmp/
+.pytest_cache/
+.uv-cache/
+.uv-cache-v2/
+
+# Accidental Windows expansion of %SystemDrive%
+%SystemDrive%/
 
 # Local environments and credentials
 .env

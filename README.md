@@ -59,66 +59,81 @@ LLM 评测、统计分析与报告
 
 原始归档始终保持不变；清洗、标准化、快照和题目均作为带版本与来源信息的派生产物保存。患者级数据按患者划分训练、开发和测试集合，避免同一患者跨集合泄漏。
 
+检查选择的正式实现已从旧 V2 规则挖掘线切到 `decision_document` 重建：先冻结「当时看到了什么、当时做了什么」，再允许统计和出题。上表仍是各阶段产物合同；旧 V1 / V2 产物只作审计，不能当作本表已完成。执行闸门见 [v3.1 明确执行版](docs/plans/20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md)。文件保存见 [`文件保存规范.md`](文件保存规范.md)。
+
 ## 目录结构
 
-五类临床决策 MCQ 任务已整合到 `tasks/` 下统一管理；共享基础设施保留在仓库根。
+出题层有两条已关闭的历史线，和一条未冻结的重建线。V1 冻结在 `versions/v1-template-stem`（原根目录 `tasks/` 已并入并去重）。V2 在 `data_pipeline/archived/phenotype` 与 `versions/v2-llm-stem`，科学合同已失效，formal 入口拒绝。当前检查选择工作在 `data_pipeline/investigation_selection/` 与 `evaluation_pipeline/`。
 
 ```text
 D:\Projects\llm_benchmark\
-├── tasks/                          # 五类临床决策 MCQ 任务（探索性原型，exploratory_unreviewed）
-│   ├── investigation_selection/    # 1. 检查检验选择（selectivity gold）
-│   ├── clinical_diagnosis/         # 2. 临床诊断（PSR gold）
-│   ├── treatment/                  # 3. 治疗处置（T1 开立 / T2 执行 / T3 手术）
-│   ├── referral/                   # 4. 转诊与科室选择（R1 services）
-│   └── discharge_followup/         # 5. 离院指导与随访（F1 文书轨，骨架）
-├── benchmark_common/               # 五维共享：条件归一化、统计门禁、通用任务框架
-├── data_pipeline/                  # 数据支路（清洗/标准化/文本 NER/聚合）
-├── evaluation_pipeline/            # 评测层工程链（split/snapshot/journey）
-├── config/                         # 协议与配置
+├── 文件保存规范.md / FILE_LAYOUT.md
+├── BenchMark-进展梳理.md           # 唯一当前状态摘要
+├── versions/                       # v1-template-stem（冻结基线）；v2-llm-stem（失效审计）
+├── mcq_generation/                 # 五类题型设计文档（非正式实现）
+├── data_pipeline/                  # 主清洗：raw → clean → event → aggregation
+│                                   # investigation_selection/ 检查选择重建
+│                                   # archived/phenotype/ 旧 visit 特征（失效）
+│                                   # text_ner / text_ner_v2 文本支路
+├── evaluation_pipeline/            # split / snapshot / journey / legacy 门禁
+├── benchmark_common/               # V1 共享统计原语（冻结）
+├── eda/                            # EDA 脚本
+├── rwd_pipeline/                   # 香港 RWD 历史材料；本轮不纳入
+├── config/                         # 协议与 lock（investigation-selection 已 frozen）
 ├── schemas/                        # JSON schema
-├── docs/                           # 设计文档与报告
-├── tests/                          # 测试
-└── scripts/                        # 工具脚本
+├── docs/                           # design / plans / reports / guides / literature / review
+├── tests/
+└── scripts/                        # 一次性审计 / 冻结工具
 ```
 
-每个任务目录自带 `README.md`（含 gold 语义、阈值、结果快照与运行命令）。任务间共享：`benchmark_common/`（条件归一化、统计门禁、通用任务框架）与 `tasks/investigation_selection/output/split/`（患者级 60/20/20 划分，其余四维复用）。所有产物当前均标记 `exploratory_unreviewed`，尚未冻结；见各任务 README 与 `docs/reports/execution-progress-p1-p5.md`。
+所有产物当前均标记 `exploratory_unreviewed`，`gold = 0`。文档导航见 `docs/README.md`。当前状态摘要只看 [`BenchMark-进展梳理.md`](BenchMark-进展梳理.md)。V1 / V2 历史数字见 `docs/reports/execution-progress-p1-p5.md` 与 `docs/reports/v2-pipeline-methodology.md`。
 
 ## 当前进展
 
-截至 2026-08-15，MIMIC 数据层已从 100 例验收样本推进到 1,000 次住院的正式全队列：清洗与确定性标准化通过完整验收并发布 workflow manifest，无损事件聚合把标准化事件重新连接回完整原文与源行血缘，文本事实支路扩展到 1000 例全来源并完成通用 API 接入与多模型小批试点。但正式评测产物仍未形成：检查检验选择协议仍不可冻结，跨批归一化与文本 NER 的人工门禁尚未关闭，真实正式的 split、journey、snapshot、gold、MCQ 和模型评测结果均不存在。已进行的模型调用（DeepSeek/Qwen/Bailian 等）均为 `unreviewed_model_output`，不能替代人工 gold，也不能作为经过验证的实验结果。
+截至 2026-08-19：冠心病 MIMIC 事件底座可用，检查选择正式金标准尚未开始。数据层已从 100 例经 1,000 例推进到 **39,036 次住院 / 20,136 患者 / 27,336,811 条 `clinical_event/1.2.0` 事件**；无损聚合只验收了 1,000 例。V1 已冻为探索基线（221 题探针，非正式评测）。V2 跑出 134 道自动审题通过的候选，但因出院 ICD、未用 `available_time`、全住院目标窗、Lab 仅有 category、split 泄漏而**整链失效**，不能送审或发布。`protocol.yaml` 已 `frozen`（`conditional_order_choice`），`protocol-lock.json` 与 `catalog-lock.json` 已生成；1,000 例 first-wave corpus（1,011 documents，`methodology_unreviewed`）已落地。仍无 run-lock、无新 formal split、无 gold。已进行的模型调用均为 `unreviewed_model_output`。
 
-> **探索性原型（与正式链路并行）**：五类临床决策 MCQ 的探索性原型已整合在 `tasks/` 下（检查/诊断/治疗/转诊/离院），直接消费 normalized events 出题并做患者级 60/20/20 划分验证与 DeepSeek 模型评测，全部产物标记 `exploratory_unreviewed`，用于预研 gold 语义与阈值，不计入正式评测结果。详见 `docs/reports/execution-progress-p1-p5.md` 与各任务 README。
+> **当前主线不是继续审 134 道旧题，也不是把 mining 当成绩。** W1 合同已冻；下一步是对齐 snapshot 时钟，并完成 1,000 例 integration audit。V1 / V2 只保留为审计材料。状态摘要见 [`BenchMark-进展梳理.md`](BenchMark-进展梳理.md)。
 
 | 阶段 | 状态 | 已完成的证据 | 尚未完成 |
 |---|---|---|---|
 | 单次住院原始归档 | 已完成 | 冠状动脉疾病谱共 108,833 次住院、46,062 名患者、50.392 GiB、218 个分片；32张住院内源表的 schema、原生父子键、患者分区和 `chartevents` 排除均通过验证 | 将该归档继续作为只读上游输入，不再改写 |
 | 原始归档 EDA | 已完成 | 已完成全量流式分析，覆盖32张表、原始时间字段、疾病谱、模块覆盖和五类题型数据源准备度 | 后续数据层变化需继续以正式 metrics 和 manifest 对账 |
 | 字典解码与 POE 解析 | 已完成 | 已实现可携带的字典解码与 POE timeline；保留源字段、原生键和可逆追溯关系 | 新输入版本出现时重新执行合同验证 |
-| 临床事件清洗代码 | 33表清洗规则已实现 | 已明确33张输入表的封闭式来源范围与处理规则：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 在扩大样本前继续保持输入范围、处理规则、回归基线和来源对账一致 |
-| 1000例正式全队列（清洗＋标准化） | 已通过完整验收并发布 workflow manifest | 从 39,036 条冠心病住院总体按固定种子无放回抽样 1,000 次住院（964 名患者）；728,199 条事件源行清洗为 757,036 条事件、218 条拒绝；12,786 个唯一术语/单位组合、2,491 条人工复核队列；batch size 5000 与 777 复跑的 run ID 与 Parquet 哈希一致；`can_start_text_ner = true` | 该结论只覆盖当前 1,000 次住院样本，不代表全队列完成；2,540 条归一化复核仍 pending，临床语义尚未人工确认 |
-| 无损事件聚合 | 已通过验收 | 把标准化事件重新连接回完整原文与源行血缘：1,241,918 条源记录、757,036 条处理后事件、43,551 条自由文本源记录；`processed_events`/`raw_source_records`/`traceable_events` 三份 Parquet 与质量报告全部 fail-closed 校验通过 | 作为文本 NER 与 patient journey 回顾支路的唯一正文入口，不再回读 source JSONL |
-| 跨批归一化人工质量门禁 | 工具与试审队列就绪，人工试审进行中（18/100） | 两批输出已汇总为1,422,220条 normalized events 和16,860个唯一 mapping key；映射冲突为0，已固定抽取100条人工试审并实现本机只读＋追加式审阅界面 | 已写入的18条决定使用占位 reviewer，不能视为完成；100条试审与首任务候选目录判定（`General Xray` 粒度、`Blood tests` 拆分、`Telemetry` 归属等）尚未形成，之后才能冻结候选目录 |
-| 文本事实支路（1000例全来源接口） | 接口验收通过；人工双标为空 | 以已验收 aggregation 为唯一输入，覆盖 lab/micro comments、ED 主诉、放射报告与出院小结共 64,509 个文本单元；通用 OpenAI-compatible API、自包含 prompt、确定性 span grounding、分块与断点续跑均已实现；200份pilot 仍按50 calibration/150 evaluation 患者隔离，A/B各171个相同任务、顺序不同 | 人工 A、B 与裁决日志均为0；出院小结（933份，100例审计中占自由文本字符70%）按 `post_hoc` 排除出前瞻性快照，需独立 event-frame 支路；模型输出尚未人工抽样验收 |
-| 文本 NER v2 与模型试点 | 干净重做版已实现，多模型 100–300 例试点完成 | v2 修复了 surface 偏移循环重试与无界递归分块两类阻断问题，改为 Python 确定性回填 span 与首次调用前确定性分块；37,790 份文档、41,902 分块；DeepSeek 100例 5,666 实体/309 关系、Qwen 100例 2,716 实体/76 关系、Bailian smoke 5例，以及干净 v2 累计 300 例 12,596 实体/919 关系均产出 sidecar | 试点仅覆盖 100–300 份文档，远未完成 37,790 全量；所有输出均为 `unreviewed_model_output`，向外部服务发送受限文本的合规确认与人工验收仍未完成 |
-| 首个检查检验任务协议 | 机器可校验的 draft，尚不可冻结 | 协议、配置、schema、34个固定reason code及fail-closed验证器已实现；当前配置可通过结构校验，但`freeze_ready = false` | 明确患者划分比例、决策时间窗、候选/条件/比较目录版本、缺失与并列策略、统计阈值、bootstrap和稳定性阈值，并补齐输入与代码审计哈希后生成`protocol-lock.json` |
-| 患者级正式划分 | 合同与认证实现完成，尚无正式产物 | 已实现患者原子划分、HMAC公开引用、受保护绑定、工程审计集隔离、输入漂移检测和split角色门禁 | 协议中的划分比例尚未决定；当前通过的是合成测试，尚未在正式患者集合生成可发布split manifest |
-| Patient journey | Encounter boundary 已实现，完整 journey 尚未实现 | 已实现患者级 split 绑定、一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属、并列时间组和稳定 unresolved reason code；该层只是 journey 的前置边界 | 当前通过的是合成测试，尚无真实正式boundary manifest；仍需实现state、decision node、evidence edge及journey→node→evidence→raw的完整追溯DAG |
-| 决策快照与 gold | 认证快照工程链已实现，科学门禁未冻结 | 已实现通用时间/phase/split/字段白名单快照门禁，以及按 boundary HMAC、protocol/split/source lineage 和 `event_id + source_event_sha256` 强制连接的单 journey adapter | 当前通过的是合成测试，尚无真实正式snapshot或gold；需在协议冻结后对少量development患者生成正式链路并完成未来信息泄漏审计 |
-| MCQ 生成 | 设计阶段 | 已形成五类题型设计；检查检验选择已有分阶段方法学方案 | 尚未形成端到端候选题生成、自动门禁和人工审核闭环 |
-| LLM 评测 | 尚未开始 | 已确定评测对象是五类临床决策能力 | 模型范围、提示策略、指标、统计检验、错误分析和报告协议均待实现 |
+| 临床事件清洗代码 | 33表清洗规则已实现 | 已明确33张输入表的封闭式来源范围与处理规则：21张事实源、6张支持源、6张上下文源；已实现稳定身份、药物原生键连接和统一时间下界 | 保持输入范围、处理规则、回归基线和来源对账一致 |
+| 事件管线全量验收（100 → 1,000 → 39,036 全队列） | 全队列已通过完整验收并发布 workflow manifest（8/15） | 39,036 次住院（ED→HOSP→ICU→Note 全模块）全量运行：26,219,272 条事件源行清洗为 27,336,811 条事件、8,893 条拒绝；53,840 个唯一术语/单位组合、15,316 条人工复核队列；batch size 5000 与 777 复跑的 run ID 与 Parquet 哈希一致；manifest 中 cleaning/normalization/reproducible/can_start_text_ner 全部 true | 15,316 条归一化复核 pending，临床语义尚未人工确认；全量复核门禁未关闭 |
+| 无损事件聚合 | 已通过验收（1,000 例批） | 把标准化事件重新连接回完整原文与源行血缘：1,241,918 条源记录、757,036 条处理后事件、43,551 条自由文本源记录；`processed_events`/`raw_source_records`/`traceable_events` 三份 Parquet 与质量报告全部 fail-closed 校验通过 | 全队列（39,036 例）聚合尚未运行；文本 NER 与 patient journey 回顾支路目前仍以 1,000 例聚合为唯一正文入口 |
+| normalized_events 全量 EDA 与检查瓶颈诊断 | 已完成（8/17） | 27.3M 事件全量 EDA（领域覆盖、时间解析、归一化状态、单位分布）；检查维瓶颈定诊：POE 检验医嘱 99.99% 无项目内容、BMP/CBC 约 91% 普适基线锁死 rank-1/2、top-25 主诉唯一性过滤 0/25 通过、主诉术语映射率仅 9% | 作为失效旧链、重建 decision_document 的依据；数据层变化后需复扫对账 |
+| 跨批归一化人工质量门禁 | 工具与试审队列就绪，人工试审 18/100（占位 reviewer） | 两批 1,000 例输出已汇总为1,422,220条 normalized events 和16,860个唯一 mapping key；映射冲突为0，已固定抽取100条人工试审并实现本机只读＋追加式审阅界面 | 已写入的18条决定使用占位 reviewer，不能视为完成；100条试审与首任务候选目录判定（`General Xray` 粒度、`Blood tests` 拆分、`Telemetry` 归属等）尚未形成；全队列新增 15,316 条复核队列待纳入同一流程 |
+| 文本事实支路（text_ner v1 接口 + v2 干净重做） | v2 全量运行中；人工双标为空 | v1 接口覆盖 lab/micro comments、ED 主诉、放射报告与出院小结共 64,509 个文本单元；v2 干净重做（`data_pipeline/text_ner_v2`）修复 surface 偏移与无界递归分块两类阻断，37,790 份文档、41,902 分块，截至 8/17 编译 sidecar：804 份文档产出 154,639 实体提及、108 份文档 919 关系；DeepSeek/Qwen/Bailian 多模型试点已产出 sidecar | mentions 仅 804/37,790（2.1%），389 次失败待重试；人工 A、B 与裁决日志均为 0；输出全部为 `unreviewed_model_output`；出院小结（933份）按 `post_hoc` 排除出前瞻性快照，需独立 event-frame 支路 |
+| v1 五维 MCQ 原型（`versions/v1-template-stem/`） | 探索闭环完成，已冻结为历史基线 | P1–P5 调优完成；validated rank-1 共 221 题（检查 84 / 诊断 24 / 治疗 T1 30 / T2 24 / T3 26 / 转诊 33）；DeepSeek flash 探针准确率 53.6% / 95.8% / 66.7% / 87.5% / 73.1% / 60.6%；`versions/v1-template-stem` 冻结快照 | 非正式评测；离院维无 MCQ gold；不得进入新发布链 |
+| 旧 V2 phenotype + v2-llm-stem | 已失效，仅保留审计 | 1,584 formal accepted → 738 去重 → 165 收敛 → 134 候选 → 自动审题全过 → 人工 0 → gold 0。失效原因：出院 ICD、未用 `available_time`、全住院目标窗、Lab 仅 category、split sidecar 泄漏。legacy manifest 与 formal 入口拒绝已落地 | 不得送审、发布或作为新统计基线；不要往该包继续加 formal 语义 |
+| 检查选择协议（W1） | `frozen`（本轮沿用现有冠心病队列） | `decision_contract`：`conditional_order_choice`；化验目标=`storetime`；panel 计一次；eligibility + `catalog-lock.json`；`protocol-lock.json` 已生成 | 方法学仍未走通；尚无 run-lock。BMP/CBC 成员表未写入，panel 级 lab gold 不可用。W1 exposure 审计 `previous_exposure=none` 为 0 |
+| 检查选择重建骨架 | 合成测试 + 1,000 例 first-wave corpus | `data_pipeline/investigation_selection/`：clock、`chain_root_poe_id` 分组、后来 cancel 不删 create、episodes、facts/actions、snapshot adapter、corpus；`evaluation_pipeline/`：legacy / snapshot / journey / split | snapshot 仍可能放行 `event_time == index_time`；1,000 例 integration audit 未 freeze；mining 11 条 FDR 通过不是 gold |
+| 患者级正式划分 | 合同与认证实现完成，尚无正式产物 | 已实现患者原子划分、HMAC 公开引用、受保护绑定、工程审计集隔离；旧 60/20/20 划分及接触过旧 holdout 的 subject 只能 audit-only | 新 validation/final 只能来自 `previous_exposure=none`（当前为 0）；尚未生成可发布 split / exposure registry |
+| Patient journey | Encounter boundary 代码已实现，完整 journey 尚未实现 | 一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属 | 只有合成测试；无真实 boundary manifest |
+| 决策快照与 gold | 认证快照工程链已实现；1,000 例 corpus 为 `methodology_unreviewed` | 通用时间 / phase / split / 字段白名单门禁，以及 boundary HMAC adapter；first-wave corpus 1,011 documents | 无 recency clock 对齐；`event_time == index` 当前会放行；corpus 不是 gold |
+| MCQ 生成 | 正式生成未开始 | 题型规范在 `mcq_generation/`；旧 V2 134 候选仅审计 | 须等 1000 例 audit 通过；题型 2–5 不同时铺开 |
+| LLM 评测 | 正式评测尚未开始 | v1 221 题 DeepSeek 探针为 `unreviewed_model_output` | 正式榜单等待新 gold 与 one-shot final test |
 
-当前唯一的关键路径仍是：关闭首个检查检验选择任务的上游人工质量门禁（跨批归一化100条试审＋文本NER人工A/B校准）和科学协议门禁，再生成第一批真实评测产物。文本NER的模型试点可以与人工门禁并行，但它产出的 `unreviewed_model_output` 不能反向替代人工 gold，也不能跳过协议冻结。
+当前关键路径是检查选择合同重建，不是继续审旧 V2 题。文本 NER、归一化试审和内部模型探针可以并行，但产出不能反向替代协议冻结，也不能把 134 道旧候选审成 gold。
 
 优先执行顺序是：
 
-1. **最高优先级：完成跨批归一化的100条人工试审。** 这是冻结检查检验候选目录前的最后一个上游质量门禁；记录错误类型、歧义和目录粒度问题，必要时修正规则并重跑受影响批次（当前仅18条、reviewer 为占位值，须以稳定 reviewer 身份重做）；
-2. 使用人工试审结果确定候选目录版本，同时补齐患者划分比例、决策时间窗、统计与验证阈值等科学参数，验证`freeze_ready = true`后生成并固定`protocol-lock.json`；
-3. 在少量development患者上正式生成patient split → encounter boundary → decision snapshot，输出manifest、来源哈希和未来信息泄漏审计；在这一步之后再实现完整的state/node/evidence-edge DAG和单一构念gold；
-4. 文本NER calibration可与前两步并行执行，但不能因工具、任务包或模型试点已经生成就视为人工gold完成；必须完成A/B独立标注、第三人裁决和一致性门禁后，才能解锁evaluation；出院小结需按 post_hoc 支路单独建立 event-frame 协议，不得进入前瞻性快照；
-5. 将首个检查检验任务闭环到MCQ生成、自动门禁和临床审核；首个闭环通过后，再逐项扩展诊断、治疗、去向和离院计划，不同时铺开五条未经验证的实现线；
-6. MIMIC方法学冻结后，在香港RWD中重新完成数据合同、时间语义、本体、行为gold和规范gold的本地化，并开展外部验证。
+1. **对齐时钟**：snapshot / query 使用 `event_time < index_time` 与冻结的 `evidence_window_basis`；不要另起平行包。
+2. **1,000 例 integration audit**：eligibility、6 张审计表、可读 trace。未 freeze 不得进入 W6/W7，也不得把 mining 当成绩。
+3. 跨批归一化 100 条试审（当前 18/100、reviewer 为占位）和文本 NER 人工双标可并行；出院小结保持 `post_hoc`。
+4. corpus freeze 后，才允许 coronary-only 的 retrieval / 规则方法检查（W6a / W7a）。多诊断扩展（W8）之后必须重跑 W2–W5 和 W6b / W7b。
+5. 新 gold 只统计 programmatic + independent + clinical review 都通过的题目；行为 gold 与规范 gold 分开。
+6. 新 formal val/test 不得从旧 60/20/20 holdout 升级（`previous_exposure=none` 为 0）。
+7. MIMIC 方法学冻结后，再在香港 RWD 重新完成数据合同、时间语义和两类 gold 的本地化。本轮不把香港数据纳入验收。
 
-详细路线：
+详细路线与文档：
 
-- [技术路线图（Markdown）](docs/design/patient-journey-benchmark-technical-roadmap.md)
-- [交互式技术路线图（离线 HTML）](docs/reports/patient-journey-benchmark-roadmap.html)
+- [当前状态摘要](BenchMark-进展梳理.md)
+- [v3.1 明确执行版](docs/plans/20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md)
+- [文件保存规范](文件保存规范.md)
+- [文档索引（docs/README.md）](docs/README.md)
+- [技术路线图](docs/design/技术路线图.md)
+- [v1 执行进度 P1–P5（已归档基线）](docs/reports/execution-progress-p1-p5.md)
+- [旧 V2 方法学（失效审计）](docs/reports/v2-pipeline-methodology.md)
+- [legacy invalidation manifest](docs/legacy-invalidation-manifest.json)

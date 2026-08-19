@@ -1,6 +1,6 @@
-# benchmark_common — 共享基础设施
+# benchmark_common — V1 共享基础设施（冻结）
 
-各评测任务（检查检验选择、临床诊断，以及后续治疗/转诊/离院）共用的基础代码。
+各评测任务（检查检验选择、临床诊断，以及后续治疗/转诊/离院）共用的基础代码。本包服务已冻结的 V1 探索基线（`versions/v1-template-stem/`），不要在这里添加新 formal 语义。
 
 ## 模块
 
@@ -23,6 +23,6 @@ from benchmark_common import (
 
 ## 设计约定
 
-- 患者级划分（`subject_split.parquet`）是所有任务共用的，位于 `tasks/investigation_selection/output/split/`（后续可上移到更中性位置）。
+- 患者级划分（`subject_split.parquet`）是 V1 所有任务共用的，位于 `versions/v1-template-stem/artifacts/investigation_selection/output/split/`。该划分仅审计，不得当新 formal split。
 - 主诉归一化词表（同义词 + 黑名单）是冻结待办，当前为占位。
 - 新增第 3/4/5 个任务时，直接复用本包，不要从某个任务包反向 import。

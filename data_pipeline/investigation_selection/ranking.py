@@ -66,6 +66,37 @@ def statistics(table: ContingencyTable, *, prior: float = 0.5) -> dict[str, floa
     return {**table.as_dict(), "frequency": float(a), "probability": probability, "lift": lift, "log_rr": log_rr, "shrunk_log_rr": shrunk_log_rr, "wilson_low": max(0.0, probability - 1.96 * math.sqrt(probability * (1 - probability) / table.n_x)) if table.n_x else 0.0, "wilson_high": min(1.0, probability + 1.96 * math.sqrt(probability * (1 - probability) / table.n_x)) if table.n_x else 0.0, "log_rr_se": se}
 
 
+def _log_comb(n: int, k: int) -> float:
+    if k < 0 or k > n:
+        return float("-inf")
+    if k == 0 or k == n:
+        return 0.0
+    k = min(k, n - k)
+    result = 0.0
+    for index in range(k):
+        result += math.log(n - index) - math.log(index + 1)
+    return result
+
+
+def fisher_greater(a: int, b: int, c: int, d: int) -> float:
+    """One-sided Fisher exact P(X >= a) under the hypergeometric null."""
+    if min(a, b, c, d) < 0:
+        raise RankingContractError("invalid 2x2 table")
+    n_total = a + b + c + d
+    n_draw = a + b
+    n_success = a + c
+    if n_total == 0 or n_draw == 0 or n_success == 0:
+        return 1.0
+    maximum = min(n_draw, n_success)
+    log_den = _log_comb(n_total, n_draw)
+    p_value = 0.0
+    for count in range(a, maximum + 1):
+        p_value += math.exp(
+            _log_comb(n_success, count) + _log_comb(n_total - n_success, n_draw - count) - log_den
+        )
+    return min(1.0, max(0.0, p_value))
+
+
 def benjamini_hochberg(p_values: Mapping[str, float], *, family: str) -> dict[str, Any]:
     if any(not 0 <= value <= 1 for value in p_values.values()):
         raise RankingContractError("p-values must be within [0, 1]")

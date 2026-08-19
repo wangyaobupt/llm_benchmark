@@ -1,0 +1,35 @@
+{
+  "schema_version": "mcq-openai-compatible-api/1.0.0",
+  "environment": {
+    "api_key": "MCQ_API_KEY",
+    "base_url": "MCQ_BASE_URL",
+    "model": "MCQ_MODEL",
+    "model_version": "MCQ_MODEL_VERSION",
+    "provider": "MCQ_PROVIDER"
+  },
+  "request": {
+    "chat_completions_path": "/chat/completions",
+    "temperature": 0.0,
+    "max_tokens": 1024,
+    "response_format_json_object": true,
+    "timeout_seconds": 120
+  },
+  "provider_request_options": {
+    "deepseek": {
+      "thinking": {
+        "type": "disabled"
+      }
+    }
+  },
+  "batch": {
+    "requests_per_minute": 30,
+    "maximum_retries": 5,
+    "retry_initial_seconds": 2.0
+  },
+  "execution": {
+    "default_enabled": false,
+    "explicit_execute_required": true,
+    "external_data_transfer_confirmation_required": true,
+    "resume_by_request_id": true
+  }
+}

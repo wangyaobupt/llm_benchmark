@@ -1,0 +1,26 @@
+schema_version: investigation-panel-definitions/1.0.0
+status: counting_policy_frozen_clinical_panels_unreviewed
+# This file has two jobs:
+# 1) counting: how to score a panel vs its components (frozen below).
+# 2) clinical_panels: which lab items make BMP, CBC, LFTs, etc.
+# clinical_panels is empty because no one has yet written "BMP = Na, K, Cl, CO2, BUN, Cr, Glucose".
+# Until a named panel is listed here, formal gold uses component-level lab_result_proxy
+# (e.g. Potassium), not a panel-level option called BMP.
+clinical_panels: []
+counting:
+  comparison_classes:
+    - component
+    - panel
+    - category
+  same_class_only: true
+  main_analysis_count: once_per_panel
+  components_reported_separately: true
+  panel_complete_time: max_required_component_storetime
+  incomplete_panel: keep_incomplete_visibility
+  unreviewed_definition: not_formal_candidate
+time:
+  occurrence_time_field: charttime
+  occurrence_time_semantics: collection_time_proxy
+  target_time_field: storetime
+  target_time_semantics: result_available_time
+  specimen_received_time: unavailable_in_mimic_iv

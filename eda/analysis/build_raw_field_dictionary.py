@@ -88,7 +88,7 @@ def build_outputs(reference_root: Path, markdown_output: Path, json_output: Path
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="生成原始住院归档逐字段数据字典")
     parser.add_argument("--reference-root", type=Path, default=Path("docs/reference/mimic_reference"))
-    parser.add_argument("--markdown-output", type=Path, default=Path("docs/design/mimic-admission-raw-field-dictionary.md"))
+    parser.add_argument("--markdown-output", type=Path, default=Path("docs/design/MIMIC 单次住院原始归档逐字段数据字典.md"))
     parser.add_argument("--json-output", type=Path, default=Path("docs/reports/mimic-admission-raw-field-dictionary.json"))
     return parser.parse_args()
 

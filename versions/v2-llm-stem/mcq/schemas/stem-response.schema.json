@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcq-stem-response/1.0.0",
+  "title": "StemResponse",
+  "description": "The only two fields the generation model may return.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "stem", "rationale"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "stem": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 }
+  }
+}

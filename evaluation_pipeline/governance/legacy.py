@@ -19,6 +19,8 @@ DEFAULT_MANIFEST = REPO_ROOT / "docs" / "legacy-invalidation-manifest.json"
 INVALIDATED_UPSTREAM_CONTRACT = "invalidated_upstream_contract"
 LEGACY_HOLDOUT_NOT_FORMAL_FINAL_TEST = "legacy_holdout_not_formal_final_test"
 LEGACY_PHENOTYPE_FORMAL_FORBIDDEN = "legacy_phenotype_formal_generation_forbidden"
+LEGACY_PHENOTYPE_PACKAGE = "data_pipeline.archived.phenotype"
+LEGACY_PHENOTYPE_REMOVED_PACKAGE = "data_pipeline.phenotype"
 
 
 class LegacyArtifactError(ValueError):
@@ -99,7 +101,8 @@ def assert_split_not_legacy(
 def assert_legacy_phenotype_formal_forbidden(profile: str) -> None:
     if profile == "formal":
         raise LegacyArtifactError(
-            "the legacy phenotype entrypoint cannot generate formal artifacts: "
+            "the legacy phenotype entrypoint "
+            f"({LEGACY_PHENOTYPE_PACKAGE}) cannot generate formal artifacts: "
             f"{LEGACY_PHENOTYPE_FORMAL_FORBIDDEN}; use the new investigation-selection "
             "decision_document pipeline"
         )

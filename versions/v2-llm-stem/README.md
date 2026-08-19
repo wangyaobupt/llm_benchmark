@@ -1,9 +1,9 @@
 # v2-llm-stem — 历史 v2 题型1（检查检验选择）MCQ 生成管线
 
-> 本目录的旧 phenotype/V2 产物已由 W0 整体失效。它只保留作审计和测试材料；不得送审、发布或作为新统计基线。新管线必须遵循 [`docs/Benchmark-问题复核与实施计划.md`](../../docs/Benchmark-问题复核与实施计划.md) 的 `decision_document` 合同。
+> 本目录的旧 phenotype/V2 产物已由 W0 整体失效。它只保留作审计和测试材料；不得送审、发布或作为新统计基线。新管线必须遵循 [`docs/plans/20260819_Benchmark-问题复核与实施计划.md`](../../docs/plans/20260819_Benchmark-问题复核与实施计划.md) 的 `decision_document` 合同。表型代码在 `data_pipeline/archived/phenotype/`。
 
-> 从 v1（`versions/v0.1-template-stem`）派生的 v2 实现，严格遵循
-> `mcq_generation/question_generation_logic.md` 的出题决策链：
+> 从 v1（`versions/v1-template-stem`）派生的 v2 实现，严格遵循
+> `mcq_generation/MCQ 出题逻辑.md` 的出题决策链：
 
 > **统计定答案 → 程序锁选项 → LLM 只写题干 → 三道门禁才进 gold。**
 

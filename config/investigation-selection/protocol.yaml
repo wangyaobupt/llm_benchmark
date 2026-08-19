@@ -1,18 +1,18 @@
 schema_version: investigation-selection-protocol/1.0.0
 protocol_id: mimic-investigation-selection-pattern-rule-concordance
-protocol_version: 1.0.0
-protocol_status: draft
+protocol_version: 1.1.0
+protocol_status: frozen
 scientific_protocol:
   benchmark_track: pattern_rule_concordance
   construct_registry:
   - construct_type: individual_next_event
     gold_field: observed_target_event_ids
-    claim_boundary: Observed next action for one encounter; not a population rule
-      or clinical recommendation.
+    claim_boundary: Observed conditional order or result-proxy target at one index;
+      not a prediction of whether any order will occur, and not a clinical recommendation.
   - construct_type: pattern_rule_concordance
     gold_field: rule_answer_candidate_id
-    claim_boundary: Most likely same-class investigation selected in frozen development
-      RWD.
+    claim_boundary: Most likely same-class investigation under frozen conditional_order_choice
+      semantics in development RWD.
   - construct_type: clinical_best_decision
     gold_field: normative_answer_candidate_id
     claim_boundary: Guideline and expert-adjudicated best decision; not inferred from
@@ -23,6 +23,63 @@ scientific_protocol:
     multi_admission_boundary: one_hadm_per_journey_subject_linked
     icu_scope: nested_substay
     engineering_audit_policy: build_but_formal_statistics_forbidden
+  decision_contract:
+    decision_semantics: conditional_order_choice
+    zero_target_semantics: no_eligible_same_class_target
+    mcq_requires_unique_statistical_advantage: true
+    tracks:
+      imaging_order:
+        gold_kind: poe_order
+        index_time: investigation_episode.initial_order_time
+        target_time: poe.ordertime
+      clinical_order:
+        gold_kind: poe_order
+        index_time: investigation_episode.initial_order_time
+        target_time: poe.ordertime
+      generic_lab_order:
+        gold_kind: poe_order
+        index_time: investigation_episode.initial_order_time
+        target_time: poe.ordertime
+      lab_result_proxy:
+        gold_kind: result_proxy
+        index_time: query_window_end
+        target_time: labevents.storetime
+    lab_result_proxy:
+      occurrence_time_field: charttime
+      occurrence_time_semantics: collection_time_proxy
+      target_time_field: storetime
+      target_time_semantics: result_available_time
+      index_time_policy: query_window_end
+      forbidden:
+      - infer_specific_lab_order_from_result
+      - name_charttime_specimen_received_time
+      - join_labevents_to_poe_lab_by_time
+    panel_policy:
+      comparison_classes:
+      - component
+      - panel
+      - category
+      same_class_only: true
+      main_analysis_count: once_per_panel
+      components_reported_separately: true
+      panel_complete_time: max_required_component_storetime
+      incomplete_panel: keep_incomplete_visibility
+      unreviewed_definition: not_formal_candidate
+    evidence_window_basis:
+      laboratory_resulted: available_time
+      imaging_reported: available_time
+      microbiology_resulted: available_time
+      vital_measured: event_time
+      imaging_ordered: available_time
+      laboratory_ordered: available_time
+      clinical_ordered: available_time
+    availability_policy:
+      resolved: allow
+      chart_store_v2: allow
+      poe_timeline_v1: allow
+      triage_no_time_v1: reject
+      chart_only_v1: reject_main
+      unknown_time: reject
   subject_split:
     group_field: subject_id
     ratios:
@@ -31,6 +88,7 @@ scientific_protocol:
       final_test: 0.15
     engineering_audit_policy: separate_non_formal_partition
     legacy_partition_policy: legacy_holdout_candidate_not_formal_final_test
+    exposure_policy: reuse_existing_coronary_methodology_cohort
   task_definition:
     task_id: investigation_selection
     index_time_policy: before_target_order_creation
@@ -98,15 +156,16 @@ runtime_configuration:
   threads: 4
   cache_directory: data/derived/investigation_selection/cache
 audit_metadata:
-  source_git_commit: 05cb878a70dc489d6168470d45d4652ee07fa0e8
+  source_git_commit: e1d0f0cf98d189690273131dcdbde9d29571cb34
   dependency_lock_sha256: b3829dfabffe5fdde5a98f3dc1e971dcadf800ab53bdb0bebdc5fba9a44e348e
   input_manifest_sha256:
     docs/legacy-invalidation-manifest.json: d1ce50bc89f42d43b2275d15f5dff89cf1f19bc1118f093b70ecdfbeab9eb2a3
     tasks/investigation_selection/output/split/split_manifest.json: 454fb2cf4895f6c31f5cc96f459212bda90db6f72e825deb450be47c3f0f94f4
-    config/investigation-selection/track-catalog.yaml: 268f34f9356e85403a57f20d0c6285e7b1c207dc9f71c13a8d457aab37feaa21
-    config/investigation-selection/time-semantics.yaml: 071970a5d1f8c97463567b2bd605eedfdf285ece0dc16fc095ea33d0bf552596
+    config/investigation-selection/track-catalog.yaml: baf0e2ffa486243d31072aac2834b38fd3943343d1f07c3e86789fa9e0c9a6ab
+    config/investigation-selection/time-semantics.yaml: e126c7ebc8c883f25ea902683ac3e805ccf65f35e71d1ae3a52528d838b6233e
     config/investigation-selection/feature-whitelist.yaml: 2b2869d8c9b276ef3b73f3e45b074edc1a67928755682b62076cf3a123abba6f
     config/investigation-selection/source-manifests.yaml: 813331f6d7315bd00f5117fe568fc35d1918da31e2e1326fa82177f749166266
-unresolved_decisions:
-- formal_exposure_population
-- new_validation_and_final_test_subjects
+    config/investigation-selection/investigation-order-eligibility.yaml: a933ff6a7c2ad0cbe66e1c6afb76a322038df75a260b84f3677059eb0340342c
+    config/investigation-selection/panel-definitions.yaml: 75ffc782e930f4f6e81d6b8078b79e643b679ccdb8728efac729feec71d4c713
+    data/derived/investigation_timepoint/poe-subtype-audit-1000.json: 895f20348c0a44d87ac9f2b0ad4f26e176137017044571e11a77327e446995f6
+unresolved_decisions: []

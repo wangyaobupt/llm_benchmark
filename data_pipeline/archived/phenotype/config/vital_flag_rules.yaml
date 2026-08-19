@@ -1,0 +1,53 @@
+# P2 — physiologic-flag threshold rules (adopted, pending clinical re-review).
+#
+# Each flag maps one vital source to a threshold. temperature thresholds are in
+# Celsius; the extractor converts the source Fahrenheit value before comparing.
+
+schema_version: phenotype-vital-flag-rules/1.0.0
+
+flags:
+  tachycardia:
+    source: heart_rate
+    operator: ">"
+    threshold: 100
+    unit: "/min"
+  bradycardia:
+    source: heart_rate
+    operator: "<"
+    threshold: 60
+    unit: "/min"
+  fever:
+    source: temperature
+    operator: ">="
+    threshold: 37.0
+    unit: "C"
+  hypothermia:
+    source: temperature
+    operator: "<"
+    threshold: 35.0
+    unit: "C"
+  hypoxia:
+    source: oxygen_saturation
+    operator: "<"
+    threshold: 92
+    unit: "%"
+  tachypnea:
+    source: respiratory_rate
+    operator: ">"
+    threshold: 20
+    unit: "/min"
+  bradypnea:
+    source: respiratory_rate
+    operator: "<"
+    threshold: 12
+    unit: "/min"
+  hypotension:
+    source: systolic_bp
+    operator: "<"
+    threshold: 90
+    unit: "mmHg"
+  hypertension:
+    source: systolic_bp
+    operator: ">="
+    threshold: 140
+    unit: "mmHg"

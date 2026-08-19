@@ -42,11 +42,14 @@ def main() -> int:
             str(path.relative_to(ROOT)).replace("\\", "/"): sha256(path)
             for path in (
                 ROOT / "docs/legacy-invalidation-manifest.json",
-                ROOT / "tasks/investigation_selection/output/split/split_manifest.json",
+                ROOT / "versions/v1-template-stem/artifacts/investigation_selection/output/split/split_manifest.json",
                 CONFIG / "track-catalog.yaml",
                 CONFIG / "time-semantics.yaml",
                 CONFIG / "feature-whitelist.yaml",
                 CONFIG / "source-manifests.yaml",
+                CONFIG / "investigation-order-eligibility.yaml",
+                CONFIG / "panel-definitions.yaml",
+                ROOT / "data/derived/investigation_timepoint/poe-subtype-audit-1000.json",
             )
         },
     }

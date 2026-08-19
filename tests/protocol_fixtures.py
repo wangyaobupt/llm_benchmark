@@ -35,6 +35,7 @@ def frozen_protocol_bundle(
         "validation": 0.15,
         "final_test": 0.15,
     }
+    scientific["subject_split"]["exposure_policy"] = "reuse_existing_coronary_methodology_cohort"
     scientific["task_definition"]["observation_window"][
         "start_minutes_before_index"
     ] = -1440

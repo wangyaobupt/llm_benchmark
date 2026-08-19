@@ -1,0 +1,658 @@
+{
+ "meta": {
+  "hadm_universe": 39036,
+  "rows_scanned": 27336811,
+  "seconds": 18.5
+ },
+ "test_level": {
+  "n_tests": 756,
+  "n_coverage_ge_50pct": 25,
+  "n_coverage_ge_85pct": 20,
+  "n_band_2_50pct": 162,
+  "n_below_2pct": 569,
+  "top20": [
+   [
+    "Potassium",
+    0.9153601803463469,
+    "0.915"
+   ],
+   [
+    "Creatinine",
+    0.9153089455886874,
+    "0.915"
+   ],
+   [
+    "Urea Nitrogen",
+    0.9150527718003894,
+    "0.915"
+   ],
+   [
+    "Sodium",
+    0.914847832769751,
+    "0.915"
+   ],
+   [
+    "Chloride",
+    0.9144379547084742,
+    "0.914"
+   ],
+   [
+    "Bicarbonate",
+    0.9137206681012399,
+    "0.914"
+   ],
+   [
+    "Anion Gap",
+    0.9136694333435803,
+    "0.914"
+   ],
+   [
+    "Hematocrit",
+    0.913208320524644,
+    "0.913"
+   ],
+   [
+    "Platelet Count",
+    0.9124654165385798,
+    "0.912"
+   ],
+   [
+    "Glucose",
+    0.912311712265601,
+    "0.912"
+   ],
+   [
+    "White Blood Cells",
+    0.9116200430371965,
+    "0.912"
+   ],
+   [
+    "Hemoglobin",
+    0.9115175735218772,
+    "0.912"
+   ],
+   [
+    "Red Blood Cells",
+    0.9114407213853879,
+    "0.911"
+   ],
+   [
+    "RDW",
+    0.9114407213853879,
+    "0.911"
+   ],
+   [
+    "MCV",
+    0.9114407213853879,
+    "0.911"
+   ],
+   [
+    "MCHC",
+    0.9114407213853879,
+    "0.911"
+   ],
+   [
+    "MCH",
+    0.9114407213853879,
+    "0.911"
+   ],
+   [
+    "Magnesium",
+    0.8889742801516549,
+    "0.889"
+   ],
+   [
+    "Calcium, Total",
+    0.8783430679372887,
+    "0.878"
+   ],
+   [
+    "Phosphate",
+    0.8779075724971821,
+    "0.878"
+   ]
+  ],
+  "bmp5_joint_coverage": 0.0603
+ },
+ "panel_level": {
+  "panels": [
+   {
+    "panel": "chemistry_bmp",
+    "n_adm": 35759,
+    "baseline": 0.9161,
+    "verdict": "excluded: >max_baseline 0.85"
+   },
+   {
+    "panel": "cbc_hematology",
+    "n_adm": 35653,
+    "baseline": 0.9133,
+    "verdict": "excluded: >max_baseline 0.85"
+   },
+   {
+    "panel": "coagulation",
+    "n_adm": 28098,
+    "baseline": 0.7198,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "cardiac_markers",
+    "n_adm": 20881,
+    "baseline": 0.5349,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "liver_panel",
+    "n_adm": 19289,
+    "baseline": 0.4941,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "renal_function",
+    "n_adm": 17324,
+    "baseline": 0.4438,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "blood_gas",
+    "n_adm": 14123,
+    "baseline": 0.3618,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "inflammatory",
+    "n_adm": 14115,
+    "baseline": 0.3616,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "urinalysis",
+    "n_adm": 13581,
+    "baseline": 0.3479,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "toxicology",
+    "n_adm": 8052,
+    "baseline": 0.2063,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "thyroid",
+    "n_adm": 6157,
+    "baseline": 0.1577,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "pancreatic",
+    "n_adm": 4550,
+    "baseline": 0.1166,
+    "verdict": "in candidate band"
+   },
+   {
+    "panel": "iron_studies",
+    "n_adm": 4437,
+    "baseline": 0.1137,
+    "verdict": "in candidate band"
+   }
+  ],
+  "n_in_band": 11,
+  "mapped_tests_rows": 1812022
+ },
+ "cc_support": {
+  "distinct_cc": 9234,
+  "support_ge10": 473,
+  "support_ge50": 97,
+  "top20": [
+   [
+    "Chest pain",
+    2847
+   ],
+   [
+    "Dyspnea",
+    1662
+   ],
+   [
+    "CHEST PAIN",
+    688
+   ],
+   [
+    "s/p Fall",
+    525
+   ],
+   [
+    "Altered mental status",
+    511
+   ],
+   [
+    "Abd pain",
+    503
+   ],
+   [
+    "Chest pain, Dyspnea",
+    494
+   ],
+   [
+    "Chest pain, Transfer",
+    473
+   ],
+   [
+    "Weakness",
+    452
+   ],
+   [
+    "CP",
+    375
+   ],
+   [
+    "BRBPR",
+    355
+   ],
+   [
+    "Wound eval",
+    334
+   ],
+   [
+    "DYSPNEA",
+    332
+   ],
+   [
+    "Abnormal labs",
+    318
+   ],
+   [
+    "SOB",
+    301
+   ],
+   [
+    "Fever",
+    259
+   ],
+   [
+    "ABD PAIN",
+    246
+   ],
+   [
+    "Syncope",
+    232
+   ],
+   [
+    "S/P FALL",
+    229
+   ],
+   [
+    "CHEST PAIN (CARDIAC FEATURES)",
+    228
+   ]
+  ]
+ },
+ "cc_panel_simulation": {
+  "results": [
+   {
+    "cc": "Chest pain",
+    "support": 2847,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.816,
+    "top1_lift": 0.89,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.813,
+    "gap": 0.003,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Dyspnea",
+    "support": 1662,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.956,
+    "top1_lift": 1.04,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.954,
+    "gap": 0.002,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "CHEST PAIN",
+    "support": 688,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.84,
+    "top1_lift": 0.92,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.83,
+    "gap": 0.01,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "s/p Fall",
+    "support": 525,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.83,
+    "top1_lift": 0.91,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.828,
+    "gap": 0.002,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Altered mental status",
+    "support": 511,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.953,
+    "top1_lift": 1.04,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.947,
+    "gap": 0.006,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Abd pain",
+    "support": 503,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.952,
+    "top1_lift": 1.04,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.95,
+    "gap": 0.002,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Chest pain, Dyspnea",
+    "support": 494,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.85,
+    "top1_lift": 0.93,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.844,
+    "gap": 0.006,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Chest pain, Transfer",
+    "support": 473,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.985,
+    "top1_lift": 1.08,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.981,
+    "gap": 0.004,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Weakness",
+    "support": 452,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.942,
+    "top1_lift": 1.03,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.942,
+    "gap": 0.0,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "CP",
+    "support": 375,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.752,
+    "top1_lift": 0.82,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.749,
+    "gap": 0.003,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "BRBPR",
+    "support": 355,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.983,
+    "top1_lift": 1.08,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.972,
+    "gap": 0.011,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Wound eval",
+    "support": 334,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.928,
+    "top1_lift": 1.02,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.919,
+    "gap": 0.009,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "DYSPNEA",
+    "support": 332,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.979,
+    "top1_lift": 1.07,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.964,
+    "gap": 0.015,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Abnormal labs",
+    "support": 318,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.984,
+    "top1_lift": 1.07,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.972,
+    "gap": 0.013,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "SOB",
+    "support": 301,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.94,
+    "top1_lift": 1.03,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.934,
+    "gap": 0.007,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Fever",
+    "support": 259,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.977,
+    "top1_lift": 1.07,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.973,
+    "gap": 0.004,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "ABD PAIN",
+    "support": 246,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.939,
+    "top1_lift": 1.03,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.935,
+    "gap": 0.004,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Syncope",
+    "support": 232,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.818,
+    "top1_lift": 0.89,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.814,
+    "gap": 0.004,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "S/P FALL",
+    "support": 229,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.907,
+    "top1_lift": 0.99,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.899,
+    "gap": 0.009,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "CHEST PAIN (CARDIAC FEATURES)",
+    "support": 228,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.89,
+    "top1_lift": 0.97,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.882,
+    "gap": 0.009,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "SHORTNESS OF BREATH",
+    "support": 217,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.954,
+    "top1_lift": 1.04,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.954,
+    "gap": 0.0,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Dyspnea, Transfer",
+    "support": 210,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 1.0,
+    "top1_lift": 1.09,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 1.0,
+    "gap": 0.0,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "N/V",
+    "support": 205,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.966,
+    "top1_lift": 1.05,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.951,
+    "gap": 0.015,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Dyspnea on exertion",
+    "support": 205,
+    "top1_panel": "cbc_hematology",
+    "top1_share": 0.912,
+    "top1_lift": 1.0,
+    "top2_panel": "chemistry_bmp",
+    "top2_share": 0.912,
+    "gap": 0.0,
+    "would_pass_filters": false
+   },
+   {
+    "cc": "Transfer",
+    "support": 200,
+    "top1_panel": "chemistry_bmp",
+    "top1_share": 0.975,
+    "top1_lift": 1.06,
+    "top2_panel": "cbc_hematology",
+    "top2_share": 0.97,
+    "gap": 0.005,
+    "would_pass_filters": false
+   }
+  ],
+  "n_pass": 0,
+  "n_considered": 25
+ },
+ "imaging": [
+  {
+   "label": "General Xray",
+   "n_adm": 29910,
+   "coverage": 0.7662,
+   "first_line": true
+  },
+  {
+   "label": "CT Scan",
+   "n_adm": 16790,
+   "coverage": 0.4301,
+   "first_line": true
+  },
+  {
+   "label": "Ultrasound",
+   "n_adm": 6992,
+   "coverage": 0.1791,
+   "first_line": true
+  },
+  {
+   "label": "Noninvasive Vascular",
+   "n_adm": 5447,
+   "coverage": 0.1395,
+   "first_line": false
+  },
+  {
+   "label": "MRI",
+   "n_adm": 4898,
+   "coverage": 0.1255,
+   "first_line": false
+  },
+  {
+   "label": "Nuclear Med",
+   "n_adm": 3386,
+   "coverage": 0.0867,
+   "first_line": false
+  },
+  {
+   "label": "Interventional Radiology",
+   "n_adm": 2641,
+   "coverage": 0.0677,
+   "first_line": false
+  },
+  {
+   "label": "Angio",
+   "n_adm": 690,
+   "coverage": 0.0177,
+   "first_line": false
+  },
+  {
+   "label": "Cross-Sectional Interventional Radiology",
+   "n_adm": 221,
+   "coverage": 0.0057,
+   "first_line": false
+  },
+  {
+   "label": "Interventional Neuro",
+   "n_adm": 204,
+   "coverage": 0.0052,
+   "first_line": false
+  }
+ ],
+ "clinical_allowlist": [
+  {
+   "label": "Vitals/Monitoring",
+   "n_adm": 38692,
+   "coverage": 0.9912
+  },
+  {
+   "label": "Telemetry",
+   "n_adm": 27969,
+   "coverage": 0.7165
+  },
+  {
+   "label": "Blood tests",
+   "n_adm": 17973,
+   "coverage": 0.4604
+  },
+  {
+   "label": "Echo",
+   "n_adm": 14713,
+   "coverage": 0.3769
+  },
+  {
+   "label": "ECG",
+   "n_adm": 14436,
+   "coverage": 0.3698
+  }
+ ]
+}

@@ -28,6 +28,7 @@
         "patient_journey_scope",
         "subject_split",
         "task_definition",
+        "decision_contract",
         "hypothesis_space",
         "statistical_policy",
         "validation_policy",
@@ -67,10 +68,11 @@
             "engineering_audit_policy": {"const": "build_but_formal_statistics_forbidden"}
           }
         },
+        "decision_contract": {"$ref": "#/$defs/decisionContract"},
         "subject_split": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["group_field", "ratios", "engineering_audit_policy", "legacy_partition_policy"],
+          "required": ["group_field", "ratios", "engineering_audit_policy", "legacy_partition_policy", "exposure_policy"],
           "properties": {
             "group_field": {"const": "subject_id"},
             "ratios": {
@@ -84,7 +86,8 @@
               }
             },
             "engineering_audit_policy": {"const": "separate_non_formal_partition"},
-            "legacy_partition_policy": {"const": "legacy_holdout_candidate_not_formal_final_test"}
+            "legacy_partition_policy": {"const": "legacy_holdout_candidate_not_formal_final_test"},
+            "exposure_policy": {"const": "reuse_existing_coronary_methodology_cohort"}
           }
         },
         "task_definition": {
@@ -201,6 +204,134 @@
       "properties": {
         "start_minutes_after_index": {"const": 0},
         "end_minutes_after_index": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "decisionContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_semantics",
+        "zero_target_semantics",
+        "mcq_requires_unique_statistical_advantage",
+        "tracks",
+        "lab_result_proxy",
+        "panel_policy",
+        "evidence_window_basis",
+        "availability_policy"
+      ],
+      "properties": {
+        "decision_semantics": {"const": "conditional_order_choice"},
+        "zero_target_semantics": {"const": "no_eligible_same_class_target"},
+        "mcq_requires_unique_statistical_advantage": {"const": true},
+        "tracks": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["imaging_order", "clinical_order", "generic_lab_order", "lab_result_proxy"],
+          "properties": {
+            "imaging_order": {"$ref": "#/$defs/trackPolicy"},
+            "clinical_order": {"$ref": "#/$defs/trackPolicy"},
+            "generic_lab_order": {"$ref": "#/$defs/trackPolicy"},
+            "lab_result_proxy": {"$ref": "#/$defs/trackPolicy"}
+          }
+        },
+        "lab_result_proxy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "occurrence_time_field",
+            "occurrence_time_semantics",
+            "target_time_field",
+            "target_time_semantics",
+            "index_time_policy",
+            "forbidden"
+          ],
+          "properties": {
+            "occurrence_time_field": {"const": "charttime"},
+            "occurrence_time_semantics": {"const": "collection_time_proxy"},
+            "target_time_field": {"const": "storetime"},
+            "target_time_semantics": {"const": "result_available_time"},
+            "index_time_policy": {"const": "query_window_end"},
+            "forbidden": {
+              "type": "array",
+              "minItems": 3,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "infer_specific_lab_order_from_result",
+                  "name_charttime_specimen_received_time",
+                  "join_labevents_to_poe_lab_by_time"
+                ]
+              }
+            }
+          }
+        },
+        "panel_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "comparison_classes",
+            "same_class_only",
+            "main_analysis_count",
+            "components_reported_separately",
+            "panel_complete_time",
+            "incomplete_panel",
+            "unreviewed_definition"
+          ],
+          "properties": {
+            "comparison_classes": {"const": ["component", "panel", "category"]},
+            "same_class_only": {"const": true},
+            "main_analysis_count": {"const": "once_per_panel"},
+            "components_reported_separately": {"const": true},
+            "panel_complete_time": {"const": "max_required_component_storetime"},
+            "incomplete_panel": {"const": "keep_incomplete_visibility"},
+            "unreviewed_definition": {"const": "not_formal_candidate"}
+          }
+        },
+        "evidence_window_basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "laboratory_resulted",
+            "imaging_reported",
+            "microbiology_resulted",
+            "vital_measured",
+            "imaging_ordered",
+            "laboratory_ordered",
+            "clinical_ordered"
+          ],
+          "properties": {
+            "laboratory_resulted": {"const": "available_time"},
+            "imaging_reported": {"const": "available_time"},
+            "microbiology_resulted": {"const": "available_time"},
+            "vital_measured": {"const": "event_time"},
+            "imaging_ordered": {"const": "available_time"},
+            "laboratory_ordered": {"const": "available_time"},
+            "clinical_ordered": {"const": "available_time"}
+          }
+        },
+        "availability_policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["resolved", "chart_store_v2", "poe_timeline_v1", "triage_no_time_v1", "chart_only_v1", "unknown_time"],
+          "properties": {
+            "resolved": {"const": "allow"},
+            "chart_store_v2": {"const": "allow"},
+            "poe_timeline_v1": {"const": "allow"},
+            "triage_no_time_v1": {"const": "reject"},
+            "chart_only_v1": {"const": "reject_main"},
+            "unknown_time": {"const": "reject"}
+          }
+        }
+      }
+    },
+    "trackPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gold_kind", "index_time", "target_time"],
+      "properties": {
+        "gold_kind": {"enum": ["poe_order", "result_proxy"]},
+        "index_time": {"type": "string", "minLength": 1},
+        "target_time": {"type": "string", "minLength": 1}
       }
     }
   }

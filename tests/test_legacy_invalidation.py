@@ -66,3 +66,10 @@ def test_legacy_phenotype_cannot_generate_formal() -> None:
     with pytest.raises(LegacyArtifactError, match="legacy_phenotype_formal_generation_forbidden"):
         assert_legacy_phenotype_formal_forbidden("formal")
 
+
+def test_removed_phenotype_package_cannot_be_imported() -> None:
+    import importlib
+
+    with pytest.raises(LegacyArtifactError, match="legacy_phenotype_formal_generation_forbidden"):
+        importlib.import_module("data_pipeline.phenotype")
+

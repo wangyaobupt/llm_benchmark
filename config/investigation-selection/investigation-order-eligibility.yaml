@@ -1,0 +1,78 @@
+schema_version: investigation-order-eligibility/1.0.0
+status: protocol_frozen
+clinical_review: protocol_adjudicated_not_dual_reviewed
+source_audit: data/derived/investigation_timepoint/poe-subtype-audit-1000.json
+freeze_note: >
+  Every order_type x subtype seen in the 1,000-admission aggregation is classified
+  below. Telemetry is monitoring_only (continuous monitoring, not a discrete
+  investigation). Lab POE remains generic_lab_order only. Unseen types stay
+  review_required until a protocol bump.
+default_eligibility: review_required
+types:
+  Lab:
+    "*": eligible_investigation
+  Radiology:
+    "*": eligible_investigation
+  Cardiology:
+    ECG: eligible_investigation
+    Echo: eligible_investigation
+    "ETT (Non-Imaging)": eligible_investigation
+    "Stress Echo": eligible_investigation
+    "Holter Monitor": eligible_investigation
+    Holter: eligible_investigation
+    "Stress Test": eligible_investigation
+    "Cardiac Cath": eligible_investigation
+    "*": review_required
+  Neurology:
+    EEG: eligible_investigation
+    EMG: eligible_investigation
+    "*": review_required
+  "Blood Bank":
+    "Blood tests": eligible_investigation
+    "Red Cell Product Order": excluded_non_investigation
+    "Frozen Plasma Product Order": excluded_non_investigation
+    "Platelet Product Order": excluded_non_investigation
+    "Cryoprecipitate Product Order": excluded_non_investigation
+    "*": excluded_non_investigation
+  Respiratory:
+    "Pulmonary Function Test": eligible_investigation
+    "Mechanical Ventilation": excluded_non_investigation
+    "Oxygen Therapy": excluded_non_investigation
+    "CPAP for OSA": excluded_non_investigation
+    Extubate: excluded_non_investigation
+    BiPAP: excluded_non_investigation
+    "Special Procedures": excluded_non_investigation
+    "*": excluded_non_investigation
+  "General Care":
+    Telemetry: monitoring_only
+    "Vitals/Monitoring": monitoring_only
+    Activity: excluded_non_investigation
+    Other: excluded_non_investigation
+    "Tubes/Drains": excluded_non_investigation
+    "Code status": excluded_non_investigation
+    Restraints: excluded_non_investigation
+    "Therapeutic devices/DVT/Prophylaxis": excluded_non_investigation
+    "Wound Care": excluded_non_investigation
+    Precautions: excluded_non_investigation
+    Dialysis: excluded_non_investigation
+    "*": excluded_non_investigation
+  "Critical Care":
+    "Hemodynamic monitoring": monitoring_only
+    "Cardiac monitoring": monitoring_only
+    "Intra-cranial monitoring": monitoring_only
+    "Suspected VAP Pathway": excluded_non_investigation
+    "*": excluded_non_investigation
+  Medications:
+    "*": excluded_non_investigation
+  "IV therapy":
+    "*": excluded_non_investigation
+  Nutrition:
+    "*": excluded_non_investigation
+  "ADT orders":
+    "*": excluded_non_investigation
+  Consults:
+    "*": excluded_non_investigation
+  TPN:
+    "*": excluded_non_investigation
+  Hemodialysis:
+    "*": excluded_non_investigation

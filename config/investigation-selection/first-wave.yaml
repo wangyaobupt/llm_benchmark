@@ -1,0 +1,65 @@
+schema_version: investigation-selection-first-wave/1.1.0
+status: methodology_draft
+clinical_review: unreviewed
+gold_count: 0
+purpose: >
+  First-stage (presentation -> first tests) mining freeze. This file, not the
+  frozen protocol.yaml order tracks, controls the first-wave index and
+  candidate identity. protocol.yaml remains the frozen conditional_order_choice
+  contract and is not bumped here.
+index:
+  source: result_tables_not_poe
+  tracks:
+    - lab_result_proxy
+    - imaging_result_proxy
+  # Domain facts, not MIMIC table names.  POE orders are fact_type=order.
+  fact_types:
+    - resulted
+    - reported
+  domains:
+    - lab
+    - imaging
+  # Result-table occurrence clock, not poe.ordertime.
+  index_time_field: charttime
+  index_time_semantics: collection_or_exam_time_on_result_row
+  target_time_field: storetime
+  target_time_semantics: result_available_time
+  burst_minutes: 15
+  hide_after_index: true
+  observation_window: encounter_origin_to_index
+excluded_tracks:
+  - imaging_order
+  - clinical_order
+  - generic_lab_order
+forbidden:
+  - poe_ordertime_as_first_wave_index
+  - poe_radiology_subtype_as_first_wave_candidate
+  - generic_lab_category_as_first_wave_candidate
+  - join_labevents_to_poe_lab_by_time
+  - invent_ed_triage_timestamp
+evidence_exclude_event_kinds:
+  - imaging_ordered
+  - laboratory_ordered
+  - clinical_ordered
+lab_result_proxy:
+  source_table: hosp.labevents
+  candidate_field: d_labitems.label
+  occurrence_time_field: charttime
+  available_time_field: storetime
+  episode_grain: one_component_per_itemid
+imaging_result_proxy:
+  source_table: note.radiology
+  candidate_field: radiology_detail.exam_name
+  occurrence_time_field: charttime
+  available_time_field: storetime
+  episode_grain: one_exam_name_per_report
+  skip_exam_names:
+    - OUTSIDE FILMS READ ONLY
+presentation:
+  source_table: ed.triage
+  source_field: chiefcomplaint
+  time_policy_id: presentation_origin_v1
+known_gaps:
+  - ECG and Echo in this extract are POE Cardiology subtypes, not radiology exam_name rows.
+  - First-wave therefore cannot yet name ECG/Echo from a result table.
+  - Using result identity is a methodology proxy for "which tests were done", not a POE order gold.

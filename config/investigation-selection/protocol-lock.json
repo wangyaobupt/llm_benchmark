@@ -1,0 +1,15 @@
+{
+  "audit_metadata_sha256": "fd49ded13e2f73f0c8933ffb3072dc2ca39569c1a83bbd78a1193c17b3a3db0a",
+  "protocol_id": "mimic-investigation-selection-pattern-rule-concordance",
+  "protocol_lock_sha256": "881e5c271e6ddb925826854e14d6cd13b290423146c21cc2217fb8ffeeeca7fa",
+  "protocol_version": "1.1.0",
+  "runtime_configuration_sha256": "090b44b52f854ba51d86964b55c66c1ed0ac2c559f29191c65f04b732d1202a3",
+  "schema_version": "investigation-selection-protocol-lock/1.0.0",
+  "scientific_protocol_sha256": "10478f307ca65479f3006848b2be769b714ef256c92c3ff2734f3a0b4c3e343f",
+  "source_file_sha256": {
+    "protocol": "5ddee2be81fdc855b9fd01eda5ec357fb08ede9a1a72179c7640705b873c1e5a",
+    "reason_registry": "f4494eb2d8d1bd2cdc59f1ed8d839f5cadddd364b313fc5f74931c3fc05654c7",
+    "reason_registry_schema": "9a2e78496b2a8853282de84d9fe32bee380bc658d74a44ae4c0c6ae8704a1b14",
+    "schema": "eeeb73824cb895b5abee80687c3ffd2d495110d174340a0c67f8fb2cfa1c3d81"
+  }
+}

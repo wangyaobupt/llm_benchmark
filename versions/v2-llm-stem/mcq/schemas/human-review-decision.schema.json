@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcq-human-review-decision/1.0.0",
+  "title": "HumanReviewDecision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["question_id", "human_decision", "reviewer_id", "reviewed_at"],
+  "properties": {
+    "question_id": { "type": "string", "pattern": "^iq_[0-9a-f]{24}$" },
+    "human_decision": { "enum": ["approved", "rejected", "revise"] },
+    "reviewer_id": { "type": "string", "minLength": 1 },
+    "reviewed_at": { "type": "string", "minLength": 1 },
+    "notes": { "type": "string" }
+  }
+}

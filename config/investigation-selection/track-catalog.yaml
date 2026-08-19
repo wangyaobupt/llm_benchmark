@@ -14,8 +14,11 @@ tracks:
     candidate_level: generic_category
   - track_id: lab_result_proxy
     source_tables: [hosp.labevents, hosp.microbiologyevents]
-    target_semantics: result_available_time_proxy
-    candidate_level: component_or_panel
+    target_semantics: result_available_time
+    target_time_field: storetime
+    occurrence_time_field: charttime
+    candidate_level: component
+    panel_count: once_per_panel_when_definition_frozen
 forbidden_sources:
   - hong_kong_rwd
   - inferred_lab_order_from_result

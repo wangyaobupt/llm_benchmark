@@ -22,6 +22,7 @@ def test_lab_specimen_group_is_stable_and_received_time_is_not_invented() -> Non
 
 def test_missing_specimen_group_is_explicitly_excluded() -> None:
     result = attach_source_groups([{"source_table": "hosp.labevents", "source_row_id": "l1"}])
-    assert result.rows == []
+    assert result.rows[0]["source_group_id"] is None
+    assert result.rows[0]["source_group_id_status"] == "missing_in_source"
     assert result.exclusions[0]["reason_codes"] == ["SPECIMEN_GROUP_MISSING"]
 

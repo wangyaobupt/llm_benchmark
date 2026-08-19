@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mcq-investigation-question/1.0.0",
+  "title": "InvestigationQuestion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "rule_version", "question_id", "question_type",
+    "language", "semantics", "stem", "options", "correct_option",
+    "correct_answer", "rationale", "condition_features", "comparison_class",
+    "target_investigation_id", "source_rule_id", "statistics",
+    "generator_model", "reviewer_model", "prompt_version",
+    "automatic_review_status", "human_review_status"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "rule_version": { "const": "1.0.0" },
+    "question_id": { "type": "string", "pattern": "^iq_[0-9a-f]{24}$" },
+    "question_type": { "const": "clinical_investigation_selection" },
+    "language": { "const": "en" },
+    "semantics": { "const": "most_likely_selected_in_rwd" },
+    "stem": { "type": "string", "minLength": 1 },
+    "options": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["A", "B", "C", "D"],
+      "properties": {
+        "A": { "type": "string", "minLength": 1 },
+        "B": { "type": "string", "minLength": 1 },
+        "C": { "type": "string", "minLength": 1 },
+        "D": { "type": "string", "minLength": 1 }
+      }
+    },
+    "correct_option": { "enum": ["A", "B", "C", "D"] },
+    "correct_answer": { "type": "string", "minLength": 1 },
+    "rationale": { "type": "string", "minLength": 1 },
+    "condition_features": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "comparison_class": { "enum": ["imaging", "clinical_order", "laboratory"] },
+    "target_investigation_id": { "type": "string", "pattern": "^cand_[0-9a-f]{24}$" },
+    "source_rule_id": { "type": "string", "pattern": "^rule_[0-9a-f]{24}$" },
+    "statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n_total", "n_x", "n_y", "n_xy", "conditional_probability",
+        "smoothed_probability", "baseline_probability", "lift", "wilson_lower",
+        "fisher_p", "fdr_q", "bootstrap_stability", "probability_gap", "score_ratio"
+      ],
+      "properties": {
+        "n_total": { "type": "integer", "minimum": 0 },
+        "n_x": { "type": "integer", "minimum": 0 },
+        "n_y": { "type": "integer", "minimum": 0 },
+        "n_xy": { "type": "integer", "minimum": 0 },
+        "conditional_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "smoothed_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "baseline_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "lift": { "type": "number", "minimum": 0 },
+        "wilson_lower": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fisher_p": { "type": "number", "minimum": 0, "maximum": 1 },
+        "fdr_q": { "type": "number", "minimum": 0, "maximum": 1 },
+        "bootstrap_stability": { "type": "number", "minimum": 0, "maximum": 1 },
+        "probability_gap": { "type": ["number", "null"], "minimum": 0 },
+        "score_ratio": { "type": ["number", "null"], "minimum": 0 }
+      }
+    },
+    "generator_model": { "type": "string", "minLength": 1 },
+    "reviewer_model": { "type": "string", "minLength": 1 },
+    "prompt_version": { "type": "string", "minLength": 1 },
+    "automatic_review_status": {
+      "enum": ["pending", "candidate_passed", "candidate_rejected"]
+    },
+    "human_review_status": { "enum": ["pending", "approved", "rejected"] }
+  }
+}

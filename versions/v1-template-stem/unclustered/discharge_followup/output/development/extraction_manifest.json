@@ -1,0 +1,13 @@
+{
+  "status": "exploratory_unreviewed",
+  "task": "discharge_followup",
+  "stage": "f1_discharge_text_extraction",
+  "raw_path": "G:\\Projects\\llm_benchmark\\data\\validation\\mimic-admission-raw-coronary-all-three-modules.jsonl",
+  "raw_sha256": "34e7a0b8efdfdfb7ec93d9c652cf47af74c5cacca0c9f3d507d78f03b0089008",
+  "split_path": "D:\\Projects\\llm_benchmark\\investigation_selection\\output\\split\\subject_split.parquet",
+  "split_role": "development",
+  "raw_lines_scanned": 39036,
+  "admissions_extracted": 23626,
+  "discharge_notes_extracted": 21757,
+  "admissions_with_text": 21757
+}
