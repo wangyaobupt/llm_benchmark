@@ -1,0 +1,58 @@
+{
+  "schema": "mcq-visit-mining-acceptance/1.0.0",
+  "date": "2026-08-20",
+  "profile": "strict",
+  "n_visits": 10000,
+  "timeline_dir": "data/derived/mcq_visit_mining/random10k_dev20_strict_v1.0.0",
+  "gold": 0,
+  "status": "exploratory_unreviewed",
+  "families": {
+    "type1_investigation": {
+      "accepted": 30,
+      "rejected": 2346,
+      "tested_pairs": 54309,
+      "visits_with_outcome": 5611,
+      "unique_outcomes": 270
+    },
+    "type2_diagnosis": {
+      "accepted": 2,
+      "rejected": 43801,
+      "tested_pairs": 4748951,
+      "visits_with_outcome": 10000,
+      "unique_outcomes": 2829,
+      "posthoc_flags": ["discharge_icd_posthoc"],
+      "notes": "both accepted rules are morbid-obesity tautology; outcome_name stored as object"
+    },
+    "type3_medication": {
+      "accepted": 154,
+      "rejected": 6715,
+      "tested_pairs": 597742,
+      "visits_with_outcome": 9732,
+      "unique_outcomes": 1385
+    },
+    "type3_procedure": {
+      "accepted": 0,
+      "rejected": 388,
+      "tested_pairs": 54296,
+      "visits_with_outcome": 4268,
+      "unique_outcomes": 2176
+    },
+    "type4_service": {
+      "accepted": 353,
+      "rejected": 4353,
+      "tested_pairs": 17196,
+      "visits_with_outcome": 10000,
+      "unique_outcomes": 17
+    },
+    "type5_disposition": {
+      "accepted": 61,
+      "rejected": 3327,
+      "tested_pairs": 19895,
+      "visits_with_outcome": 8541,
+      "unique_outcomes": 13,
+      "posthoc_flags": ["structured_disposition_only"]
+    }
+  },
+  "accepted_total": 600,
+  "rejected_total": 60930
+}

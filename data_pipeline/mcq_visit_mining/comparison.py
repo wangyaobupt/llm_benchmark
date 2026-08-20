@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterable
 
+from .catalog import load_yaml
 from .families import FAMILY_IDS
 
 
@@ -28,6 +29,54 @@ PROFILE_LABELS = {
     "compare_psr": "PSR",
     "compare_tfidf": "TF-IDF",
     "compare_idf": "IDF",
+}
+
+METHOD_COPY = {
+    "strict": {
+        "definition": "以平滑条件概率选出每个条件组合 X 下的首位结果 y，再通过 8 道质量门禁。它是保守基准，不是单独的第五种相关性公式。",
+        "formula": "rank = (n_xy + 1) / (n_x + 2)；score = Wilson × max(0, log₂ lift) × ln(1+n_xy) × stability",
+        "why": "目标是得到高概率、相对基线有增益、统计可信、重采样稳定且与第二名拉开距离的唯一答案。",
+        "emphasis": "确定性、显著性、稳定性、唯一答案",
+        "strength": "结果最保守，误把偶然关联或模糊首位当规则的风险较低。",
+        "limitation": "多重门禁会大量压低召回率；accepted 少不等于挖掘失败。",
+        "use_case": "需要形成高置信候选规则池，优先控制假阳性时。",
+    },
+    "compare_likelihood": {
+        "definition": "直接按平滑后的 P(y|X) 排序，在同一 X 下选择观察概率最高的 y。",
+        "formula": "Likelihood = (n_xy + 1) / (n_x + 2)",
+        "why": "加一平滑避免小样本出现 0 或 1 的极端概率，同时保留‘这个条件下最常发生什么’的直观解释。",
+        "emphasis": "条件内发生概率",
+        "strength": "最直观，容易解释为给定表现后最常见的后续结果。",
+        "limitation": "不主动惩罚全局常见结果，可能偏向所有患者都常见的检查、诊断或处置。",
+        "use_case": "回答‘给定 X，最可能出现什么 y’，作为概率基线。",
+    },
+    "compare_psr": {
+        "definition": "Probability–Specificity–Reliability，将条件概率、相对基线特异性和共同出现次数的可靠性相乘。",
+        "formula": "PSR = P(y|X) × raw_lift × [log₁₀(max(1, 1+n_xy−10)) + 1]",
+        "why": "单看概率会偏爱常见 y，单看 lift 会放大小样本；三项相乘用于平衡常见度、区分度和证据量。",
+        "emphasis": "概率 × 特异性 × 支持可靠性",
+        "strength": "比纯概率更重视 X 对 y 的区分作用，又比纯 lift 更抑制低支持偶然性。",
+        "limitation": "乘法会放大任一项的尺度选择；当前可靠性常数 nco_min=10、r=1 属于设计参数。",
+        "use_case": "寻找既常发生、又相对总体更特异、且有足够共同支持的规则。",
+    },
+    "compare_tfidf": {
+        "definition": "借用信息检索 TF-IDF：以 P(y|X) 表示条件内强度，以 IDF 惩罚全局普遍结果。",
+        "formula": "TF-IDF = P(y|X) × [ln((N+1)/(n_y+1)) + 1]",
+        "why": "希望保留条件内高概率，同时降低‘无论 X 是什么都很常见’的 y 的排名。",
+        "emphasis": "条件概率 × 全局稀有度",
+        "strength": "能突出对特定 X 更有辨识度、但并非全局泛滥的结果。",
+        "limitation": "IDF 只看 y 的总体频率，不等于临床特异性；稀有结果仍可能因样本偶然性上升。",
+        "use_case": "从高频通用行为中寻找更具条件辨识度的结果。",
+    },
+    "compare_idf": {
+        "definition": "只按结果 y 的逆频率排序；在某个 X 的候选结果中优先选择全局更少见的 y。",
+        "formula": "IDF = ln((N+1)/(n_y+1)) + 1",
+        "why": "作为稀有度极端基线，用来观察完全强调结果稀缺性时，规则选择会发生什么变化。",
+        "emphasis": "全局稀有度",
+        "strength": "最直接暴露通用高频结果对其他方法的遮蔽程度。",
+        "limitation": "不衡量 P(y|X) 或相对关联强度；较高 IDF 不能单独证明 X 能预测 y。",
+        "use_case": "方法学敏感性分析和稀有结果探索，不适合作为独立的高置信规则标准。",
+    },
 }
 
 FAMILY_LABELS = {
@@ -192,11 +241,38 @@ def _compact_rule(rule: dict[str, Any], *, rank: int) -> dict[str, Any]:
     }
 
 
+def _method_definitions(threshold_profiles: dict[str, Any]) -> list[dict[str, Any]]:
+    definitions: list[dict[str, Any]] = []
+    for profile in PROFILE_ORDER:
+        copy = METHOD_COPY[profile]
+        thresholds = threshold_profiles.get(profile) or {}
+        definitions.append(
+            {
+                "profile": profile,
+                "label": PROFILE_LABELS[profile],
+                **copy,
+                "rank_key": thresholds.get("rank_key"),
+                "min_x_support": thresholds.get("min_x_support"),
+                "min_xy_support": thresholds.get("min_xy_support"),
+                "min_smoothed_probability": thresholds.get("min_smoothed_probability"),
+                "min_lift": thresholds.get("min_lift"),
+                "min_wilson_lower": thresholds.get("min_wilson_lower"),
+                "max_fdr_q": thresholds.get("max_fdr_q"),
+                "min_bootstrap_stability": thresholds.get("min_bootstrap_stability"),
+                "min_probability_gap": thresholds.get("min_probability_gap"),
+                "min_score_ratio": thresholds.get("min_score_ratio"),
+                "bootstrap_iterations": thresholds.get("bootstrap_iterations"),
+            }
+        )
+    return definitions
+
+
 def build_comparison(
     runs: list[RunInfo],
     excluded: list[dict[str, Any]],
     *,
     top_n: int = 40,
+    threshold_profiles: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     if top_n < 1:
         raise ComparisonError("top_n must be positive")
@@ -314,6 +390,7 @@ def build_comparison(
         "gold": 0,
         "families": [{"id": family, "label": FAMILY_LABELS[family]} for family in FAMILY_IDS],
         "methods": method_rows,
+        "method_definitions": _method_definitions(threshold_profiles or {}),
         "family_rows": family_rows,
         "pairwise": pairwise,
         "top_rules": top_rules,
@@ -348,6 +425,7 @@ def render_html(payload: dict[str, Any]) -> str:
 .grid{{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px}} .card,.panel{{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px #0004}}
 .card{{padding:16px}} .card .name{{color:var(--muted)}} .card .big{{font-size:28px;font-weight:750;margin-top:6px}} .card .small{{color:var(--accent);font-variant-numeric:tabular-nums}}
 .panel{{padding:18px;margin-top:16px}} .two{{display:grid;grid-template-columns:1fr 1fr;gap:16px}} .bars{{display:grid;gap:10px}} .barrow{{display:grid;grid-template-columns:105px 1fr 75px;gap:10px;align-items:center}} .track{{height:13px;background:#07101d;border-radius:20px;overflow:hidden}} .fill{{height:100%;background:linear-gradient(90deg,var(--accent),#6fa7ff);border-radius:20px}}
+.method-defs{{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}} .method-card{{background:#0d1929;border:1px solid var(--line);border-radius:12px;padding:15px}} .method-card h3{{margin:0 0 8px;font-size:16px}} .method-card p{{margin:7px 0}} .formula{{display:block;background:#07101d;border-left:3px solid var(--accent);border-radius:5px;padding:9px;color:#cce7ff;white-space:normal}} .why{{color:#c7d7e9}} .comparison-table td:first-child{{min-width:105px}}
 table{{width:100%;border-collapse:collapse;font-size:13px}} th{{position:sticky;top:0;background:#15233a;color:#bcd0e8;text-align:left}} th,td{{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}} tr:hover td{{background:#ffffff07}} .scroll{{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}}
 .pill{{display:inline-block;border:1px solid #44617f;border-radius:20px;padding:2px 8px;color:#cce2f7;white-space:nowrap}} .num{{font-variant-numeric:tabular-nums;text-align:right}} .muted{{color:var(--muted)}}
 .matrix{{display:grid;grid-template-columns:150px repeat(5,1fr);gap:4px}} .cell{{padding:10px;border-radius:7px;background:#101c2d;text-align:center}} .cell.head{{color:var(--muted);font-size:12px}}
@@ -360,6 +438,9 @@ table{{width:100%;border-collapse:collapse;font-size:13px}} th{{position:sticky;
 <div class="controls"><label>家族 <select id="family"></select></label><label>规则方法 <select id="method"></select></label></div>
 <section id="cards" class="grid"></section>
 <section class="panel"><h2>Accepted 规模</h2><div id="bars" class="bars"></div></section>
+<section class="panel"><h2>五种方法分别是什么</h2><p class="muted">定义来自当前评分实现；门槛来自当前 <code>config/mcq_visit_mining/thresholds.yaml</code>。Strict 是保守质量基准，其余四项是排序策略对照。</p><div id="methodDefs" class="method-defs"></div></section>
+<section class="panel"><h2>为什么这样定义：横向比较</h2><div class="scroll"><table class="comparison-table"><thead><tr><th>方法</th><th>核心强调</th><th>为什么这样设计</th><th>优势</th><th>局限</th><th>适合回答</th></tr></thead><tbody id="methodComparisonRows"></tbody></table></div></section>
+<section class="panel"><h2>当前 profile 门槛横向表</h2><p class="muted">0 或 1 通常表示该门禁在对照 profile 中关闭。所有方法仍要求每个 X 至少有两个达到 n_xy 门槛的候选 y，否则以 insufficient_outcomes 拒绝。</p><div class="scroll"><table><thead><tr><th>方法</th><th>rank_key</th><th>n_x≥</th><th>n_xy≥</th><th>P平滑≥</th><th>lift≥</th><th>Wilson≥</th><th>FDR q≤</th><th>稳定性≥</th><th>首二差≥</th><th>score ratio≥</th><th>bootstrap</th></tr></thead><tbody id="thresholdRows"></tbody></table></div></section>
 <div class="two">
   <section class="panel"><h2>方法汇总</h2><div class="scroll"><table><thead><tr><th>方法</th><th>tested</th><th>accepted</th><th>rejected</th><th>接受率</th></tr></thead><tbody id="summaryRows"></tbody></table></div></section>
   <section class="panel"><h2>Accepted 规则 Jaccard</h2><div class="scroll"><div id="matrix" class="matrix"></div></div></section>
@@ -371,11 +452,12 @@ table{{width:100%;border-collapse:collapse;font-size:13px}} th{{position:sticky;
 const $=id=>document.getElementById(id); const fmt=n=>n==null?'—':Number(n).toLocaleString('zh-CN',{{maximumFractionDigits:4}}); const pct=n=>n==null?'—':(Number(n)*100).toFixed(2)+'%';
 const family=$('family'),method=$('method'); family.innerHTML='<option value="all">全部家族</option>'+DATA.families.map(x=>`<option value="${{x.id}}">${{x.label}}</option>`).join(''); method.innerHTML='<option value="all">全部方法</option>'+DATA.methods.map(x=>`<option value="${{x.profile}}">${{x.label}}</option>`).join(''); $('generated').textContent=DATA.generated_at;
 const methodMap=Object.fromEntries(DATA.methods.map(x=>[x.profile,x])); const label=p=>methodMap[p]?.label||p; const familyLabel=f=>DATA.families.find(x=>x.id===f)?.label||f;
+function renderDefinitions(){{$('methodDefs').innerHTML=DATA.method_definitions.map(x=>`<article class="method-card"><h3>${{x.label}}</h3><p>${{x.definition}}</p><code class="formula">${{x.formula}}</code><p class="why"><strong>设计原因：</strong>${{x.why}}</p></article>`).join(''); $('methodComparisonRows').innerHTML=DATA.method_definitions.map(x=>`<tr><td><span class="pill">${{x.label}}</span></td><td>${{x.emphasis}}</td><td>${{x.why}}</td><td>${{x.strength}}</td><td>${{x.limitation}}</td><td>${{x.use_case}}</td></tr>`).join(''); $('thresholdRows').innerHTML=DATA.method_definitions.map(x=>`<tr><td><span class="pill">${{x.label}}</span></td><td>${{x.rank_key??'—'}}</td><td class="num">${{fmt(x.min_x_support)}}</td><td class="num">${{fmt(x.min_xy_support)}}</td><td class="num">${{fmt(x.min_smoothed_probability)}}</td><td class="num">${{fmt(x.min_lift)}}</td><td class="num">${{fmt(x.min_wilson_lower)}}</td><td class="num">${{fmt(x.max_fdr_q)}}</td><td class="num">${{fmt(x.min_bootstrap_stability)}}</td><td class="num">${{fmt(x.min_probability_gap)}}</td><td class="num">${{fmt(x.min_score_ratio)}}</td><td class="num">${{fmt(x.bootstrap_iterations)}}</td></tr>`).join('');}}
 function rowsForFamily(){{if(family.value==='all')return DATA.methods; return DATA.family_rows.filter(x=>x.family===family.value).map(x=>({{...x,label:label(x.profile)}}));}}
 function render(){{const rows=rowsForFamily(); const max=Math.max(...rows.map(x=>x.accepted),1); $('cards').innerHTML=rows.map(x=>`<article class="card"><div class="name">${{x.label}}</div><div class="big">${{fmt(x.accepted)}}</div><div class="small">accepted · ${{pct(x.acceptance_rate)}}</div></article>`).join(''); $('bars').innerHTML=rows.map(x=>`<div class="barrow"><span>${{x.label}}</span><div class="track"><div class="fill" style="width:${{x.accepted/max*100}}%"></div></div><strong class="num">${{fmt(x.accepted)}}</strong></div>`).join(''); $('summaryRows').innerHTML=rows.map(x=>`<tr><td><span class="pill">${{x.label}}</span></td><td class="num">${{fmt(x.tested)}}</td><td class="num">${{fmt(x.accepted)}}</td><td class="num">${{fmt(x.rejected)}}</td><td class="num">${{pct(x.acceptance_rate)}}</td></tr>`).join(''); renderMatrix(); renderRules();}}
 function heat(v){{return `background:rgba(91,214,199,${{(0.10+v*0.72).toFixed(3)}})`}} function renderMatrix(){{const profiles=DATA.methods.map(x=>x.profile), fam=family.value; let html='<div class="cell head">方法</div>'+profiles.map(p=>`<div class="cell head">${{label(p)}}</div>`).join(''); for(const left of profiles){{html+=`<div class="cell head">${{label(left)}}</div>`;for(const right of profiles){{if(left===right){{html+=`<div class="cell" style="${{heat(1)}}">1.000</div>`;continue}}const p=DATA.pairwise.find(x=>x.family===fam&&((x.left===left&&x.right===right)||(x.left===right&&x.right===left))),v=p?.jaccard||0;html+=`<div class="cell" style="${{heat(v)}}" title="交集 ${{fmt(p?.intersection)}} / 并集 ${{fmt(p?.union)}}">${{v.toFixed(3)}}</div>`;}}}}$('matrix').innerHTML=html;}}
 function renderRules(){{let rows=DATA.top_rules.filter(x=>(family.value==='all'||x.family===family.value)&&(method.value==='all'||x.profile===method.value)); rows.sort((a,b)=>a.profile.localeCompare(b.profile)||a.family.localeCompare(b.family)||a.rank-b.rank); $('ruleRows').innerHTML=rows.map(x=>`<tr><td><span class="pill">${{label(x.profile)}}</span><br><span class="muted">${{familyLabel(x.family)}}</span></td><td class="num">${{x.rank}}</td><td>${{x.condition}}</td><td>${{x.outcome}}</td><td>${{x.rank_key}}</td><td class="num">${{fmt(x.n_xy)}}</td><td class="num">${{pct(x.conditional_probability)}}</td><td class="num">${{fmt(x.lift)}}</td><td class="num">${{fmt(x.psr)}}</td><td class="num">${{fmt(x.tfidf)}}</td><td class="num">${{x.method_count}}</td></tr>`).join('')||'<tr><td colspan="11">没有符合筛选条件的规则</td></tr>';}}
-family.addEventListener('change',render); method.addEventListener('change',renderRules); $('notes').innerHTML=DATA.notes.map(x=>`<li>${{x}}</li>`).join(''); $('excluded').innerHTML=DATA.excluded_runs.length?'<p class="warn">排除的不完整跑次：</p><ul class="notes">'+DATA.excluded_runs.map(x=>`<li>${{x.directory}}：${{x.reason}}</li>`).join('')+'</ul>':''; render();
+family.addEventListener('change',render); method.addEventListener('change',renderRules); $('notes').innerHTML=DATA.notes.map(x=>`<li>${{x}}</li>`).join(''); $('excluded').innerHTML=DATA.excluded_runs.length?'<p class="warn">排除的不完整跑次：</p><ul class="notes">'+DATA.excluded_runs.map(x=>`<li>${{x.directory}}：${{x.reason}}</li>`).join('')+'</ul>':''; renderDefinitions(); render();
 </script></body></html>"""
 
 
@@ -444,6 +526,12 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Compare complete MCQ visit mining runs in a self-contained HTML report")
     parser.add_argument("--input-root", type=Path, default=Path("data/derived/mcq_visit_mining"))
     parser.add_argument("--output-dir", type=Path, default=Path("data/derived/mcq_visit_mining/comparison"))
+    parser.add_argument(
+        "--thresholds-config",
+        type=Path,
+        default=Path("config/mcq_visit_mining/thresholds.yaml"),
+        help="profile thresholds shown in the method comparison table",
+    )
     parser.add_argument("--top-n", type=int, default=40, help="top accepted rules retained per family and profile")
     return parser
 
@@ -456,7 +544,14 @@ def main(argv: list[str] | None = None) -> int:
         if output_dir == input_root:
             raise ComparisonError("output-dir must be a child directory, not the mining root itself")
         runs, excluded = discover_complete_runs(input_root)
-        payload = build_comparison(runs, excluded, top_n=args.top_n)
+        threshold_config = load_yaml(args.thresholds_config)
+        threshold_profiles = threshold_config.get("profiles") or {}
+        payload = build_comparison(
+            runs,
+            excluded,
+            top_n=args.top_n,
+            threshold_profiles=threshold_profiles,
+        )
         write_outputs(payload, input_root=input_root, output_dir=output_dir)
     except (ComparisonError, FileNotFoundError, json.JSONDecodeError) as exc:
         print(f"mcq_visit_mining comparison failed: {exc}")

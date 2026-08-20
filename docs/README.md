@@ -97,6 +97,7 @@
 | `mcq-visit-standardize-random10k-acceptance.md` / `.json` | 出题 Visit 标准化 10,000 例验收（无原文） |
 | `mcq-visit-ner-pilot100-acceptance.md` / `.json` | 出题 Visit NER 试点 100 例验收（接地通过，非正式 gold，无原文） |
 | `mcq-visit-standardize-random10k-dashboard.html` / `.json` | 出题 Visit 标准化 10,000 例结果统计与可视化（无原文） |
+| `mcq-visit-mining-random10k-acceptance.md` / `.json` | 出题 Visit 六个家族 strict 挖掘验收（10k；无原文；非正式 gold） |
 
 ### 仪表盘
 
@@ -130,6 +131,7 @@
 | `项目进展与数据层代码解读.md` | 数据层代码与产物读法 |
 | （模块 README）[`data_pipeline/mcq_visit_ner/README.md`](../data_pipeline/mcq_visit_ner/README.md) | Visit 出院小结 NER：默认空跑；外传需 `--execute` + 确认 + `MCQ_VISIT_NER_EXTERNAL_API_APPROVED=YES` |
 | `mcq-visit-timeline-mining.md` | Visit 时间线合并 + 六个家族分别挖掘的运行命令（先 timeline，再按 family 各跑一次） |
+| `mcq-visit-mining-random10k-output.md` | `random10k_dev20_strict_v1.0.0` 挖掘产物目录说明（文件清单与读法；本地另有 `生成说明.md`） |
 
 ## methods/ — 方法协议
 
@@ -144,6 +146,7 @@
 | 文件 | 内容 |
 |---|---|
 | `high-baseline-orders-masking-literature-review.md` | 高基线常规医嘱掩盖高特异性检查 |
+| `mcq-visit-mining-strategies.md` | V3 Visit 挖掘策略：likelihood / PSR / TF-IDF / IDF，与 strict lift 对照 |
 | `研究问题1_*.md` | 研究问题 1 检索与方案笔记 |
 
 ## review/ — 人工审阅指南

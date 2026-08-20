@@ -56,18 +56,33 @@
 
 同一 `--output-dir` 已 `status=complete` 且身份一致 → 直接结束，不重算。换输入必须换目录。
 
-产物：
+产物（同一 `--output-dir`，三份内容、三种读法）：
 
-| 文件 | 用途 |
-|---|---|
-| `visit_events.parquet` | 一行一事件，给挖掘用 |
-| `visit_timelines.jsonl` | 一行一次住院（无 DS 原文） |
-| `presentation_facts.jsonl` | 主诉概念、生命体征、诊断名（挖掘按家族选用） |
-| `summary.json` | 计数，无原文 |
+| 文件 | 是什么 | 谁读 |
+|---|---|---|
+| `visit_timelines.jsonl` | **时间线**：一行一次住院，头信息 + 按时间排好的 `events[]`。给人看、抽查某一例。无出院小结原文。 | **人读 / 抽查。挖掘程序不读这一份。** |
+| `visit_events.parquet` | **事件表**：一行一条事件（化验、影像、处方、转科…），带时钟与标准名。 | **挖掘读。** 题型①②③ 用窗口过滤 y（或化验 flag）。 |
+| `presentation_facts.jsonl` | **就诊表现**：一行一次住院。年龄、性别、主诉概念、生命体征、过敏、诊断名、科室、去向。 | **挖掘读。** 所有家族的 X 都从这里取表现特征。 |
+| `summary.json` / `manifest.json` | 计数与身份 | 验收；挖掘用其指纹防混跑 |
+
+不是「时间线文件里再切一段事件」。时间线 JSONL 是嵌套总览；事件 Parquet 是同一批事件的扁平行。内容对应，形态不同。叙事正文仍在抽取/标准化文件里，本层不复制。
+
+`random10k_dev20_v1.0.0` 若 `manifest.status=complete` 且 `visits=10000`，时间线阶段已结束，可以直接进第 2 节挖掘。不要重跑时间线，也不要改上游抽取/标准化目录。
 
 ---
 
 ## 2. 规则挖掘（六个家族分别跑）
+
+挖掘入口只认 `--timeline-dir` 下的两份机器文件，**不读** `visit_timelines.jsonl`，也**不读**标准化/抽取里的 HPI、出院小结：
+
+```text
+--timeline-dir
+    presentation_facts.jsonl   → 每个家族的 X（表现）
+    visit_events.parquet       → 窗口内的 y 或结果旗标（题型①②③）
+    visit_timelines.jsonl      → 本程序不打开
+```
+
+题型④⑤ 只读 facts（Visit 级 y），不打开事件表。六个家族仍然各跑一次、各写一个目录，互不共用特征表。
 
 每个家族单独命令、单独输出目录。题型① 看不到诊断和化验结果；题型② 的诊断只当 y、不当 X；题型③ 默认不用出院诊断当条件。
 

@@ -77,6 +77,11 @@ def pair_stats(*, n_x: int, n_y: int, n_xy: int, n_total: int) -> dict[str, floa
     smoothed = (n_xy + 1) / (n_x + 2)
     baseline = (n_y + 1) / (n_total + 2)
     lift = smoothed / baseline if baseline else math.inf
+    raw_baseline = n_y / n_total if n_total else 0.0
+    raw_lift = (conditional / raw_baseline) if raw_baseline else math.inf
+    idf = math.log((n_total + 1) / (n_y + 1)) + 1.0
+    tfidf = conditional * idf
+    pmi = math.log(raw_lift) if raw_lift > 0 and math.isfinite(raw_lift) else 0.0
     return {
         "n_x": n_x,
         "n_y": n_y,
@@ -86,9 +91,30 @@ def pair_stats(*, n_x: int, n_y: int, n_xy: int, n_total: int) -> dict[str, floa
         "smoothed_probability": smoothed,
         "baseline_probability": baseline,
         "lift": lift,
+        "raw_lift": raw_lift,
+        "idf": idf,
+        "tfidf": tfidf,
+        "pmi": pmi,
         "wilson_lower": wilson_lower(n_xy, n_x),
         "fisher_p": fisher_greater(a, b, c, d),
     }
+
+
+def reliability(n_xy: int, *, nco_min: int = 10, r: float = 1.0) -> float:
+    return math.log10(max(1.0, 1 + n_xy - nco_min)) + r
+
+
+def psr_score(
+    *,
+    share: float,
+    raw_lift: float,
+    n_xy: int,
+    nco_min: int = 10,
+    r: float = 1.0,
+) -> float:
+    """Li 2020 PSR = probability × specificity × reliability."""
+    spec = raw_lift if math.isfinite(raw_lift) else 0.0
+    return share * spec * reliability(n_xy, nco_min=nco_min, r=r)
 
 
 def rule_score(

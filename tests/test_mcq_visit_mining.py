@@ -6,7 +6,12 @@ from pathlib import Path
 from data_pipeline.mcq_visit_mining.catalog import load_config
 from data_pipeline.mcq_visit_mining.families import IsolationError, contract_for
 from data_pipeline.mcq_visit_mining.mine import mine_family
-from data_pipeline.mcq_visit_mining.stats import fisher_greater, pair_stats, wilson_lower
+from data_pipeline.mcq_visit_mining.stats import (
+    fisher_greater,
+    pair_stats,
+    psr_score,
+    wilson_lower,
+)
 from data_pipeline.mcq_visit_mining.transactions import build_transaction, type1_outcomes
 from data_pipeline.mcq_visit_timeline.events import merge_visit
 from tests.test_mcq_visit_timeline import _named, _timed
@@ -113,6 +118,15 @@ class StatsAndMineTests(unittest.TestCase):
         self.assertLess(stats["fisher_p"], 0.05)
         self.assertGreater(wilson_lower(30, 100), 0.2)
         self.assertLess(fisher_greater(30, 70, 10, 90), 0.05)
+        self.assertGreater(stats["idf"], 1.0)
+        self.assertGreater(stats["tfidf"], 0.0)
+        self.assertGreater(psr_score(share=0.3, raw_lift=1.5, n_xy=30), 0.3)
+
+    def test_tfidf_downweights_ubiquitous_outcome(self) -> None:
+        rare = pair_stats(n_x=20, n_y=30, n_xy=12, n_total=1000)
+        common = pair_stats(n_x=20, n_y=900, n_xy=18, n_total=1000)
+        self.assertGreater(rare["tfidf"], common["tfidf"])
+        self.assertGreater(common["smoothed_probability"], rare["smoothed_probability"])
 
     def test_mine_accepts_separated_rule(self) -> None:
         transactions = []

@@ -94,6 +94,10 @@ class ComparisonTests(unittest.TestCase):
             html = render_html(payload)
             self.assertIn("MCQ Visit 挖掘规则比较", html)
             self.assertIn("const DATA=", html)
+            self.assertIn("五种方法分别是什么", html)
+            self.assertIn("为什么这样定义：横向比较", html)
+            self.assertIn("PSR = P(y|X)", html)
+            self.assertEqual(len(payload["method_definitions"]), 5)
             output = root / "comparison"
             write_outputs(payload, input_root=root, output_dir=output)
             self.assertTrue((output / "index.html").is_file())

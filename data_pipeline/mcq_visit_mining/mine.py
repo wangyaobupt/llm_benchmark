@@ -6,19 +6,35 @@ import hashlib
 import math
 from collections import defaultdict
 from itertools import combinations
-from typing import Any
+from typing import Any, Mapping
 
 from .families import CLINICAL_FEATURE_TYPES
 from .stats import (
     benjamini_hochberg,
     bootstrap_rank1_stability,
     pair_stats,
+    psr_score,
+    reliability,
     rule_score,
 )
 
 
 def _join_features(feature_ids: tuple[str, ...]) -> str:
     return "|".join(feature_ids)
+
+
+def _label(value: Any) -> str:
+    if isinstance(value, dict):
+        return str(value.get("standard") or value.get("source") or "")
+    return str(value or "")
+
+
+def _metric(row: Mapping[str, Any], key: str) -> float:
+    value = row.get(key)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _hash_rule(family: str, feature_ids: tuple[str, ...], target: str, window_id: str, profile: str) -> str:
@@ -51,7 +67,7 @@ def _indexes(transactions: list[dict[str, Any]]) -> tuple[dict[str, set[str]], d
             seen.add(oid)
             oids.append(oid)
             outcome_visits[oid].add(visit_id)
-            outcome_name.setdefault(oid, str(outcome.get("outcome_name") or oid))
+            outcome_name.setdefault(oid, _label(outcome.get("outcome_name")) or oid)
         outcomes_by_visit[visit_id] = tuple(oids)
     return (
         dict(feature_visits),
@@ -160,7 +176,13 @@ def mine_family(
             continue
         n_x = len(x_visits)
         names = [feature_name[fid] for fid in combo]
-        for oid, y_visits in outcome_visits.items():
+        candidate_ys: set[str] = set()
+        for visit_id in x_visits:
+            candidate_ys.update(outcomes_by_visit.get(visit_id, ()))
+        for oid in candidate_ys:
+            y_visits = outcome_visits.get(oid)
+            if not y_visits:
+                continue
             if _same_name(names, outcome_name[oid]):
                 continue
             n_xy = len(x_visits & y_visits)
@@ -169,6 +191,16 @@ def mine_family(
             if n_x < int(thresholds["min_x_support"]):
                 continue
             stats = pair_stats(n_x=n_x, n_y=len(y_visits), n_xy=n_xy, n_total=n_total)
+            nco_min = int(thresholds.get("psr_nco_min", 10))
+            psr_r = float(thresholds.get("psr_r", 1.0))
+            stats["reliability"] = reliability(n_xy, nco_min=nco_min, r=psr_r)
+            stats["psr"] = psr_score(
+                share=float(stats["conditional_probability"]),
+                raw_lift=float(stats["raw_lift"]),
+                n_xy=n_xy,
+                nco_min=nco_min,
+                r=psr_r,
+            )
             pair_id = f"{_join_features(combo)}::{oid}"
             pair_p[pair_id] = float(stats["fisher_p"])
             pair_rows[pair_id] = {
@@ -186,6 +218,12 @@ def mine_family(
     accepted: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     x_visits_ids = {combo: pair_rows[ids[0]]["x_visits"] for combo, ids in by_combo.items() if ids}
+    rank_key = str(thresholds.get("rank_key") or "smoothed_probability")
+    uniqueness_on = str(thresholds.get("uniqueness_on") or rank_key)
+    if uniqueness_on == "rank_key":
+        uniqueness_on = rank_key
+    strategy = str(thresholds.get("strategy") or profile)
+    bootstrap_n = int(thresholds["bootstrap_iterations"])
 
     for combo, pair_ids in sorted(by_combo.items(), key=lambda item: item[0]):
         ranked = []
@@ -196,8 +234,7 @@ def mine_family(
             ranked.append(pair_id)
         ranked.sort(
             key=lambda pair_id: (
-                -float(pair_rows[pair_id]["smoothed_probability"]),
-                -float(pair_rows[pair_id]["wilson_lower"]),
+                -_metric(pair_rows[pair_id], rank_key),
                 pair_rows[pair_id]["oid"],
             )
         )
@@ -214,13 +251,16 @@ def mine_family(
         target = pair_rows[target_id]
         runner = pair_rows[runner_id] if runner_id else None
         x_list = sorted(x_visits_ids[combo])
-        stability = bootstrap_rank1_stability(
-            x_list,
-            {vid: outcomes_by_visit.get(vid, ()) for vid in x_list},
-            target["oid"],
-            iterations=int(thresholds["bootstrap_iterations"]),
-            seed=int(thresholds["random_seed"]),
-        )
+        if bootstrap_n <= 0:
+            stability = 1.0
+        else:
+            stability = bootstrap_rank1_stability(
+                x_list,
+                {vid: outcomes_by_visit.get(vid, ()) for vid in x_list},
+                target["oid"],
+                iterations=bootstrap_n,
+                seed=int(thresholds["random_seed"]),
+            )
         target_score = rule_score(
             wilson=float(target["wilson_lower"]),
             lift=float(target["lift"]),
@@ -235,7 +275,7 @@ def mine_family(
                 n_xy=int(runner["n_xy"]),
                 bootstrap_stability=1.0,
             )
-        gap = float(target["smoothed_probability"]) - (float(runner["smoothed_probability"]) if runner else 0.0)
+        gap = _metric(target, uniqueness_on) - (_metric(runner, uniqueness_on) if runner else 0.0)
         if runner_score == 0 and target_score > 0:
             ratio = float(thresholds["score_ratio_cap"])
         elif runner_score == 0 and target_score == 0:
@@ -243,21 +283,26 @@ def mine_family(
         else:
             ratio = target_score / runner_score
 
-        if float(target["smoothed_probability"]) < float(thresholds["min_smoothed_probability"]):
+        min_p = float(thresholds["min_smoothed_probability"])
+        min_lift = float(thresholds["min_lift"])
+        min_wilson = float(thresholds["min_wilson_lower"])
+        max_q = float(thresholds["max_fdr_q"])
+        min_boot = float(thresholds["min_bootstrap_stability"])
+        min_gap = float(thresholds["min_probability_gap"])
+        min_ratio = float(thresholds["min_score_ratio"])
+        if min_p > 0 and float(target["smoothed_probability"]) < min_p:
             reasons.append("low_conditional_probability")
-        if float(target["lift"]) < float(thresholds["min_lift"]):
+        if min_lift > 0 and float(target["lift"]) < min_lift:
             reasons.append("low_lift")
-        if float(target["wilson_lower"]) < float(thresholds["min_wilson_lower"]):
+        if min_wilson > 0 and float(target["wilson_lower"]) < min_wilson:
             reasons.append("low_wilson_lower")
-        if q_values.get(target_id, 1.0) > float(thresholds["max_fdr_q"]):
+        if max_q < 1 and q_values.get(target_id, 1.0) > max_q:
             reasons.append("fdr_not_significant")
-        if stability < float(thresholds["min_bootstrap_stability"]):
+        if min_boot > 0 and stability < min_boot:
             reasons.append("low_bootstrap_stability")
-        if runner is None:
-            pass
-        elif gap < float(thresholds["min_probability_gap"]):
+        if runner is not None and min_gap > 0 and gap < min_gap:
             reasons.append("ambiguous_probability_gap")
-        if runner is not None and ratio < float(thresholds["min_score_ratio"]):
+        if runner is not None and min_ratio > 0 and ratio < min_ratio:
             reasons.append("ambiguous_score_ratio")
 
         status = "accepted" if not reasons else "rejected"
@@ -267,6 +312,8 @@ def mine_family(
             "rule_id": _hash_rule(family, combo, target["oid"], str(window_id), profile),
             "family": family,
             "profile": profile,
+            "strategy": strategy,
+            "rank_key": rank_key,
             "window_id": window_id,
             "catalog_sha256": catalog_sha256,
             "condition_feature_ids": list(combo),
@@ -281,6 +328,9 @@ def mine_family(
             "smoothed_probability": round(float(target["smoothed_probability"]), 6),
             "baseline_probability": round(float(target["baseline_probability"]), 6),
             "lift": round(float(target["lift"]), 6),
+            "idf": round(float(target["idf"]), 6),
+            "tfidf": round(float(target["tfidf"]), 6),
+            "psr": round(float(target["psr"]), 6),
             "wilson_lower": round(float(target["wilson_lower"]), 6),
             "fisher_p": float(target["fisher_p"]),
             "fdr_q": q_values.get(target_id),
@@ -304,6 +354,8 @@ def mine_family(
     summary = {
         "family": family,
         "profile": profile,
+        "strategy": strategy,
+        "rank_key": rank_key,
         "n_total": n_total,
         "transactions": len(transactions),
         "frequent_itemsets": len(itemsets),

@@ -17,4 +17,13 @@
 
 100 例烟测加 `--limit 100 --expected-count 100 --skip-fingerprint`，并换 output-dir。
 
-产物：`visit_events.parquet`、`visit_timelines.jsonl`、`presentation_facts.jsonl`、`summary.json`。不含出院小结原文。
+产物（三种读法，不要混）：
+
+| 文件 | 读法 |
+|---|---|
+| `visit_timelines.jsonl` | 时间线总览：一行一次住院 + `events[]`。给人抽查。挖掘不读。 |
+| `visit_events.parquet` | 事件表：一行一事件。挖掘读。 |
+| `presentation_facts.jsonl` | 就诊表现（主诉概念、生命体征、诊断名等）。挖掘读。 |
+| `summary.json` | 计数，无原文 |
+
+不含出院小结原文。`manifest.status=complete` 后即可进入 `python -m data_pipeline.mcq_visit_mining`。

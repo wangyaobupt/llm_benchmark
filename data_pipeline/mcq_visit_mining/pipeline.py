@@ -11,6 +11,7 @@ from data_pipeline.mcq_visit_extract.atomic import (
     atomic_write_jsonl,
     canonical_hash,
     file_sha256,
+    read_jsonl,
     read_manifest,
     write_manifest,
 )
@@ -73,9 +74,30 @@ def _timeline_fingerprint(timeline_dir: Path) -> dict[str, str]:
     return payload
 
 
+PROFILE_NAMES = (
+    "strict",
+    "exploratory",
+    "compare_likelihood",
+    "compare_psr",
+    "compare_tfidf",
+    "compare_idf",
+)
+
+
+def _resolve_transactions(source: Path, family: str) -> Path:
+    source = source.resolve()
+    direct = source / "visit_transactions.jsonl"
+    nested = source / family / "visit_transactions.jsonl"
+    if direct.is_file():
+        return direct
+    if nested.is_file():
+        return nested
+    raise MiningError(f"visit_transactions.jsonl not found for {family} under {source}")
+
+
 def run_family(
     *,
-    timeline_dir: Path,
+    timeline_dir: Path | None = None,
     output_dir: Path,
     config_dir: Path,
     family: str,
@@ -83,12 +105,20 @@ def run_family(
     expected_count: int,
     allow_posthoc_diagnosis: bool = False,
     limit: int | None = None,
+    transactions_from: Path | None = None,
 ) -> dict[str, Any]:
     if family not in FAMILY_IDS:
         raise MiningError(f"unknown family {family}")
-    if profile not in {"strict", "exploratory"}:
-        raise MiningError("profile must be strict or exploratory")
-    output_dir = _assert_output_dir(output_dir, timeline_dir)
+    if profile not in PROFILE_NAMES:
+        raise MiningError(f"profile must be one of {', '.join(PROFILE_NAMES)}")
+    if transactions_from is None:
+        if timeline_dir is None:
+            raise MiningError("timeline-dir is required unless --transactions-from is set")
+        output_dir = _assert_output_dir(output_dir, timeline_dir)
+    else:
+        output_dir = output_dir.resolve()
+        if output_dir == transactions_from.resolve() or transactions_from.resolve() in output_dir.parents:
+            raise MiningError("refusing to write into the source transactions directory")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     config = load_config(config_dir)
@@ -103,10 +133,13 @@ def run_family(
     identity = {
         "family": family,
         "profile": profile,
+        "strategy": thresholds.get("strategy"),
+        "rank_key": thresholds.get("rank_key"),
         "expected_count": expected_count,
         "limit": limit,
         "allow_posthoc_diagnosis": allow_posthoc_diagnosis,
-        "timeline": _timeline_fingerprint(timeline_dir),
+        "timeline": _timeline_fingerprint(timeline_dir) if timeline_dir is not None else {},
+        "transactions_from": str(transactions_from.resolve()) if transactions_from else None,
         "config_sha256": config["sha256"],
         "window_id": windows.get("window_id"),
     }
@@ -118,32 +151,38 @@ def run_family(
     if existing is not None and existing.get("status") == "complete":
         return existing
 
-    facts = load_facts(timeline_dir)
-    if limit is not None:
-        facts = facts[:limit]
     target = limit if limit is not None else expected_count
-    if len(facts) != target:
-        raise MiningError(f"facts {len(facts)} != expected {target}")
-
-    events_by_hadm: dict[str, list[dict[str, Any]]] = {}
-    if family in FAMILIES_NEEDING_EVENTS:
-        events_by_hadm = load_events_by_hadm(timeline_dir, columns=EVENT_COLUMNS)
-
-    transactions: list[dict[str, Any]] = []
-    for row in facts:
-        hadm_id = str(row.get("hadm_id") or "").strip()
-        events = events_by_hadm.get(hadm_id, []) if family in FAMILIES_NEEDING_EVENTS else []
-        transactions.append(
-            build_transaction(
-                row,
-                events,
-                contract=contract,
-                window=windows,
-                vital_spec=config["vitals"],
-                high_signal_itemids=config["high_signal_itemids"],
-                skip_poe_category_only=bool(config["catalog"].get("skip_poe_category_only", True)),
+    if transactions_from is not None:
+        tx_path = _resolve_transactions(transactions_from, family)
+        transactions = read_jsonl(tx_path)
+        if limit is not None:
+            transactions = transactions[:limit]
+        if len(transactions) != target:
+            raise MiningError(f"transactions {len(transactions)} != expected {target}")
+    else:
+        facts = load_facts(timeline_dir)
+        if limit is not None:
+            facts = facts[:limit]
+        if len(facts) != target:
+            raise MiningError(f"facts {len(facts)} != expected {target}")
+        events_by_hadm: dict[str, list[dict[str, Any]]] = {}
+        if family in FAMILIES_NEEDING_EVENTS:
+            events_by_hadm = load_events_by_hadm(timeline_dir, columns=EVENT_COLUMNS)
+        transactions = []
+        for row in facts:
+            hadm_id = str(row.get("hadm_id") or "").strip()
+            events = events_by_hadm.get(hadm_id, []) if family in FAMILIES_NEEDING_EVENTS else []
+            transactions.append(
+                build_transaction(
+                    row,
+                    events,
+                    contract=contract,
+                    window=windows,
+                    vital_spec=config["vitals"],
+                    high_signal_itemids=config["high_signal_itemids"],
+                    skip_poe_category_only=bool(config["catalog"].get("skip_poe_category_only", True)),
+                )
             )
-        )
 
     accepted, rejected, summary = mine_family(
         transactions,
@@ -211,11 +250,16 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Mine one MCQ family from a visit timeline. Run families separately; no leakage."
     )
-    parser.add_argument("--timeline-dir", type=Path, required=True)
+    parser.add_argument("--timeline-dir", type=Path, help="timeline output dir (not needed with --transactions-from)")
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--config-dir", type=Path, default=Path("config/mcq_visit_mining"))
     parser.add_argument("--family", required=True, help="one of the six families, or all")
-    parser.add_argument("--profile", choices=("strict", "exploratory"), default="strict")
+    parser.add_argument("--profile", choices=PROFILE_NAMES, default="strict")
+    parser.add_argument(
+        "--transactions-from",
+        type=Path,
+        help="reuse visit_transactions.jsonl from a prior mining run (file or parent with family subdirs)",
+    )
     parser.add_argument("--expected-count", type=int, required=True)
     parser.add_argument(
         "--allow-posthoc-diagnosis",
@@ -236,7 +280,11 @@ def main(argv: list[str] | None = None) -> int:
         "expected_count": args.expected_count,
         "allow_posthoc_diagnosis": args.allow_posthoc_diagnosis,
         "limit": args.limit,
+        "transactions_from": args.transactions_from,
     }
+    if args.transactions_from is None and args.timeline_dir is None:
+        print("mcq_visit_mining failed: need --timeline-dir or --transactions-from")
+        return 1
     try:
         if args.family == "all":
             if args.allow_posthoc_diagnosis:

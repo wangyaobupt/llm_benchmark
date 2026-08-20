@@ -1,5 +1,7 @@
-schema_version: mcq-visit-mining-thresholds/1.0.0
+schema_version: mcq-visit-mining-thresholds/1.1.0
 status: exploratory_unreviewed
+# strict remains the original 8-gate lift ranking. compare_* relax those
+# gates so likelihood / PSR / TF-IDF / IDF can actually differ.
 profiles:
   strict:
     min_conditions: 2
@@ -16,6 +18,11 @@ profiles:
     bootstrap_iterations: 200
     random_seed: 20260820
     score_ratio_cap: 1000000.0
+    rank_key: smoothed_probability
+    uniqueness_on: smoothed_probability
+    strategy: lift
+    psr_nco_min: 10
+    psr_r: 1.0
   exploratory:
     min_conditions: 1
     max_conditions: 4
@@ -31,3 +38,88 @@ profiles:
     bootstrap_iterations: 100
     random_seed: 20260820
     score_ratio_cap: 1000000.0
+    rank_key: smoothed_probability
+    uniqueness_on: smoothed_probability
+    strategy: lift
+    psr_nco_min: 10
+    psr_r: 1.0
+  compare_likelihood:
+    min_conditions: 2
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 4
+    min_smoothed_probability: 0.0
+    min_lift: 0.0
+    min_wilson_lower: 0.0
+    max_fdr_q: 1.0
+    min_bootstrap_stability: 0.0
+    min_probability_gap: 0.08
+    min_score_ratio: 0.0
+    bootstrap_iterations: 0
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0
+    rank_key: smoothed_probability
+    uniqueness_on: rank_key
+    strategy: likelihood
+    psr_nco_min: 10
+    psr_r: 1.0
+  compare_psr:
+    min_conditions: 2
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 10
+    min_smoothed_probability: 0.01
+    min_lift: 0.0
+    min_wilson_lower: 0.0
+    max_fdr_q: 1.0
+    min_bootstrap_stability: 0.0
+    min_probability_gap: 0.0
+    min_score_ratio: 0.0
+    bootstrap_iterations: 0
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0
+    rank_key: psr
+    uniqueness_on: rank_key
+    strategy: psr
+    psr_nco_min: 10
+    psr_r: 1.0
+  compare_tfidf:
+    min_conditions: 2
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 4
+    min_smoothed_probability: 0.0
+    min_lift: 0.0
+    min_wilson_lower: 0.0
+    max_fdr_q: 1.0
+    min_bootstrap_stability: 0.0
+    min_probability_gap: 0.0
+    min_score_ratio: 0.0
+    bootstrap_iterations: 0
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0
+    rank_key: tfidf
+    uniqueness_on: rank_key
+    strategy: tfidf
+    psr_nco_min: 10
+    psr_r: 1.0
+  compare_idf:
+    min_conditions: 2
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 8
+    min_smoothed_probability: 0.0
+    min_lift: 0.0
+    min_wilson_lower: 0.0
+    max_fdr_q: 1.0
+    min_bootstrap_stability: 0.0
+    min_probability_gap: 0.0
+    min_score_ratio: 0.0
+    bootstrap_iterations: 0
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0
+    rank_key: idf
+    uniqueness_on: rank_key
+    strategy: idf
+    psr_nco_min: 10
+    psr_r: 1.0
