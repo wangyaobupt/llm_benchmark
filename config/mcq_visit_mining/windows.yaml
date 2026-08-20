@@ -1,0 +1,32 @@
+schema_version: mcq-visit-mining-windows/1.0.0
+status: exploratory_unreviewed
+clock: presentation_origin
+interval: half_open  # [origin, origin + hours)
+families:
+  type1_investigation:
+    window_id: first_wave_4h
+    hours: 4
+    time_field: occurrence_time
+    exclude_time_missing: true
+  type2_diagnosis:
+    window_id: results_visible_24h
+    hours: 24
+    time_field: available_time
+    exclude_time_missing: true
+  type3_medication:
+    window_id: prescriptions_24h
+    hours: 24
+    time_field: occurrence_time
+    exclude_time_missing: true
+  type3_procedure:
+    window_id: procedures_calendar_24h
+    hours: 24
+    time_field: occurrence_time
+    date_precision: true
+    exclude_time_missing: true
+  type4_service:
+    window_id: visit_level
+    hours: null
+  type5_disposition:
+    window_id: visit_level
+    hours: null

@@ -1,0 +1,29 @@
+schema_version: mcq-visit-investigation-catalog/1.0.0
+status: draft_unreviewed
+notes: >
+  Type-1 main-analysis outcomes. Itemids are frozen; do not fuzzy-match labels
+  at runtime. POE Lab/Imaging category-only rows are never type-1 y.
+  Universal chemistry/hematology components are excluded on purpose.
+skip_poe_category_only: true
+include_radiology: true
+include_cardiology_orders: true
+include_respiratory_orders: true
+high_signal_labs:
+  - {itemid: 51003, label: Troponin T}
+  - {itemid: 51002, label: Troponin I}
+  - {itemid: 52642, label: Troponin I}
+  - {itemid: 50911, label: "Creatine Kinase, MB Isoenzyme"}
+  - {itemid: 50963, label: NTproBNP}
+  - {itemid: 50813, label: Lactate}
+  - {itemid: 52442, label: Lactate}
+  - {itemid: 53154, label: Lactate}
+  - {itemid: 50915, label: D-Dimer}
+  - {itemid: 51196, label: D-Dimer}
+  - {itemid: 52551, label: D-Dimer}
+  - {itemid: 50956, label: Lipase}
+  - {itemid: 50820, label: pH}
+  - {itemid: 50821, label: pO2}
+  - {itemid: 50818, label: pCO2}
+  - {itemid: 50802, label: Base Excess}
+  - {itemid: 50804, label: Calculated Total CO2}
+  - {itemid: 50817, label: Oxygen Saturation}

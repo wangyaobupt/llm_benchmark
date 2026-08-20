@@ -35,6 +35,10 @@
 | `MIMIC-IV Episode 聚合输出字段映射文档.md` | Episode 聚合输出字段映射（归档路线参考） |
 | `一次住院信息分层与时点检查读法.md` | 一次住院分层与时点检查怎么读 |
 | `一次住院从原始表到挖掘表的处理流程.md` | 从原始表到挖掘表的逐步对照 |
+| `20260820_出题数据抽取第三版-1万例随机Visit直接抽取执行计划.md` | 五类题型 visit 底座第三版：从 MIMIC 原始 CSV.GZ 按 `(subject_id, hadm_id)` 随机抽 10,000 例；过程可溯源；正式交付 `visits.csv`+`visits.json` 各 1 万行、只含抽取结果 |
+| `20260820_出题Visit标准化计划-术语单位症状.md` | 抽取完成后的标准化：统一检验/药物/科室术语、单位（含体温 °F→°C）、主诉症状概念；不覆盖抽取文件、不改写病历正文。主诉覆盖靠审核 `review_queue` 扩同义词，界面：`python -m data_pipeline.mcq_visit_standardize.review_app` |
+| `20260820_出题Visit出院小结NER计划-DeepSeek-v4-flash.md` | 另开 visit NER：冻结 `visits.json` 出院小结 span 抽取；OpenAI 兼容 `deepseek-v4-flash`（`https://www.dmxapi.cn/v1`）；默认空跑，外传需三重授权；非正式 gold，不出题 |
+| `20260820_出题Visit时间线合并与规则挖掘计划-1万例全量.md` | NER 先停。用时间点补齐时钟 + 标准化名称合成 Visit 时间线，再在 10,000 例上挖五类 X→y（strict 门槛，不出题，非正式 gold） |
 
 ## reports/ — 分析报告与数据清单
 
@@ -90,6 +94,9 @@
 | `five-dimension-execution-refinement.md` | 五维执行细化 |
 | `ner-re-execution-survey.md` | NER 重执行调研 |
 | `investigation-selection-exploratory-prototype.md` | 检查检验选择探索性原型 |
+| `mcq-visit-standardize-random10k-acceptance.md` / `.json` | 出题 Visit 标准化 10,000 例验收（无原文） |
+| `mcq-visit-ner-pilot100-acceptance.md` / `.json` | 出题 Visit NER 试点 100 例验收（接地通过，非正式 gold，无原文） |
+| `mcq-visit-standardize-random10k-dashboard.html` / `.json` | 出题 Visit 标准化 10,000 例结果统计与可视化（无原文） |
 
 ### 仪表盘
 
@@ -121,6 +128,8 @@
 | `text-ner-runbook.md` | Text NER v1 API 配置与运行手册 |
 | `text-ner-v2-runbook.md` | Text NER v2 运行手册（干净重做版） |
 | `项目进展与数据层代码解读.md` | 数据层代码与产物读法 |
+| （模块 README）[`data_pipeline/mcq_visit_ner/README.md`](../data_pipeline/mcq_visit_ner/README.md) | Visit 出院小结 NER：默认空跑；外传需 `--execute` + 确认 + `MCQ_VISIT_NER_EXTERNAL_API_APPROVED=YES` |
+| `mcq-visit-timeline-mining.md` | Visit 时间线合并 + 六个家族分别挖掘的运行命令（先 timeline，再按 family 各跑一次） |
 
 ## methods/ — 方法协议
 

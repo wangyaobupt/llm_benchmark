@@ -1,0 +1,33 @@
+schema_version: mcq-visit-mining-thresholds/1.0.0
+status: exploratory_unreviewed
+profiles:
+  strict:
+    min_conditions: 2
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 4
+    min_smoothed_probability: 0.60
+    min_lift: 1.20
+    min_wilson_lower: 0.35
+    max_fdr_q: 0.05
+    min_bootstrap_stability: 0.80
+    min_probability_gap: 0.15
+    min_score_ratio: 1.25
+    bootstrap_iterations: 200
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0
+  exploratory:
+    min_conditions: 1
+    max_conditions: 4
+    min_x_support: 5
+    min_xy_support: 3
+    min_smoothed_probability: 0.40
+    min_lift: 1.05
+    min_wilson_lower: 0.20
+    max_fdr_q: 0.20
+    min_bootstrap_stability: 0.50
+    min_probability_gap: 0.05
+    min_score_ratio: 1.05
+    bootstrap_iterations: 100
+    random_seed: 20260820
+    score_ratio_cap: 1000000.0

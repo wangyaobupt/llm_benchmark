@@ -1,10 +1,55 @@
 # MIMIC 数据处理管道总览
 
-本目录集中维护 MIMIC-IV 数据从原始表到可追溯事件的全链路处理代码。当前推荐的主清洗路线是 **raw → clean → event → aggregation** 四站，外加文本 NER 支路、检查选择重建（`investigation_selection/`）与辅助工具。`archived/phenotype/` 是已失效的 visit 特征线，旧导入路径不可用，formal 入口拒绝，不得再接到出题。另有一条已归档的 Episode/visit 路线，不能与主清洗混为同一条顺序流程。
+本目录有两条并行轨道，**不要串成一条流水线**：
 
-各模块的深度解析（完成什么事情、如何完成、数据契约、fail-closed 清单、使用方法与设计取舍）见对应目录的 `README.md`，本文件只做全局串联。
+1. **V3 五类题型 Visit 直抽**（当前出题底座）：只读 `data/RawData` 的 CSV.GZ → `mcq_visit_extract` → standardize → timeline → mining。不读住院归档，不读事件 Parquet。
+2. **冠心病检查选择**：raw → clean → event → aggregation → `investigation_selection`。文本 NER 只读这条的聚合产物。
 
-## 当前推荐主流程
+`archived/phenotype/` 是已失效的 visit 特征线，旧导入路径不可用，formal 入口拒绝。另有一条已归档的 Episode/visit 路线，不能与上述任一条混为同一顺序流程。
+
+各模块的深度解析见对应目录的 `README.md`，本文件只做全局串联。
+
+## V3 五类题型：从 CSV.GZ 直抽
+
+```text
+data/RawData/*.csv.gz（HOSP 3.1 / ED 2.2 / Note 2.2）
+        │  mcq_visit_extract     漏斗 + 开发池随机 10k + 规范字段
+        ▼
+visits.json / visits.csv
+        │  backfill_times        用药起止、storetime、chartdate（另目录）
+        │  mcq_visit_standardize 术语 / 单位 / 主诉概念
+        ▼
+visits_standardized.json
+        │  mcq_visit_timeline    时钟 + 标准名
+        ▼
+visit_events.parquet + presentation_facts.jsonl
+        │  mcq_visit_mining      --family 一次一个；隔离后验
+        ▼
+conditional_rules.jsonl     exploratory_unreviewed；不出题
+```
+
+```powershell
+.\.venv\Scripts\python.exe -m data_pipeline.mcq_visit_extract `
+  --data-root data\RawData `
+  --output-dir data\derived\mcq_visit_extract\random10k_dev20 `
+  --sample-size 10000 `
+  --shard-size 1000 `
+  --development-percent 20
+
+.\.venv\Scripts\python.exe -m data_pipeline.mcq_visit_extract.backfill_times `
+  --extract-dir data\derived\mcq_visit_extract\random10k_dev20 `
+  --output-dir data\derived\mcq_visit_extract\random10k_dev20_times `
+  --expected-count 10000
+
+.\.venv\Scripts\python.exe -m data_pipeline.mcq_visit_standardize `
+  --input data\derived\mcq_visit_extract\random10k_dev20\visits.json `
+  --output-dir data\derived\mcq_visit_standardize\random10k_dev20_v1.0.9 `
+  --expected-count 10000
+```
+
+时间线与六个家族挖掘命令见 [`docs/guides/mcq-visit-timeline-mining.md`](../docs/guides/mcq-visit-timeline-mining.md)。
+
+## 冠心病检查选择主流程
 
 ```text
 MIMIC-IV 原始 CSV.GZ（39 个锁定文件：HOSP 3.1 / ICU 3.1 / ED 2.2 / Note 2.2）
@@ -42,6 +87,8 @@ decision-document 与 1,000 例 first-wave corpus（`methodology_unreviewed`，�
 
 文本支路：text_ner / text_ner_v2 只读取 ④ 的 aggregation 产物
 （raw_source_records 提供去重自由文本与血缘，processed_events 提供事件关联），不再回读源 JSONL。出院 NER 一律 post_hoc，不能进 formal 条件。
+
+五类题型不在本图上：见上文 V3 直抽。NER 全量本轮不做。
 ```
 
 ## 模块定位
@@ -53,6 +100,11 @@ decision-document 与 1,000 例 first-wave corpus（`methodology_unreviewed`，�
 | `event_pipeline/` | ③ | 33 张登记表事件化（21 fact owner + 6 support + 6 context）+ 冻结规则归一化；独立审计、复跑 SHA-256 对比、原子发布 | ② 的 JSONL（+① 的 raw JSONL 供审计） | cleaning/normalization/quality Parquet + workflow manifest |
 | `event_aggregation/` | ④ | 把已验收事件与两份源 JSONL 无损重连：五类逐字符 source_text + 每源行唯一 `source_record_id` | ③ 的已验收产物 + 两份 JSONL | aggregation/ 三份 Parquet + 两份 JSON 报告 |
 | `investigation_selection/` | ⑤ 重建 | 检查选择：clock、grouping、episodes、facts/actions、snapshot adapter、first-wave corpus | ④ 的聚合事件 + `evaluation_pipeline.snapshot` | 1,000 例 corpus（`methodology_unreviewed`）；catalog-lock 已生成；不是 gold |
+| `mcq_visit_extract/` | 并行（五类题型） | 从 MIMIC CSV.GZ 按 `(subject_id, hadm_id)` 漏斗+确定性抽样，写出一行一次住院的 csv/json；可断点续跑 | MIMIC CSV.GZ | `visits.csv` + `visits.json`（`exploratory_unreviewed`，不是 gold） |
+| `mcq_visit_standardize/` | 并行（五类题型） | 对 visit 行做术语/单位/主诉症状统一；不覆盖抽取、不改写病历正文 | `visits.json` | `visits_standardized.json` + inventory + review_queue |
+| `mcq_visit_ner/` | 并行（五类题型） | 对冻结 `visits.json` 出院小结做 span NER（OpenAI 兼容；默认空跑；外传需显式授权） | `visits.json` | `visit_mentions.jsonl`（接地 mention；非正式 gold） |
+| `mcq_visit_timeline/` | 并行（五类题型） | 把补齐时钟与标准化名称合成一次住院事件时间线；不覆盖上游 | times `visits.json` + standardized JSON | `visit_events.parquet` + timelines/facts（非正式 gold） |
+| `mcq_visit_mining/` | 并行（五类题型） | 10k Visit 上按题型做 X→y；strict 8 门；不出题 | timeline 目录 | accepted/rejected 规则（`exploratory_unreviewed`） |
 | `archived/phenotype/` | 已失效 | 旧 visit 特征与条件组合；旧路径不可导入，formal 入口拒绝 | — | 仅审计，不得进入新 gold |
 | `text_ner/`、`text_ner_v2/` | 支路 | 文档/章节/span 清单与 NER 接口（默认不调模型） | ④ 的 aggregation 产物 | section 标注、mention sidecar、关系 sidecar |
 | `mimic_source_catalog.py` | 共享契约 | 锁定 MIMIC 文件目录与表头，供各站复用同一份源表定义 | — | `SOURCE_BY_KEY` |
@@ -129,6 +181,10 @@ MIMIC 原始 CSV.GZ → archived/mimic_episode → Episode Parquet → archived/
 ## 测试
 
 ```powershell
+# V3 直抽 / 标准化 / 时间线 / 挖掘
+.\.venv\Scripts\python.exe -m unittest -v `
+  tests.test_mcq_visit_extract tests.test_mcq_visit_extract_monitor tests.test_mcq_visit_extract_medtimes `
+  tests.test_mcq_visit_standardize tests.test_mcq_visit_timeline tests.test_mcq_visit_mining
 # ①
 .\.venv\Scripts\python.exe -m unittest -v tests.test_raw_admission_archive tests.test_raw_archive_monitor tests.test_module_subset tests.test_raw_field_dictionary
 # ②

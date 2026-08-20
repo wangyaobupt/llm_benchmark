@@ -16,6 +16,39 @@
 
 项目以真实世界数据中的结构化事实和时间关系为依据，先冻结可用证据、答案定义与数据划分，再生成题目和开展模型评测。行为一致性任务回答“真实临床中最可能发生什么”，规范性任务回答“依据临床证据最应该做什么”；两类 gold 不混用。所有前瞻性题目只允许使用在决策时点已经发生且已经可用的信息，后验资料和行政终点信息不能进入题干。
 
+## 两条并行数据轨道
+
+当前仓库里有两条**互不互为输入**的数据轨道。五类题型底座走第三版直抽，不再经过住院全表归档或事件管线。
+
+| | **V3 五类题型 Visit 直抽（当前出题底座）** | 冠心病检查选择（v3.1 方法学） |
+|---|---|---|
+| 输入 | `data/RawData/` 下 MIMIC-IV / ED / Note 的 **CSV.GZ 原表** | 同一套 CSV.GZ，但先做成住院归档再事件化 |
+| 抽样 | 漏斗（成年、主诊断、有效出院小结）后，开发池内确定性随机 10,000 个 `(subject_id, hadm_id)` | 现有冠心病方法学队列 |
+| 代码 | `data_pipeline/mcq_visit_{extract,standardize,timeline,mining}` | `mimic_raw_archive` → `event_pipeline` → `investigation_selection` |
+| 交付 | 一行一次住院的 `visits.json` / `.csv`，再标准化、时间线、分家族规则 | 事件 Parquet、1,000 例 first-wave corpus |
+| 不是 | 不是 gold；不替代 v3.1 W0–W10 | 不是五类题型的 visit 行文件 |
+
+V3 直抽链路（只读 CSV.GZ，不读事件 Parquet、不读冠心病归档）：
+
+```text
+data/RawData/*.csv.gz
+        │  mcq_visit_extract（漏斗 + 随机 10k + 字段投影）
+        ▼
+visits.json / visits.csv          schema mcq_visit_extract/3.1.x
+        │  时间点补齐（另目录，不覆盖抽取）
+        │  mcq_visit_standardize（术语 / 单位 / 主诉概念）
+        ▼
+visits_standardized.json
+        │  mcq_visit_timeline（时钟 + 标准名）
+        ▼
+visit_events.parquet
+        │  mcq_visit_mining（六个家族分别挖 X→y，隔离后验）
+        ▼
+conditional_rules.jsonl           exploratory_unreviewed；不出题；gold = 0
+```
+
+运行：抽取见 [`data_pipeline/mcq_visit_extract/README.md`](data_pipeline/mcq_visit_extract/README.md)；时间线与挖掘见 [`docs/guides/mcq-visit-timeline-mining.md`](docs/guides/mcq-visit-timeline-mining.md)。执行计划：[`docs/design/20260820_出题数据抽取第三版-1万例随机Visit直接抽取执行计划.md`](docs/design/20260820_出题数据抽取第三版-1万例随机Visit直接抽取执行计划.md)。
+
 ## 整体计划
 
 项目按“数据层 → 评测层 → 外部验证层”推进。数据支路可以并行准备，但进入 patient journey、决策快照或题目构建前，各自必须通过明确的产物合同和验收门禁。
@@ -59,11 +92,11 @@ LLM 评测、统计分析与报告
 
 原始归档始终保持不变；清洗、标准化、快照和题目均作为带版本与来源信息的派生产物保存。患者级数据按患者划分训练、开发和测试集合，避免同一患者跨集合泄漏。
 
-检查选择的正式实现已从旧 V2 规则挖掘线切到 `decision_document` 重建：先冻结「当时看到了什么、当时做了什么」，再允许统计和出题。上表仍是各阶段产物合同；旧 V1 / V2 产物只作审计，不能当作本表已完成。执行闸门见 [v3.1 明确执行版](docs/plans/20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md)。文件保存见 [`文件保存规范.md`](文件保存规范.md)。
+上表是**冠心病检查选择**那条轨道的产物合同（raw archive → 事件 → decision document）。五类题型 Visit 底座不走这张表，见上文 V3 直抽。旧 V1 / V2 产物只作审计。检查选择闸门见 [v3.1 明确执行版](docs/plans/20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md)。文件保存见 [`文件保存规范.md`](文件保存规范.md)。
 
 ## 目录结构
 
-出题层有两条已关闭的历史线，和一条未冻结的重建线。V1 冻结在 `versions/v1-template-stem`（原根目录 `tasks/` 已并入并去重）。V2 在 `data_pipeline/archived/phenotype` 与 `versions/v2-llm-stem`，科学合同已失效，formal 入口拒绝。当前检查选择工作在 `data_pipeline/investigation_selection/` 与 `evaluation_pipeline/`。
+出题层有两条已关闭的历史线，一条未冻结的检查选择重建，以及一条 V3 Visit 直抽。V1 冻结在 `versions/v1-template-stem`（原根目录 `tasks/` 已并入并去重）。V2 在 `data_pipeline/archived/phenotype` 与 `versions/v2-llm-stem`，科学合同已失效，formal 入口拒绝。检查选择在 `data_pipeline/investigation_selection/` 与 `evaluation_pipeline/`。五类题型当前底座在 `data_pipeline/mcq_visit_*`（从 CSV.GZ 直抽，不经事件管线）。
 
 ```text
 D:\Projects\llm_benchmark\
@@ -71,10 +104,11 @@ D:\Projects\llm_benchmark\
 ├── BenchMark-进展梳理.md           # 唯一当前状态摘要
 ├── versions/                       # v1-template-stem（冻结基线）；v2-llm-stem（失效审计）
 ├── mcq_generation/                 # 五类题型设计文档（非正式实现）
-├── data_pipeline/                  # 主清洗：raw → clean → event → aggregation
+├── data_pipeline/                  # 冠心病清洗：raw → clean → event → aggregation
 │                                   # investigation_selection/ 检查选择重建
+│                                   # mcq_visit_*  五类题型 V3：CSV.GZ 直抽 → 标准化 → 时间线 → 挖掘
 │                                   # archived/phenotype/ 旧 visit 特征（失效）
-│                                   # text_ner / text_ner_v2 文本支路
+│                                   # text_ner / text_ner_v2 文本支路（读事件聚合，不读 visit 行）
 ├── evaluation_pipeline/            # split / snapshot / journey / legacy 门禁
 ├── benchmark_common/               # V1 共享统计原语（冻结）
 ├── eda/                            # EDA 脚本
@@ -90,9 +124,11 @@ D:\Projects\llm_benchmark\
 
 ## 当前进展
 
-截至 2026-08-19：冠心病 MIMIC 事件底座可用，检查选择正式金标准尚未开始。数据层已从 100 例经 1,000 例推进到 **39,036 次住院 / 20,136 患者 / 27,336,811 条 `clinical_event/1.2.0` 事件**；无损聚合只验收了 1,000 例。V1 已冻为探索基线（221 题探针，非正式评测）。V2 跑出 134 道自动审题通过的候选，但因出院 ICD、未用 `available_time`、全住院目标窗、Lab 仅有 category、split 泄漏而**整链失效**，不能送审或发布。`protocol.yaml` 已 `frozen`（`conditional_order_choice`），`protocol-lock.json` 与 `catalog-lock.json` 已生成；1,000 例 first-wave corpus（1,011 documents，`methodology_unreviewed`）已落地。仍无 run-lock、无新 formal split、无 gold。已进行的模型调用均为 `unreviewed_model_output`。
+截至 2026-08-20：**五类题型底座第三版已从 MIMIC 原始 CSV.GZ 直抽 10,000 例 Visit**（不经住院全表归档、不经事件管线）。标准化 `v1.0.9` 主诉概念 mapped ≈96%。时间线合并与六个家族隔离挖掘的代码已落地，10k 跑数待执行。出院小结 NER 全量本轮不做。与此并行，冠心病事件底座仍可用，检查选择正式金标准尚未开始。`gold = 0`。
 
-> **当前主线不是继续审 134 道旧题，也不是把 mining 当成绩。** W1 合同已冻；下一步是对齐 snapshot 时钟，并完成 1,000 例 integration audit。V1 / V2 只保留为审计材料。状态摘要见 [`BenchMark-进展梳理.md`](BenchMark-进展梳理.md)。
+冠心病事件侧：39,036 次住院 / 27,336,811 条 `clinical_event/1.2.0`；无损聚合只验收了 1,000 例。V1 已冻为探索基线（221 题探针，非正式评测）。V2 因出院 ICD、未用 `available_time`、全住院目标窗、Lab 仅 category、split 泄漏而**整链失效**，不能送审或发布。`protocol.yaml` 已 `frozen`；1,000 例 first-wave corpus 为 `methodology_unreviewed`。
+
+> **五类题型当前走 V3 直抽，不要再按旧 17 列 CSV 或事件 Parquet 去抽 visit 行。** 检查选择那条线不要把 11 条 FDR 或 134 道旧候选当成绩。状态摘要见 [`BenchMark-进展梳理.md`](BenchMark-进展梳理.md)。
 
 | 阶段 | 状态 | 已完成的证据 | 尚未完成 |
 |---|---|---|---|
@@ -112,24 +148,28 @@ D:\Projects\llm_benchmark\
 | 患者级正式划分 | 合同与认证实现完成，尚无正式产物 | 已实现患者原子划分、HMAC 公开引用、受保护绑定、工程审计集隔离；旧 60/20/20 划分及接触过旧 holdout 的 subject 只能 audit-only | 新 validation/final 只能来自 `previous_exposure=none`（当前为 0）；尚未生成可发布 split / exposure registry |
 | Patient journey | Encounter boundary 代码已实现，完整 journey 尚未实现 | 一个 `hadm_id` 一个住院边界、原生 ED handoff、ICU 子阶段、事件唯一归属 | 只有合成测试；无真实 boundary manifest |
 | 决策快照与 gold | 认证快照工程链已实现；1,000 例 corpus 为 `methodology_unreviewed` | 通用时间 / phase / split / 字段白名单门禁，以及 boundary HMAC adapter；first-wave corpus 1,011 documents | 无 recency clock 对齐；`event_time == index` 当前会放行；corpus 不是 gold |
-| MCQ 生成 | 正式生成未开始 | 题型规范在 `mcq_generation/`；旧 V2 134 候选仅审计 | 须等 1000 例 audit 通过；题型 2–5 不同时铺开 |
+| V3 五类题型 Visit 直抽 | 10,000 例已抽出并标准化 | 只读 `data/RawData` CSV.GZ；`mcq_visit_extract` → `random10k_dev20`；时间点补齐 `random10k_dev20_times`；标准化 `random10k_dev20_v1.0.9`（主诉 mapped ≈96%） | 时间线 10k 与分家族挖掘待跑；不出题；非正式 gold |
+| MCQ 生成 | 正式生成未开始 | 题型规范在 `mcq_generation/`；V3 直抽已接上抽取/标准化/时间线/挖掘代码；旧 V2 134 候选仅审计 | 挖掘验收前不出题；不把 V3 规则当 gold |
 | LLM 评测 | 正式评测尚未开始 | v1 221 题 DeepSeek 探针为 `unreviewed_model_output` | 正式榜单等待新 gold 与 one-shot final test |
 
-当前关键路径是检查选择合同重建，不是继续审旧 V2 题。文本 NER、归一化试审和内部模型探针可以并行，但产出不能反向替代协议冻结，也不能把 134 道旧候选审成 gold。
+五类题型当前关键路径是 V3 时间线合并与六个家族隔离挖掘（代码已落地，10k 待跑），不是继续审旧 V2 题。检查选择那条线仍要完成 1,000 例 integration audit，不能把 11 条 FDR 或 134 道旧候选当 gold。
 
 优先执行顺序是：
 
-1. **对齐时钟**：snapshot / query 使用 `event_time < index_time` 与冻结的 `evidence_window_basis`；不要另起平行包。
-2. **1,000 例 integration audit**：eligibility、6 张审计表、可读 trace。未 freeze 不得进入 W6/W7，也不得把 mining 当成绩。
-3. 跨批归一化 100 条试审（当前 18/100、reviewer 为占位）和文本 NER 人工双标可并行；出院小结保持 `post_hoc`。
-4. corpus freeze 后，才允许 coronary-only 的 retrieval / 规则方法检查（W6a / W7a）。多诊断扩展（W8）之后必须重跑 W2–W5 和 W6b / W7b。
-5. 新 gold 只统计 programmatic + independent + clinical review 都通过的题目；行为 gold 与规范 gold 分开。
-6. 新 formal val/test 不得从旧 60/20/20 holdout 升级（`previous_exposure=none` 为 0）。
-7. MIMIC 方法学冻结后，再在香港 RWD 重新完成数据合同、时间语义和两类 gold 的本地化。本轮不把香港数据纳入验收。
+1. **V3 时间线 + 分家族挖掘**：先 `mcq_visit_timeline` 全量 10k，再按六个 `--family` 分别挖；运行指南 [`docs/guides/mcq-visit-timeline-mining.md`](docs/guides/mcq-visit-timeline-mining.md)。
+2. **检查选择对齐时钟**：snapshot / query 使用 `event_time < index_time` 与冻结的 `evidence_window_basis`；不要另起平行包。
+3. **1,000 例 integration audit**：eligibility、6 张审计表、可读 trace。未 freeze 不得进入 W6/W7，也不得把检查选择 mining 当成绩。
+4. 跨批归一化 100 条试审（当前 18/100、reviewer 为占位）和文本 NER 人工双标可并行；出院小结保持 `post_hoc`。V3 出院小结 NER 全量本轮不做。
+5. 检查选择 corpus freeze 后，才允许 coronary-only 的 retrieval / 规则方法检查（W6a / W7a）。多诊断扩展（W8）之后必须重跑 W2–W5 和 W6b / W7b。
+6. 新 gold 只统计 programmatic + independent + clinical review 都通过的题目；行为 gold 与规范 gold 分开。V3 accepted 规则同样不是 gold。
+7. 新 formal val/test 不得从旧 60/20/20 holdout 升级（`previous_exposure=none` 为 0）。
+8. MIMIC 方法学冻结后，再在香港 RWD 重新完成数据合同、时间语义和两类 gold 的本地化。本轮不把香港数据纳入验收。
 
 详细路线与文档：
 
 - [当前状态摘要](BenchMark-进展梳理.md)
+- [V3 直抽执行计划](docs/design/20260820_出题数据抽取第三版-1万例随机Visit直接抽取执行计划.md)
+- [V3 时间线与挖掘运行指南](docs/guides/mcq-visit-timeline-mining.md)
 - [v3.1 明确执行版](docs/plans/20260819_Benchmark-问题复核与实施计划-v3.1-明确执行版.md)
 - [文件保存规范](文件保存规范.md)
 - [文档索引（docs/README.md）](docs/README.md)

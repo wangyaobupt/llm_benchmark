@@ -1,0 +1,734 @@
+{
+  "visits": 10000,
+  "acceptance": {
+    "records": 10000,
+    "mapping_version": "mcq-visit-standardize/1.0.8",
+    "unique_hadm_id": 10000,
+    "chief_complaint_concepts": 12732,
+    "chief_complaint_mapped": 12194,
+    "chief_complaint_mapped_rate": 0.9577,
+    "temperature_converted": 4307,
+    "temperature_reversible": 4307,
+    "review_queue_rows": 0,
+    "inventory_rows": 28914,
+    "json_sha256": "F69328CABC63D3E228B8E7922E6DDEF2239B50D3BFD6C174FABB3FAC33453EBA",
+    "csv_sha256": "421AC19890694DECB90FB8B027E3E6CD49B94E0EFACC36FEFD6672E9DCE6FEB1",
+    "original_columns_preserved": true,
+    "gold": 0,
+    "status": "exploratory_unreviewed"
+  },
+  "cohort": {
+    "sex": [
+      {
+        "name": "F",
+        "count": 5206,
+        "pct": 52.06
+      },
+      {
+        "name": "M",
+        "count": 4794,
+        "pct": 47.94
+      }
+    ],
+    "age": [
+      {
+        "name": "60–69",
+        "count": 2019,
+        "pct": 20.19
+      },
+      {
+        "name": "80+",
+        "count": 1858,
+        "pct": 18.58
+      },
+      {
+        "name": "70–79",
+        "count": 1817,
+        "pct": 18.17
+      },
+      {
+        "name": "50–59",
+        "count": 1722,
+        "pct": 17.22
+      },
+      {
+        "name": "18–39",
+        "count": 1458,
+        "pct": 14.58
+      },
+      {
+        "name": "40–49",
+        "count": 1126,
+        "pct": 11.26
+      }
+    ],
+    "admission_type": [
+      {
+        "name": "EW EMER.",
+        "count": 4396,
+        "pct": 43.96
+      },
+      {
+        "name": "OBSERVATION ADMIT",
+        "count": 1557,
+        "pct": 15.57
+      },
+      {
+        "name": "EU OBSERVATION",
+        "count": 989,
+        "pct": 9.89
+      },
+      {
+        "name": "URGENT",
+        "count": 906,
+        "pct": 9.06
+      },
+      {
+        "name": "SURGICAL SAME DAY ADMISSION",
+        "count": 848,
+        "pct": 8.48
+      },
+      {
+        "name": "DIRECT EMER.",
+        "count": 514,
+        "pct": 5.14
+      },
+      {
+        "name": "DIRECT OBSERVATION",
+        "count": 368,
+        "pct": 3.68
+      },
+      {
+        "name": "ELECTIVE",
+        "count": 292,
+        "pct": 2.92
+      },
+      {
+        "name": "AMBULATORY OBSERVATION",
+        "count": 130,
+        "pct": 1.3
+      }
+    ]
+  },
+  "chief_complaint": {
+    "visits_with_concepts": 10000,
+    "visits_with_mapped": 9610,
+    "concept_status": [
+      {
+        "name": "mapped",
+        "count": 12194,
+        "pct": 95.77
+      },
+      {
+        "name": "not_applicable",
+        "count": 538,
+        "pct": 4.23
+      }
+    ],
+    "polarity": [
+      {
+        "name": "asserted",
+        "count": 12732,
+        "pct": 100.0
+      }
+    ],
+    "top_standards": [
+      {
+        "name": "Abdominal pain",
+        "count": 778,
+        "pct": 6.38
+      },
+      {
+        "name": "Shortness of breath",
+        "count": 627,
+        "pct": 5.14
+      },
+      {
+        "name": "Chest pain",
+        "count": 502,
+        "pct": 4.12
+      },
+      {
+        "name": "Fever",
+        "count": 318,
+        "pct": 2.61
+      },
+      {
+        "name": "Nausea",
+        "count": 219,
+        "pct": 1.8
+      },
+      {
+        "name": "Altered mental status",
+        "count": 182,
+        "pct": 1.49
+      },
+      {
+        "name": "Vomiting",
+        "count": 171,
+        "pct": 1.4
+      },
+      {
+        "name": "Cough",
+        "count": 166,
+        "pct": 1.36
+      },
+      {
+        "name": "Fall",
+        "count": 137,
+        "pct": 1.12
+      },
+      {
+        "name": "Diarrhea",
+        "count": 132,
+        "pct": 1.08
+      },
+      {
+        "name": "Nausea and vomiting",
+        "count": 117,
+        "pct": 0.96
+      },
+      {
+        "name": "Syncope",
+        "count": 116,
+        "pct": 0.95
+      },
+      {
+        "name": "Headache",
+        "count": 115,
+        "pct": 0.94
+      },
+      {
+        "name": "Weakness",
+        "count": 113,
+        "pct": 0.93
+      },
+      {
+        "name": "Back pain",
+        "count": 107,
+        "pct": 0.88
+      },
+      {
+        "name": "Dyspnea on exertion",
+        "count": 100,
+        "pct": 0.82
+      },
+      {
+        "name": "Fatigue",
+        "count": 95,
+        "pct": 0.78
+      },
+      {
+        "name": "Hematochezia",
+        "count": 82,
+        "pct": 0.67
+      },
+      {
+        "name": "Confusion",
+        "count": 73,
+        "pct": 0.6
+      },
+      {
+        "name": "Dizziness",
+        "count": 71,
+        "pct": 0.58
+      }
+    ],
+    "unique_standards": 4805
+  },
+  "ed_chief_complaint": {
+    "concept_status": [
+      {
+        "name": "mapped",
+        "count": 6366,
+        "pct": 91.06
+      },
+      {
+        "name": "not_applicable",
+        "count": 625,
+        "pct": 8.94
+      }
+    ],
+    "top_standards": [
+      {
+        "name": "Abdominal pain",
+        "count": 575,
+        "pct": 9.03
+      },
+      {
+        "name": "Shortness of breath",
+        "count": 375,
+        "pct": 5.89
+      },
+      {
+        "name": "Chest pain",
+        "count": 310,
+        "pct": 4.87
+      },
+      {
+        "name": "Status post fall",
+        "count": 266,
+        "pct": 4.18
+      },
+      {
+        "name": "Fever",
+        "count": 240,
+        "pct": 3.77
+      },
+      {
+        "name": "Weakness",
+        "count": 190,
+        "pct": 2.98
+      },
+      {
+        "name": "Nausea and vomiting",
+        "count": 159,
+        "pct": 2.5
+      },
+      {
+        "name": "Altered mental status",
+        "count": 157,
+        "pct": 2.47
+      },
+      {
+        "name": "Abnormal labs",
+        "count": 110,
+        "pct": 1.73
+      },
+      {
+        "name": "Back pain",
+        "count": 95,
+        "pct": 1.49
+      },
+      {
+        "name": "Cough",
+        "count": 93,
+        "pct": 1.46
+      },
+      {
+        "name": "Headache",
+        "count": 91,
+        "pct": 1.43
+      },
+      {
+        "name": "Hematochezia",
+        "count": 89,
+        "pct": 1.4
+      },
+      {
+        "name": "Dizziness",
+        "count": 83,
+        "pct": 1.3
+      },
+      {
+        "name": "Seizure",
+        "count": 68,
+        "pct": 1.07
+      }
+    ],
+    "unique_standards": 919
+  },
+  "radiology": {
+    "status": [
+      {
+        "name": "mapped",
+        "count": 22713,
+        "pct": 98.15
+      },
+      {
+        "name": "not_applicable",
+        "count": 429,
+        "pct": 1.85
+      }
+    ],
+    "top_standards": [
+      {
+        "name": "Chest X-ray, PA and Lateral Views",
+        "count": 3035,
+        "pct": 13.36
+      },
+      {
+        "name": "Chest X-ray, Portable AP View",
+        "count": 2978,
+        "pct": 13.11
+      },
+      {
+        "name": "CT head without contrast",
+        "count": 1417,
+        "pct": 6.24
+      },
+      {
+        "name": "Chest X-ray, Line Placement",
+        "count": 1151,
+        "pct": 5.07
+      },
+      {
+        "name": "CT abdomen and pelvis with contrast",
+        "count": 703,
+        "pct": 3.1
+      },
+      {
+        "name": "Ultrasound liver or gallbladder (single organ)",
+        "count": 582,
+        "pct": 2.56
+      },
+      {
+        "name": "CT chest with contrast",
+        "count": 449,
+        "pct": 1.98
+      },
+      {
+        "name": "MRI head with and without contrast",
+        "count": 419,
+        "pct": 1.84
+      },
+      {
+        "name": "CT chest without contrast",
+        "count": 400,
+        "pct": 1.76
+      },
+      {
+        "name": "Abdominal X-ray, Supine and Erect Views",
+        "count": 390,
+        "pct": 1.72
+      },
+      {
+        "name": "CT cervical spine without contrast",
+        "count": 356,
+        "pct": 1.57
+      },
+      {
+        "name": "CT Angiography Chest with and without Contrast, Non-coronary",
+        "count": 350,
+        "pct": 1.54
+      },
+      {
+        "name": "Abdominal X-ray, Portable View",
+        "count": 344,
+        "pct": 1.51
+      },
+      {
+        "name": "Ultrasound bilateral lower extremity veins",
+        "count": 336,
+        "pct": 1.48
+      },
+      {
+        "name": "MRI head without contrast",
+        "count": 302,
+        "pct": 1.33
+      },
+      {
+        "name": "Chest X-ray, Pre-op PA and Lateral Views",
+        "count": 286,
+        "pct": 1.26
+      },
+      {
+        "name": "Ultrasound renal",
+        "count": 265,
+        "pct": 1.17
+      },
+      {
+        "name": "CT abdomen and pelvis without contrast",
+        "count": 264,
+        "pct": 1.16
+      },
+      {
+        "name": "Chest X-ray, Single View",
+        "count": 254,
+        "pct": 1.12
+      },
+      {
+        "name": "CT angiography head with and without contrast",
+        "count": 247,
+        "pct": 1.09
+      }
+    ],
+    "unique_standards": 586
+  },
+  "laboratory": {
+    "tests": 431307,
+    "results": 1785178,
+    "unique_names": 725,
+    "top_names": [
+      {
+        "name": "Glucose, Blood",
+        "count": 9928,
+        "pct": 2.3
+      },
+      {
+        "name": "Hemoglobin, Blood",
+        "count": 9903,
+        "pct": 2.3
+      },
+      {
+        "name": "Hematocrit, Blood",
+        "count": 9130,
+        "pct": 2.12
+      },
+      {
+        "name": "Platelet Count, Blood",
+        "count": 9053,
+        "pct": 2.1
+      },
+      {
+        "name": "White Blood Cells, Blood",
+        "count": 9052,
+        "pct": 2.1
+      },
+      {
+        "name": "MCH, Blood",
+        "count": 9045,
+        "pct": 2.1
+      },
+      {
+        "name": "MCHC, Blood",
+        "count": 9045,
+        "pct": 2.1
+      },
+      {
+        "name": "MCV, Blood",
+        "count": 9045,
+        "pct": 2.1
+      },
+      {
+        "name": "RDW, Blood",
+        "count": 9045,
+        "pct": 2.1
+      },
+      {
+        "name": "Red Blood Cells, Blood",
+        "count": 9045,
+        "pct": 2.1
+      },
+      {
+        "name": "Creatinine, Blood",
+        "count": 9041,
+        "pct": 2.1
+      },
+      {
+        "name": "Potassium, Blood",
+        "count": 9007,
+        "pct": 2.09
+      },
+      {
+        "name": "Urea Nitrogen, Blood",
+        "count": 9001,
+        "pct": 2.09
+      },
+      {
+        "name": "Sodium, Blood",
+        "count": 8992,
+        "pct": 2.08
+      },
+      {
+        "name": "Chloride, Blood",
+        "count": 8991,
+        "pct": 2.08
+      },
+      {
+        "name": "Anion Gap, Blood",
+        "count": 8969,
+        "pct": 2.08
+      },
+      {
+        "name": "Bicarbonate, Blood",
+        "count": 8969,
+        "pct": 2.08
+      },
+      {
+        "name": "Magnesium, Blood",
+        "count": 8473,
+        "pct": 1.96
+      },
+      {
+        "name": "Calcium, Total, Blood",
+        "count": 8332,
+        "pct": 1.93
+      },
+      {
+        "name": "Phosphate, Blood",
+        "count": 8265,
+        "pct": 1.92
+      }
+    ],
+    "charttime": [
+      {
+        "name": "有 charttime",
+        "count": 1785178,
+        "pct": 100.0
+      }
+    ],
+    "units": {
+      "status": [
+        {
+          "name": "mapped",
+          "count": 1552625,
+          "pct": 86.97
+        },
+        {
+          "name": "not_applicable",
+          "count": 232553,
+          "pct": 13.03
+        }
+      ]
+    }
+  },
+  "medications": {
+    "status": [
+      {
+        "name": "mapped",
+        "count": 363212,
+        "pct": 100.0
+      }
+    ],
+    "top_ingredients": [
+      {
+        "name": "Insulin",
+        "count": 16061,
+        "pct": 4.41
+      },
+      {
+        "name": "Sodium Chloride 0.9% Flush",
+        "count": 14801,
+        "pct": 4.06
+      },
+      {
+        "name": "Potassium chloride",
+        "count": 14142,
+        "pct": 3.88
+      },
+      {
+        "name": "Acetaminophen",
+        "count": 12423,
+        "pct": 3.41
+      },
+      {
+        "name": "Furosemide",
+        "count": 9539,
+        "pct": 2.62
+      },
+      {
+        "name": "Heparin",
+        "count": 9414,
+        "pct": 2.58
+      },
+      {
+        "name": "Magnesium Sulfate",
+        "count": 8411,
+        "pct": 2.31
+      },
+      {
+        "name": "Hydromorphone",
+        "count": 8208,
+        "pct": 2.25
+      },
+      {
+        "name": "Docusate Sodium",
+        "count": 7899,
+        "pct": 2.17
+      },
+      {
+        "name": "Senna",
+        "count": 7057,
+        "pct": 1.94
+      },
+      {
+        "name": "Metoprolol",
+        "count": 6876,
+        "pct": 1.89
+      },
+      {
+        "name": "Oxycodone",
+        "count": 6327,
+        "pct": 1.74
+      },
+      {
+        "name": "Ondansetron",
+        "count": 6008,
+        "pct": 1.65
+      },
+      {
+        "name": "Lorazepam",
+        "count": 5928,
+        "pct": 1.63
+      },
+      {
+        "name": "Vancomycin",
+        "count": 5288,
+        "pct": 1.45
+      }
+    ],
+    "unique_ingredients": 1868
+  },
+  "allergies": {
+    "status": [
+      {
+        "name": "mapped",
+        "count": 10067,
+        "pct": 100.0
+      }
+    ]
+  },
+  "rhythm": {
+    "status": [
+      {
+        "name": "not_applicable",
+        "count": 9531,
+        "pct": 95.31
+      },
+      {
+        "name": "mapped",
+        "count": 469,
+        "pct": 4.69
+      }
+    ]
+  },
+  "temperature_present": 4307,
+  "synonyms": {
+    "rows": 13082,
+    "by_domain": [
+      {
+        "name": "symptom",
+        "count": 4498,
+        "concepts": 4355,
+        "pct": 34.38
+      },
+      {
+        "name": "drug",
+        "count": 4467,
+        "concepts": 4452,
+        "pct": 34.15
+      },
+      {
+        "name": "allergy",
+        "count": 3480,
+        "concepts": 3480,
+        "pct": 26.6
+      },
+      {
+        "name": "radiology",
+        "count": 562,
+        "concepts": 497,
+        "pct": 4.3
+      },
+      {
+        "name": "unit",
+        "count": 49,
+        "concepts": 49,
+        "pct": 0.37
+      },
+      {
+        "name": "rhythm",
+        "count": 25,
+        "concepts": 25,
+        "pct": 0.19
+      },
+      {
+        "name": "lab",
+        "count": 1,
+        "concepts": 1,
+        "pct": 0.01
+      }
+    ]
+  }
+}

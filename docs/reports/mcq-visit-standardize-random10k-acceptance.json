@@ -1,0 +1,17 @@
+{
+  "records": 10000,
+  "mapping_version": "mcq-visit-standardize/1.0.0",
+  "unique_hadm_id": 10000,
+  "chief_complaint_concepts": 14312,
+  "chief_complaint_mapped": 5063,
+  "chief_complaint_mapped_rate": 0.3538,
+  "temperature_converted": 4307,
+  "temperature_reversible": 4307,
+  "review_queue_rows": 16173,
+  "inventory_rows": 28914,
+  "json_sha256": "973B9900B7D9B75E035025B9D532B594438A1FA8BFF1A60D298C899532AD51C9",
+  "csv_sha256": "9E59225DE0952B0BDAD80BEB76E863DF8EE5B61318B44F716FB55866642E0E5C",
+  "original_columns_preserved": true,
+  "gold": 0,
+  "status": "exploratory_unreviewed"
+}

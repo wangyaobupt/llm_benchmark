@@ -1,0 +1,24 @@
+schema_version: mcq-visit-mining-vital-flags/1.0.0
+status: draft_unreviewed
+missing: skip
+flags:
+  tachycardia:
+    field: heartrate
+    op: ">="
+    value: 100
+  hypotension:
+    field: sbp
+    op: "<"
+    value: 90
+  hypoxia:
+    field: o2sat
+    op: "<"
+    value: 92
+  fever:
+    field: temperature_c
+    op: ">="
+    value: 38.0
+  tachypnea:
+    field: resprate
+    op: ">="
+    value: 24

@@ -26,7 +26,12 @@ Do not add other markdown, data, or scripts at repo root. Do not keep a second p
 
 - Cleaning stations: `data_pipeline/{mimic_raw_archive,clean_clinical_archive,event_pipeline,event_aggregation}/`
 - Investigation-selection rebuild: `data_pipeline/investigation_selection/`
-- Text NER: `data_pipeline/text_ner_v2/` (`text_ner/` is v1, do not extend)
+- Five-type MCQ visit extract: `data_pipeline/mcq_visit_extract/` (direct MIMIC CSV.GZ → 10k-row visits; resumable; not gold)
+- Five-type MCQ visit standardize: `data_pipeline/mcq_visit_standardize/` (terms/units/chief-complaint concepts; does not overwrite extract; not gold)
+- Five-type MCQ visit NER: `data_pipeline/mcq_visit_ner/` (span NER on frozen `visits.json` discharge summaries via OpenAI-compatible API; dry-run default; not gold)
+- Five-type MCQ visit timeline: `data_pipeline/mcq_visit_timeline/` (merge backfilled clocks with standardized names into a visit event timeline; does not overwrite extract/standardize; not gold)
+- Five-type MCQ visit mining: `data_pipeline/mcq_visit_mining/` (X→y rules on the 10k visits; strict gates; no question generation; not gold)
+- Text NER: `data_pipeline/text_ner_v2/` (`text_ner/` is v1, do not extend; reads aggregation events, not visit rows)
 - Eval chain: `evaluation_pipeline/` — no parallel contract/time/grouping packages
 - Scientific protocol and locks: `config/investigation-selection/` (runtime knobs stay out of protocol YAML)
 - Tests: `tests/test_<module>.py`
