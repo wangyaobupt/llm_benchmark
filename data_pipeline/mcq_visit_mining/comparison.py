@@ -1,0 +1,472 @@
+"""Build a self-contained HTML comparison for complete MCQ mining runs."""
+
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import statistics
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Iterable
+
+from .families import FAMILY_IDS
+
+
+PROFILE_ORDER = (
+    "strict",
+    "compare_likelihood",
+    "compare_psr",
+    "compare_tfidf",
+    "compare_idf",
+)
+
+PROFILE_LABELS = {
+    "strict": "Strict",
+    "compare_likelihood": "Likelihood",
+    "compare_psr": "PSR",
+    "compare_tfidf": "TF-IDF",
+    "compare_idf": "IDF",
+}
+
+FAMILY_LABELS = {
+    "type1_investigation": "① 检查检验",
+    "type2_diagnosis": "② 诊断",
+    "type3_medication": "③ 用药",
+    "type3_procedure": "③ 操作",
+    "type4_service": "④ 服务",
+    "type5_disposition": "⑤ 去向",
+}
+
+METRICS = (
+    "conditional_probability",
+    "smoothed_probability",
+    "lift",
+    "psr",
+    "tfidf",
+    "idf",
+    "wilson_lower",
+    "fdr_q",
+    "bootstrap_stability",
+)
+
+
+class ComparisonError(ValueError):
+    pass
+
+
+@dataclass(frozen=True)
+class RunInfo:
+    profile: str
+    directory: Path
+    summaries: dict[str, dict[str, Any]]
+
+
+def _read_json(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ComparisonError(f"expected JSON object: {path}")
+    return payload
+
+
+def _read_jsonl(path: Path) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            payload = json.loads(line)
+            if not isinstance(payload, dict):
+                raise ComparisonError(f"expected JSON object at {path}:{line_number}")
+            rows.append(payload)
+    return rows
+
+
+def discover_complete_runs(input_root: Path) -> tuple[list[RunInfo], list[dict[str, Any]]]:
+    """Return one complete six-family run per supported profile and exclusions."""
+    input_root = input_root.resolve()
+    runs_by_profile: dict[str, RunInfo] = {}
+    excluded: list[dict[str, Any]] = []
+    if not input_root.is_dir():
+        raise FileNotFoundError(f"mining root not found: {input_root}")
+
+    for directory in sorted(path for path in input_root.iterdir() if path.is_dir()):
+        if directory.name == "comparison":
+            continue
+        summaries: dict[str, dict[str, Any]] = {}
+        profiles: set[str] = set()
+        missing: list[str] = []
+        incomplete: list[str] = []
+        for family in FAMILY_IDS:
+            family_dir = directory / family
+            summary_path = family_dir / "summary.json"
+            manifest_path = family_dir / "mining_manifest.json"
+            rules_path = family_dir / "conditional_rules.jsonl"
+            if not summary_path.is_file() or not manifest_path.is_file() or not rules_path.is_file():
+                missing.append(family)
+                continue
+            summary = _read_json(summary_path)
+            manifest = _read_json(manifest_path)
+            if manifest.get("status") != "complete":
+                incomplete.append(family)
+                continue
+            profile = str(summary.get("profile") or (manifest.get("identity") or {}).get("profile") or "")
+            if not profile:
+                incomplete.append(family)
+                continue
+            profiles.add(profile)
+            summaries[family] = summary
+        reason = None
+        if missing:
+            reason = f"缺少家族或核心文件：{', '.join(missing)}"
+        elif incomplete:
+            reason = f"manifest 未完成：{', '.join(incomplete)}"
+        elif len(profiles) != 1:
+            reason = f"profile 不一致：{', '.join(sorted(profiles)) or 'unknown'}"
+        profile = next(iter(profiles), "unknown")
+        if reason is None and profile not in PROFILE_ORDER:
+            reason = f"不属于预设比较 profile：{profile}"
+        if reason is not None:
+            excluded.append({"directory": directory.name, "reason": reason})
+            continue
+        if profile in runs_by_profile:
+            raise ComparisonError(
+                f"duplicate complete profile {profile}: "
+                f"{runs_by_profile[profile].directory.name}, {directory.name}"
+            )
+        runs_by_profile[profile] = RunInfo(profile=profile, directory=directory, summaries=summaries)
+
+    runs = [runs_by_profile[profile] for profile in PROFILE_ORDER if profile in runs_by_profile]
+    if len(runs) < 2:
+        raise ComparisonError("need at least two complete six-family runs")
+    return runs, excluded
+
+
+def canonical_rule_key(rule: dict[str, Any]) -> str:
+    family = str(rule.get("family") or "")
+    features = sorted(str(value) for value in rule.get("condition_feature_ids") or [])
+    outcome = str(rule.get("target_outcome_id") or "")
+    return "\x1f".join((family, "\x1e".join(features), outcome))
+
+
+def _numeric(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def _metric_summary(rules: Iterable[dict[str, Any]]) -> dict[str, dict[str, float | None]]:
+    rows = list(rules)
+    result: dict[str, dict[str, float | None]] = {}
+    for metric in METRICS:
+        values = [number for row in rows if (number := _numeric(row.get(metric))) is not None]
+        result[metric] = {
+            "mean": round(statistics.fmean(values), 6) if values else None,
+            "median": round(statistics.median(values), 6) if values else None,
+        }
+    return result
+
+
+def _compact_rule(rule: dict[str, Any], *, rank: int) -> dict[str, Any]:
+    return {
+        "rank": rank,
+        "family": str(rule.get("family") or ""),
+        "condition": " + ".join(str(value) for value in rule.get("condition_display_names") or []),
+        "outcome": str(rule.get("target_outcome_name") or rule.get("target_outcome_id") or ""),
+        "rule_key": canonical_rule_key(rule),
+        "n_x": rule.get("n_x"),
+        "n_xy": rule.get("n_xy"),
+        "conditional_probability": rule.get("conditional_probability"),
+        "smoothed_probability": rule.get("smoothed_probability"),
+        "lift": rule.get("lift"),
+        "psr": rule.get("psr"),
+        "tfidf": rule.get("tfidf"),
+        "idf": rule.get("idf"),
+        "wilson_lower": rule.get("wilson_lower"),
+        "fdr_q": rule.get("fdr_q"),
+        "bootstrap_stability": rule.get("bootstrap_stability"),
+        "score": rule.get("score"),
+    }
+
+
+def build_comparison(
+    runs: list[RunInfo],
+    excluded: list[dict[str, Any]],
+    *,
+    top_n: int = 40,
+) -> dict[str, Any]:
+    if top_n < 1:
+        raise ComparisonError("top_n must be positive")
+    run_rules: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    accepted_keys: dict[tuple[str, str], set[str]] = {}
+    method_rows: list[dict[str, Any]] = []
+    family_rows: list[dict[str, Any]] = []
+    top_rules: list[dict[str, Any]] = []
+
+    for family in FAMILY_IDS:
+        fingerprints = {
+            str(run.summaries[family].get("transactions_sha256") or "") for run in runs
+        }
+        if "" in fingerprints:
+            raise ComparisonError(f"missing transactions_sha256 for {family}")
+        if len(fingerprints) != 1:
+            raise ComparisonError(f"transactions differ across profiles for {family}")
+
+    for run in runs:
+        run_rules[run.profile] = {}
+        total_accepted = 0
+        total_rejected = 0
+        total_tested = 0
+        for family in FAMILY_IDS:
+            summary = run.summaries[family]
+            rules = _read_jsonl(run.directory / family / "conditional_rules.jsonl")
+            run_rules[run.profile][family] = rules
+            keys = {canonical_rule_key(rule) for rule in rules}
+            accepted_keys[(run.profile, family)] = keys
+            accepted = int(summary.get("accepted") or len(rules))
+            if accepted != len(rules):
+                raise ComparisonError(
+                    f"accepted count mismatch for {run.directory.name}/{family}: "
+                    f"summary={accepted}, rows={len(rules)}"
+                )
+            rejected = int(summary.get("rejected") or 0)
+            tested = int(summary.get("tested_pairs") or 0)
+            total_accepted += accepted
+            total_rejected += rejected
+            total_tested += tested
+            family_rows.append(
+                {
+                    "profile": run.profile,
+                    "family": family,
+                    "transactions": int(summary.get("transactions") or 0),
+                    "tested": tested,
+                    "accepted": accepted,
+                    "rejected": rejected,
+                    "acceptance_rate": round(accepted / (accepted + rejected), 6)
+                    if accepted + rejected
+                    else 0.0,
+                    "metrics": _metric_summary(rules),
+                }
+            )
+            rank_key = str(summary.get("rank_key") or "smoothed_probability")
+            ranked = sorted(
+                rules,
+                key=lambda rule: (
+                    -(_numeric(rule.get(rank_key)) or 0.0),
+                    -(_numeric(rule.get("n_xy")) or 0.0),
+                    canonical_rule_key(rule),
+                ),
+            )
+            for rank, rule in enumerate(ranked[:top_n], start=1):
+                top_rules.append({"profile": run.profile, "rank_key": rank_key, **_compact_rule(rule, rank=rank)})
+        method_rows.append(
+            {
+                "profile": run.profile,
+                "label": PROFILE_LABELS.get(run.profile, run.profile),
+                "directory": run.directory.name,
+                "accepted": total_accepted,
+                "rejected": total_rejected,
+                "tested": total_tested,
+                "acceptance_rate": round(total_accepted / (total_accepted + total_rejected), 6)
+                if total_accepted + total_rejected
+                else 0.0,
+            }
+        )
+
+    pairwise: list[dict[str, Any]] = []
+    for index, left in enumerate(runs):
+        for right in runs[index + 1 :]:
+            for family in ("all", *FAMILY_IDS):
+                if family == "all":
+                    left_keys = set().union(*(accepted_keys[(left.profile, item)] for item in FAMILY_IDS))
+                    right_keys = set().union(*(accepted_keys[(right.profile, item)] for item in FAMILY_IDS))
+                else:
+                    left_keys = accepted_keys[(left.profile, family)]
+                    right_keys = accepted_keys[(right.profile, family)]
+                intersection = len(left_keys & right_keys)
+                union = len(left_keys | right_keys)
+                pairwise.append(
+                    {
+                        "family": family,
+                        "left": left.profile,
+                        "right": right.profile,
+                        "intersection": intersection,
+                        "union": union,
+                        "left_only": len(left_keys - right_keys),
+                        "right_only": len(right_keys - left_keys),
+                        "jaccard": round(intersection / union, 6) if union else 1.0,
+                    }
+                )
+
+    top_key_profiles: dict[str, set[str]] = {}
+    for row in top_rules:
+        top_key_profiles.setdefault(row["rule_key"], set()).add(row["profile"])
+    for row in top_rules:
+        row["method_count"] = len(top_key_profiles[row["rule_key"]])
+
+    return {
+        "schema_version": "mcq-visit-mining-comparison/1.0.0",
+        "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+        "status": "exploratory_unreviewed",
+        "gold": 0,
+        "families": [{"id": family, "label": FAMILY_LABELS[family]} for family in FAMILY_IDS],
+        "methods": method_rows,
+        "family_rows": family_rows,
+        "pairwise": pairwise,
+        "top_rules": top_rules,
+        "excluded_runs": excluded,
+        "notes": [
+            "仅比较六个家族均完整且 mining_manifest.status=complete 的跑次。",
+            "规则交集按 family + 排序后的 condition_feature_ids + target_outcome_id 对齐；rule_id 因包含 profile 不用于跨方法对齐。",
+            "不同 profile 的筛选门槛并不相同，因此 accepted 数量和 Jaccard 反映的是“排序策略 + 门槛”的联合差异。",
+            "接受率 = accepted / (accepted + rejected)，不是 accepted / tested_pairs。",
+            "所有结果均为 exploratory_unreviewed，gold=0，不可直接进入出题或正式评测。",
+        ],
+    }
+
+
+def _json_for_script(payload: dict[str, Any]) -> str:
+    return json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+
+
+def render_html(payload: dict[str, Any]) -> str:
+    data = _json_for_script(payload)
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCQ Visit 挖掘规则比较</title>
+<style>
+:root{{--bg:#09111f;--panel:#111d30;--panel2:#16243a;--line:#2a3b55;--text:#edf4ff;--muted:#9fb1c9;--accent:#5bd6c7;--accent2:#ffb65c;--danger:#ff7383}}
+*{{box-sizing:border-box}} body{{margin:0;background:radial-gradient(circle at 15% 0,#18304a 0,#09111f 42%);color:var(--text);font:14px/1.5 Inter,"Segoe UI",sans-serif}}
+.wrap{{max-width:1480px;margin:auto;padding:32px}} h1{{margin:0;font-size:32px;letter-spacing:-.5px}} h2{{margin:0 0 14px;font-size:18px}} .sub{{color:var(--muted);margin:8px 0 24px}}
+.controls{{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0 22px}} select{{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 12px}}
+.grid{{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:12px}} .card,.panel{{background:linear-gradient(145deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px #0004}}
+.card{{padding:16px}} .card .name{{color:var(--muted)}} .card .big{{font-size:28px;font-weight:750;margin-top:6px}} .card .small{{color:var(--accent);font-variant-numeric:tabular-nums}}
+.panel{{padding:18px;margin-top:16px}} .two{{display:grid;grid-template-columns:1fr 1fr;gap:16px}} .bars{{display:grid;gap:10px}} .barrow{{display:grid;grid-template-columns:105px 1fr 75px;gap:10px;align-items:center}} .track{{height:13px;background:#07101d;border-radius:20px;overflow:hidden}} .fill{{height:100%;background:linear-gradient(90deg,var(--accent),#6fa7ff);border-radius:20px}}
+table{{width:100%;border-collapse:collapse;font-size:13px}} th{{position:sticky;top:0;background:#15233a;color:#bcd0e8;text-align:left}} th,td{{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}} tr:hover td{{background:#ffffff07}} .scroll{{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}}
+.pill{{display:inline-block;border:1px solid #44617f;border-radius:20px;padding:2px 8px;color:#cce2f7;white-space:nowrap}} .num{{font-variant-numeric:tabular-nums;text-align:right}} .muted{{color:var(--muted)}}
+.matrix{{display:grid;grid-template-columns:150px repeat(5,1fr);gap:4px}} .cell{{padding:10px;border-radius:7px;background:#101c2d;text-align:center}} .cell.head{{color:var(--muted);font-size:12px}}
+.notes{{margin:0;padding-left:20px;color:var(--muted)}} .warn{{color:var(--accent2)}} @media(max-width:1000px){{.grid{{grid-template-columns:repeat(2,1fr)}}.two{{grid-template-columns:1fr}}.matrix{{grid-template-columns:120px repeat(5,90px);min-width:620px}}}} @media(max-width:620px){{.wrap{{padding:18px}}.grid{{grid-template-columns:1fr}}}}
+</style>
+</head>
+<body><main class="wrap">
+<h1>MCQ Visit 挖掘规则比较</h1>
+<p class="sub">五种规则选择策略 × 六个题型家族 · <span id="generated"></span> · exploratory_unreviewed / gold=0</p>
+<div class="controls"><label>家族 <select id="family"></select></label><label>规则方法 <select id="method"></select></label></div>
+<section id="cards" class="grid"></section>
+<section class="panel"><h2>Accepted 规模</h2><div id="bars" class="bars"></div></section>
+<div class="two">
+  <section class="panel"><h2>方法汇总</h2><div class="scroll"><table><thead><tr><th>方法</th><th>tested</th><th>accepted</th><th>rejected</th><th>接受率</th></tr></thead><tbody id="summaryRows"></tbody></table></div></section>
+  <section class="panel"><h2>Accepted 规则 Jaccard</h2><div class="scroll"><div id="matrix" class="matrix"></div></div></section>
+</div>
+<section class="panel"><h2>Top 规则</h2><p class="muted">按各 profile 自身 rank_key 排名；“覆盖方法数”只统计进入各方法 Top 列表的重复规则。</p><div class="scroll"><table><thead><tr><th>方法</th><th>#</th><th>条件 X</th><th>结果 y</th><th>rank key</th><th>n_xy</th><th>P(y|X)</th><th>lift</th><th>PSR</th><th>TF-IDF</th><th>覆盖方法数</th></tr></thead><tbody id="ruleRows"></tbody></table></div></section>
+<section class="panel"><h2>读数边界</h2><ul id="notes" class="notes"></ul><div id="excluded"></div></section>
+</main>
+<script>const DATA={data};
+const $=id=>document.getElementById(id); const fmt=n=>n==null?'—':Number(n).toLocaleString('zh-CN',{{maximumFractionDigits:4}}); const pct=n=>n==null?'—':(Number(n)*100).toFixed(2)+'%';
+const family=$('family'),method=$('method'); family.innerHTML='<option value="all">全部家族</option>'+DATA.families.map(x=>`<option value="${{x.id}}">${{x.label}}</option>`).join(''); method.innerHTML='<option value="all">全部方法</option>'+DATA.methods.map(x=>`<option value="${{x.profile}}">${{x.label}}</option>`).join(''); $('generated').textContent=DATA.generated_at;
+const methodMap=Object.fromEntries(DATA.methods.map(x=>[x.profile,x])); const label=p=>methodMap[p]?.label||p; const familyLabel=f=>DATA.families.find(x=>x.id===f)?.label||f;
+function rowsForFamily(){{if(family.value==='all')return DATA.methods; return DATA.family_rows.filter(x=>x.family===family.value).map(x=>({{...x,label:label(x.profile)}}));}}
+function render(){{const rows=rowsForFamily(); const max=Math.max(...rows.map(x=>x.accepted),1); $('cards').innerHTML=rows.map(x=>`<article class="card"><div class="name">${{x.label}}</div><div class="big">${{fmt(x.accepted)}}</div><div class="small">accepted · ${{pct(x.acceptance_rate)}}</div></article>`).join(''); $('bars').innerHTML=rows.map(x=>`<div class="barrow"><span>${{x.label}}</span><div class="track"><div class="fill" style="width:${{x.accepted/max*100}}%"></div></div><strong class="num">${{fmt(x.accepted)}}</strong></div>`).join(''); $('summaryRows').innerHTML=rows.map(x=>`<tr><td><span class="pill">${{x.label}}</span></td><td class="num">${{fmt(x.tested)}}</td><td class="num">${{fmt(x.accepted)}}</td><td class="num">${{fmt(x.rejected)}}</td><td class="num">${{pct(x.acceptance_rate)}}</td></tr>`).join(''); renderMatrix(); renderRules();}}
+function heat(v){{return `background:rgba(91,214,199,${{(0.10+v*0.72).toFixed(3)}})`}} function renderMatrix(){{const profiles=DATA.methods.map(x=>x.profile), fam=family.value; let html='<div class="cell head">方法</div>'+profiles.map(p=>`<div class="cell head">${{label(p)}}</div>`).join(''); for(const left of profiles){{html+=`<div class="cell head">${{label(left)}}</div>`;for(const right of profiles){{if(left===right){{html+=`<div class="cell" style="${{heat(1)}}">1.000</div>`;continue}}const p=DATA.pairwise.find(x=>x.family===fam&&((x.left===left&&x.right===right)||(x.left===right&&x.right===left))),v=p?.jaccard||0;html+=`<div class="cell" style="${{heat(v)}}" title="交集 ${{fmt(p?.intersection)}} / 并集 ${{fmt(p?.union)}}">${{v.toFixed(3)}}</div>`;}}}}$('matrix').innerHTML=html;}}
+function renderRules(){{let rows=DATA.top_rules.filter(x=>(family.value==='all'||x.family===family.value)&&(method.value==='all'||x.profile===method.value)); rows.sort((a,b)=>a.profile.localeCompare(b.profile)||a.family.localeCompare(b.family)||a.rank-b.rank); $('ruleRows').innerHTML=rows.map(x=>`<tr><td><span class="pill">${{label(x.profile)}}</span><br><span class="muted">${{familyLabel(x.family)}}</span></td><td class="num">${{x.rank}}</td><td>${{x.condition}}</td><td>${{x.outcome}}</td><td>${{x.rank_key}}</td><td class="num">${{fmt(x.n_xy)}}</td><td class="num">${{pct(x.conditional_probability)}}</td><td class="num">${{fmt(x.lift)}}</td><td class="num">${{fmt(x.psr)}}</td><td class="num">${{fmt(x.tfidf)}}</td><td class="num">${{x.method_count}}</td></tr>`).join('')||'<tr><td colspan="11">没有符合筛选条件的规则</td></tr>';}}
+family.addEventListener('change',render); method.addEventListener('change',renderRules); $('notes').innerHTML=DATA.notes.map(x=>`<li>${{x}}</li>`).join(''); $('excluded').innerHTML=DATA.excluded_runs.length?'<p class="warn">排除的不完整跑次：</p><ul class="notes">'+DATA.excluded_runs.map(x=>`<li>${{x.directory}}：${{x.reason}}</li>`).join('')+'</ul>':''; render();
+</script></body></html>"""
+
+
+def render_readme(payload: dict[str, Any], *, input_root: Path, output_dir: Path) -> str:
+    methods = "\n".join(
+        f"- `{row['label']}`：`{row['directory']}`，accepted={row['accepted']:,}"
+        for row in payload["methods"]
+    )
+    excluded = "\n".join(
+        f"- `{row['directory']}`：{row['reason']}" for row in payload["excluded_runs"]
+    ) or "- 无"
+    return f"""# MCQ Visit 挖掘规则比较说明
+
+本目录由 `python -m data_pipeline.mcq_visit_mining.comparison` 自动生成，用于比较完整的六家族挖掘跑次。
+
+## 文件
+
+- `index.html`：自包含交互式可视化页面，直接用浏览器打开。
+- `comparison_summary.json`：页面使用的结构化汇总数据，不包含患者级记录。
+- `说明文档.md`：本说明。
+
+## 本次输入
+
+输入根目录：`{input_root.resolve()}`
+
+{methods}
+
+排除的跑次：
+
+{excluded}
+
+## 比较口径
+
+- 只纳入六个 family 核心文件齐全、且每个 `mining_manifest.json` 均为 `status=complete` 的跑次。
+- 跨方法规则键为 `family + 排序后的 condition_feature_ids + target_outcome_id`。不能直接比较 `rule_id`，因为它包含 profile。
+- Jaccard = accepted 规则交集 / accepted 规则并集。
+- Top 规则按各方法自己的 `rank_key` 排序，因此反映该方法的目标函数。
+- 不同 profile 同时改变排序方式和筛选门槛，accepted 数量差异不能解释为单一评分函数的纯效果。
+
+## 重新生成
+
+```powershell
+.\\.venv\\Scripts\\python.exe -m data_pipeline.mcq_visit_mining.comparison `
+  --input-root data\\derived\\mcq_visit_mining `
+  --output-dir data\\derived\\mcq_visit_mining\\comparison
+```
+
+当前输出目录：`{output_dir.resolve()}`
+
+所有结果均为 `exploratory_unreviewed`，`gold=0`，不能直接用于出题或正式评测。
+"""
+
+
+def write_outputs(payload: dict[str, Any], *, input_root: Path, output_dir: Path) -> None:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "comparison_summary.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
+    (output_dir / "index.html").write_text(render_html(payload), encoding="utf-8")
+    (output_dir / "说明文档.md").write_text(
+        render_readme(payload, input_root=input_root, output_dir=output_dir), encoding="utf-8"
+    )
+
+
+def create_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Compare complete MCQ visit mining runs in a self-contained HTML report")
+    parser.add_argument("--input-root", type=Path, default=Path("data/derived/mcq_visit_mining"))
+    parser.add_argument("--output-dir", type=Path, default=Path("data/derived/mcq_visit_mining/comparison"))
+    parser.add_argument("--top-n", type=int, default=40, help="top accepted rules retained per family and profile")
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = create_parser().parse_args(argv)
+    try:
+        input_root = args.input_root.resolve()
+        output_dir = args.output_dir.resolve()
+        if output_dir == input_root:
+            raise ComparisonError("output-dir must be a child directory, not the mining root itself")
+        runs, excluded = discover_complete_runs(input_root)
+        payload = build_comparison(runs, excluded, top_n=args.top_n)
+        write_outputs(payload, input_root=input_root, output_dir=output_dir)
+    except (ComparisonError, FileNotFoundError, json.JSONDecodeError) as exc:
+        print(f"mcq_visit_mining comparison failed: {exc}")
+        return 1
+    print(
+        f"comparison complete methods={len(payload['methods'])} "
+        f"families={len(payload['families'])} output={output_dir}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
