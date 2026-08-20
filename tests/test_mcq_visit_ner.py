@@ -20,7 +20,9 @@ from data_pipeline.mcq_visit_ner.client import (
 from data_pipeline.mcq_visit_ner.ground import ground_surface
 from data_pipeline.mcq_visit_ner.pipeline import (
     compile_mentions,
+    known_surfaces_for_visit,
     main,
+    mask_structured_surfaces,
     prepare,
     run_mentions,
     status,
@@ -40,6 +42,7 @@ def _visit(**overrides: object) -> dict[str, Any]:
             "primary_icd_code": "I214",
             "primary_diagnosis_name": "NSTEMI",
             "primary_icd_version": "ICD-10-CM",
+            "medications": [{"drug": "Aspirin"}],
             "discharge_note_full": (
                 "Chief Complaint:\nChest pain\n\n"
                 "History of Present Illness:\nThe patient denies dyspnea.\n"
@@ -166,6 +169,55 @@ class EnvAndGateTests(unittest.TestCase):
 
 
 class PipelineTests(unittest.TestCase):
+    def test_masks_only_content_already_in_structured_fields(self) -> None:
+        visit = _visit()
+        known = known_surfaces_for_visit(visit)
+        self.assertIn("Chest pain", known)
+        self.assertIn("Aspirin", known)
+        model_text, spans, residual = mask_structured_surfaces(
+            visit["discharge_note_full"], known
+        )
+        self.assertNotIn("Chest pain", model_text)
+        self.assertNotIn("Aspirin", model_text)
+        self.assertIn("dyspnea", model_text)
+        self.assertEqual(len(spans), 2)
+        self.assertGreater(residual, 0)
+
+    def test_fully_structured_chunk_is_marked_to_skip_model(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            visits_path = root / "extract" / "visits.json"
+            _write_visits(
+                visits_path,
+                [_visit(discharge_note_full="Chief Complaint:\nChest pain\n")],
+            )
+            output_dir = root / "ner"
+            result = prepare(
+                input_path=visits_path,
+                output_dir=output_dir,
+                max_visits=1,
+            )
+            self.assertEqual(result["skipped_chunks"], 1)
+            self.assertEqual(result["api_candidate_chunks"], 0)
+
+            calls = {"n": 0}
+
+            def transport(*args, **kwargs):  # type: ignore[no-untyped-def]
+                calls["n"] += 1
+                raise AssertionError("structured-only chunks must not call the model")
+
+            run = run_mentions(
+                output_dir,
+                execute=True,
+                data_transfer_authorized=True,
+                environ=_env(),
+                transport=transport,
+                sleep=lambda _seconds: None,
+            )
+            self.assertEqual(run["successful"], 1)
+            self.assertEqual(run["model_calls"], 0)
+            self.assertEqual(calls["n"], 0)
+
     def test_prepare_chunks_and_refuses_extract_dir(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
@@ -183,8 +235,11 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(result["visits_selected"], 1)
             self.assertEqual(result["chunks"], 1)
             self.assertFalse(result["resumed"])
-            documents = (output_dir / "documents.jsonl").read_text(encoding="utf-8")
-            self.assertIn("Chest pain", documents)
+            documents = json.loads(
+                (output_dir / "documents.jsonl").read_text(encoding="utf-8")
+            )
+            self.assertIn("Chest pain", documents["chunk_text"])
+            self.assertNotIn("Chest pain", documents["model_text"])
             resumed = prepare(
                 input_path=visits_path,
                 output_dir=output_dir,
@@ -276,7 +331,9 @@ class PipelineTests(unittest.TestCase):
                 self.assertEqual(url, "https://www.dmxapi.cn/v1/chat/completions")
                 self.assertIn("Bearer test-key-not-real", headers["Authorization"])
                 user = json.loads(payload["messages"][1]["content"])
-                self.assertIn("Chest pain", user["section_text"])
+                self.assertNotIn("Chest pain", user["section_text"])
+                self.assertNotIn("Aspirin", user["section_text"])
+                self.assertIn("[S]", user["section_text"])
                 return {
                     "choices": [
                         {
@@ -341,14 +398,14 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(calls["n"], 1)
             compiled = compile_mentions(output_dir)
             self.assertEqual(compiled["visits"], 1)
-            self.assertEqual(compiled["mentions"], 3)
+            self.assertEqual(compiled["mentions"], 1)
             self.assertEqual(compiled["incomplete_docs"], 0)
             mentions = json.loads(
                 (output_dir / "visit_mentions.jsonl").read_text(encoding="utf-8")
             )
             surfaces = [item["surface_text"] for item in mentions["mentions"]]
-            self.assertEqual(surfaces, ["Chest pain", "dyspnea", "Aspirin"])
-            dyspnea = mentions["mentions"][1]
+            self.assertEqual(surfaces, ["dyspnea"])
+            dyspnea = mentions["mentions"][0]
             self.assertEqual(dyspnea["assertion"], "absent")
             self.assertEqual(
                 _visit()["discharge_note_full"][
@@ -389,7 +446,10 @@ class PipelineTests(unittest.TestCase):
                 _visit(
                     subject_id=str(index),
                     hadm_id=str(10 + index),
-                    discharge_note_full="Chief Complaint:\nChest pain\n",
+                    discharge_note_full=(
+                        "Chief Complaint:\nChest pain\n"
+                        "History of Present Illness:\nDyspnea today.\n"
+                    ),
                 )
                 for index in range(3)
             ]

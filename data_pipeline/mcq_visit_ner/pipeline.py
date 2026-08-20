@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import sys
 import threading
 import time
@@ -113,12 +114,67 @@ BARE_ADJECTIVE_STOPLIST = {
 
 DEFAULT_CHUNK_CHARS = 3000
 DEFAULT_OVERLAP_CHARS = 200
-DEFAULT_MAX_TOKENS = 6000
+DEFAULT_MAX_TOKENS = 2500
 DEFAULT_REQUESTS_PER_MINUTE = 30
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_WORKERS = 1
 DEFAULT_TIMEOUT_SECONDS = 300
 PROMPT_PATH = Path(__file__).resolve().parent / "prompts" / "mentions.md"
+KNOWN_MARKER = "[S]"
+
+KNOWN_TOP_LEVEL_FIELDS = (
+    "chief_complaint",
+    "ed_chief_complaint",
+    "allergies",
+    "primary_diagnosis_name",
+    "standard_diagnosis_name",
+    "rhythm",
+    "standard_rhythm",
+    "primary_service",
+    "standard_service_name",
+)
+KNOWN_CONTAINER_FIELDS = (
+    "chief_complaint_concepts",
+    "ed_chief_complaint_concepts",
+    "allergy_concepts",
+    "other_diagnoses",
+    "other_diagnoses_normalized",
+    "ed_diagnoses",
+    "ed_diagnoses_normalized",
+    "investigations",
+    "investigations_normalized",
+    "medications",
+    "medications_normalized",
+    "medrecon",
+    "medrecon_normalized",
+    "procedures",
+    "procedures_normalized",
+    "poe_lab_imaging",
+    "poe_lab_imaging_normalized",
+)
+KNOWN_VALUE_KEYS = frozenset(
+    {
+        "source",
+        "standard",
+        "source_label",
+        "standard_test_name",
+        "label",
+        "source_exam_name",
+        "standard_exam_name",
+        "exam_name",
+        "source_drug",
+        "standard_ingredients",
+        "drug",
+        "name",
+        "etcdescription",
+        "procedure_name",
+        "standard_procedure_name",
+        "icd_title",
+        "diagnosis_name",
+        "order_type",
+        "order_subtype",
+    }
+)
 
 
 class _TokenBucket:
@@ -156,6 +212,93 @@ def _has_alphanumeric(value: str) -> bool:
 
 def default_prompt_text() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8")
+
+
+def _add_known_surface(result: set[str], value: object) -> None:
+    if not isinstance(value, str):
+        return
+    surface = " ".join(value.split()).strip()
+    if len(surface) < 2 or not _has_alphanumeric(surface):
+        return
+    if surface.replace(".", "").replace("-", "").isdigit() and len(surface) < 4:
+        return
+    result.add(surface)
+
+
+def _collect_known_values(result: set[str], value: object, key: str | None = None) -> None:
+    if isinstance(value, Mapping):
+        for child_key, child_value in value.items():
+            if child_key in KNOWN_VALUE_KEYS:
+                if isinstance(child_value, Sequence) and not isinstance(child_value, str):
+                    for item in child_value:
+                        _add_known_surface(result, item)
+                else:
+                    _add_known_surface(result, child_value)
+            if isinstance(child_value, (Mapping, list, tuple)):
+                _collect_known_values(result, child_value, child_key)
+        return
+    if isinstance(value, (list, tuple)):
+        for item in value:
+            if isinstance(item, str) and key in KNOWN_CONTAINER_FIELDS:
+                _add_known_surface(result, item)
+            else:
+                _collect_known_values(result, item, key)
+
+
+def known_surfaces_for_visit(visit: Mapping[str, Any]) -> tuple[str, ...]:
+    """Return clinical surfaces already represented by structured visit fields."""
+    result: set[str] = set()
+    for field in KNOWN_TOP_LEVEL_FIELDS:
+        _add_known_surface(result, visit.get(field))
+    for field in KNOWN_CONTAINER_FIELDS:
+        _collect_known_values(result, visit.get(field), field)
+    return tuple(sorted(result, key=lambda item: (-len(item), item.casefold())))
+
+
+def _surface_pattern(surface: str) -> re.Pattern[str]:
+    parts = [re.escape(part) for part in surface.split()]
+    body = r"\s+".join(parts)
+    prefix = r"(?<!\w)" if surface[0].isalnum() else ""
+    suffix = r"(?!\w)" if surface[-1].isalnum() else ""
+    return re.compile(prefix + body + suffix, flags=re.IGNORECASE)
+
+
+def mask_structured_surfaces(
+    text: str, surfaces: Sequence[str]
+) -> tuple[str, list[dict[str, Any]], int]:
+    """Replace non-overlapping known spans and report residual alphanumeric chars."""
+    candidates: list[tuple[int, int, str]] = []
+    for surface in surfaces:
+        for match in _surface_pattern(surface).finditer(text):
+            candidates.append((match.start(), match.end(), surface))
+    candidates.sort(key=lambda item: (item[0], -(item[1] - item[0]), item[2].casefold()))
+    selected: list[tuple[int, int, str]] = []
+    occupied_end = -1
+    for start, end, surface in candidates:
+        if start < occupied_end:
+            continue
+        selected.append((start, end, surface))
+        occupied_end = end
+
+    pieces: list[str] = []
+    cursor = 0
+    spans: list[dict[str, Any]] = []
+    for start, end, surface in selected:
+        prefix = text[cursor:start]
+        pieces.append(prefix)
+        pieces.append(KNOWN_MARKER)
+        spans.append({"start": start, "end": end, "surface": text[start:end]})
+        cursor = end
+    suffix = text[cursor:]
+    pieces.append(suffix)
+    model_text = "".join(pieces)
+    meaningful_alnum = 0
+    for line in model_text.replace(KNOWN_MARKER, "").splitlines():
+        stripped = line.strip()
+        if not stripped or (stripped.endswith(":") and len(stripped) <= 80):
+            continue
+        meaningful_alnum += sum(character.isalnum() for character in stripped)
+    return model_text, spans, meaningful_alnum
 
 
 def chunk_text(text: str, max_chars: int, overlap: int) -> list[tuple[int, int]]:
@@ -241,11 +384,15 @@ def iter_visit_documents(
             emitted_visits += 1
             continue
         emitted_visits += 1
+        known_surfaces = known_surfaces_for_visit(visit)
         for field, text in pairs:
             spans = chunk_text(text, max_chunk_chars, overlap_chars)
             source_hash = sha256_text(text)
             for chunk_index, (start, end) in enumerate(spans):
                 chunk = text[start:end]
+                model_text, known_spans, residual_alnum = mask_structured_surfaces(
+                    chunk, known_surfaces
+                )
                 yield {
                     "doc_id": f"{hadm_id}:{field}:{chunk_index}",
                     "subject_id": subject_id,
@@ -258,6 +405,12 @@ def iter_visit_documents(
                     "source_text_sha256": source_hash,
                     "chunk_text": chunk,
                     "chunk_text_sha256": sha256_text(chunk),
+                    "model_text": model_text,
+                    "model_text_sha256": sha256_text(model_text),
+                    "known_spans": known_spans,
+                    "known_span_count": len(known_spans),
+                    "residual_alnum_chars": residual_alnum,
+                    "skip_model": residual_alnum == 0,
                 }
 
 
@@ -373,6 +526,10 @@ def prepare(
     visits = 0
     chunks = 0
     fields_used: dict[str, int] = {}
+    source_chars = 0
+    model_chars = 0
+    known_spans = 0
+    skipped_chunks = 0
     empty_visits = 0
     seen_hadm: set[str] = set()
     for visit in iter_json_array(input_path):
@@ -398,6 +555,10 @@ def prepare(
             _append_jsonl(documents_path, row)
             chunks += 1
             fields_used[row["field"]] = fields_used.get(row["field"], 0) + 1
+            source_chars += len(row["chunk_text"])
+            model_chars += len(row["model_text"])
+            known_spans += int(row["known_span_count"])
+            skipped_chunks += int(bool(row["skip_model"]))
 
     summary = {
         "visits_selected": visits,
@@ -405,6 +566,14 @@ def prepare(
         "empty_visits": empty_visits,
         "chunks": chunks,
         "field_chunk_counts": fields_used,
+        "source_chars": source_chars,
+        "model_chars": model_chars,
+        "model_char_reduction_rate": (
+            round(1 - model_chars / source_chars, 4) if source_chars else 0.0
+        ),
+        "known_spans": known_spans,
+        "skipped_chunks": skipped_chunks,
+        "api_candidate_chunks": chunks - skipped_chunks,
         "documents_path": str(documents_path),
         "prepared_at_utc": _utc_now(),
         "gold_status": "exploratory_unreviewed",
@@ -482,14 +651,20 @@ def extract_mentions_for_chunk(
     transport: Transport | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, int], int]:
     chunk_text_value = doc["chunk_text"]
+    model_text_value = doc.get("model_text", chunk_text_value)
     payload = {
         "doc_id": doc["doc_id"],
         "hadm_id": doc["hadm_id"],
         "field": doc["field"],
         "chunk_index": doc["chunk_index"],
         "chunk_count": doc["chunk_count"],
-        "section_text_sha256": doc["chunk_text_sha256"],
-        "section_text": chunk_text_value,
+        "section_text_sha256": doc.get(
+            "model_text_sha256", doc["chunk_text_sha256"]
+        ),
+        "source_chunk_text_sha256": doc["chunk_text_sha256"],
+        "section_text": model_text_value,
+        "already_structured_marker": KNOWN_MARKER,
+        "already_structured_span_count": doc.get("known_span_count", 0),
     }
     parsed, usage, attempts = call_with_retry(
         settings,
@@ -506,6 +681,8 @@ def extract_mentions_for_chunk(
         raise NerError("MENTIONS_NOT_LIST", type(raw_mentions).__name__)
     grounded: list[dict[str, Any]] = []
     dropped_ungrounded = 0
+    dropped_already_structured = 0
+    known_spans = doc.get("known_spans") or []
     for raw in raw_mentions:
         if not isinstance(raw, dict):
             continue
@@ -517,6 +694,13 @@ def extract_mentions_for_chunk(
             dropped_ungrounded += 1
             continue
         start, end, rewritten = located
+        if any(
+            start < int(known.get("end", -1)) and end > int(known.get("start", -1))
+            for known in known_spans
+            if isinstance(known, Mapping)
+        ):
+            dropped_already_structured += 1
+            continue
         if rewritten:
             mention["surface_text"] = chunk_text_value[start:end]
         mention["chunk_span_start"] = start
@@ -526,6 +710,7 @@ def extract_mentions_for_chunk(
         grounded.append(mention)
     usage_out = dict(usage)
     usage_out["dropped_ungrounded"] = dropped_ungrounded
+    usage_out["dropped_already_structured"] = dropped_already_structured
     return grounded, usage_out, attempts
 
 
@@ -606,19 +791,30 @@ def run_mentions(
         )
 
     def process_doc(doc: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-        if limiter is not None:
+        if limiter is not None and not doc.get("skip_model"):
             limiter.acquire()
         try:
-            mentions, usage, attempts = extract_mentions_for_chunk(
-                settings,
-                system_prompt,
-                doc,
-                max_tokens=max_tokens,
-                maximum_retries=maximum_retries,
-                interval_seconds=interval,
-                timeout_seconds=timeout_seconds,
-                transport=transport,
-            )
+            if doc.get("skip_model"):
+                mentions = []
+                usage = {
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "dropped_ungrounded": 0,
+                    "dropped_already_structured": 0,
+                }
+                attempts = 0
+            else:
+                mentions, usage, attempts = extract_mentions_for_chunk(
+                    settings,
+                    system_prompt,
+                    doc,
+                    max_tokens=max_tokens,
+                    maximum_retries=maximum_retries,
+                    interval_seconds=interval,
+                    timeout_seconds=timeout_seconds,
+                    transport=transport,
+                )
         except NerError as error:
             return (
                 "fail",
@@ -653,6 +849,9 @@ def run_mentions(
             "chunk_end": doc["chunk_end"],
             "source_text_sha256": doc["source_text_sha256"],
             "chunk_text_sha256": doc["chunk_text_sha256"],
+            "model_text_sha256": doc.get("model_text_sha256"),
+            "known_span_count": doc.get("known_span_count", 0),
+            "skipped_model": bool(doc.get("skip_model")),
             "extractor_name": f"{settings.provider}/{settings.model}",
             "extractor_version": settings.model_version,
             "mentions": mentions,
@@ -661,6 +860,9 @@ def run_mentions(
                 for key in ("prompt_tokens", "completion_tokens", "total_tokens")
             },
             "dropped_ungrounded": usage.get("dropped_ungrounded", 0),
+            "dropped_already_structured": usage.get(
+                "dropped_already_structured", 0
+            ),
             "model_calls": attempts,
             "recorded_at_utc": _utc_now(),
         }
@@ -708,7 +910,9 @@ def run_mentions(
         for index, doc in enumerate(pending, start=1):
             kind, payload = process_doc(doc)
             handle(kind, payload)
-            if index < len(pending):
+            if not doc.get("skip_model") and any(
+                not row.get("skip_model") for row in pending[index:]
+            ):
                 sleep(interval)
 
     remaining = len(pending) - successful - failed_count

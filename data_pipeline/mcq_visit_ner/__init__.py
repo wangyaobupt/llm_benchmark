@@ -4,4 +4,4 @@ from __future__ import annotations
 
 __all__ = ["PIPELINE_VERSION"]
 
-PIPELINE_VERSION = "mcq-visit-ner/1.0.0"
+PIPELINE_VERSION = "mcq-visit-ner/1.1.0"
